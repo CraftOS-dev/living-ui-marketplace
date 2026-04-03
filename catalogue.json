@@ -1,0 +1,16 @@
+{
+  "version": "1.0.0",
+  "apps": [
+    {
+      "id": "research-board",
+      "name": "Research Board",
+      "description": "Organize research with notes, images, videos, YouTube links, and documents on a visual board. Features categories, search, and detail views.",
+      "folder": "research-board",
+      "tags": ["research", "media", "productivity"],
+      "version": "1.0.0",
+      "customizable": [
+        {"key": "APP_TITLE", "label": "Board Title", "type": "text", "default": "Research Board", "placeholder": "e.g., Game Design Board"}
+      ]
+    }
+  ]
+}
