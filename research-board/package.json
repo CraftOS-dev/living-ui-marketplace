@@ -1,7 +1,7 @@
 {
   "name": "Research Board",
   "version": "1.0.0",
-  "description": "Research Board - A whiteboard app for game design research and planning.",
+  "description": "Research Board - A whiteboard app for Research and planning.",
   "type": "module",
   "scripts": {
     "dev": "vite",

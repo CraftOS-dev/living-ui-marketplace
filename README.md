@@ -6,7 +6,7 @@ Pre-built Living UI applications for CraftBot. Browse and install instantly from
 
 | App | Description |
 |-----|-------------|
-| **Game Design Research Board** | Organize game design research with notes, images, videos, YouTube links, and documents |
+| **Research Board** | Organize Research with notes, images, videos, YouTube links, and documents |
 
 ## How to Use
 

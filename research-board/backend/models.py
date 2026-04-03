@@ -89,7 +89,7 @@ class UIScreenshot(Base):
 
 class BoardItem(Base):
     """
-    A board item on the game design research canvas.
+    A board item on the Research canvas.
 
     Supports multiple types: image, video, youtube, doc, note.
     Each item has a canvas position (x, y) for free-form placement.

@@ -1,7 +1,7 @@
 # Research Board - Living UI
 
 ## Project Overview
-A free-form canvas whiteboard app for game design research and planning.
+A free-form canvas whiteboard app for Research and planning.
 Users can attach images, videos, YouTube links, docs, and notes to a whiteboard.
 
 ## Requirements
