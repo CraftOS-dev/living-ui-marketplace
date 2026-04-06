@@ -11,6 +11,46 @@
       "customizable": [
         {"key": "APP_TITLE", "label": "Board Title", "type": "text", "default": "Research Board", "placeholder": "e.g., Game Design Board"}
       ]
-    }
+    },
+	{
+      "id": "kanban-board",
+      "name": "Kanban Board",
+      "description": "A Trello-like Kanban board for organizing tasks with drag-and-drop, labels, priorities, checklists, and due dates",
+      "folder": "kanban-board",
+      "tags": ["kanban", "project management", "productivity"],
+      "version": "1.0.0"
+    },
+	{
+      "id": "ledgerflow",
+      "name": "Ledgerflow",
+      "description": "Comprehensive bookkeeping app for personal and business use with income/expense tracking, invoicing, bills, contacts, and financial reports.",
+      "folder": "ledgerflow",
+      "tags": ["bookkeeping", "finance", "productivity"],
+      "version": "1.0.0"
+    },
+	{
+      "id": "luolinglo",
+      "name": "Luolinglo",
+      "description": "Language learning app with vocabulary, flashcards, quizzes, AI teacher, and heavy gamification.",
+      "folder": "luolinglo",
+      "tags": ["language", "education"],
+      "version": "1.0.0"
+    },
+	{
+      "id": "trading-view",
+      "name": "Trading View",
+      "description": "TradingView-like trading dashboard with interactive charts, technical indicators, and customizable widget layout.",
+      "folder": "trading-view",
+      "tags": ["finance", "stock"],
+      "version": "1.0.0"
+    },
+	{
+      "id": "crm_system",
+      "name": "CRM System",
+      "description": "Comprehensive CRM system with contacts, companies, deals pipeline, AI-powered lead scoring, email generation, sales forecasting, SMTP email, campaigns, and full reporting",
+      "folder": "crm_system",
+      "tags": ["CRM", "productivity", "marketing", "business"],
+      "version": "1.0.0"
+    },
   ]
 }
