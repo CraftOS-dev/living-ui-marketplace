@@ -1,14 +1,14 @@
-import { Card, Badge, Button } from '../ui'
+import { Card, Badge } from '../ui'
+import { Youtube, MessageCircle, Twitter, BookOpen } from 'lucide-react'
 import type { IntegrationStatus, YouTubeChannel, YouTubeVideo } from '../../types'
+import type { ReactNode } from 'react'
 
-const PLATFORM_INFO: Record<string, { label: string; emoji: string }> = {
-  google_workspace: { label: 'Google (YouTube, Gmail)', emoji: '🔴' },
-  discord: { label: 'Discord', emoji: '💬' },
-  twitter: { label: 'Twitter / X', emoji: '🐦' },
-  notion: { label: 'Notion', emoji: '📝' },
-  slack: { label: 'Slack', emoji: '💼' },
-  telegram_bot: { label: 'Telegram', emoji: '✈️' },
-  github: { label: 'GitHub', emoji: '🐙' },
+// Only show platforms relevant to content creators
+const PLATFORM_INFO: Record<string, { label: string; icon: ReactNode; color: string }> = {
+  google_workspace: { label: 'YouTube & Gmail', icon: <Youtube size={24} />, color: '#FF0000' },
+  discord: { label: 'Discord', icon: <MessageCircle size={24} />, color: '#5865F2' },
+  twitter: { label: 'Twitter / X', icon: <Twitter size={24} />, color: '#1DA1F2' },
+  notion: { label: 'Notion', icon: <BookOpen size={24} />, color: '#000000' },
 }
 
 interface DashboardProps {
@@ -27,7 +27,6 @@ function formatCount(n: number): string {
 export function DashboardView({ integrationStatus, channels, videos, onViewYouTube }: DashboardProps) {
   const channel = channels[0]
   const recentVideos = videos.slice(0, 5)
-  const totalViews = videos.reduce((sum, v) => sum + v.viewCount, 0)
   const totalLikes = videos.reduce((sum, v) => sum + v.likeCount, 0)
 
   return (
@@ -48,18 +47,16 @@ export function DashboardView({ integrationStatus, channels, videos, onViewYouTu
             </div>
           </Card>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 'var(--space-3)' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 'var(--space-3)' }}>
             {integrationStatus.integrations
               .filter(i => PLATFORM_INFO[i.id])
               .map(i => {
                 const info = PLATFORM_INFO[i.id]
                 return (
                   <Card key={i.id}>
-                    <div style={{ padding: 'var(--space-3)', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-                      <span style={{ fontSize: '20px' }}>{info.emoji}</span>
-                      <div style={{ flex: 1 }}>
-                        <span style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--font-medium)' }}>{info.label}</span>
-                      </div>
+                    <div style={{ padding: 'var(--space-4)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'var(--space-2)', textAlign: 'center' }}>
+                      <span style={{ color: info.color }}>{info.icon}</span>
+                      <span style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--font-medium)' }}>{info.label}</span>
                       <Badge variant={i.connected ? 'success' : 'default'} size="sm" dot>
                         {i.connected ? 'Connected' : 'Not connected'}
                       </Badge>
@@ -122,7 +119,7 @@ export function DashboardView({ integrationStatus, channels, videos, onViewYouTu
                 <Card key={video.videoId}>
                   <div style={{ padding: 'var(--space-2) var(--space-3)', display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
                     {video.thumbnailUrl && (
-                      <img src={video.thumbnailUrl} alt="" style={{ width: 80, height: 45, borderRadius: 'var(--radius-sm)', objectFit: 'cover' }} />
+                      <img src={video.thumbnailUrl} alt="" referrerPolicy="no-referrer" style={{ width: 80, height: 45, borderRadius: 'var(--radius-sm)', objectFit: 'cover' }} />
                     )}
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <span style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--font-medium)', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>

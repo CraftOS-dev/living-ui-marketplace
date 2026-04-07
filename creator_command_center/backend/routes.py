@@ -196,17 +196,19 @@ async def sync_youtube(db: Session = Depends(get_db)):
             if existing:
                 existing.title = snippet.get("title", existing.title)
                 existing.description = snippet.get("description", "")
-                existing.thumbnail_url = snippet.get("thumbnails", {}).get("default", {}).get("url", "")
+                thumbs = snippet.get("thumbnails", {})
+                existing.thumbnail_url = (thumbs.get("high") or thumbs.get("medium") or thumbs.get("default", {})).get("url", "")
                 existing.subscriber_count = int(stats.get("subscriberCount", 0))
                 existing.video_count = int(stats.get("videoCount", 0))
                 existing.view_count = int(stats.get("viewCount", 0))
                 existing.synced_at = datetime.utcnow()
             else:
+                thumbs = snippet.get("thumbnails", {})
                 channel = YouTubeChannel(
                     channel_id=channel_id,
                     title=snippet.get("title", ""),
                     description=snippet.get("description", ""),
-                    thumbnail_url=snippet.get("thumbnails", {}).get("default", {}).get("url", ""),
+                    thumbnail_url=(thumbs.get("high") or thumbs.get("medium") or thumbs.get("default", {})).get("url", ""),
                     subscriber_count=int(stats.get("subscriberCount", 0)),
                     video_count=int(stats.get("videoCount", 0)),
                     view_count=int(stats.get("viewCount", 0)),

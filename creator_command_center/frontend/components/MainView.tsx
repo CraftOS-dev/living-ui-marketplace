@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Button } from './ui'
+import { LayoutDashboard, Youtube, MessageCircle, Twitter, BookOpen } from 'lucide-react'
 import type { AppController } from '../AppController'
 import type { AppState, IntegrationStatus, YouTubeChannel, YouTubeVideo } from '../types'
 import { DashboardView } from './dashboard/DashboardView'
 import { YouTubeView } from './youtube/YouTubeView'
+import type { ReactNode } from 'react'
 
 type Tab = 'dashboard' | 'youtube' | 'discord' | 'twitter' | 'notion'
 
@@ -11,12 +12,12 @@ interface MainViewProps {
   controller: AppController
 }
 
-const TABS: { key: Tab; label: string; emoji: string; phase?: number }[] = [
-  { key: 'dashboard', label: 'Dashboard', emoji: '🏠' },
-  { key: 'youtube', label: 'YouTube', emoji: '🔴' },
-  { key: 'discord', label: 'Discord', emoji: '💬', phase: 2 },
-  { key: 'twitter', label: 'Twitter', emoji: '🐦', phase: 3 },
-  { key: 'notion', label: 'Notion', emoji: '📝', phase: 4 },
+const TABS: { key: Tab; label: string; icon: ReactNode; phase?: number }[] = [
+  { key: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={16} /> },
+  { key: 'youtube', label: 'YouTube', icon: <Youtube size={16} /> },
+  { key: 'discord', label: 'Discord', icon: <MessageCircle size={16} />, phase: 2 },
+  { key: 'twitter', label: 'Twitter', icon: <Twitter size={16} />, phase: 3 },
+  { key: 'notion', label: 'Notion', icon: <BookOpen size={16} />, phase: 4 },
 ]
 
 export function MainView({ controller }: MainViewProps) {
@@ -72,7 +73,7 @@ export function MainView({ controller }: MainViewProps) {
             fontSize: 'var(--text-sm)', cursor: tab.phase ? 'default' : 'pointer', fontFamily: 'inherit', textAlign: 'left',
             opacity: tab.phase ? 0.5 : 1,
           }}>
-            <span>{tab.emoji}</span>
+            {tab.icon}
             <span>{tab.label}</span>
             {tab.phase && <span style={{ fontSize: 'var(--text-xs)', marginLeft: 'auto' }}>Soon</span>}
           </button>

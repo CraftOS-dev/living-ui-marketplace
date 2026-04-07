@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Button, Card, Badge, EmptyState } from '../ui'
+import { RefreshCw, Users, Eye, Film } from 'lucide-react'
+import { Button, Card, EmptyState } from '../ui'
 import { VideoCard } from './VideoCard'
 import type { AppController } from '../../AppController'
 import type { YouTubeChannel, YouTubeVideo } from '../../types'
@@ -46,7 +47,8 @@ export function YouTubeView({ controller, channels, videos, isConnected, onDataC
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-4)' }}>
         <h2 style={{ fontSize: 'var(--text-xl)', fontWeight: 'var(--font-semibold)', margin: 0 }}>YouTube</h2>
         <Button variant="primary" onClick={handleSync} loading={syncing}>
-          {syncing ? 'Syncing...' : '🔄 Sync YouTube'}
+          <RefreshCw size={14} style={syncing ? { animation: 'spin 1s linear infinite' } : undefined} />
+          {syncing ? 'Syncing...' : 'Sync YouTube'}
         </Button>
       </div>
 
@@ -56,7 +58,7 @@ export function YouTubeView({ controller, channels, videos, isConnected, onDataC
           <Card>
             <div style={{ padding: 'var(--space-4)', display: 'flex', alignItems: 'center', gap: 'var(--space-4)' }}>
               {channel.thumbnailUrl && (
-                <img src={channel.thumbnailUrl} alt="" style={{ width: 64, height: 64, borderRadius: '50%' }} />
+                <img src={channel.thumbnailUrl} alt="" referrerPolicy="no-referrer" crossOrigin="anonymous" style={{ width: 64, height: 64, borderRadius: '50%' }} />
               )}
               <div style={{ flex: 1 }}>
                 <h3 style={{ fontSize: 'var(--text-lg)', fontWeight: 'var(--font-semibold)', margin: 0 }}>{channel.title}</h3>
@@ -71,19 +73,19 @@ export function YouTubeView({ controller, channels, videos, isConnected, onDataC
                   <p style={{ fontSize: 'var(--text-lg)', fontWeight: 'var(--font-bold)', color: 'var(--color-primary)' }}>
                     {formatCount(channel.subscriberCount)}
                   </p>
-                  <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)' }}>Subscribers</p>
+                  <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 4, justifyContent: 'center' }}><Users size={12} /> Subscribers</p>
                 </div>
                 <div>
                   <p style={{ fontSize: 'var(--text-lg)', fontWeight: 'var(--font-bold)', color: 'var(--color-primary)' }}>
                     {formatCount(channel.viewCount)}
                   </p>
-                  <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)' }}>Views</p>
+                  <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 4, justifyContent: 'center' }}><Eye size={12} /> Views</p>
                 </div>
                 <div>
                   <p style={{ fontSize: 'var(--text-lg)', fontWeight: 'var(--font-bold)', color: 'var(--color-primary)' }}>
                     {channel.videoCount}
                   </p>
-                  <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)' }}>Videos</p>
+                  <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 4, justifyContent: 'center' }}><Film size={12} /> Videos</p>
                 </div>
               </div>
             </div>

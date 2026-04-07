@@ -7,7 +7,7 @@
  */
 
 // Backend URL is set during project creation via placeholder replacement
-const BACKEND_URL = 'http://localhost:{{BACKEND_PORT}}'
+const BACKEND_URL = 'http://localhost:3109'
 
 export interface ActionRequest {
   action: string

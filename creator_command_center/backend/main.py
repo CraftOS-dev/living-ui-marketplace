@@ -5,7 +5,7 @@ FastAPI backend for Living UI projects.
 Provides REST API for state management and data persistence.
 
 To run manually:
-    uvicorn main:app --port {{BACKEND_PORT}} --reload
+    uvicorn main:app --port 3109 --reload
 """
 
 from fastapi import FastAPI
@@ -30,7 +30,7 @@ async def lifespan(app: FastAPI):
     logger.info("[Backend] Initializing database...")
     await init_db()
     logger.info("[Backend] Database initialized")
-    start_health_checker(port={{BACKEND_PORT}})
+    start_health_checker(port=3109)
     logger.info("[Backend] Health checker started")
     yield
     stop_health_checker()
@@ -38,8 +38,8 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="{{PROJECT_NAME}} API",
-    description="Backend API for {{PROJECT_NAME}} Living UI",
+    title="Creator Command Center API",
+    description="Backend API for Creator Command Center Living UI",
     version="1.0.0",
     lifespan=lifespan,
 )
@@ -98,4 +98,4 @@ async def capture_frontend_logs(data: _FrontendLogBatch):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port={{BACKEND_PORT}})
+    uvicorn.run(app, host="0.0.0.0", port=3109)

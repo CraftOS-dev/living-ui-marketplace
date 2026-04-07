@@ -544,7 +544,7 @@ def _cleanup_test_data(
 
 # TODO: Regex-based extraction is fragile and produces false positives.
 # It cannot reliably parse template literals where the base URL contains /api
-# (e.g., `${this.baseUrl}/items/${id}` where baseUrl='http://localhost:{{BACKEND_PORT}}/api').
+# (e.g., `${this.baseUrl}/items/${id}` where baseUrl='http://localhost:3109/api').
 # Consider replacing with TypeScript AST parsing or a frontend API manifest.
 #
 # Regex patterns to extract fetch/API calls from TypeScript/JavaScript

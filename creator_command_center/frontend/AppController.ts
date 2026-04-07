@@ -2,10 +2,9 @@ import type {
   AppState, IntegrationStatus, YouTubeChannel, YouTubeVideo, SyncResult
 } from './types'
 import { ApiService } from './services/ApiService'
-import { stateCache } from './services/StatePersistence'
 import { toast } from 'react-toastify'
 
-const BACKEND_URL = (window as any).__CRAFTBOT_BACKEND_URL__ || 'http://localhost:{{BACKEND_PORT}}'
+const BACKEND_URL = (window as any).__CRAFTBOT_BACKEND_URL__ || 'http://localhost:3109'
 
 export class AppController {
   private state: AppState = { initialized: false, loading: true, error: null }
