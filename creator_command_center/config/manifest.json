@@ -1,19 +1,19 @@
 {
-  "id": "creator-cmd",
-  "name": "Creator Command Center",
+  "id": "{{PROJECT_ID}}",
+  "name": "{{PROJECT_NAME}}",
   "version": "1.0.0",
-  "description": "Multi-platform dashboard for content creators. Pull real data from YouTube, Discord, Twitter, and Notion through CraftBot's integration bridge.",
+  "description": "{{PROJECT_DESCRIPTION}}",
   "author": "CraftBot",
   "livingUIVersion": "1.0",
   "features": ["youtube", "integrations"],
-  "createdAt": "2026-04-07T00:00:00Z",
+  "createdAt": "{{CREATED_AT}}",
   "entrypoint": {
     "frontend": "src/main.tsx",
     "backend": "backend/main.py"
   },
   "ports": {
-    "frontend": 3108,
-    "backend": 3109
+    "frontend": {{PORT}},
+    "backend": {{BACKEND_PORT}}
   },
   "pipeline": {
     "backend": {
@@ -22,15 +22,15 @@
       "tests": [
         {"name": "agent_tests", "command": "python -m pytest tests/ -v --tb=short", "required": true}
       ],
-      "start": "python -m uvicorn main:app --host 0.0.0.0 --port 3109",
-      "health": "http://localhost:3109/health",
+      "start": "python -m uvicorn main:app --host 0.0.0.0 --port {{BACKEND_PORT}}",
+      "health": "http://localhost:{{BACKEND_PORT}}/health",
       "post_start_tests": []
     },
     "frontend": {
       "cwd": ".",
       "install": "npm install",
       "build": "npm run build",
-      "start": "npm run preview -- --port 3108",
+      "start": "npm run preview -- --port {{PORT}}",
       "health": null
     }
   },
@@ -41,5 +41,5 @@
     "reportUserInputs": true,
     "reportVisibleText": true
   },
-  "theme": "system"
+  "theme": "{{THEME}}"
 }

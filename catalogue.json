@@ -56,7 +56,7 @@
       "id": "creator-command-center",
       "name": "Creator Command Center",
       "description": "Multi-platform dashboard for content creators. Pulls real data from YouTube, Discord, Twitter, and Notion via CraftBot integrations. See your subscribers, videos, community, and content pipeline in one place.",
-      "folder": "creator-command-center",
+      "folder": "creator_command_center",
       "tags": ["creator", "youtube", "social-media", "dashboard", "integrations"],
       "version": "1.0.0"
     }
