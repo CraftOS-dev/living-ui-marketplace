@@ -10,8 +10,10 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from typing import Dict, Any, List, Optional
 from database import get_db
-from models import AppState, YouTubeChannel, YouTubeVideo, UISnapshot, UIScreenshot
+from models import AppState, YouTubeChannel, YouTubeVideo, UISnapshot, UIScreenshot, ContentAnalysis
 from datetime import datetime
+from fastapi import BackgroundTasks
+import asyncio
 import logging
 
 logger = logging.getLogger(__name__)
@@ -177,6 +179,11 @@ async def sync_youtube(db: Session = Depends(get_db)):
 
     errors = []
 
+    # Clear old cached data before syncing fresh
+    db.query(YouTubeChannel).delete()
+    db.query(YouTubeVideo).delete()
+    db.commit()
+
     # 1. Sync channels
     channel_result = await integration.request(
         integration="google_workspace",
@@ -287,3 +294,63 @@ async def sync_youtube(db: Session = Depends(get_db)):
         "videos": [v.to_dict() for v in videos],
         "syncedAt": datetime.utcnow().isoformat(),
     }
+
+
+# ============================================================================
+# Content Analysis
+# ============================================================================
+
+@router.post("/analysis/start")
+async def start_analysis(db: Session = Depends(get_db)):
+    """Start a new content analysis. Runs in the background."""
+    from database import SessionLocal
+
+    # Check if an analysis is already running
+    running = db.query(ContentAnalysis).filter(ContentAnalysis.status == "running").first()
+    if running:
+        return {"status": "already_running", "analysisId": running.id, "progress": running.progress}
+
+    analysis = ContentAnalysis(status="pending", progress=0, progress_message="Starting analysis...")
+    db.add(analysis)
+    db.commit()
+    db.refresh(analysis)
+
+    # Run in background
+    from services.analysis_service import run_analysis
+    asyncio.create_task(run_analysis(analysis.id, SessionLocal))
+
+    return {"status": "started", "analysisId": analysis.id}
+
+
+@router.get("/analysis/status/{analysis_id}")
+def get_analysis_status(analysis_id: int, db: Session = Depends(get_db)):
+    """Get progress of a running analysis."""
+    analysis = db.query(ContentAnalysis).filter(ContentAnalysis.id == analysis_id).first()
+    if not analysis:
+        raise HTTPException(status_code=404, detail="Analysis not found")
+    return {
+        "id": analysis.id,
+        "status": analysis.status,
+        "progress": analysis.progress,
+        "progressMessage": analysis.progress_message,
+    }
+
+
+@router.get("/analysis/latest")
+def get_latest_analysis(db: Session = Depends(get_db)):
+    """Get the most recent completed analysis."""
+    analysis = db.query(ContentAnalysis).filter(
+        ContentAnalysis.status == "completed"
+    ).order_by(ContentAnalysis.completed_at.desc()).first()
+    if not analysis:
+        return None
+    return analysis.to_dict()
+
+
+@router.get("/analysis/{analysis_id}")
+def get_analysis(analysis_id: int, db: Session = Depends(get_db)):
+    """Get a specific analysis result."""
+    analysis = db.query(ContentAnalysis).filter(ContentAnalysis.id == analysis_id).first()
+    if not analysis:
+        raise HTTPException(status_code=404, detail="Analysis not found")
+    return analysis.to_dict()

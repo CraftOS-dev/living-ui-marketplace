@@ -115,6 +115,53 @@ class IntegrationClient:
         except Exception as e:
             return {"error": str(e)}
 
+    async def llm_complete(self, prompt: str, system_message: str = None) -> str:
+        """
+        Call CraftBot's LLM for text completion.
+
+        Returns the LLM's response text, or empty string on error.
+        """
+        if not self.available:
+            return ""
+        try:
+            client = self._ensure_client()
+            body = {"prompt": prompt}
+            if system_message:
+                body["system_message"] = system_message
+            r = await client.post(
+                f"{BRIDGE_URL}/api/bridge/llm",
+                headers=self._auth_headers(),
+                json=body,
+                timeout=120,  # LLM calls can be slow
+            )
+            if r.status_code == 200:
+                return r.json().get("content", "")
+            return ""
+        except Exception:
+            return ""
+
+    async def vlm_describe(self, image_url: str, prompt: str = "Describe this image.") -> str:
+        """
+        Call CraftBot's VLM to describe/analyze an image.
+
+        Returns the VLM's description text, or empty string on error.
+        """
+        if not self.available:
+            return ""
+        try:
+            client = self._ensure_client()
+            r = await client.post(
+                f"{BRIDGE_URL}/api/bridge/vlm",
+                headers=self._auth_headers(),
+                json={"image_url": image_url, "prompt": prompt},
+                timeout=60,
+            )
+            if r.status_code == 200:
+                return r.json().get("description", "")
+            return ""
+        except Exception:
+            return ""
+
     async def close(self):
         """Close the HTTP client."""
         if self._client:

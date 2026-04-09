@@ -1,18 +1,20 @@
 import { useState, useEffect, useCallback } from 'react'
-import { LayoutDashboard, Youtube, MessageCircle, Twitter, BookOpen } from 'lucide-react'
+import { LayoutDashboard, Youtube, MessageCircle, Twitter, BookOpen, Brain } from 'lucide-react'
 import type { AppController } from '../AppController'
 import type { AppState, IntegrationStatus, YouTubeChannel, YouTubeVideo } from '../types'
 import { DashboardView } from './dashboard/DashboardView'
 import { YouTubeView } from './youtube/YouTubeView'
+import { AnalysisView } from './analysis/AnalysisView'
 import type { ReactNode } from 'react'
 
-type Tab = 'dashboard' | 'youtube' | 'discord' | 'twitter' | 'notion'
+type Tab = 'analysis' | 'dashboard' | 'youtube' | 'discord' | 'twitter' | 'notion'
 
 interface MainViewProps {
   controller: AppController
 }
 
 const TABS: { key: Tab; label: string; icon: ReactNode; phase?: number }[] = [
+  { key: 'analysis', label: 'AI Analysis', icon: <Brain size={16} /> },
   { key: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={16} /> },
   { key: 'youtube', label: 'YouTube', icon: <Youtube size={16} /> },
   { key: 'discord', label: 'Discord', icon: <MessageCircle size={16} />, phase: 2 },
@@ -22,7 +24,7 @@ const TABS: { key: Tab; label: string; icon: ReactNode; phase?: number }[] = [
 
 export function MainView({ controller }: MainViewProps) {
   const [state, setState] = useState<AppState>(controller.getState())
-  const [activeTab, setActiveTab] = useState<Tab>('dashboard')
+  const [activeTab, setActiveTab] = useState<Tab>('analysis')
   const [integrationStatus, setIntegrationStatus] = useState<IntegrationStatus>({ bridgeAvailable: false, integrations: [] })
   const [channels, setChannels] = useState<YouTubeChannel[]>([])
   const [videos, setVideos] = useState<YouTubeVideo[]>([])
@@ -82,6 +84,10 @@ export function MainView({ controller }: MainViewProps) {
 
       {/* Content */}
       <main style={{ flex: 1, padding: 'var(--space-6)', overflow: 'auto' }}>
+        {activeTab === 'analysis' && (
+          <AnalysisView controller={controller} />
+        )}
+
         {activeTab === 'dashboard' && (
           <DashboardView
             integrationStatus={integrationStatus}

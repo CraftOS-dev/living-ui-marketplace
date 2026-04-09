@@ -1,5 +1,6 @@
 import type {
-  AppState, IntegrationStatus, YouTubeChannel, YouTubeVideo, SyncResult
+  AppState, IntegrationStatus, YouTubeChannel, YouTubeVideo, SyncResult,
+  AnalysisStatus, ContentAnalysisData,
 } from './types'
 import { ApiService } from './services/ApiService'
 import { toast } from 'react-toastify'
@@ -75,5 +76,47 @@ export class AppController {
       toast.error('Failed to sync YouTube data')
       return null
     }
+  }
+
+  // ============================================================
+  // Content Analysis
+  // ============================================================
+
+  async startAnalysis(): Promise<{ analysisId: number } | null> {
+    try {
+      const resp = await fetch(`${BACKEND_URL}/api/analysis/start`, { method: 'POST' })
+      if (!resp.ok) throw new Error()
+      const data = await resp.json()
+      if (data.status === 'already_running') {
+        toast.info('Analysis already running')
+      } else {
+        toast.success('Analysis started')
+      }
+      return { analysisId: data.analysisId }
+    } catch { toast.error('Failed to start analysis'); return null }
+  }
+
+  async getAnalysisStatus(id: number): Promise<AnalysisStatus | null> {
+    try {
+      const resp = await fetch(`${BACKEND_URL}/api/analysis/status/${id}`)
+      if (!resp.ok) throw new Error()
+      return resp.json()
+    } catch { return null }
+  }
+
+  async getLatestAnalysis(): Promise<ContentAnalysisData | null> {
+    try {
+      const resp = await fetch(`${BACKEND_URL}/api/analysis/latest`)
+      if (!resp.ok) throw new Error()
+      return resp.json()
+    } catch { return null }
+  }
+
+  async getAnalysis(id: number): Promise<ContentAnalysisData | null> {
+    try {
+      const resp = await fetch(`${BACKEND_URL}/api/analysis/${id}`)
+      if (!resp.ok) throw new Error()
+      return resp.json()
+    } catch { return null }
   }
 }

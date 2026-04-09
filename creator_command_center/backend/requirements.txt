@@ -6,3 +6,4 @@ pydantic>=2.0.0
 pytest>=7.0.0
 httpx>=0.24.0
 python-multipart>=0.0.6
+youtube-transcript-api>=0.6.0
