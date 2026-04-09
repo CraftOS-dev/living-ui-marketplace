@@ -82,6 +82,19 @@ export interface ContentCategory {
   insight: string
 }
 
+export interface MetricChange {
+  metric: string
+  previous: number
+  current: number
+  change: string
+}
+
+export interface AnalysisComparison {
+  metric_changes: MetricChange[]
+  recommendation_impact: string
+  trend: 'improving' | 'declining' | 'stable'
+}
+
 export interface AnalysisReport {
   summary: string
   performance_ranking: PerformanceRanking[]
@@ -91,6 +104,7 @@ export interface AnalysisReport {
   recommendations: string[]
   content_ideas: ContentIdea[]
   todos: AnalysisTodo[]
+  comparison?: AnalysisComparison
 }
 
 export interface ContentAnalysisData {

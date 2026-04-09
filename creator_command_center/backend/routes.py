@@ -347,6 +347,20 @@ def get_latest_analysis(db: Session = Depends(get_db)):
     return analysis.to_dict()
 
 
+@router.get("/analysis/history")
+def get_analysis_history(db: Session = Depends(get_db)):
+    """Get list of past analyses."""
+    analyses = db.query(ContentAnalysis).order_by(ContentAnalysis.created_at.desc()).limit(20).all()
+    return [{
+        "id": a.id,
+        "status": a.status,
+        "summary": (a.summary or "")[:100],
+        "videoCountAnalyzed": a.video_count_analyzed,
+        "createdAt": a.created_at.isoformat() if a.created_at else None,
+        "completedAt": a.completed_at.isoformat() if a.completed_at else None,
+    } for a in analyses]
+
+
 @router.get("/analysis/{analysis_id}")
 def get_analysis(analysis_id: int, db: Session = Depends(get_db)):
     """Get a specific analysis result."""

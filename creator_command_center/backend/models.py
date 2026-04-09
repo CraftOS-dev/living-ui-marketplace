@@ -155,6 +155,7 @@ class ContentAnalysis(Base):
     todos = Column(JSON, default=list)
     content_ideas = Column(JSON, default=list)
     video_count_analyzed = Column(Integer, default=0)
+    video_metrics_snapshot = Column(JSON, default=dict)  # {video_id: {title, views, likes, comments, engagement_rate}}
     error_message = Column(Text, default="")
     created_at = Column(DateTime, default=datetime.utcnow)
     completed_at = Column(DateTime, nullable=True)
@@ -172,6 +173,7 @@ class ContentAnalysis(Base):
             "todos": self.todos or [],
             "contentIdeas": self.content_ideas or [],
             "videoCountAnalyzed": self.video_count_analyzed,
+            "videoMetricsSnapshot": self.video_metrics_snapshot or {},
             "errorMessage": self.error_message or "",
             "createdAt": self.created_at.isoformat() if self.created_at else None,
             "completedAt": self.completed_at.isoformat() if self.completed_at else None,

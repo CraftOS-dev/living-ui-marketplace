@@ -5,7 +5,7 @@ import type {
 import { ApiService } from './services/ApiService'
 import { toast } from 'react-toastify'
 
-const BACKEND_URL = (window as any).__CRAFTBOT_BACKEND_URL__ || 'http://localhost:3109'
+const BACKEND_URL = (window as any).__CRAFTBOT_BACKEND_URL__ || 'http://localhost:{{BACKEND_PORT}}'
 
 export class AppController {
   private state: AppState = { initialized: false, loading: true, error: null }

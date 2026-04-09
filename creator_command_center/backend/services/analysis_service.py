@@ -133,9 +133,11 @@ async def run_analysis(analysis_id: int, db_factory):
 
         # Build video data for the prompt
         video_data = []
+        metrics_snapshot = {}
         for v in videos:
             transcript = transcripts.get(v.video_id)
             thumbnail = thumbnails.get(v.video_id)
+            engagement_rate = round((v.like_count + v.comment_count) / max(v.view_count, 1) * 100, 2)
             video_data.append({
                 "title": v.title,
                 "description": (v.description or "")[:300],
@@ -144,10 +146,22 @@ async def run_analysis(analysis_id: int, db_factory):
                 "views": v.view_count,
                 "likes": v.like_count,
                 "comments": v.comment_count,
-                "engagement_rate": round((v.like_count + v.comment_count) / max(v.view_count, 1) * 100, 2),
+                "engagement_rate": engagement_rate,
                 "transcript_excerpt": (transcript.transcript_text[:1500] if transcript else ""),
                 "thumbnail_analysis": (thumbnail.analysis_text if thumbnail else ""),
             })
+            # Save metrics snapshot for future comparison
+            metrics_snapshot[v.video_id] = {
+                "title": v.title,
+                "views": v.view_count,
+                "likes": v.like_count,
+                "comments": v.comment_count,
+                "engagement_rate": engagement_rate,
+            }
+
+        # Save snapshot to analysis record
+        analysis.video_metrics_snapshot = metrics_snapshot
+        db.commit()
 
         channel_info = ""
         if channel:
@@ -156,6 +170,28 @@ Channel: {channel.title}
 Subscribers: {channel.subscriber_count}
 Total Views: {channel.view_count}
 Total Videos: {channel.video_count}
+"""
+
+        # Load previous analysis for comparison
+        previous = db.query(ContentAnalysis).filter(
+            ContentAnalysis.status == "completed",
+            ContentAnalysis.id != analysis.id,
+        ).order_by(ContentAnalysis.completed_at.desc()).first()
+
+        comparison_section = ""
+        if previous and previous.video_metrics_snapshot:
+            prev_recs = previous.recommendations or []
+            prev_snapshot = previous.video_metrics_snapshot
+            comparison_section = f"""
+
+PREVIOUS ANALYSIS (from {previous.completed_at.isoformat() if previous.completed_at else 'unknown'}):
+Recommendations given last time: {json.dumps(prev_recs)}
+Video metrics at that time: {json.dumps(prev_snapshot)}
+
+IMPORTANT: Compare current metrics to previous metrics and include a "comparison" section in your response with:
+- metric_changes: list of {{metric, previous, current, change}} for key metrics (total views, total likes, subscribers, etc.)
+- recommendation_impact: which previous recommendations were followed and their impact
+- trend: "improving", "declining", or "stable"
 """
 
         system_message = """You are an expert YouTube content analyst and growth strategist.
@@ -179,9 +215,15 @@ Return your analysis as a JSON object with the following structure:
   ],
   "todos": [
     {"task": "specific actionable task", "priority": "high/medium/low"}
-  ]
+  ],
+  "comparison": {
+    "metric_changes": [{"metric": "total views", "previous": 900, "current": 1081, "change": "+20%"}],
+    "recommendation_impact": "what happened since last analysis",
+    "trend": "improving/declining/stable"
+  }
 }
 
+If no previous analysis data is provided, omit the "comparison" field.
 Return ONLY the JSON object, no additional text."""
 
         prompt = f"""Analyze this YouTube creator's content performance:
@@ -190,7 +232,7 @@ Return ONLY the JSON object, no additional text."""
 
 Videos ({len(video_data)} total):
 {json.dumps(video_data, indent=2)}
-
+{comparison_section}
 Provide a comprehensive analysis with performance rankings, content category insights,
 timing analysis, thumbnail insights, actionable recommendations, content ideas for future videos,
 and a prioritized todo list."""

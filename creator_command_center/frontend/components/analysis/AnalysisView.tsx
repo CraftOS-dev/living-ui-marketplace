@@ -173,6 +173,51 @@ export function AnalysisView({ controller }: AnalysisViewProps) {
                   {report.summary || analysis.summary}
                 </p>
 
+                {/* Comparison to previous analysis */}
+                {report.comparison && (
+                  <div style={{ marginTop: 'var(--space-4)', paddingTop: 'var(--space-4)', borderTop: '1px solid var(--border-primary)' }}>
+                    <h4 style={{ fontSize: 'var(--text-xs)', fontWeight: 'var(--font-semibold)', marginBottom: 'var(--space-3)', display: 'flex', alignItems: 'center', gap: 4, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                      <TrendingUp size={12} /> Changes Since Last Analysis
+                      {report.comparison.trend && (
+                        <Badge variant={report.comparison.trend === 'improving' ? 'success' : report.comparison.trend === 'declining' ? 'error' : 'default'} size="sm">
+                          {report.comparison.trend}
+                        </Badge>
+                      )}
+                    </h4>
+
+                    {/* Metric changes */}
+                    {report.comparison.metric_changes?.length > 0 && (
+                      <div style={{ display: 'flex', gap: 'var(--space-2)', flexWrap: 'wrap', marginBottom: 'var(--space-3)' }}>
+                        {report.comparison.metric_changes.map((m: any, i: number) => {
+                          const isPositive = m.change?.startsWith('+')
+                          return (
+                            <div key={i} style={{
+                              padding: 'var(--space-2) var(--space-3)',
+                              background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-md)',
+                              display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 100,
+                            }}>
+                              <span style={{
+                                fontSize: 'var(--text-sm)', fontWeight: 'var(--font-bold)',
+                                color: isPositive ? 'var(--color-success)' : 'var(--color-error)',
+                              }}>
+                                {m.change}
+                              </span>
+                              <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)' }}>{m.metric}</span>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )}
+
+                    {/* Recommendation impact */}
+                    {report.comparison.recommendation_impact && (
+                      <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)', margin: 0, lineHeight: 1.5, fontStyle: 'italic' }}>
+                        {report.comparison.recommendation_impact}
+                      </p>
+                    )}
+                  </div>
+                )}
+
                 {/* Quick stats row */}
                 {(report.timing_analysis || report.thumbnail_insights) && (
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-4)', marginTop: 'var(--space-4)', paddingTop: 'var(--space-4)', borderTop: '1px solid var(--border-primary)' }}>
