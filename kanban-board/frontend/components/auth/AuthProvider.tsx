@@ -22,7 +22,7 @@
  */
 
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react'
-import type { AuthUser, AuthState } from '../../auth_types'
+import type { AuthState } from '../../auth_types'
 import { authService } from '../../services/AuthService'
 
 interface AuthContextValue extends AuthState {

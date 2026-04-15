@@ -81,7 +81,7 @@ export function InviteModal({ resourceType, resourceId, isOpen, onClose }: Invit
   if (!isOpen) return null
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} title="Invite & Join">
+    <Modal open={isOpen} onClose={handleClose} title="Invite & Join">
       <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
         {error && <Alert variant="error">{error}</Alert>}
 
