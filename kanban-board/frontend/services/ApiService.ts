@@ -6,8 +6,10 @@
  * page reloads and tab switches.
  */
 
-// Backend URL is set during project creation via placeholder replacement
-const BACKEND_URL = 'http://localhost:3105'
+import { authService } from './AuthService'
+
+// Backend URL — uses dynamic hostname set in index.html
+const BACKEND_URL = (window as any).__CRAFTBOT_BACKEND_URL__ || 'http://localhost:3105'
 
 export interface ActionRequest {
   action: string
@@ -32,7 +34,7 @@ class ApiServiceClass {
    */
   async healthCheck(): Promise<boolean> {
     try {
-      const response = await fetch(`${this.baseUrl}/health`, {
+      const response = await authService.authFetch(`${this.baseUrl}/health`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
       })
@@ -52,7 +54,7 @@ class ApiServiceClass {
    * Call this on component mount to restore persisted state.
    */
   async getState<T = Record<string, unknown>>(): Promise<T> {
-    const response = await fetch(`${this.baseUrl}/api/state`, {
+    const response = await authService.authFetch(`${this.baseUrl}/api/state`, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },
     })
@@ -71,7 +73,7 @@ class ApiServiceClass {
   async updateState<T = Record<string, unknown>>(
     updates: Partial<T>
   ): Promise<T> {
-    const response = await fetch(`${this.baseUrl}/api/state`, {
+    const response = await authService.authFetch(`${this.baseUrl}/api/state`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ data: updates }),
@@ -89,7 +91,7 @@ class ApiServiceClass {
    * Use with caution.
    */
   async replaceState<T = Record<string, unknown>>(state: T): Promise<T> {
-    const response = await fetch(`${this.baseUrl}/api/state/replace`, {
+    const response = await authService.authFetch(`${this.baseUrl}/api/state/replace`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ data: state }),
@@ -104,7 +106,7 @@ class ApiServiceClass {
    * Clear all application state
    */
   async clearState(): Promise<void> {
-    const response = await fetch(`${this.baseUrl}/api/state`, {
+    const response = await authService.authFetch(`${this.baseUrl}/api/state`, {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
     })
@@ -128,7 +130,7 @@ class ApiServiceClass {
     action: string,
     payload?: Record<string, unknown>
   ): Promise<ActionResponse> {
-    const response = await fetch(`${this.baseUrl}/api/action`, {
+    const response = await authService.authFetch(`${this.baseUrl}/api/action`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action, payload }),
