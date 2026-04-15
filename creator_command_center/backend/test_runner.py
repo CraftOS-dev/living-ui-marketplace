@@ -38,6 +38,7 @@ SKIP_PATHS = {"/health", "/docs", "/redoc", "/openapi.json"}
 SKIP_API_PREFIXES = (
     "/api/ui-snapshot",
     "/api/ui-screenshot",
+    "/api/auth",
 )
 
 
