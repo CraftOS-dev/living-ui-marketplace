@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react'
 import type { AppController } from '../AppController'
 import type { StockPrice, Stock } from '../types'
 
-const BACKEND_URL = 'http://localhost:3107'
+const BACKEND_URL = 'http://localhost:{{BACKEND_PORT}}'
 
 interface StockDetailsPanelProps {
   controller: AppController

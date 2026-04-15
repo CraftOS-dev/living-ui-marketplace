@@ -8,7 +8,7 @@
  * Filters out noise: React internals, Vite HMR, browser-generated messages.
  */
 
-const BACKEND_URL = 'http://localhost:3107'
+const BACKEND_URL = 'http://localhost:{{BACKEND_PORT}}'
 
 // Prefixes that indicate agent-written or app-level console.log messages
 const APP_LOG_PREFIXES = [

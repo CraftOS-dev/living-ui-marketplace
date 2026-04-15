@@ -12,8 +12,8 @@
     "backend": "backend/main.py"
   },
   "ports": {
-    "frontend": 3108,
-    "backend": 3109
+    "frontend": {{PORT}},
+    "backend": {{BACKEND_PORT}}
   },
   "pipeline": {
     "backend": {
@@ -25,17 +25,17 @@
         {"name": "agent_tests", "command": "python -m pytest tests/ -v --tb=short", "required": true},
         {"name": "compatibility", "command": "python test_runner.py --compatibility", "required": false}
       ],
-      "start": "python -m uvicorn main:app --host 0.0.0.0 --port 3109",
-      "health": "http://localhost:3109/health",
+      "start": "python -m uvicorn main:app --host 0.0.0.0 --port {{BACKEND_PORT}}",
+      "health": "http://localhost:{{BACKEND_PORT}}/health",
       "post_start_tests": [
-        {"name": "external", "command": "python test_runner.py --external --port 3109", "required": true}
+        {"name": "external", "command": "python test_runner.py --external --port {{BACKEND_PORT}}", "required": true}
       ]
     },
     "frontend": {
       "cwd": ".",
       "install": "npm install",
       "build": "npm run build",
-      "start": "npm run preview -- --port 3108",
+      "start": "npm run preview -- --port {{PORT}}",
       "health": null
     }
   },

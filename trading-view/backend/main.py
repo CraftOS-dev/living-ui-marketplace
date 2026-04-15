@@ -5,7 +5,7 @@ FastAPI backend for Living UI projects.
 Provides REST API for state management and data persistence.
 
 To run manually:
-    uvicorn main:app --port 3107 --reload
+    uvicorn main:app --port {{BACKEND_PORT}} --reload
 """
 
 from fastapi import FastAPI
@@ -147,4 +147,4 @@ if _DIST_DIR.exists() and _DIST_ASSETS.exists():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=3107)
+    uvicorn.run(app, host="0.0.0.0", port={{BACKEND_PORT}})

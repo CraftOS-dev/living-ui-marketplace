@@ -3,7 +3,7 @@ import { Button, Card, Select, Table, Badge, Modal, Input, Textarea, EmptyState 
 import type { AppController } from '../../AppController'
 import type { AppState, Activity } from '../../types'
 
-const BACKEND_URL = 'http://localhost:3113/api'
+const BACKEND_URL = 'http://localhost:{{BACKEND_PORT}}/api'
 
 interface ActivitiesPageProps {
   controller: AppController

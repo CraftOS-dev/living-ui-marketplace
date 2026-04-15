@@ -12,7 +12,7 @@
       if (window.location.protocol === 'https:') {
         window.__CRAFTBOT_BACKEND_URL__ = window.location.origin;
       } else {
-        window.__CRAFTBOT_BACKEND_URL__ = 'http://' + window.location.hostname + ':3107';
+        window.__CRAFTBOT_BACKEND_URL__ = 'http://' + window.location.hostname + ':{{BACKEND_PORT}}';
       }
     </script>
 

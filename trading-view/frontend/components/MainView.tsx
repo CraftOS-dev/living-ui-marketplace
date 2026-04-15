@@ -14,7 +14,7 @@ import { SearchModal } from './SearchModal'
 import { MobileNavBar } from './MobileNavBar'
 import type { MobileTab } from './MobileNavBar'
 
-const BACKEND_URL = 'http://localhost:3107'
+const BACKEND_URL = 'http://localhost:{{BACKEND_PORT}}'
 
 const DEFAULT_LAYOUT: LayoutData = {
   lg: [

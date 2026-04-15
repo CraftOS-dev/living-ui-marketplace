@@ -3,7 +3,7 @@ import { Table } from './ui'
 import type { TableColumn } from './ui'
 import type { AppController } from '../AppController'
 
-const BACKEND_URL = 'http://localhost:3107'
+const BACKEND_URL = 'http://localhost:{{BACKEND_PORT}}'
 
 interface ScreenerPanelProps {
   controller: AppController

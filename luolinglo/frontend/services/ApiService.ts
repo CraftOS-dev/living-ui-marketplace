@@ -5,7 +5,7 @@ import type {
   WeeklyXp, ProgressStats,
 } from '../types'
 
-const BACKEND_URL = 'http://localhost:3111'
+const BACKEND_URL = 'http://localhost:{{BACKEND_PORT}}'
 
 class ApiServiceClass {
   private baseUrl: string

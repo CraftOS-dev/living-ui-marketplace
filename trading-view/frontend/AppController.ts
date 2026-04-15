@@ -44,7 +44,7 @@ export class AppController {
 
   private listeners: Set<(state: AppState) => void> = new Set()
   private backendAvailable: boolean = false
-  private baseUrl: string = 'http://localhost:3107'
+  private baseUrl: string = 'http://localhost:{{BACKEND_PORT}}'
 
   // Polling
   private _priceInterval: ReturnType<typeof setInterval> | null = null

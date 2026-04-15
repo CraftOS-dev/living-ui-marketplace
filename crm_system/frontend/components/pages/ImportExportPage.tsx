@@ -3,7 +3,7 @@ import { Button, Card, Table, Badge, Textarea, Alert, EmptyState } from '../ui'
 import type { AppController } from '../../AppController'
 import type { AppState, ImportJob } from '../../types'
 
-const BACKEND_URL = 'http://localhost:3113/api'
+const BACKEND_URL = 'http://localhost:{{BACKEND_PORT}}/api'
 
 interface ImportExportPageProps {
   controller: AppController

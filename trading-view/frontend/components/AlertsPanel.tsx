@@ -3,7 +3,7 @@ import { Button, Badge } from './ui'
 import type { AppController } from '../AppController'
 import type { PriceAlert } from '../types'
 
-const BACKEND_URL = 'http://localhost:3107'
+const BACKEND_URL = 'http://localhost:{{BACKEND_PORT}}'
 
 interface AlertsPanelProps {
   controller: AppController

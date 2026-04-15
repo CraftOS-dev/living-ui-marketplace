@@ -5,7 +5,7 @@ import { uiCapture } from './services/UICapture'
 import './styles/global.css'
 
 // Backend URL
-const backendUrl = 'http://localhost:3113/api'
+const backendUrl = 'http://localhost:{{BACKEND_PORT}}/api'
 
 // Initialize UI capture for agent observation
 // This replaces WebSocket-based AgentBridge with HTTP

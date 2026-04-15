@@ -5,7 +5,7 @@ FastAPI backend for the CRM System Living UI.
 Provides REST API for contacts, companies, deals, activities, AI features, and more.
 
 To run manually:
-    uvicorn main:app --port 3113 --reload
+    uvicorn main:app --port {{BACKEND_PORT}} --reload
 """
 
 from fastapi import FastAPI
@@ -138,4 +138,4 @@ if _DIST_DIR.exists() and _DIST_ASSETS.exists():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=3113)
+    uvicorn.run(app, host="0.0.0.0", port={{BACKEND_PORT}})

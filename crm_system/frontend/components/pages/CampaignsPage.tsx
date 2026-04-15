@@ -3,7 +3,7 @@ import { Button, Card, Table, Badge, Modal, Input, Select, Textarea, EmptyState 
 import type { AppController } from '../../AppController'
 import type { AppState, Campaign } from '../../types'
 
-const BACKEND_URL = 'http://localhost:3113/api'
+const BACKEND_URL = 'http://localhost:{{BACKEND_PORT}}/api'
 
 interface CampaignsPageProps {
   controller: AppController

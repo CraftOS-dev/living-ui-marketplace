@@ -3,7 +3,7 @@ import { ApiService } from './services/ApiService'
 import { stateCache } from './services/StatePersistence'
 import { authService } from './services/AuthService'
 
-const BACKEND_URL = ((window as any).__CRAFTBOT_BACKEND_URL__ || 'http://localhost:3105') + '/api'
+const BACKEND_URL = ((window as any).__CRAFTBOT_BACKEND_URL__ || 'http://localhost:{{BACKEND_PORT}}') + '/api'
 
 export class AppController {
   private state: AppState = {

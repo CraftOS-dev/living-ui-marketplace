@@ -10,7 +10,7 @@ interface SearchModalProps {
   onSelectStock: (symbol: string) => void
 }
 
-const BACKEND_URL = 'http://localhost:3107'
+const BACKEND_URL = 'http://localhost:{{BACKEND_PORT}}'
 
 export function SearchModal({ controller: _controller, isOpen, onClose, onSelectStock }: SearchModalProps) {
   const [query, setQuery] = useState('')
