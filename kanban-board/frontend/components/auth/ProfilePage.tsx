@@ -80,8 +80,8 @@ export function ProfilePage({ onClose }: ProfilePageProps) {
         <h3 style={{ fontSize: 'var(--text-base)', fontWeight: 'var(--font-weight-semibold)', marginBottom: 'var(--space-3)', color: 'var(--text-primary)' }}>
           Account Info
         </h3>
-        {profileMsg && <Alert variant="success" style={{ marginBottom: 'var(--space-3)' }}>{profileMsg}</Alert>}
-        {profileErr && <Alert variant="error" style={{ marginBottom: 'var(--space-3)' }}>{profileErr}</Alert>}
+        {profileMsg && <Alert variant="success">{profileMsg}</Alert>}
+        {profileErr && <Alert variant="error">{profileErr}</Alert>}
         <form onSubmit={handleUpdateProfile} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
           <FormField label="Username" value={username} onChange={setUsername} />
           <FormField label="Email" type="email" value={email} onChange={setEmail} />
@@ -93,8 +93,8 @@ export function ProfilePage({ onClose }: ProfilePageProps) {
         <h3 style={{ fontSize: 'var(--text-base)', fontWeight: 'var(--font-weight-semibold)', marginBottom: 'var(--space-3)', color: 'var(--text-primary)' }}>
           Change Password
         </h3>
-        {passwordMsg && <Alert variant="success" style={{ marginBottom: 'var(--space-3)' }}>{passwordMsg}</Alert>}
-        {passwordErr && <Alert variant="error" style={{ marginBottom: 'var(--space-3)' }}>{passwordErr}</Alert>}
+        {passwordMsg && <Alert variant="success">{passwordMsg}</Alert>}
+        {passwordErr && <Alert variant="error">{passwordErr}</Alert>}
         <form onSubmit={handleChangePassword} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
           <FormField label="Current Password" type="password" value={currentPassword} onChange={setCurrentPassword} required />
           <FormField label="New Password" type="password" value={newPassword} onChange={setNewPassword} placeholder="At least 6 characters" required />

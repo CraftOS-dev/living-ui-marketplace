@@ -30,7 +30,7 @@ export function AuthLayout({ title, children, error, footer }: AuthLayoutProps) 
         }}>
           {title}
         </h2>
-        {error && <Alert variant="error" style={{ marginBottom: 'var(--space-4)' }}>{error}</Alert>}
+        {error && <Alert variant="error">{error}</Alert>}
         {children}
         {footer}
       </Card>

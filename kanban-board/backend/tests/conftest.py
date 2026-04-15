@@ -65,3 +65,15 @@ def db():
         yield session
     finally:
         session.close()
+
+
+@pytest.fixture
+def auth_headers(client):
+    """Register a test user and return auth headers with Bearer token."""
+    resp = client.post("/api/auth/register", json={
+        "email": "test@example.com",
+        "username": "testuser",
+        "password": "testpass123",
+    })
+    token = resp.json()["token"]
+    return {"Authorization": f"Bearer {token}"}

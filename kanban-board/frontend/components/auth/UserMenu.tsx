@@ -72,7 +72,7 @@ export function UserMenu() {
             <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)', marginTop: 2 }}>
               {user.email}
             </div>
-            <Badge variant={user.role === 'admin' ? 'primary' : 'default'} style={{ marginTop: 'var(--space-1)' }}>
+            <Badge variant={user.role === 'admin' ? 'primary' : 'default'}>
               {user.role}
             </Badge>
           </div>
