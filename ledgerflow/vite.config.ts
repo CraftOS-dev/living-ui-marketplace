@@ -7,10 +7,16 @@ export default defineConfig({
   server: {
     port: 3108,
     host: true,
+    proxy: {
+      '/api': 'http://localhost:3109',
+    },
   },
   preview: {
     port: 3108,
     host: true,
+    proxy: {
+      '/api': 'http://localhost:3109',
+    },
   },
   build: {
     outDir: 'dist',

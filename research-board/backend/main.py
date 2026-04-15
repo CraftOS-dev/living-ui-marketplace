@@ -24,16 +24,11 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Initialize database on startup, start health checker."""
-    from health_checker import start_health_checker, stop_health_checker
-
+    """Initialize database on startup."""
     logger.info("[Backend] Initializing database...")
     await init_db()
     logger.info("[Backend] Database initialized")
-    start_health_checker(port={{BACKEND_PORT}})
-    logger.info("[Backend] Health checker started")
     yield
-    stop_health_checker()
     logger.info("[Backend] Shutting down...")
 
 
@@ -55,6 +50,15 @@ app.add_middleware(
 
 # Include routes
 app.include_router(router, prefix="/api")
+
+# Auto-include additional routers from routes/ directory (if any)
+import importlib, pkgutil
+_routes_dir = Path(__file__).parent / "routes"
+if _routes_dir.exists() and (_routes_dir / "__init__.py").exists():
+    for _imp, _mod, _pkg in pkgutil.iter_modules([str(_routes_dir)]):
+        _m = importlib.import_module(f"routes.{_mod}")
+        if hasattr(_m, 'router'):
+            app.include_router(_m.router, prefix="/api")
 
 
 @app.get("/health")
@@ -94,6 +98,35 @@ async def capture_frontend_logs(data: _FrontendLogBatch):
             ts = entry.timestamp or datetime.utcnow().isoformat()
             f.write(f"{ts} | {entry.level.upper():<5} | {entry.message}\n")
     return {"status": "ok", "count": len(data.entries)}
+
+
+# ============================================================================
+# Serve frontend static files (built by Vite) — enables single-port access
+# for LAN/tunnel sharing. Must be registered LAST (catch-all).
+# ============================================================================
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+
+_DIST_DIR = Path(__file__).parent.parent / "dist"
+_DIST_ASSETS = _DIST_DIR / "assets"
+if _DIST_DIR.exists() and _DIST_ASSETS.exists():
+    _CONFIG_DIR = Path(__file__).parent.parent / "config"
+
+    @app.get("/config/manifest.json")
+    async def serve_manifest():
+        manifest = _CONFIG_DIR / "manifest.json"
+        if manifest.exists():
+            return FileResponse(manifest)
+        return {"error": "manifest not found"}
+
+    app.mount("/assets", StaticFiles(directory=str(_DIST_ASSETS)), name="assets")
+
+    @app.get("/{path:path}")
+    async def spa_fallback(path: str):
+        file_path = _DIST_DIR / path
+        if file_path.is_file():
+            return FileResponse(file_path)
+        return FileResponse(_DIST_DIR / "index.html")
 
 
 if __name__ == "__main__":
