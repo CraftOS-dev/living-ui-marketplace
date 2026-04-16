@@ -3,7 +3,7 @@ import { Button, Card, Input, Select, Toggle, Tabs, TabList, Tab, TabPanel, Badg
 import type { AppController } from '../../AppController'
 import type { AppState, DealStage, Tag, CustomField } from '../../types'
 
-const BACKEND_URL = 'http://localhost:{{BACKEND_PORT}}/api'
+const BACKEND_URL = ((window as any).__CRAFTBOT_BACKEND_URL__ || 'http://localhost:{{BACKEND_PORT}}') + '/api'
 
 interface SettingsPageProps {
   controller: AppController

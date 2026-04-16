@@ -6,7 +6,7 @@ import './styles/global.css'
 
 // Get backend URL from environment
 const backendPort = (import.meta as any).env?.VITE_BACKEND_PORT || '3101'
-const backendUrl = `http://localhost:${backendPort}/api`
+const backendUrl = ((window as any).__CRAFTBOT_BACKEND_URL__ || `http://localhost:${backendPort}`) + "/api"
 
 // Initialize UI capture for agent observation
 // This replaces WebSocket-based AgentBridge with HTTP

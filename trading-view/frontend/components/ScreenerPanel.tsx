@@ -3,7 +3,7 @@ import { Table } from './ui'
 import type { TableColumn } from './ui'
 import type { AppController } from '../AppController'
 
-const BACKEND_URL = 'http://localhost:{{BACKEND_PORT}}'
+const BACKEND_URL = (window as any).__CRAFTBOT_BACKEND_URL__ || 'http://localhost:{{BACKEND_PORT}}'
 
 interface ScreenerPanelProps {
   controller: AppController

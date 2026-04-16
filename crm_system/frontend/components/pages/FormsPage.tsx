@@ -3,7 +3,7 @@ import { Button, Card, Table, Badge, Modal, Input, Select, EmptyState } from '..
 import type { AppController } from '../../AppController'
 import type { AppState, LeadCaptureForm } from '../../types'
 
-const BACKEND_URL = 'http://localhost:{{BACKEND_PORT}}/api'
+const BACKEND_URL = ((window as any).__CRAFTBOT_BACKEND_URL__ || 'http://localhost:{{BACKEND_PORT}}') + '/api'
 
 interface FormsPageProps {
   controller: AppController

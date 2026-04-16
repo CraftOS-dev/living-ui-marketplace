@@ -14,7 +14,7 @@ import { SearchModal } from './SearchModal'
 import { MobileNavBar } from './MobileNavBar'
 import type { MobileTab } from './MobileNavBar'
 
-const BACKEND_URL = 'http://localhost:{{BACKEND_PORT}}'
+const BACKEND_URL = (window as any).__CRAFTBOT_BACKEND_URL__ || 'http://localhost:{{BACKEND_PORT}}'
 
 const DEFAULT_LAYOUT: LayoutData = {
   lg: [

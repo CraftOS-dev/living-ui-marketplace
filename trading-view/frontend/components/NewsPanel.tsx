@@ -3,7 +3,7 @@ import { Button } from './ui'
 import type { AppController } from '../AppController'
 import type { MarketNews } from '../types'
 
-const BACKEND_URL = 'http://localhost:{{BACKEND_PORT}}'
+const BACKEND_URL = (window as any).__CRAFTBOT_BACKEND_URL__ || 'http://localhost:{{BACKEND_PORT}}'
 
 interface NewsPanelProps {
   controller: AppController

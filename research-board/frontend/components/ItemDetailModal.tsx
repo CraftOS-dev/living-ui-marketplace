@@ -4,7 +4,7 @@ import { toast } from 'react-toastify'
 import type { BoardItem, UpdateBoardItemRequest } from '../types'
 import type { AppController } from '../AppController'
 
-const BACKEND_URL = 'http://localhost:{{BACKEND_PORT}}'
+const BACKEND_URL = ((window as any).__CRAFTBOT_BACKEND_URL__ || 'http://localhost:{{BACKEND_PORT}}')
 
 interface ItemDetailModalProps {
   item: BoardItem | null

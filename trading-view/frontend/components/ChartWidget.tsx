@@ -4,7 +4,7 @@ import type { IChartApi, ISeriesApi, Time } from 'lightweight-charts'
 import type { AppController } from '../AppController'
 import type { ChartConfig, ChartType, Timeframe, Candle } from '../types'
 
-const BACKEND_URL = 'http://localhost:{{BACKEND_PORT}}'
+const BACKEND_URL = (window as any).__CRAFTBOT_BACKEND_URL__ || 'http://localhost:{{BACKEND_PORT}}'
 
 interface ChartWidgetProps {
   controller: AppController
