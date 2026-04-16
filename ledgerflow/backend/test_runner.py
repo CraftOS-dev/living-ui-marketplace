@@ -444,7 +444,7 @@ def run_external_tests(port: int) -> Dict[str, Any]:
                 continue
 
         # Skip parameterized paths if we don't have test data yet
-        if path_params and method in ("GET", "PUT", "PATCH", "DELETE"):
+        if path_params:
             # Try to use a created resource ID
             base_path = _get_base_path(path)
             ids = created_resources.get(base_path, [])
