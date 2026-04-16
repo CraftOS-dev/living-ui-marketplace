@@ -1255,6 +1255,35 @@ def get_calendar_activities(
     return [a.to_dict() for a in activities]
 
 
+@router.get("/activities/upcoming")
+def get_upcoming_activities(
+    days: int = Query(7, ge=1, le=365),
+    db: Session = Depends(get_db),
+) -> List[Dict]:
+    now = datetime.utcnow()
+    end = now + timedelta(days=days)
+    activities = db.query(Activity).filter(
+        Activity.is_completed == False,
+        Activity.due_date.isnot(None),
+        Activity.due_date >= now,
+        Activity.due_date <= end,
+    ).order_by(asc(Activity.due_date)).all()
+    return [a.to_dict() for a in activities]
+
+
+@router.get("/activities/overdue")
+def get_overdue_activities(
+    db: Session = Depends(get_db),
+) -> List[Dict]:
+    now = datetime.utcnow()
+    activities = db.query(Activity).filter(
+        Activity.is_completed == False,
+        Activity.due_date.isnot(None),
+        Activity.due_date < now,
+    ).order_by(asc(Activity.due_date)).all()
+    return [a.to_dict() for a in activities]
+
+
 @router.get("/activities/{activity_id}")
 def get_activity(activity_id: int, db: Session = Depends(get_db)) -> Dict[str, Any]:
     activity = db.query(Activity).filter(Activity.id == activity_id).first()

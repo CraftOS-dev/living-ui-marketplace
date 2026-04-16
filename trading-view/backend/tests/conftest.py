@@ -40,6 +40,7 @@ def override_get_db():
     try:
         yield db
     finally:
+        db.rollback()
         db.close()
 
 
@@ -68,4 +69,5 @@ def db():
     try:
         yield session
     finally:
+        session.rollback()
         session.close()
