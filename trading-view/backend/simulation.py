@@ -178,6 +178,13 @@ def _fetch_real_candles(db: Session, stock: Stock, yf: any) -> None:
 
         except Exception as e:
             logger.warning(f"[Simulation] Failed to fetch {interval} data for {stock.symbol}: {e}")
+            db.rollback()
+
+    # Commit any successfully fetched candles
+    try:
+        db.commit()
+    except Exception:
+        db.rollback()
 
     # Update StockPrice with the latest real close price
     try:
