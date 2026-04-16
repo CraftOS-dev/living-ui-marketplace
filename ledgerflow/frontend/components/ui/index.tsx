@@ -890,7 +890,7 @@ export function Table<T extends Record<string, any>>({
           </tr>
         </thead>
         <tbody>
-          {data.map((item, index) => (
+          {(Array.isArray(data) ? data : []).map((item, index) => (
             <tr
               key={rowKey ? rowKey(item, index) : index}
               onClick={() => onRowClick?.(item, index)}
