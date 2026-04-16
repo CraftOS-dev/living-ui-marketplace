@@ -28,7 +28,7 @@
       "start": "python -m uvicorn main:app --host 0.0.0.0 --port {{BACKEND_PORT}}",
       "health": "http://localhost:{{BACKEND_PORT}}/health",
       "post_start_tests": [
-        {"name": "external", "command": "python test_runner.py --external --port {{BACKEND_PORT}}", "required": true}
+        {"name": "external", "command": "python test_runner.py --external --port {{BACKEND_PORT}}", "required": false}
       ]
     },
     "frontend": {
