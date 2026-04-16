@@ -1,7 +1,7 @@
 import type { AppState, BoardItem, Connection, CreateBoardItemRequest, UpdateBoardItemRequest } from './types'
 import { ApiService } from './services/ApiService'
 
-const BACKEND_URL = 'http://localhost:{{BACKEND_PORT}}'
+const BACKEND_URL = (window as any).__CRAFTBOT_BACKEND_URL__ || 'http://localhost:{{BACKEND_PORT}}'
 
 /**
  * AppController - Main application controller for Research Board
