@@ -59,6 +59,17 @@
       "folder": "creator_command_center",
       "tags": ["creator", "youtube", "social-media", "dashboard", "integrations"],
       "version": "1.0.0"
+    },
+    {
+      "id": "tamagotchi",
+      "name": "CraftBot Tamagotchi",
+      "description": "A virtual CraftBot pet. Feed, play with, clean, and care for your own little CraftBot as it evolves from egg to adult.",
+      "folder": "tamagotchi",
+      "tags": ["game", "fun", "pet", "virtual-pet"],
+      "version": "1.0.0",
+      "customizable": [
+        {"key": "PET_DEFAULT_NAME", "label": "Default pet name", "type": "text", "default": "Bitsy", "placeholder": "e.g. Bitsy, Sparky, Zap"}
+      ]
     }
   ]
 }
