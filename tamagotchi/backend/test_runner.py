@@ -39,6 +39,13 @@ SKIP_API_PREFIXES = (
     "/api/ui-snapshot",
     "/api/ui-screenshot",
 )
+# Singleton/state-creating endpoints we must NOT hit during external smoke tests:
+# the app has only one active pet at a time, and a generic POST would create a
+# pet named "test" in the live DB — which then blocks the hatch-egg screen
+# where the user's configured default name is meant to appear.
+SKIP_EXTERNAL_METHOD_PATHS: Set[Tuple[str, str]] = {
+    ("POST", "/api/pet"),
+}
 
 # Status codes that are acceptable on action endpoints when the response body
 # carries a short business-logic error slug (snake_case). These indicate the
@@ -401,6 +408,7 @@ def run_external_tests(port: int) -> Dict[str, Any]:
         if r["path"].startswith("/api")
         and r["path"] not in SKIP_PATHS
         and not any(r["path"].startswith(prefix) for prefix in SKIP_API_PREFIXES)
+        and (r["method"], r["path"]) not in SKIP_EXTERNAL_METHOD_PATHS
     ]
 
     # Group by base path (e.g., /api/sections, /api/cards)
