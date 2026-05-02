@@ -5,7 +5,7 @@ FastAPI backend for Living UI projects.
 Provides REST API for state management and data persistence.
 
 To run manually:
-    uvicorn main:app --port {{BACKEND_PORT}} --reload
+    uvicorn main:app --port 3113 --reload
 """
 
 from fastapi import FastAPI
@@ -34,8 +34,8 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="Kanban Board API",
-    description="Backend API for Kanban Board Living UI",
+    title="Kanban Board API (Local)",
+    description="Backend API for the local single-user Kanban Board Living UI",
     version="1.0.0",
     lifespan=lifespan,
 )
@@ -65,7 +65,7 @@ if _routes_dir.exists() and (_routes_dir / "__init__.py").exists():
 @app.get("/health")
 async def health_check():
     """Health check endpoint for process management."""
-    return {"status": "healthy", "project": "a1b2c3d4"}
+    return {"status": "healthy", "project": "3d8a5c92"}
 
 
 # ============================================================================
@@ -130,5 +130,6 @@ if _DIST_DIR.exists() and _DIST_ASSETS.exists():
 
 
 if __name__ == "__main__":
+    import os
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port={{BACKEND_PORT}})
+    uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", 3113)))

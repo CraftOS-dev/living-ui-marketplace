@@ -3,7 +3,7 @@ import { Button, Badge } from './ui'
 import type { AppController } from '../AppController'
 import type { PriceAlert } from '../types'
 
-const BACKEND_URL = (window as any).__CRAFTBOT_BACKEND_URL__ || 'http://localhost:{{BACKEND_PORT}}'
+const BACKEND_URL = (window as any).__CRAFTBOT_BACKEND_URL__ || 'http://localhost:3105'
 
 interface AlertsPanelProps {
   controller: AppController

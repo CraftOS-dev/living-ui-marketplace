@@ -4,7 +4,7 @@ import App from './App'
 import { uiCapture } from './services/UICapture'
 import './styles/global.css'
 
-const backendUrl = 'http://localhost:{{BACKEND_PORT}}/api'
+const backendUrl = 'http://localhost:3109/api'
 
 uiCapture.initialize(backendUrl)
 

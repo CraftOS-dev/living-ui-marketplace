@@ -3,7 +3,7 @@ import { Button, Card, Table, Badge, Modal, Input, Select, Textarea, EmptyState 
 import type { AppController } from '../../AppController'
 import type { AppState, Campaign } from '../../types'
 
-const BACKEND_URL = ((window as any).__CRAFTBOT_BACKEND_URL__ || 'http://localhost:{{BACKEND_PORT}}') + '/api'
+const BACKEND_URL = ((window as any).__CRAFTBOT_BACKEND_URL__ || 'http://localhost:3111') + '/api'
 
 interface CampaignsPageProps {
   controller: AppController

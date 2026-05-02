@@ -4,12 +4,10 @@ import App from './App'
 import { uiCapture } from './services/UICapture'
 import './styles/global.css'
 
-// Get backend URL from environment
-const backendPort = (import.meta as any).env?.VITE_BACKEND_PORT || '3101'
-const backendUrl = ((window as any).__CRAFTBOT_BACKEND_URL__ || `http://localhost:${backendPort}`) + "/api"
+// Backend URL: prefer the runtime-injected global from index.html (set per-project),
+// fall back to this project's allocated backend port (3105).
+const backendUrl = ((window as any).__CRAFTBOT_BACKEND_URL__ || 'http://localhost:3105') + '/api'
 
-// Initialize UI capture for agent observation
-// This replaces WebSocket-based AgentBridge with HTTP
 uiCapture.initialize(backendUrl)
 
 ReactDOM.createRoot(document.getElementById('root')!).render(

@@ -16,12 +16,13 @@ from models import (
     Drawing, WidgetLayout, MarketNews, SimulationState,
 )
 from simulation import (
-    seed_stocks, generate_historical_candles, tick_simulation,
-    aggregate_candles, compute_indicator, generate_news, STOCK_UNIVERSE,
+    seed_stocks, fetch_initial_candles, fetch_older_candles, tick_simulation,
+    aggregate_candles, compute_indicator, refresh_news_cache,
+    _enrich_stock, _refresh_price_from_yahoo,
 )
 from datetime import datetime, timedelta
 import logging
-import base64
+import threading
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -129,6 +130,21 @@ class LayoutUpdate(BaseModel):
     layoutName: Optional[str] = None
     layoutData: dict
     chartConfig: dict
+
+
+class SettingsUpdate(BaseModel):
+    """Schema for updating user settings.
+
+    Whitelisted fields only — anything else is rejected by Pydantic.
+    """
+    theme: Optional[str] = None  # "light" | "dark" | "system"
+    defaultTimeframe: Optional[str] = None
+    defaultChartType: Optional[str] = None
+    defaultIndicatorPeriod: Optional[int] = None
+    priceUpdateIntervalMs: Optional[int] = None
+    showVolume: Optional[bool] = None
+    showGrid: Optional[bool] = None
+    crosshairMode: Optional[str] = None  # "normal" | "magnet"
 
 
 # ============================================================================
@@ -356,174 +372,278 @@ def update_ui_screenshot(data: UIScreenshotUpdate, db: Session = Depends(get_db)
 # Stock Routes
 # ============================================================================
 
-_candle_generation_started = False
+_warmup_thread_started = False
+_warmup_lock = threading.Lock()
+
+# Warm-up tickers to pre-fetch candles for in the background after seed.
+# These match the WARMUP_TICKERS list in simulation.py — same set gets prices.
+_WARMUP_CANDLE_SYMBOLS = [
+    "AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "META", "TSLA",
+    "JPM", "V", "JNJ", "WMT", "XOM", "DIS", "NFLX", "AMD",
+    "SPY", "QQQ", "DIA",
+]
 
 
-def _generate_candles_background() -> None:
-    """Generate historical candles in a background thread."""
-    global _candle_generation_started
+def _generate_warmup_candles_background() -> None:
+    """Fetch historical candles for the warm-up symbols in a background thread."""
     from database import SessionLocal
     db = SessionLocal()
     try:
-        all_stocks = db.query(Stock).all()
-        for stock in all_stocks:
-            info = STOCK_UNIVERSE.get(stock.symbol)
-            if not info:
+        for sym in _WARMUP_CANDLE_SYMBOLS:
+            stock = db.query(Stock).filter(
+                (Stock.symbol == sym) | (Stock.symbol == sym.replace("-", "."))
+            ).first()
+            if not stock:
                 continue
-            existing_candles = db.query(Candle).filter(Candle.stock_id == stock.id).first()
-            if not existing_candles:
-                generate_historical_candles(db, stock, info["base_price"], info["volatility"])
-        logger.info("[Routes] Background candle generation complete")
+            existing = db.query(Candle).filter(Candle.stock_id == stock.id).first()
+            if existing:
+                continue
+            try:
+                fetch_initial_candles(db, stock)
+            except Exception as e:
+                logger.warning(f"[Warmup] {sym} candle fetch failed: {e}")
+        logger.info("[Warmup] Background candle warmup complete")
     except Exception as e:
-        logger.error(f"[Routes] Background candle generation failed: {e}")
+        logger.error(f"[Warmup] Background candle generation failed: {e}")
     finally:
         db.close()
 
 
 @router.post("/stocks/seed")
 def seed_stock_universe(
-    sync: bool = Query(False, description="If true, generate candles synchronously (slow)"),
+    sync: bool = Query(False, description="If true, fetch warm-up candles synchronously (slow)"),
     db: Session = Depends(get_db),
 ) -> List[Dict[str, Any]]:
-    """
-    Seed the stock universe.
+    """Seed the symbol universe (NASDAQ + NYSE listed) plus warm-up data.
 
-    Creates stocks, initial prices, and news immediately.
-    Historical candle generation runs in a background thread by default.
-    Pass ?sync=true to generate candles synchronously (used by tests).
-    """
-    global _candle_generation_started
-    stocks = seed_stocks(db)
+    On first call: downloads ~10k US-listed symbols from NASDAQ Trader,
+    fetches live prices and sectors for ~30 popular tickers, and seeds
+    initial market news from Yahoo Finance.
 
-    # Generate news immediately (fast)
-    generate_news(db)
+    Idempotent on subsequent calls.
+    """
+    global _warmup_thread_started
+    stocks = seed_stocks(db, warmup=True)
+
+    # Pull initial market news (real Yahoo Finance feed)
+    try:
+        refresh_news_cache(db)
+    except Exception as e:
+        logger.warning(f"[Seed] News refresh failed: {e}")
 
     if sync:
-        # Synchronous: generate candles inline (slow but tests need it)
-        all_stocks = db.query(Stock).all()
-        for stock in all_stocks:
-            info = STOCK_UNIVERSE.get(stock.symbol)
-            if not info:
+        for sym in _WARMUP_CANDLE_SYMBOLS:
+            stock = db.query(Stock).filter(
+                (Stock.symbol == sym) | (Stock.symbol == sym.replace("-", "."))
+            ).first()
+            if not stock:
                 continue
-            existing_candles = db.query(Candle).filter(Candle.stock_id == stock.id).first()
-            if not existing_candles:
-                generate_historical_candles(db, stock, info["base_price"], info["volatility"])
-        logger.info(f"[Routes] Seeded {len(stocks)} stocks with candles (sync)")
+            if not db.query(Candle).filter(Candle.stock_id == stock.id).first():
+                try:
+                    fetch_initial_candles(db, stock)
+                except Exception as e:
+                    logger.warning(f"[Seed-sync] {sym} candle fetch failed: {e}")
+        logger.info(f"[Routes] Seeded with warm-up candles synchronously")
     else:
-        # Background: generate candles in a thread (fast response)
-        if not _candle_generation_started:
-            _candle_generation_started = True
-            import threading
-            thread = threading.Thread(target=_generate_candles_background, daemon=True)
-            thread.start()
-        logger.info(f"[Routes] Seeded {len(stocks)} stocks, candles generating in background")
+        with _warmup_lock:
+            if not _warmup_thread_started:
+                _warmup_thread_started = True
+                threading.Thread(target=_generate_warmup_candles_background, daemon=True).start()
+        logger.info("[Routes] Universe seeded; warm-up candles generating in background")
 
     return stocks
 
 
 @router.get("/stocks")
-def list_stocks(db: Session = Depends(get_db)) -> List[Dict[str, Any]]:
+def list_stocks(
+    limit: int = Query(500, ge=1, le=5000, description="Max number of stocks to return"),
+    offset: int = Query(0, ge=0, description="Pagination offset"),
+    only_priced: bool = Query(False, description="If true, only return stocks that have a current price"),
+    db: Session = Depends(get_db),
+) -> List[Dict[str, Any]]:
+    """List stocks (paginated). The full universe is ~10k symbols.
+
+    Use ``only_priced=true`` to restrict to stocks the user has actually
+    interacted with (i.e. that have a StockPrice row).
     """
-    List all stocks with their current prices.
-    """
-    stocks = db.query(Stock).all()
+    query = db.query(Stock)
+    if only_priced:
+        query = query.join(StockPrice, StockPrice.stock_id == Stock.id)
+    stocks = query.order_by(Stock.symbol).offset(offset).limit(limit).all()
     result = []
     for stock in stocks:
-        stock_dict = stock.to_dict()
-        if stock.stock_price:
-            stock_dict["price"] = stock.stock_price.to_dict()
-        else:
-            stock_dict["price"] = None
-        result.append(stock_dict)
+        d = stock.to_dict()
+        d["price"] = stock.stock_price.to_dict() if stock.stock_price else None
+        result.append(d)
     return result
 
 
 @router.get("/stocks/search")
 def search_stocks(
-    q: str = Query(..., description="Search query for symbol or name"),
+    q: str = Query(..., min_length=1, description="Search query for symbol or name"),
+    limit: int = Query(20, ge=1, le=100, description="Max results"),
     db: Session = Depends(get_db),
 ) -> List[Dict[str, Any]]:
+    """Search the full symbol universe by symbol or name.
+
+    Symbol-prefix matches are surfaced before name matches.
     """
-    Search stocks by symbol or name (case-insensitive).
-    """
-    search_term = f"%{q}%"
-    stocks = db.query(Stock).filter(
-        (Stock.symbol.ilike(search_term)) | (Stock.name.ilike(search_term))
-    ).all()
+    q_clean = q.strip()
+    if not q_clean:
+        return []
+    upper = q_clean.upper()
+    pattern = f"%{q_clean}%"
+    prefix = f"{upper}%"
+
+    # Exact symbol match first
+    matches: list[Stock] = []
+    seen: set[int] = set()
+    exact = db.query(Stock).filter(Stock.symbol == upper).first()
+    if exact:
+        matches.append(exact)
+        seen.add(exact.id)
+
+    # Then symbol-prefix matches
+    for s in db.query(Stock).filter(
+        Stock.symbol.like(prefix), Stock.id.notin_(seen) if seen else True
+    ).order_by(Stock.symbol).limit(limit).all():
+        if s.id not in seen:
+            matches.append(s)
+            seen.add(s.id)
+            if len(matches) >= limit:
+                break
+
+    # Then substring matches (symbol or name)
+    if len(matches) < limit:
+        remaining = limit - len(matches)
+        for s in db.query(Stock).filter(
+            (Stock.symbol.ilike(pattern)) | (Stock.name.ilike(pattern))
+        ).order_by(Stock.symbol).limit(remaining * 4).all():
+            if s.id not in seen:
+                matches.append(s)
+                seen.add(s.id)
+                if len(matches) >= limit:
+                    break
+
     result = []
-    for stock in stocks:
-        stock_dict = stock.to_dict()
-        if stock.stock_price:
-            stock_dict["price"] = stock.stock_price.to_dict()
-        else:
-            stock_dict["price"] = None
-        result.append(stock_dict)
+    for stock in matches[:limit]:
+        d = stock.to_dict()
+        d["price"] = stock.stock_price.to_dict() if stock.stock_price else None
+        result.append(d)
     return result
 
 
 @router.get("/stocks/prices")
-def get_bulk_prices(db: Session = Depends(get_db)) -> List[Dict[str, Any]]:
-    """
-    Get bulk current prices for all stocks.
+def get_bulk_prices(db: Session = Depends(get_db)) -> Dict[str, Dict[str, Any]]:
+    """Refresh prices for all *active* stocks (those with a StockPrice row).
 
-    Advances the simulation by one tick before returning prices.
+    Returns a ``{symbol: {price, change, changePct}}`` map. Active stocks
+    are those the user has interacted with — chart, watchlist, screener.
     """
-    tick_simulation(db)
-    prices = db.query(StockPrice).all()
-    return [p.to_dict() for p in prices]
+    return tick_simulation(db)
 
 
 @router.get("/stocks/{symbol}/price")
 def get_stock_price(symbol: str, db: Session = Depends(get_db)) -> Dict[str, Any]:
-    """
-    Get the current price for a single stock.
+    """Get the current price for one stock.
 
-    Advances the simulation by one tick before returning.
+    If the stock has never been priced before, lazily fetches from Yahoo Finance
+    and creates a StockPrice row so it gets included in future bulk ticks.
     """
-    stock = db.query(Stock).filter(Stock.symbol == symbol.upper()).first()
+    sym = symbol.upper()
+    stock = db.query(Stock).filter(Stock.symbol == sym).first()
+    # Try alternative form (Yahoo "-" vs exchange ".")
+    if not stock and "." in sym:
+        stock = db.query(Stock).filter(Stock.symbol == sym.replace(".", "-")).first()
+    if not stock and "-" in sym:
+        stock = db.query(Stock).filter(Stock.symbol == sym.replace("-", ".")).first()
     if not stock:
         raise HTTPException(status_code=404, detail=f"Stock '{symbol}' not found")
 
-    tick_simulation(db)
+    # Lazy: enrich + fetch price if this is the first time we see this stock
+    if not stock.stock_price:
+        _enrich_stock(db, stock)
+        _refresh_price_from_yahoo(db, stock)
+        db.refresh(stock)
+    else:
+        tick_simulation(db)
 
     price = db.query(StockPrice).filter(StockPrice.stock_id == stock.id).first()
     if not price:
-        raise HTTPException(status_code=404, detail=f"No price data for '{symbol}'")
+        raise HTTPException(status_code=503, detail=f"Price data temporarily unavailable for '{symbol}'")
 
     result = stock.to_dict()
     result["price"] = price.to_dict()
     return result
 
 
+def _resolve_stock(db: Session, symbol: str) -> Stock:
+    """Look up a stock by symbol, accepting both '.' and '-' share-class formats."""
+    sym = symbol.upper()
+    stock = db.query(Stock).filter(Stock.symbol == sym).first()
+    if not stock and "." in sym:
+        stock = db.query(Stock).filter(Stock.symbol == sym.replace(".", "-")).first()
+    if not stock and "-" in sym:
+        stock = db.query(Stock).filter(Stock.symbol == sym.replace("-", ".")).first()
+    return stock
+
+
 @router.get("/stocks/{symbol}/candles")
 def get_candles(
     symbol: str,
     timeframe: str = Query("1D", description="Candle timeframe (1m, 5m, 15m, 1h, 4h, 1D, 1W, 1M)"),
-    limit: int = Query(500, description="Maximum number of candles to return"),
+    limit: int = Query(500, ge=1, le=5000, description="Maximum number of candles to return"),
     since: Optional[str] = Query(None, description="ISO timestamp to fetch candles from (inclusive)"),
-    before: Optional[str] = Query(None, description="ISO timestamp to fetch candles before (exclusive, for loading older data)"),
+    before: Optional[str] = Query(None, description="ISO timestamp to fetch candles before (exclusive)"),
     db: Session = Depends(get_db),
 ) -> List[Dict[str, Any]]:
+    """Get OHLCV candles for a stock at the specified timeframe.
+
+    Lazy-loading behavior:
+      - If the stock has no candles yet, fetch the initial 5y/60d/7d windows from Yahoo.
+      - If `before` is set and we don't have enough older data in the DB, pull the
+        next window from Yahoo Finance and persist before returning.
     """
-    Get candle (OHLCV) data for a stock at the specified timeframe.
-    """
-    stock = db.query(Stock).filter(Stock.symbol == symbol.upper()).first()
+    stock = _resolve_stock(db, symbol)
     if not stock:
         raise HTTPException(status_code=404, detail=f"Stock '{symbol}' not found")
 
-    since_dt = None
+    since_dt: Optional[datetime] = None
     if since:
         try:
-            since_dt = datetime.fromisoformat(since.replace("Z", "+00:00").replace("+00:00", ""))
+            since_dt = datetime.fromisoformat(since.replace("Z", "").replace("+00:00", ""))
         except ValueError:
             raise HTTPException(status_code=400, detail="Invalid 'since' timestamp format")
 
-    before_dt = None
+    before_dt: Optional[datetime] = None
     if before:
         try:
-            before_dt = datetime.fromisoformat(before.replace("Z", "+00:00").replace("+00:00", ""))
+            before_dt = datetime.fromisoformat(before.replace("Z", "").replace("+00:00", ""))
         except ValueError:
             raise HTTPException(status_code=400, detail="Invalid 'before' timestamp format")
+
+    # Lazy initial load if this stock has no candles at all
+    has_any = db.query(Candle).filter(Candle.stock_id == stock.id).first() is not None
+    if not has_any:
+        try:
+            fetch_initial_candles(db, stock)
+        except Exception as e:
+            logger.warning(f"[Candles] Initial fetch for {stock.symbol} failed: {e}")
+
+    # Lazy older-data load when scrolling left and not enough cached
+    if before_dt:
+        # Map derived timeframes to their base for the existence check
+        base_tf = {"5m": "1m", "15m": "1m", "4h": "1h", "1W": "1D", "1M": "1D"}.get(timeframe, timeframe)
+        older_existing = db.query(Candle).filter(
+            Candle.stock_id == stock.id,
+            Candle.timeframe == base_tf,
+            Candle.timestamp < before_dt,
+        ).count()
+        if older_existing < limit:
+            try:
+                fetch_older_candles(db, stock, base_tf, end=before_dt, span_days=365)
+            except Exception as e:
+                logger.debug(f"[Candles] Older fetch for {stock.symbol} failed: {e}")
 
     candles = aggregate_candles(db, stock.id, timeframe, limit=limit, since=since_dt, before=before_dt)
     return candles
@@ -674,27 +794,28 @@ def add_to_watchlist(
     data: WatchlistAdd,
     db: Session = Depends(get_db),
 ) -> Dict[str, Any]:
-    """
-    Add a stock to the watchlist by symbol. Checks for duplicates.
-    """
-    stock = db.query(Stock).filter(Stock.symbol == data.symbol.upper()).first()
-    if not stock:
-        # Fallback to first available stock (supports smoke tests with dummy data)
-        stock = db.query(Stock).first()
-        if not stock:
-            raise HTTPException(status_code=404, detail=f"Stock '{data.symbol}' not found")
+    """Add a stock to the watchlist by symbol.
 
-    # Check for duplicate
+    The symbol must exist in the universe (download from NASDAQ Trader at seed).
+    Returns 404 if the symbol is unknown — never silently substitutes another stock.
+    On first add, lazily fetches the stock's price + sector from Yahoo Finance.
+    """
+    stock = _resolve_stock(db, data.symbol)
+    if not stock:
+        raise HTTPException(status_code=404, detail=f"Stock '{data.symbol}' not found")
+
     existing = db.query(Watchlist).filter(Watchlist.stock_id == stock.id).first()
     if existing:
         raise HTTPException(status_code=409, detail=f"'{data.symbol}' is already in the watchlist")
 
-    # Determine next sort_order
+    # Lazy enrich + price fetch so the watchlist row has live data
+    if not stock.stock_price:
+        _enrich_stock(db, stock)
+        _refresh_price_from_yahoo(db, stock)
+        db.refresh(stock)
+
     max_order = db.query(Watchlist).count()
-    entry = Watchlist(
-        stock_id=stock.id,
-        sort_order=max_order,
-    )
+    entry = Watchlist(stock_id=stock.id, sort_order=max_order)
     db.add(entry)
     db.commit()
     db.refresh(entry)
@@ -861,22 +982,27 @@ def create_alert(
     data: AlertCreate,
     db: Session = Depends(get_db),
 ) -> Dict[str, Any]:
-    """
-    Create a new price alert.
-    """
-    stock = db.query(Stock).filter(Stock.symbol == data.symbol.upper()).first()
-    if not stock:
-        # Fallback to first available stock (supports smoke tests with dummy data)
-        stock = db.query(Stock).first()
-        if not stock:
-            raise HTTPException(status_code=404, detail=f"Stock '{data.symbol}' not found")
+    """Create a new price alert.
 
-    condition = data.condition if data.condition in ("above", "below") else "above"
+    Returns 400 if condition is not 'above' or 'below'.
+    Returns 404 if the symbol is not in the universe.
+    """
+    if data.condition not in ("above", "below"):
+        raise HTTPException(status_code=400, detail="condition must be 'above' or 'below'")
+
+    stock = _resolve_stock(db, data.symbol)
+    if not stock:
+        raise HTTPException(status_code=404, detail=f"Stock '{data.symbol}' not found")
+
+    # Lazy enrich + price fetch so the alert can evaluate against a real price
+    if not stock.stock_price:
+        _enrich_stock(db, stock)
+        _refresh_price_from_yahoo(db, stock)
 
     alert = PriceAlert(
         stock_id=stock.id,
         target_price=data.targetPrice,
-        condition=condition,
+        condition=data.condition,
     )
     db.add(alert)
     db.commit()
@@ -985,20 +1111,38 @@ def save_layout(
 # News Routes
 # ============================================================================
 
+# In-process cache: {symbol_or_None: last_refresh_utc}
+_NEWS_CACHE_TTL = timedelta(minutes=5)
+_news_last_refresh: Dict[Optional[str], datetime] = {}
+_news_lock = threading.Lock()
+
+
 @router.get("/news")
 def get_news(
     symbol: Optional[str] = Query(None, description="Filter by stock symbol"),
+    limit: int = Query(50, ge=1, le=200),
     db: Session = Depends(get_db),
 ) -> List[Dict[str, Any]]:
-    """
-    Get market news, newest first. Optional filter by stock symbol. Limit 50.
-    """
-    query = db.query(MarketNews)
+    """Get market news from Yahoo Finance, newest first.
 
+    Live data (real headlines, real URLs, real timestamps). Cached 5 min in DB
+    via MarketNews table to avoid hammering Yahoo on every request.
+    """
+    cache_key = symbol.upper() if symbol else None
+    now = datetime.utcnow()
+    with _news_lock:
+        last = _news_last_refresh.get(cache_key)
+        if last is None or (now - last) > _NEWS_CACHE_TTL:
+            try:
+                refresh_news_cache(db, symbol=cache_key)
+                _news_last_refresh[cache_key] = now
+            except Exception as e:
+                logger.warning(f"[News] Refresh failed for {cache_key}: {e}")
+
+    query = db.query(MarketNews)
     if symbol:
         query = query.filter(MarketNews.stock_symbol == symbol.upper())
-
-    news = query.order_by(MarketNews.published_at.desc()).limit(50).all()
+    news = query.order_by(MarketNews.published_at.desc()).limit(limit).all()
     return [n.to_dict() for n in news]
 
 
@@ -1024,25 +1168,28 @@ def get_settings(db: Session = Depends(get_db)) -> Dict[str, Any]:
 
 @router.put("/settings")
 def update_settings(
-    update: Dict[str, Any],
+    update: SettingsUpdate,
     db: Session = Depends(get_db),
 ) -> Dict[str, Any]:
-    """
-    Update user settings in AppState.
+    """Update user settings in AppState.
+
+    Validated by the SettingsUpdate Pydantic model — unknown fields are rejected.
+    Only fields present in the request body are updated; others are preserved.
     """
     state = db.query(AppState).first()
     if not state:
         state = AppState(data={})
         db.add(state)
 
+    incoming = {k: v for k, v in update.model_dump(exclude_unset=True).items() if v is not None}
     current_data = state.data or {}
-    current_settings = current_data.get("settings", {})
-    current_settings.update(update)
+    current_settings = dict(current_data.get("settings") or {})
+    current_settings.update(incoming)
     current_data["settings"] = current_settings
     state.data = current_data
     state.updated_at = datetime.utcnow()
 
     db.commit()
     db.refresh(state)
-    logger.info("[Routes] Settings updated")
+    logger.info(f"[Routes] Settings updated: {list(incoming.keys())}")
     return current_settings

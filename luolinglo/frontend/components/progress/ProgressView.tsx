@@ -6,6 +6,8 @@ import { AchievementGrid } from './AchievementGrid'
 import { WeeklyXPChart } from './WeeklyXPChart'
 import { StreakCalendar } from './StreakCalendar'
 import { PersonalBests } from './PersonalBests'
+import { ActivitySummary } from './ActivitySummary'
+import { RecentDays } from './RecentDays'
 import { toast } from 'react-toastify'
 import type { ProgressStats, AchievementBadge, WeeklyXp, DailyActivityData } from '../../types'
 
@@ -73,6 +75,16 @@ export function ProgressView() {
           flex-direction: column;
           gap: var(--space-6);
         }
+        .activity-tab-row {
+          display: flex;
+          gap: var(--space-4);
+          align-items: flex-start;
+          flex-wrap: wrap;
+        }
+        @media (max-width: 720px) {
+          .activity-tab-row { flex-direction: column; }
+          .activity-tab-row > * { width: 100%; }
+        }
       `}</style>
       <div className="progress-view">
         <h2 className="progress-view-title">Progress</h2>
@@ -99,7 +111,11 @@ export function ProgressView() {
 
           <TabPanel id="activity">
             <div className="progress-tab-content">
-              {activities.length > 0 && <StreakCalendar activities={activities} />}
+              <ActivitySummary activities={activities} windowDays={30} />
+              <div className="activity-tab-row">
+                <StreakCalendar activities={activities} />
+                <RecentDays activities={activities} count={10} />
+              </div>
               {weeklyXp.length > 0 && <WeeklyXPChart data={weeklyXp} />}
             </div>
           </TabPanel>

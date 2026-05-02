@@ -68,7 +68,7 @@ export class UICapture {
   /**
    * Initialize the capture service
    *
-   * @param backendUrl - Backend API URL (e.g., http://localhost:3101/api)
+   * @param backendUrl - Backend API URL (e.g., http://localhost:3113/api)
    */
   initialize(backendUrl: string): void {
     this.backendUrl = backendUrl

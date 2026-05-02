@@ -71,3 +71,51 @@ def db():
     finally:
         session.rollback()
         session.close()
+
+
+@pytest.fixture
+def seeded_universe(db):
+    """Manually insert a small fixture universe (no network calls).
+
+    Replaces the heavyweight ``client.post('/api/stocks/seed')`` call which
+    would hit NASDAQ Trader + Yahoo Finance and is unsuitable for unit tests.
+    External smoke tests still exercise the real seed endpoint.
+    """
+    from models import Stock, StockPrice, MarketNews
+    from datetime import datetime
+
+    fixtures = [
+        ("AAPL", "Apple Inc.", "Technology"),
+        ("MSFT", "Microsoft Corporation", "Technology"),
+        ("GOOGL", "Alphabet Inc.", "Technology"),
+        ("JPM", "JPMorgan Chase", "Financial"),
+    ]
+    for sym, name, sector in fixtures:
+        s = Stock(symbol=sym, name=name, sector=sector, exchange="NASDAQ")
+        db.add(s)
+        db.flush()
+        db.add(StockPrice(
+            stock_id=s.id, price=150.0, open_price=148.0, high=152.0,
+            low=147.0, prev_close=149.0, volume=1_000_000,
+            change=1.0, change_pct=0.67,
+        ))
+
+    # Seed a couple of news rows so test_get_news passes without a network call
+    db.add(MarketNews(
+        stock_symbol=None,
+        headline="Markets close mixed amid tech earnings",
+        summary="Major indices were mixed in afternoon trading.",
+        source="Reuters",
+        url="https://example.com/markets",
+        published_at=datetime.utcnow(),
+    ))
+    db.add(MarketNews(
+        stock_symbol="AAPL",
+        headline="Apple announces quarterly results",
+        summary="Apple reported fiscal Q-results today.",
+        source="Bloomberg",
+        url="https://example.com/aapl",
+        published_at=datetime.utcnow(),
+    ))
+    db.commit()
+    return fixtures

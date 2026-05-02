@@ -14,9 +14,6 @@ from models import (
     AppState, UISnapshot, UIScreenshot,
     Board, BoardList, Card, Label, ChecklistItem, card_labels,
 )
-from auth_models import User, Membership
-from auth_middleware import get_current_user
-from auth_routes import router as auth_router
 from datetime import datetime, timedelta
 import logging
 
@@ -166,35 +163,24 @@ def execute_action(request: ActionRequest, db: Session = Depends(get_db)) -> Dic
 # ============================================================================
 
 @router.get("/boards")
-def list_boards(user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> List[Dict[str, Any]]:
-    # Only return boards the user is a member of
-    board_ids = [m.resource_id for m in db.query(Membership).filter_by(
-        user_id=user.id, resource_type="board"
-    ).all()]
-    boards = db.query(Board).filter(Board.id.in_(board_ids)).order_by(Board.created_at).all()
+def list_boards(db: Session = Depends(get_db)) -> List[Dict[str, Any]]:
+    boards = db.query(Board).order_by(Board.created_at).all()
     return [b.to_dict() for b in boards]
 
 @router.post("/boards")
-def create_board(data: BoardCreate, user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> Dict[str, Any]:
-    board = Board(name=data.name, user_id=user.id)
+def create_board(data: BoardCreate, db: Session = Depends(get_db)) -> Dict[str, Any]:
+    board = Board(name=data.name)
     db.add(board)
     db.flush()
     # Create default lists
     for i, title in enumerate(["To Do", "In Progress", "Done"]):
         db.add(BoardList(board_id=board.id, title=title, position=i))
-    # Make creator the owner
-    db.add(Membership(user_id=user.id, resource_type="board", resource_id=board.id, role="owner"))
     db.commit()
     db.refresh(board)
     return board.to_dict(include_lists=True, include_labels=True)
 
 @router.get("/boards/{board_id}")
-def get_board(board_id: int, user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> Dict[str, Any]:
-    # Verify membership
-    if user.role != "admin":
-        member = db.query(Membership).filter_by(user_id=user.id, resource_type="board", resource_id=board_id).first()
-        if not member:
-            raise HTTPException(status_code=403, detail="Not a member of this board")
+def get_board(board_id: int, db: Session = Depends(get_db)) -> Dict[str, Any]:
     board = db.query(Board).options(
         joinedload(Board.lists).joinedload(BoardList.cards).joinedload(Card.labels),
         joinedload(Board.lists).joinedload(BoardList.cards).joinedload(Card.checklist_items),
@@ -205,7 +191,7 @@ def get_board(board_id: int, user: User = Depends(get_current_user), db: Session
     return board.to_dict(include_lists=True, include_labels=True)
 
 @router.put("/boards/{board_id}")
-def update_board(board_id: int, data: BoardUpdate, user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> Dict[str, Any]:
+def update_board(board_id: int, data: BoardUpdate, db: Session = Depends(get_db)) -> Dict[str, Any]:
     board = db.query(Board).filter(Board.id == board_id).first()
     if not board:
         raise HTTPException(status_code=404, detail="Board not found")
@@ -216,11 +202,9 @@ def update_board(board_id: int, data: BoardUpdate, user: User = Depends(get_curr
     return board.to_dict()
 
 @router.delete("/boards/{board_id}")
-def delete_board(board_id: int, user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> Dict[str, str]:
+def delete_board(board_id: int, db: Session = Depends(get_db)) -> Dict[str, str]:
     board = db.query(Board).filter(Board.id == board_id).first()
     if board:
-        # Delete memberships for this board
-        db.query(Membership).filter_by(resource_type="board", resource_id=board_id).delete()
         db.delete(board)
         db.commit()
     return {"status": "deleted", "id": str(board_id)}
@@ -668,7 +652,3 @@ def update_ui_screenshot(data: UIScreenshotUpdate, db: Session = Depends(get_db)
     db.commit()
     db.refresh(screenshot)
     return {"status": "updated", "timestamp": screenshot.timestamp.isoformat()}
-
-
-# Include auth routes (register, login, members, invites)
-router.include_router(auth_router)

@@ -3,7 +3,7 @@ import { Table } from './ui'
 import type { TableColumn } from './ui'
 import type { AppController } from '../AppController'
 
-const BACKEND_URL = (window as any).__CRAFTBOT_BACKEND_URL__ || 'http://localhost:{{BACKEND_PORT}}'
+const BACKEND_URL = (window as any).__CRAFTBOT_BACKEND_URL__ || 'http://localhost:3105'
 
 interface ScreenerPanelProps {
   controller: AppController
@@ -108,9 +108,9 @@ export function ScreenerPanel({ controller: _controller, onSelectStock }: Screen
     },
     {
       key: 'changePct',
-      header: 'Change %',
+      header: 'Change %',  // non-breaking space — keeps "Change %" on one line
       align: 'right',
-      width: '80px',
+      width: '90px',
       render: (item) => {
         const pct = item.price?.changePct ?? 0
         const isPos = pct >= 0

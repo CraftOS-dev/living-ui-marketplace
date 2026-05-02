@@ -29,12 +29,12 @@ export class StatePersistence<T extends Record<string, unknown>> {
   /**
    * Create a new StatePersistence instance
    *
-   * @param projectId - Unique project identifier (uses {{PROJECT_ID}} placeholder)
+   * @param projectId - Unique project identifier (uses 9b4d6e1a placeholder)
    * @param namespace - Optional namespace for multiple persistence stores
    * @param options - Configuration options
    */
   constructor(
-    projectId: string = '{{PROJECT_ID}}',
+    projectId: string = '9b4d6e1a',
     namespace: string = 'state',
     options: PersistenceOptions = {}
   ) {
@@ -158,18 +158,18 @@ export const uiPreferences = new StatePersistence<{
   sidebarWidth: number
   fontSize: number
   [key: string]: unknown
-}>('{{PROJECT_ID}}', 'ui-prefs', { debounceMs: 1000 })
+}>('9b4d6e1a', 'ui-prefs', { debounceMs: 1000 })
 
 /**
  * Draft/temporary data persistence
  */
 export const draftStorage = new StatePersistence<{
   [key: string]: unknown
-}>('{{PROJECT_ID}}', 'drafts', { debounceMs: 300 })
+}>('9b4d6e1a', 'drafts', { debounceMs: 300 })
 
 /**
  * Cache for backend data (faster initial load)
  */
 export const stateCache = new StatePersistence<{
   [key: string]: unknown
-}>('{{PROJECT_ID}}', 'cache', { debounceMs: 1000 })
+}>('9b4d6e1a', 'cache', { debounceMs: 1000 })

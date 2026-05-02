@@ -14,7 +14,7 @@ import { SearchModal } from './SearchModal'
 import { MobileNavBar } from './MobileNavBar'
 import type { MobileTab } from './MobileNavBar'
 
-const BACKEND_URL = (window as any).__CRAFTBOT_BACKEND_URL__ || 'http://localhost:{{BACKEND_PORT}}'
+const BACKEND_URL = (window as any).__CRAFTBOT_BACKEND_URL__ || 'http://localhost:3105'
 
 const DEFAULT_LAYOUT: LayoutData = {
   lg: [
@@ -69,18 +69,11 @@ export function MainView({ controller }: MainViewProps) {
     mobileTab: isMobile ? mobileTab : null,
   })
 
-  // Seed stocks and load layout on mount
+  // Load saved layout on mount. Stock-universe seeding happens once in
+  // AppController.initialize() — don't re-trigger it here on every nav.
   useEffect(() => {
     const init = async () => {
       try {
-        // Seed stocks
-        await fetch(`${BACKEND_URL}/api/stocks/seed`, { method: 'POST' })
-      } catch (err) {
-        console.warn('[MainView] seed stocks failed:', err)
-      }
-
-      try {
-        // Load layout
         const res = await fetch(`${BACKEND_URL}/api/layout`)
         if (res.ok) {
           const data = await res.json()
@@ -90,7 +83,6 @@ export function MainView({ controller }: MainViewProps) {
       } catch (err) {
         console.warn('[MainView] load layout failed:', err)
       }
-
       setInitialized(true)
     }
     init()

@@ -44,7 +44,7 @@ export class AppController {
 
   private listeners: Set<(state: AppState) => void> = new Set()
   private backendAvailable: boolean = false
-  private baseUrl: string = (window as any).__CRAFTBOT_BACKEND_URL__ || 'http://localhost:{{BACKEND_PORT}}'
+  private baseUrl: string = (window as any).__CRAFTBOT_BACKEND_URL__ || 'http://localhost:3105'
 
   // Polling
   private _priceInterval: ReturnType<typeof setInterval> | null = null
@@ -61,6 +61,9 @@ export class AppController {
    *
    * Fetches state from backend, falls back to localStorage cache.
    */
+  // Guard: ensure we only kick off the seed once per session
+  private _seedTriggered: boolean = false
+
   async initialize(): Promise<void> {
     console.log('[AppController] Initializing...')
 
@@ -86,6 +89,15 @@ export class AppController {
       } catch (error) {
         console.error('[AppController] Failed to load from backend:', error)
         this.loadFromCache()
+      }
+
+      // Kick off symbol-universe seed once per session (idempotent on the backend).
+      // Done in the background — UI does not block on it.
+      if (!this._seedTriggered) {
+        this._seedTriggered = true
+        this.seedStocks().catch((err) =>
+          console.warn('[AppController] seedStocks (background) failed:', err)
+        )
       }
     } else {
       console.warn('[AppController] Backend unavailable, using cache')

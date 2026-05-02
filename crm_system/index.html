@@ -12,7 +12,7 @@
       if (window.location.protocol === 'https:') {
         window.__CRAFTBOT_BACKEND_URL__ = window.location.origin;
       } else {
-        window.__CRAFTBOT_BACKEND_URL__ = 'http://' + window.location.hostname + ':{{BACKEND_PORT}}';
+        window.__CRAFTBOT_BACKEND_URL__ = 'http://' + window.location.hostname + ':3111';
       }
     </script>
 
@@ -99,5 +99,27 @@
     </script>
 
     <script type="module" src="/frontend/main.tsx"></script>
-  </body>
+  
+    <!-- CraftBot theme sync -->
+    <script>
+    (function(){
+      function applyTheme(t,v){
+        document.documentElement.setAttribute("data-theme",t||"dark");
+        if(v&&typeof v==="object"){
+          var el=document.getElementById("craftbot-theme-vars")||document.createElement("style");
+          el.id="craftbot-theme-vars";
+          el.textContent=":root{"+Object.keys(v).map(function(k){return k+":"+v[k];}).join(";")+"}";
+          if(!document.getElementById("craftbot-theme-vars"))document.head.appendChild(el);
+        }
+      }
+      window.addEventListener("load",function(){
+        try{window.parent.postMessage({type:"craftbot-theme-request"},"*");}catch(e){}
+      });
+      window.addEventListener("message",function(e){
+        if(e.data&&e.data.type==="craftbot-theme")applyTheme(e.data.theme,e.data.cssVars);
+      });
+      var _t="dark";try{var _s=window.parent.localStorage.getItem("craftbot-theme");if(_s==="light"||_s==="dark")_t=_s;}catch(e){}document.documentElement.setAttribute("data-theme",_t);
+    })();
+    </script>
+</body>
 </html>

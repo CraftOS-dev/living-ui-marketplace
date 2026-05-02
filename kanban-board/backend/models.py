@@ -14,9 +14,6 @@ from typing import Dict, Any, List
 
 Base = declarative_base()
 
-# Import auth models so tables are created
-from auth_models import User, Membership, Invite  # noqa: F401
-
 # Association table for many-to-many Card <-> Label
 card_labels = Table(
     "card_labels",
@@ -31,7 +28,6 @@ class Board(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(255), nullable=False)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)  # Board owner
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

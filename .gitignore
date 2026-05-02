@@ -37,3 +37,13 @@ Thumbs.db
 
 **/uploads/*
 .claude
+
+# _template/ verification artifacts (the scaffold itself stays committed with placeholders intact)
+_template/node_modules/
+_template/dist/
+_template/backend/__pycache__/
+_template/backend/.pytest_cache/
+_template/backend/living_ui.db
+_template/backend/living_ui.db-*
+_template/backend/logs/
+_template/.last_launch

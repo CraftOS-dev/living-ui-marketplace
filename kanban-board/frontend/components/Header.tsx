@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import type { Board, SearchParams } from '../types'
 import { Button } from './ui'
-import { UserMenu } from './auth/UserMenu'
 
 interface HeaderProps {
   boards: Board[]
@@ -177,7 +176,6 @@ export function Header({
         </div>
       </div>
 
-      <UserMenu />
     </header>
   )
 }

@@ -1,12 +1,12 @@
 {
-  "id": "a1b2c3d4",
+  "id": "3d8a5c92",
   "name": "Kanban Board",
   "version": "1.0.0",
-  "description": "A Trello-like Kanban board for organizing tasks with drag-and-drop, labels, priorities, checklists, and due dates",
+  "description": "Local single-user Kanban board with drag-and-drop, labels, priorities, checklists, and due dates (no auth)",
   "author": "CraftBot Agent",
   "livingUIVersion": "1.0",
   "features": [],
-  "createdAt": "2026-04-04T00:00:00.000Z",
+  "createdAt": "2026-04-27T06:23:43.000Z",
   "entrypoint": {
     "frontend": "src/main.tsx",
     "backend": "backend/main.py"

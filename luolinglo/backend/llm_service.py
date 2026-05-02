@@ -15,9 +15,13 @@ from datetime import datetime, timedelta
 
 logger = logging.getLogger(__name__)
 
-# Add CraftBot root to path so we can import its modules
-_CRAFTBOT_ROOT = Path(__file__).resolve().parent.parent.parent.parent
-sys.path.insert(0, str(_CRAFTBOT_ROOT))
+# Add CraftBot root to path so we can import its modules.
+# llm_service.py lives at:
+#   {CraftBot}/agent_file_system/workspace/living_ui/{project}/backend/llm_service.py
+# So we need 6 .parent calls to reach {CraftBot}.
+_CRAFTBOT_ROOT = Path(__file__).resolve().parent.parent.parent.parent.parent.parent
+if str(_CRAFTBOT_ROOT) not in sys.path:
+    sys.path.insert(0, str(_CRAFTBOT_ROOT))
 
 _llm_instance = None
 

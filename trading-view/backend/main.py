@@ -5,7 +5,7 @@ FastAPI backend for Living UI projects.
 Provides REST API for state management and data persistence.
 
 To run manually:
-    uvicorn main:app --port {{BACKEND_PORT}} --reload
+    uvicorn main:app --port 3105 --reload
 """
 
 from fastapi import FastAPI
@@ -30,15 +30,19 @@ async def lifespan(app: FastAPI):
     await init_db()
     logger.info("[Backend] Database initialized")
 
-    # Auto-seed stocks on startup so all endpoints work immediately
+    # Auto-seed the symbol universe on startup so search and lazy-loading work
+    # immediately. Idempotent — only does the network download if the DB is empty.
     from database import SessionLocal
-    from simulation import seed_stocks, generate_news
+    from simulation import seed_stocks, refresh_news_cache
     from models import Stock
     db = SessionLocal()
     try:
         if db.query(Stock).count() == 0:
-            seed_stocks(db)
-            generate_news(db)
+            seed_stocks(db, warmup=True)
+            try:
+                refresh_news_cache(db)
+            except Exception as ne:
+                logger.warning(f"[Backend] Initial news refresh failed: {ne}")
             logger.info("[Backend] Auto-seeded stock universe")
     except Exception as e:
         logger.error(f"[Backend] Auto-seed failed: {e}")
@@ -147,4 +151,4 @@ if _DIST_DIR.exists() and _DIST_ASSETS.exists():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port={{BACKEND_PORT}})
+    uvicorn.run(app, host="0.0.0.0", port=3105)

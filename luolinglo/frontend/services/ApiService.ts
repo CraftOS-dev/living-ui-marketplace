@@ -5,7 +5,7 @@ import type {
   WeeklyXp, ProgressStats,
 } from '../types'
 
-const BACKEND_URL = (window as any).__CRAFTBOT_BACKEND_URL__ || 'http://localhost:{{BACKEND_PORT}}'
+const BACKEND_URL = (window as any).__CRAFTBOT_BACKEND_URL__ || 'http://localhost:3109'
 
 class ApiServiceClass {
   private baseUrl: string

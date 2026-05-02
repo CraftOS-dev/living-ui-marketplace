@@ -1,16 +1,30 @@
 """
 Stock Data Engine
 
-Fetches real stock data from Yahoo Finance for the Trading View Living UI.
-Provides historical candle data, real-time price updates, and stock universe management.
+Real production data sources:
+  - Symbol universe: NASDAQ Trader official symbol directory
+    (https://www.nasdaqtrader.com/dynamic/SymDir/{nasdaqlisted,otherlisted}.txt)
+    Covers all US-listed stocks (~10,000 symbols), refreshed daily by NASDAQ.
+  - OHLCV candles: Yahoo Finance via yfinance (real historical + intraday data)
+  - Real-time prices: Yahoo Finance fast_info (15-min delayed for free tier)
+  - News: Yahoo Finance Ticker.news (real headlines + URLs + timestamps)
+  - Sectors / market cap: Yahoo Finance Ticker.info (lazy-loaded per symbol)
+
+Lazy-loading strategy:
+  - Seed loads ALL symbol metadata (cheap, ~10k rows in seconds)
+  - Prices, candles, sectors fetched on demand the first time a user opens the symbol
+  - A small WARMUP_TICKERS list is fully populated during seed so the
+    UI has something to show immediately (real data, not fake)
 """
 
 import logging
-import random
+import threading
+import urllib.request
+import urllib.error
 from datetime import datetime, timedelta
+from typing import Optional, Iterable
 
 import numpy as np
-
 from sqlalchemy.orm import Session
 
 from models import Stock, StockPrice, Candle, SimulationState, PriceAlert, MarketNews
@@ -19,218 +33,470 @@ logger = logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------------------------
-# Stock Universe Seed Data
+# Symbol universe (live download — no hardcoded list)
 # ---------------------------------------------------------------------------
 
-STOCK_UNIVERSE = {
-    "AAPL": {"name": "Apple Inc.", "sector": "Technology", "exchange": "NASDAQ", "base_price": 175.0, "volatility": 0.02},
-    "MSFT": {"name": "Microsoft Corporation", "sector": "Technology", "exchange": "NASDAQ", "base_price": 415.0, "volatility": 0.018},
-    "GOOGL": {"name": "Alphabet Inc.", "sector": "Technology", "exchange": "NASDAQ", "base_price": 155.0, "volatility": 0.022},
-    "AMZN": {"name": "Amazon.com Inc.", "sector": "Consumer Cyclical", "exchange": "NASDAQ", "base_price": 185.0, "volatility": 0.025},
-    "NVDA": {"name": "NVIDIA Corporation", "sector": "Technology", "exchange": "NASDAQ", "base_price": 880.0, "volatility": 0.035},
-    "META": {"name": "Meta Platforms Inc.", "sector": "Technology", "exchange": "NASDAQ", "base_price": 505.0, "volatility": 0.028},
-    "TSLA": {"name": "Tesla Inc.", "sector": "Consumer Cyclical", "exchange": "NASDAQ", "base_price": 175.0, "volatility": 0.04},
-    "BRK.B": {"name": "Berkshire Hathaway", "sector": "Financial", "exchange": "NYSE", "base_price": 410.0, "volatility": 0.012},
-    "JPM": {"name": "JPMorgan Chase", "sector": "Financial", "exchange": "NYSE", "base_price": 195.0, "volatility": 0.018},
-    "V": {"name": "Visa Inc.", "sector": "Financial", "exchange": "NYSE", "base_price": 280.0, "volatility": 0.015},
-    "JNJ": {"name": "Johnson & Johnson", "sector": "Healthcare", "exchange": "NYSE", "base_price": 155.0, "volatility": 0.012},
-    "UNH": {"name": "UnitedHealth Group", "sector": "Healthcare", "exchange": "NYSE", "base_price": 525.0, "volatility": 0.018},
-    "WMT": {"name": "Walmart Inc.", "sector": "Consumer Defensive", "exchange": "NYSE", "base_price": 165.0, "volatility": 0.012},
-    "PG": {"name": "Procter & Gamble", "sector": "Consumer Defensive", "exchange": "NYSE", "base_price": 160.0, "volatility": 0.01},
-    "MA": {"name": "Mastercard Inc.", "sector": "Financial", "exchange": "NYSE", "base_price": 460.0, "volatility": 0.016},
-    "HD": {"name": "Home Depot", "sector": "Consumer Cyclical", "exchange": "NYSE", "base_price": 370.0, "volatility": 0.018},
-    "XOM": {"name": "Exxon Mobil", "sector": "Energy", "exchange": "NYSE", "base_price": 105.0, "volatility": 0.022},
-    "CVX": {"name": "Chevron Corporation", "sector": "Energy", "exchange": "NYSE", "base_price": 155.0, "volatility": 0.02},
-    "ABBV": {"name": "AbbVie Inc.", "sector": "Healthcare", "exchange": "NYSE", "base_price": 170.0, "volatility": 0.018},
-    "KO": {"name": "Coca-Cola Company", "sector": "Consumer Defensive", "exchange": "NYSE", "base_price": 60.0, "volatility": 0.01},
-    "PEP": {"name": "PepsiCo Inc.", "sector": "Consumer Defensive", "exchange": "NASDAQ", "base_price": 170.0, "volatility": 0.011},
-    "AVGO": {"name": "Broadcom Inc.", "sector": "Technology", "exchange": "NASDAQ", "base_price": 1350.0, "volatility": 0.03},
-    "COST": {"name": "Costco Wholesale", "sector": "Consumer Defensive", "exchange": "NASDAQ", "base_price": 730.0, "volatility": 0.015},
-    "MRK": {"name": "Merck & Co.", "sector": "Healthcare", "exchange": "NYSE", "base_price": 125.0, "volatility": 0.016},
-    "DIS": {"name": "Walt Disney", "sector": "Communication Services", "exchange": "NYSE", "base_price": 115.0, "volatility": 0.025},
-    "NFLX": {"name": "Netflix Inc.", "sector": "Communication Services", "exchange": "NASDAQ", "base_price": 625.0, "volatility": 0.03},
-    "AMD": {"name": "AMD Inc.", "sector": "Technology", "exchange": "NASDAQ", "base_price": 175.0, "volatility": 0.035},
-    "SPY": {"name": "S&P 500 ETF", "sector": "Index", "exchange": "NYSE", "base_price": 510.0, "volatility": 0.012},
-    "QQQ": {"name": "Nasdaq 100 ETF", "sector": "Index", "exchange": "NASDAQ", "base_price": 440.0, "volatility": 0.015},
-    "DIA": {"name": "Dow Jones ETF", "sector": "Index", "exchange": "NYSE", "base_price": 390.0, "volatility": 0.011},
+# NASDAQ Trader publishes the canonical list of US-listed securities.
+# These files are public, free, no auth, refreshed daily.
+_NASDAQ_LISTED_URL = "https://www.nasdaqtrader.com/dynamic/SymDir/nasdaqlisted.txt"
+_OTHER_LISTED_URL = "https://www.nasdaqtrader.com/dynamic/SymDir/otherlisted.txt"
+
+# Map otherlisted "Exchange" code → human-readable exchange name.
+_EXCHANGE_CODE_MAP = {
+    "A": "NYSE MKT",
+    "N": "NYSE",
+    "P": "NYSE ARCA",
+    "Z": "Cboe BZX",
+    "V": "IEXG",
+}
+
+# Tickers to fully populate (price + sector + candles) during the initial seed
+# so the UI has live data immediately. Every other symbol in the universe is
+# searchable but gets its data lazily on first open. These are real, large-cap
+# US tickers — the choice of *which* to warm up is a UX default, not data.
+WARMUP_TICKERS = [
+    "AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "META", "TSLA", "BRK-B",
+    "JPM", "V", "JNJ", "UNH", "WMT", "PG", "MA", "HD", "XOM", "CVX",
+    "ABBV", "KO", "PEP", "AVGO", "COST", "MRK", "DIS", "NFLX", "AMD",
+    "SPY", "QQQ", "DIA",
+]
+
+
+def _http_get_text(url: str, timeout: float = 30.0) -> str:
+    """Fetch a URL as UTF-8 text. Raises on network error."""
+    req = urllib.request.Request(url, headers={"User-Agent": "CraftBot-LivingUI/1.0"})
+    with urllib.request.urlopen(req, timeout=timeout) as resp:
+        return resp.read().decode("utf-8", errors="ignore")
+
+
+def _parse_listed_file(text: str, default_exchange: str) -> list[dict]:
+    """Parse a NASDAQ Trader pipe-delimited symbol file."""
+    out: list[dict] = []
+    lines = [ln for ln in text.splitlines() if ln.strip()]
+    if len(lines) < 2:
+        return out
+
+    header = [h.strip() for h in lines[0].split("|")]
+
+    def _idx(*candidates: str) -> Optional[int]:
+        for cand in candidates:
+            if cand in header:
+                return header.index(cand)
+        return None
+
+    sym_idx = _idx("Symbol", "ACT Symbol")
+    name_idx = _idx("Security Name")
+    test_idx = _idx("Test Issue")
+    etf_idx = _idx("ETF")
+    exchange_idx = _idx("Exchange")
+    if sym_idx is None or name_idx is None:
+        logger.warning(f"[Universe] Unexpected header: {header}")
+        return out
+
+    for line in lines[1:]:
+        if line.startswith("File Creation Time"):
+            continue
+        parts = line.split("|")
+        if len(parts) <= max(sym_idx, name_idx):
+            continue
+        symbol = parts[sym_idx].strip()
+        name = parts[name_idx].strip()
+        if not symbol or not name:
+            continue
+        # Skip test issues
+        if test_idx is not None and len(parts) > test_idx:
+            if parts[test_idx].strip().upper() == "Y":
+                continue
+
+        # Determine exchange
+        exchange = default_exchange
+        if exchange_idx is not None and len(parts) > exchange_idx:
+            code = parts[exchange_idx].strip()
+            exchange = _EXCHANGE_CODE_MAP.get(code, code or default_exchange)
+
+        # Note: yfinance uses "-" for share class separator, exchanges use "."
+        # Store the exchange-format symbol (with "."); convert at yfinance call sites.
+        is_etf = False
+        if etf_idx is not None and len(parts) > etf_idx:
+            is_etf = parts[etf_idx].strip().upper() == "Y"
+
+        out.append({
+            "symbol": symbol,
+            "name": name,
+            "exchange": exchange,
+            "is_etf": is_etf,
+        })
+    return out
+
+
+def load_symbol_universe() -> list[dict]:
+    """Download the full US-listed symbol universe from NASDAQ Trader.
+
+    Returns a list of dicts: {symbol, name, exchange, is_etf}.
+    Returns an empty list if both downloads fail (caller should handle gracefully).
+    """
+    universe: list[dict] = []
+    seen: set[str] = set()
+
+    for url, default_exch in [
+        (_NASDAQ_LISTED_URL, "NASDAQ"),
+        (_OTHER_LISTED_URL, "NYSE"),
+    ]:
+        try:
+            text = _http_get_text(url)
+            entries = _parse_listed_file(text, default_exch)
+            for e in entries:
+                if e["symbol"] in seen:
+                    continue
+                seen.add(e["symbol"])
+                universe.append(e)
+            logger.info(f"[Universe] Loaded {len(entries)} symbols from {url}")
+        except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError, OSError) as exc:
+            logger.warning(f"[Universe] Failed to download {url}: {exc}")
+
+    return universe
+
+
+# ---------------------------------------------------------------------------
+# yfinance helpers
+# ---------------------------------------------------------------------------
+
+def _to_yahoo_symbol(symbol: str) -> str:
+    """Convert exchange-format ticker (e.g. 'BRK.B') to Yahoo format ('BRK-B')."""
+    return symbol.replace(".", "-")
+
+
+def _fetch_stock_info(symbol: str) -> dict:
+    """Fetch sector, industry, market cap from yfinance for a symbol.
+
+    Returns {} on any failure — never raises. Lazy-loaded per symbol.
+    """
+    try:
+        import yfinance as yf
+        t = yf.Ticker(_to_yahoo_symbol(symbol))
+        info = t.info or {}
+        return {
+            "sector": info.get("sector") or info.get("category"),
+            "industry": info.get("industry"),
+            "market_cap": info.get("marketCap"),
+            "long_name": info.get("longName") or info.get("shortName"),
+        }
+    except Exception as e:
+        logger.debug(f"[Info] Failed to fetch info for {symbol}: {e}")
+        return {}
+
+
+def _enrich_stock(db: Session, stock: Stock) -> None:
+    """Populate sector/market_cap on a Stock row by querying yfinance.
+
+    No-op if the row already has both fields.
+    """
+    if stock.sector and stock.market_cap:
+        return
+    info = _fetch_stock_info(stock.symbol)
+    changed = False
+    if not stock.sector and info.get("sector"):
+        stock.sector = info["sector"]
+        changed = True
+    if not stock.market_cap and info.get("market_cap"):
+        try:
+            stock.market_cap = float(info["market_cap"])
+            changed = True
+        except (TypeError, ValueError):
+            pass
+    if changed:
+        db.commit()
+
+
+def _refresh_price_from_yahoo(db: Session, stock: Stock) -> Optional[StockPrice]:
+    """Fetch the current price for a single stock and write/update StockPrice.
+
+    Returns the StockPrice row, or None on failure. Used for lazy initial load
+    of stocks that aren't in the warmup set.
+    """
+    try:
+        import yfinance as yf
+        t = yf.Ticker(_to_yahoo_symbol(stock.symbol))
+        fi = t.fast_info
+        last = float(fi.last_price) if getattr(fi, "last_price", None) else None
+        if last is None:
+            return None
+        prev_close = float(fi.previous_close) if getattr(fi, "previous_close", None) else last
+        day_open = float(fi.open) if getattr(fi, "open", None) else last
+        day_high = float(fi.day_high) if getattr(fi, "day_high", None) else last
+        day_low = float(fi.day_low) if getattr(fi, "day_low", None) else last
+
+        change = round(last - prev_close, 2)
+        change_pct = round((change / prev_close) * 100, 2) if prev_close else 0.0
+
+        sp = db.query(StockPrice).filter(StockPrice.stock_id == stock.id).first()
+        now = datetime.utcnow()
+        if not sp:
+            sp = StockPrice(
+                stock_id=stock.id,
+                price=round(last, 2),
+                open_price=round(day_open, 2),
+                high=round(day_high, 2),
+                low=round(day_low, 2),
+                prev_close=round(prev_close, 2),
+                volume=0,
+                change=change,
+                change_pct=change_pct,
+                updated_at=now,
+            )
+            db.add(sp)
+        else:
+            sp.price = round(last, 2)
+            sp.open_price = round(day_open, 2)
+            sp.high = round(day_high, 2)
+            sp.low = round(day_low, 2)
+            sp.prev_close = round(prev_close, 2)
+            sp.change = change
+            sp.change_pct = change_pct
+            sp.updated_at = now
+        db.commit()
+        db.refresh(sp)
+        return sp
+    except Exception as e:
+        logger.debug(f"[Price] Failed to fetch price for {stock.symbol}: {e}")
+        return None
+
+
+# ---------------------------------------------------------------------------
+# Seeding
+# ---------------------------------------------------------------------------
+
+_seed_lock = threading.Lock()
+
+
+def seed_stocks(db: Session, warmup: bool = True) -> list[dict]:
+    """Populate the database with the full US-listed symbol universe.
+
+    Adds Stock rows (metadata only) for every symbol returned by NASDAQ Trader.
+    If warmup=True, also fetches live prices and sectors for the WARMUP_TICKERS
+    list so the UI has data on first paint.
+
+    Idempotent: re-running only inserts new symbols and re-runs warmup.
+    """
+    with _seed_lock:
+        # 1. Download the universe (skip if we already have a healthy population).
+        existing_count = db.query(Stock).count()
+        if existing_count < 100:  # treat <100 as "needs initial seed"
+            universe = load_symbol_universe()
+            if not universe:
+                logger.warning("[Seed] Symbol universe download failed — keeping any existing rows")
+            else:
+                # Bulk insert new symbols
+                existing_syms = {s for (s,) in db.query(Stock.symbol).all()}
+                to_add = []
+                for entry in universe:
+                    if entry["symbol"] in existing_syms:
+                        continue
+                    to_add.append(Stock(
+                        symbol=entry["symbol"],
+                        name=entry["name"],
+                        exchange=entry["exchange"],
+                    ))
+                if to_add:
+                    db.bulk_save_objects(to_add)
+                    db.commit()
+                    logger.info(f"[Seed] Inserted {len(to_add)} symbols (universe size: {len(universe)})")
+
+        # 2. Ensure SimulationState row exists.
+        sim = db.query(SimulationState).first()
+        if not sim:
+            sim = SimulationState(id=1, last_tick_time=datetime.utcnow(), is_running=True, tick_count=0)
+            db.add(sim)
+            db.commit()
+
+        # 3. Warmup: fetch live data for popular tickers.
+        if warmup:
+            for sym in WARMUP_TICKERS:
+                # Universe uses exchange format; convert if Yahoo format slipped in
+                stock = db.query(Stock).filter(
+                    (Stock.symbol == sym) | (Stock.symbol == sym.replace("-", "."))
+                ).first()
+                if not stock:
+                    # Symbol not in NASDAQ list (shouldn't happen for these): create it
+                    stock = Stock(symbol=sym, name=sym, exchange="NASDAQ")
+                    db.add(stock)
+                    db.commit()
+                    db.refresh(stock)
+                _enrich_stock(db, stock)
+                if not stock.stock_price:
+                    _refresh_price_from_yahoo(db, stock)
+
+        # 4. Return all stocks (capped to keep response small)
+        return [s.to_dict() for s in db.query(Stock).order_by(Stock.symbol).limit(500).all()]
+
+
+# ---------------------------------------------------------------------------
+# Historical candles (real Yahoo Finance data)
+# ---------------------------------------------------------------------------
+
+# Map our timeframe → (yfinance period, yfinance interval) for the *initial* load.
+_INITIAL_FETCH_SPECS = [
+    ("1D", "5y", "1d"),    # 5 years of daily candles
+    ("1h", "60d", "1h"),   # 60 days of hourly candles
+    ("1m", "7d", "5m"),    # 7 days of 5-min candles (stored under "1m")
+]
+
+
+def _persist_history(db: Session, stock: Stock, timeframe: str, hist) -> int:
+    """Persist a yfinance DataFrame of candles to the DB. Skips duplicates.
+
+    Returns the number of new candles inserted.
+    """
+    if hist is None or len(hist) == 0:
+        return 0
+
+    # Find existing timestamps for this stock+timeframe to dedupe.
+    existing_ts = {
+        ts for (ts,) in db.query(Candle.timestamp).filter(
+            Candle.stock_id == stock.id,
+            Candle.timeframe == timeframe,
+        ).all()
+    }
+
+    to_add = []
+    for ts, row in hist.iterrows():
+        # Normalise to naive UTC datetime
+        try:
+            if hasattr(ts, "to_pydatetime"):
+                py_ts = ts.to_pydatetime()
+            else:
+                py_ts = ts
+            if getattr(py_ts, "tzinfo", None) is not None:
+                py_ts = py_ts.astimezone(tz=None).replace(tzinfo=None)
+        except Exception:
+            continue
+
+        if py_ts in existing_ts:
+            continue
+        try:
+            to_add.append(Candle(
+                stock_id=stock.id,
+                timeframe=timeframe,
+                timestamp=py_ts,
+                open_price=round(float(row["Open"]), 4),
+                high=round(float(row["High"]), 4),
+                low=round(float(row["Low"]), 4),
+                close_price=round(float(row["Close"]), 4),
+                volume=int(row["Volume"]) if row["Volume"] == row["Volume"] else 0,  # NaN check
+            ))
+        except (KeyError, TypeError, ValueError):
+            continue
+
+    if to_add:
+        db.bulk_save_objects(to_add)
+        db.commit()
+    return len(to_add)
+
+
+def fetch_initial_candles(db: Session, stock: Stock) -> None:
+    """Fetch initial historical candles (1y daily, 30d hourly, 7d 5-min) from Yahoo."""
+    import yfinance as yf
+    yahoo_sym = _to_yahoo_symbol(stock.symbol)
+    ticker = yf.Ticker(yahoo_sym)
+
+    for timeframe, period, interval in _INITIAL_FETCH_SPECS:
+        try:
+            hist = ticker.history(period=period, interval=interval, auto_adjust=False)
+            n = _persist_history(db, stock, timeframe, hist)
+            if n:
+                logger.info(f"[Candles] {stock.symbol} {timeframe}: +{n} candles")
+        except Exception as e:
+            logger.debug(f"[Candles] {stock.symbol} {timeframe} fetch failed: {e}")
+            db.rollback()
+
+
+# Map our internal timeframe → yfinance interval string.
+_TF_TO_YF_INTERVAL = {
+    "1m": "5m",   # we store 5-min bars under "1m"
+    "1h": "1h",
+    "1D": "1d",
+    "1W": "1wk",
+    "1M": "1mo",
 }
 
 
-
-# ---------------------------------------------------------------------------
-# seed_stocks
-# ---------------------------------------------------------------------------
-
-def seed_stocks(db: Session) -> list:
-    """Populate the database with stocks from STOCK_UNIVERSE.
-
-    Creates Stock rows, initial StockPrice snapshots, and a
-    SimulationState record.  Returns a list of created stock dicts.
-    """
-    created = []
-    now = datetime.utcnow()
-
-    for symbol, info in STOCK_UNIVERSE.items():
-        # Skip if already seeded
-        existing = db.query(Stock).filter(Stock.symbol == symbol).first()
-        if existing:
-            created.append(existing.to_dict())
-            continue
-
-        stock = Stock(
-            symbol=symbol,
-            name=info["name"],
-            sector=info["sector"],
-            exchange=info["exchange"],
-            created_at=now,
-        )
-        db.add(stock)
-        db.flush()  # get stock.id
-
-        price = info["base_price"]
-        stock_price = StockPrice(
-            stock_id=stock.id,
-            price=price,
-            open_price=price,
-            high=price,
-            low=price,
-            prev_close=price,
-            volume=0,
-            change=0.0,
-            change_pct=0.0,
-            updated_at=now,
-        )
-        db.add(stock_price)
-        created.append(stock.to_dict())
-
-    # Ensure a SimulationState row exists
-    sim = db.query(SimulationState).first()
-    if not sim:
-        sim = SimulationState(id=1, last_tick_time=now, is_running=True, tick_count=0)
-        db.add(sim)
-
-    db.commit()
-    return created
-
-
-# ---------------------------------------------------------------------------
-# generate_historical_candles (Real data from Yahoo Finance)
-# ---------------------------------------------------------------------------
-
-def generate_historical_candles(
+def fetch_older_candles(
     db: Session,
     stock: Stock,
-    base_price: float,
-    volatility: float,
-) -> None:
-    """Fetch real historical OHLCV candles from Yahoo Finance.
+    timeframe: str,
+    end: datetime,
+    span_days: int = 365,
+) -> int:
+    """Fetch candles older than `end` for the given timeframe and persist them.
 
-    Fetches:
-      - 1 year daily ("1D") candles
-      - 30 days hourly ("1h") candles
-      - 7 days 5-minute ("1m") candles
+    Used for chart lazy-loading when the user scrolls/drags left past the
+    currently loaded data. Returns the number of new candles inserted.
+
+    Yahoo Finance limits intraday history to ~730 days, hourly to ~730 days,
+    5-min to ~60 days. We respect those limits.
     """
-    import yfinance as yf
-    _fetch_real_candles(db, stock, yf)
+    yf_interval = _TF_TO_YF_INTERVAL.get(timeframe)
+    if not yf_interval:
+        return 0
 
+    # Determine fetch window
+    if timeframe == "1m":
+        span_days = min(span_days, 60)
+    elif timeframe == "1h":
+        span_days = min(span_days, 700)
+    start = end - timedelta(days=span_days)
 
-def _fetch_real_candles(db: Session, stock: Stock, yf: any) -> None:
-    """Fetch real candles from Yahoo Finance and store them."""
-    ticker = yf.Ticker(stock.symbol)
-
-    # Yahoo Finance interval/period mappings
-    fetch_specs = [
-        ("1D", "1y", "1d"),    # 1 year of daily candles
-        ("1h", "30d", "1h"),   # 30 days of hourly candles
-        ("1m", "7d", "5m"),    # 7 days of 5-min candles (stored as "1m" timeframe)
-    ]
-
-    for timeframe, period, interval in fetch_specs:
-        try:
-            hist = ticker.history(period=period, interval=interval)
-            if hist.empty:
-                logger.warning(f"[Simulation] No {interval} data for {stock.symbol}")
-                continue
-
-            candles_to_add = []
-            for ts, row in hist.iterrows():
-                # Convert timezone-aware timestamp to naive UTC
-                if hasattr(ts, 'tz_localize'):
-                    naive_ts = ts.tz_localize(None) if ts.tzinfo is None else ts.tz_convert('UTC').tz_localize(None)
-                else:
-                    naive_ts = ts
-
-                candle = Candle(
-                    stock_id=stock.id,
-                    timeframe=timeframe,
-                    timestamp=naive_ts.to_pydatetime() if hasattr(naive_ts, 'to_pydatetime') else naive_ts,
-                    open_price=round(float(row['Open']), 2),
-                    high=round(float(row['High']), 2),
-                    low=round(float(row['Low']), 2),
-                    close_price=round(float(row['Close']), 2),
-                    volume=int(row['Volume']),
-                )
-                candles_to_add.append(candle)
-
-            if candles_to_add:
-                db.bulk_save_objects(candles_to_add)
-                logger.info(f"[Simulation] Fetched {len(candles_to_add)} {timeframe} candles for {stock.symbol}")
-
-        except Exception as e:
-            logger.warning(f"[Simulation] Failed to fetch {interval} data for {stock.symbol}: {e}")
-            db.rollback()
-
-    # Commit any successfully fetched candles
     try:
-        db.commit()
-    except Exception:
-        db.rollback()
-
-    # Update StockPrice with the latest real close price
-    try:
-        daily = ticker.history(period="1d", interval="1d")
-        if not daily.empty:
-            last_row = daily.iloc[-1]
-            price_record = db.query(StockPrice).filter(StockPrice.stock_id == stock.id).first()
-            if price_record:
-                price_record.price = round(float(last_row['Close']), 2)
-                price_record.open_price = round(float(last_row['Open']), 2)
-                price_record.high = round(float(last_row['High']), 2)
-                price_record.low = round(float(last_row['Low']), 2)
-                price_record.volume = int(last_row['Volume'])
-                if len(daily) > 1:
-                    prev_close = float(daily.iloc[-2]['Close'])
-                else:
-                    prev_close = float(last_row['Open'])
-                price_record.prev_close = round(prev_close, 2)
-                price_record.change = round(price_record.price - prev_close, 2)
-                price_record.change_pct = round((price_record.change / prev_close) * 100, 2) if prev_close != 0 else 0.0
-                price_record.updated_at = datetime.utcnow()
+        import yfinance as yf
+        ticker = yf.Ticker(_to_yahoo_symbol(stock.symbol))
+        hist = ticker.history(
+            start=start.strftime("%Y-%m-%d"),
+            end=end.strftime("%Y-%m-%d"),
+            interval=yf_interval,
+            auto_adjust=False,
+        )
+        n = _persist_history(db, stock, timeframe, hist)
+        if n:
+            logger.info(f"[Candles] {stock.symbol} {timeframe} older: +{n} from {start.date()} to {end.date()}")
+        return n
     except Exception as e:
-        logger.warning(f"[Simulation] Failed to update price for {stock.symbol}: {e}")
+        logger.debug(f"[Candles] {stock.symbol} older fetch failed: {e}")
+        db.rollback()
+        return 0
 
-    db.commit()
 
-
+# Backwards compatibility for any callers still using the old name.
+def generate_historical_candles(db: Session, stock: Stock, *args, **kwargs) -> None:
+    """Deprecated alias kept for any existing imports."""
+    fetch_initial_candles(db, stock)
 
 
 # ---------------------------------------------------------------------------
-# tick_simulation
+# Real-time price ticking
 # ---------------------------------------------------------------------------
+
+# Throttle: don't hammer Yahoo more than once every 30 seconds per ticker batch.
+_TICK_INTERVAL_SECS = 30
+
+
+def _active_stock_symbols(db: Session) -> list[str]:
+    """Return symbols that already have a StockPrice row (i.e. user has opened them).
+
+    These are the only symbols we poll on each tick — avoids a 10k-symbol fan-out.
+    """
+    rows = db.query(Stock.symbol).join(StockPrice, StockPrice.stock_id == Stock.id).all()
+    return [r[0] for r in rows]
+
 
 def tick_simulation(db: Session) -> dict:
-    """Fetch real-time prices from Yahoo Finance for all stocks.
+    """Refresh real-time prices for all *active* stocks (those with a StockPrice row).
 
-    Throttles to avoid excessive API calls — only fetches if at least
-    30 seconds have elapsed since the last fetch.
-    Also checks and triggers price alerts.
-
-    Returns ``{symbol: {price, change, changePct}}`` for every stock.
+    Throttles to one Yahoo batch fetch every 30 seconds. Also evaluates and
+    triggers price alerts. Returns ``{symbol: {price, change, changePct}}``.
     """
     import yfinance as yf
 
     now = datetime.utcnow()
-
     sim = db.query(SimulationState).first()
     if not sim:
         sim = SimulationState(id=1, last_tick_time=now, is_running=True, tick_count=0)
@@ -240,34 +506,39 @@ def tick_simulation(db: Session) -> dict:
     last_tick = sim.last_tick_time or (now - timedelta(minutes=5))
     elapsed = (now - last_tick).total_seconds()
 
-    # Throttle: only fetch from Yahoo every 30 seconds minimum
     result: dict[str, dict] = {}
-    stocks = db.query(Stock).all()
+    active_symbols = _active_stock_symbols(db)
 
-    if elapsed >= 30:
+    if elapsed >= _TICK_INTERVAL_SECS and active_symbols:
         try:
-            # Batch fetch all symbols at once for efficiency
-            symbols = [s.symbol for s in stocks]
-            tickers = yf.Tickers(" ".join(symbols))
+            # Use Yahoo-format symbols for the API call
+            yahoo_syms = [_to_yahoo_symbol(s) for s in active_symbols]
+            tickers = yf.Tickers(" ".join(yahoo_syms))
 
-            for stock in stocks:
+            for symbol in active_symbols:
+                yahoo_key = _to_yahoo_symbol(symbol)
+                ticker = tickers.tickers.get(yahoo_key)
+                if ticker is None:
+                    continue
                 try:
-                    ticker = tickers.tickers.get(stock.symbol.replace(".", "-"))
-                    if not ticker:
+                    fi = ticker.fast_info
+                    if not getattr(fi, "last_price", None):
                         continue
-                    info = ticker.fast_info
-                    current_price = round(float(info.last_price), 2)
-                    prev_close = round(float(info.previous_close), 2) if hasattr(info, 'previous_close') and info.previous_close else current_price
-                    day_open = round(float(info.open), 2) if hasattr(info, 'open') and info.open else current_price
-                    day_high = round(float(info.day_high), 2) if hasattr(info, 'day_high') and info.day_high else current_price
-                    day_low = round(float(info.day_low), 2) if hasattr(info, 'day_low') and info.day_low else current_price
+                    current = round(float(fi.last_price), 2)
+                    prev_close = round(float(fi.previous_close), 2) if getattr(fi, "previous_close", None) else current
+                    day_open = round(float(fi.open), 2) if getattr(fi, "open", None) else current
+                    day_high = round(float(fi.day_high), 2) if getattr(fi, "day_high", None) else current
+                    day_low = round(float(fi.day_low), 2) if getattr(fi, "day_low", None) else current
 
-                    change = round(current_price - prev_close, 2)
-                    change_pct = round((change / prev_close) * 100, 2) if prev_close != 0 else 0.0
+                    change = round(current - prev_close, 2)
+                    change_pct = round((change / prev_close) * 100, 2) if prev_close else 0.0
 
+                    stock = db.query(Stock).filter(Stock.symbol == symbol).first()
+                    if not stock:
+                        continue
                     sp = db.query(StockPrice).filter(StockPrice.stock_id == stock.id).first()
                     if sp:
-                        sp.price = current_price
+                        sp.price = current
                         sp.open_price = day_open
                         sp.high = day_high
                         sp.low = day_low
@@ -276,47 +547,36 @@ def tick_simulation(db: Session) -> dict:
                         sp.change_pct = change_pct
                         sp.updated_at = now
 
-                    result[stock.symbol] = {
-                        "price": current_price,
-                        "change": change,
-                        "changePct": change_pct,
-                    }
+                    result[symbol] = {"price": current, "change": change, "changePct": change_pct}
                 except Exception as e:
-                    logger.debug(f"[tick] Failed to get price for {stock.symbol}: {e}")
-
+                    logger.debug(f"[Tick] {symbol} fast_info failed: {e}")
         except Exception as e:
-            logger.warning(f"[tick] Batch price fetch failed: {e}")
+            logger.warning(f"[Tick] Batch fetch failed: {e}")
 
-        # Update simulation state
         sim.last_tick_time = now
         sim.tick_count = (sim.tick_count or 0) + 1
     else:
-        # Return cached prices from database
-        for stock in stocks:
+        # Return cached prices
+        for symbol in active_symbols:
+            stock = db.query(Stock).filter(Stock.symbol == symbol).first()
+            if not stock:
+                continue
             sp = db.query(StockPrice).filter(StockPrice.stock_id == stock.id).first()
             if sp:
-                result[stock.symbol] = {
-                    "price": sp.price,
-                    "change": sp.change,
-                    "changePct": sp.change_pct,
-                }
+                result[symbol] = {"price": sp.price, "change": sp.change, "changePct": sp.change_pct}
 
-    # ---- check alerts ----
+    # Evaluate alerts
     active_alerts = db.query(PriceAlert).filter(
-        PriceAlert.active == True,
-        PriceAlert.triggered == False,
+        PriceAlert.active == True,  # noqa: E712
+        PriceAlert.triggered == False,  # noqa: E712
     ).all()
-
     for alert in active_alerts:
         stock = db.query(Stock).filter(Stock.id == alert.stock_id).first()
         if not stock or stock.symbol not in result:
             continue
-        current_price = result[stock.symbol]["price"]
-        triggered = False
-        if alert.condition == "above" and current_price >= alert.target_price:
-            triggered = True
-        elif alert.condition == "below" and current_price <= alert.target_price:
-            triggered = True
+        cur = result[stock.symbol]["price"]
+        triggered = (alert.condition == "above" and cur >= alert.target_price) or \
+                    (alert.condition == "below" and cur <= alert.target_price)
         if triggered:
             alert.triggered = True
             alert.triggered_at = now
@@ -326,7 +586,7 @@ def tick_simulation(db: Session) -> dict:
 
 
 # ---------------------------------------------------------------------------
-# aggregate_candles
+# Candle aggregation (no change — real OHLCV math, not placeholder)
 # ---------------------------------------------------------------------------
 
 def aggregate_candles(
@@ -334,30 +594,23 @@ def aggregate_candles(
     stock_id: int,
     timeframe: str,
     limit: int = 500,
-    since: datetime = None,
-    before: datetime = None,
+    since: Optional[datetime] = None,
+    before: Optional[datetime] = None,
 ) -> list:
-    """Fetch (or aggregate) candles for a stock at the requested timeframe.
+    """Fetch candles for a stock at the requested timeframe.
 
-    Native timeframes (1m, 1h, 1D) are read directly.
-    Derived timeframes (5m, 15m, 4h, 1W, 1M) are aggregated from
-    their base resolution on the fly.
-
-    Args:
-        before: If set, only return candles BEFORE this timestamp (for loading older data).
+    Native timeframes (1m, 1h, 1D) read directly. Derived timeframes
+    (5m, 15m, 4h, 1W, 1M) aggregate from the closest base on the fly.
     """
-
-    # Map derived timeframes to (base_tf, bucket_seconds_or_rule)
     DERIVED_MAP = {
         "5m":  ("1m", 5 * 60),
         "15m": ("1m", 15 * 60),
         "4h":  ("1h", 4 * 3600),
         "1W":  ("1D", 7 * 86400),
-        "1M":  ("1D", 30 * 86400),  # approximate month
+        "1M":  ("1D", 30 * 86400),
     }
 
     if timeframe in ("1m", "1h", "1D"):
-        # Direct fetch
         query = db.query(Candle).filter(
             Candle.stock_id == stock_id,
             Candle.timeframe == timeframe,
@@ -366,31 +619,26 @@ def aggregate_candles(
             query = query.filter(Candle.timestamp >= since)
         if before:
             query = query.filter(Candle.timestamp < before)
-
-        # Take the last `limit` candles by sorting desc then reversing
         candles = query.order_by(Candle.timestamp.desc()).limit(limit).all()
         candles.reverse()
-
         return [c.to_dict() for c in candles]
 
-    # Derived timeframe: aggregate from base
     if timeframe not in DERIVED_MAP:
         return []
 
     base_tf, bucket_secs = DERIVED_MAP[timeframe]
-
     query = db.query(Candle).filter(
         Candle.stock_id == stock_id,
         Candle.timeframe == base_tf,
     )
     if since:
         query = query.filter(Candle.timestamp >= since)
+    if before:
+        query = query.filter(Candle.timestamp < before)
     base_candles = query.order_by(Candle.timestamp.asc()).all()
-
     if not base_candles:
         return []
 
-    # Group into time buckets
     epoch = datetime(2000, 1, 1)
     buckets: dict[int, list] = {}
     for c in base_candles:
@@ -413,30 +661,17 @@ def aggregate_candles(
             "volume": sum(c.volume for c in group),
         })
 
-    # Apply limit (take last N)
     if limit and len(aggregated) > limit:
         aggregated = aggregated[-limit:]
-
     return aggregated
 
 
 # ---------------------------------------------------------------------------
-# compute_indicator
+# Indicators (math only, no fake data)
 # ---------------------------------------------------------------------------
 
-def compute_indicator(
-    candles: list,
-    indicator_type: str,
-    period: int = 14,
-) -> list:
-    """Compute a technical indicator from candle dicts.
-
-    Each candle dict is expected to have at least ``closePrice`` (or
-    ``close``) and ``timestamp``.  Optionally ``high``, ``low``,
-    ``volume`` for indicators that need them.
-
-    Supported indicators: SMA, EMA, RSI, MACD, BB, VWAP.
-    """
+def compute_indicator(candles: list, indicator_type: str, period: int = 14) -> list:
+    """Compute SMA/EMA/RSI/MACD/BB/VWAP from real OHLCV candles."""
     if not candles:
         return []
 
@@ -457,60 +692,47 @@ def compute_indicator(
 
     closes = np.array([_close(c) for c in candles], dtype=float)
 
-    # --- SMA ---
     if indicator_type == "SMA":
         result = []
         for i in range(len(closes)):
             if i < period - 1:
                 continue
-            val = float(np.mean(closes[i - period + 1 : i + 1]))
+            val = float(np.mean(closes[i - period + 1:i + 1]))
             result.append({"timestamp": _ts(candles[i]), "value": round(val, 4)})
         return result
 
-    # --- EMA ---
     if indicator_type == "EMA":
         multiplier = 2.0 / (period + 1)
         ema_values = np.empty(len(closes))
         ema_values[0] = closes[0]
         for i in range(1, len(closes)):
             ema_values[i] = (closes[i] - ema_values[i - 1]) * multiplier + ema_values[i - 1]
-        result = []
-        for i in range(period - 1, len(closes)):
-            result.append({"timestamp": _ts(candles[i]), "value": round(float(ema_values[i]), 4)})
-        return result
+        return [
+            {"timestamp": _ts(candles[i]), "value": round(float(ema_values[i]), 4)}
+            for i in range(period - 1, len(closes))
+        ]
 
-    # --- RSI ---
     if indicator_type == "RSI":
         deltas = np.diff(closes)
         gains = np.where(deltas > 0, deltas, 0.0)
         losses = np.where(deltas < 0, -deltas, 0.0)
-
         result = []
         if len(gains) < period:
             return result
-
         avg_gain = float(np.mean(gains[:period]))
         avg_loss = float(np.mean(losses[:period]))
-
         for i in range(period, len(closes)):
             if i > period:
                 avg_gain = (avg_gain * (period - 1) + gains[i - 1]) / period
                 avg_loss = (avg_loss * (period - 1) + losses[i - 1]) / period
-            if avg_loss == 0:
-                rsi = 100.0
-            else:
-                rs = avg_gain / avg_loss
-                rsi = 100.0 - 100.0 / (1.0 + rs)
+            rsi = 100.0 if avg_loss == 0 else 100.0 - 100.0 / (1.0 + avg_gain / avg_loss)
             result.append({"timestamp": _ts(candles[i]), "value": round(rsi, 4)})
         return result
 
-    # --- MACD ---
     if indicator_type == "MACD":
-        fast_period = 12
-        slow_period = 26
-        signal_period = 9
+        fast_p, slow_p, sig_p = 12, 26, 9
 
-        def _ema_array(data, p):
+        def _ema_arr(data, p):
             m = 2.0 / (p + 1)
             out = np.empty_like(data)
             out[0] = data[0]
@@ -518,160 +740,194 @@ def compute_indicator(
                 out[i] = (data[i] - out[i - 1]) * m + out[i - 1]
             return out
 
-        if len(closes) < slow_period + signal_period:
+        if len(closes) < slow_p + sig_p:
             return []
-
-        ema_fast = _ema_array(closes, fast_period)
-        ema_slow = _ema_array(closes, slow_period)
+        ema_fast = _ema_arr(closes, fast_p)
+        ema_slow = _ema_arr(closes, slow_p)
         macd_line = ema_fast - ema_slow
-        signal_line = _ema_array(macd_line[slow_period - 1:], signal_period)
-
+        signal_line = _ema_arr(macd_line[slow_p - 1:], sig_p)
         result = []
-        start = slow_period - 1 + signal_period - 1
+        start = slow_p - 1 + sig_p - 1
         for i in range(start, len(closes)):
-            mi = i - (slow_period - 1)
-            si = mi - (signal_period - 1)
-            macd_val = float(macd_line[i])
-            signal_val = float(signal_line[si]) if si >= 0 and si < len(signal_line) else 0.0
-            hist = macd_val - signal_val
+            mi = i - (slow_p - 1)
+            si = mi - (sig_p - 1)
+            macd_v = float(macd_line[i])
+            sig_v = float(signal_line[si]) if 0 <= si < len(signal_line) else 0.0
             result.append({
                 "timestamp": _ts(candles[i]),
-                "macd": round(macd_val, 4),
-                "signal": round(signal_val, 4),
-                "histogram": round(hist, 4),
+                "macd": round(macd_v, 4),
+                "signal": round(sig_v, 4),
+                "histogram": round(macd_v - sig_v, 4),
             })
         return result
 
-    # --- BB (Bollinger Bands) ---
     if indicator_type == "BB":
         result = []
         for i in range(period - 1, len(closes)):
-            window = closes[i - period + 1 : i + 1]
+            window = closes[i - period + 1:i + 1]
             middle = float(np.mean(window))
             std = float(np.std(window, ddof=0))
-            upper = middle + 2.0 * std
-            lower = middle - 2.0 * std
             result.append({
                 "timestamp": _ts(candles[i]),
-                "upper": round(upper, 4),
+                "upper": round(middle + 2.0 * std, 4),
                 "middle": round(middle, 4),
-                "lower": round(lower, 4),
+                "lower": round(middle - 2.0 * std, 4),
             })
         return result
 
-    # --- VWAP ---
     if indicator_type == "VWAP":
-        typical_prices = np.array([
-            (_high(c) + _low(c) + _close(c)) / 3.0 for c in candles
-        ], dtype=float)
+        typical = np.array([(_high(c) + _low(c) + _close(c)) / 3.0 for c in candles], dtype=float)
         volumes = np.array([_volume(c) for c in candles], dtype=float)
-
-        cum_tp_vol = np.cumsum(typical_prices * volumes)
+        cum_tp_vol = np.cumsum(typical * volumes)
         cum_vol = np.cumsum(volumes)
-
         result = []
         for i in range(len(candles)):
             if cum_vol[i] == 0:
                 continue
-            vwap = float(cum_tp_vol[i] / cum_vol[i])
-            result.append({"timestamp": _ts(candles[i]), "value": round(vwap, 4)})
+            result.append({"timestamp": _ts(candles[i]), "value": round(float(cum_tp_vol[i] / cum_vol[i]), 4)})
         return result
 
     return []
 
 
 # ---------------------------------------------------------------------------
-# generate_news
+# Real news (Yahoo Finance Ticker.news — actual headlines + URLs)
 # ---------------------------------------------------------------------------
 
-# Templates for news generation
-_GENERAL_HEADLINES = [
-    "Fed Signals Potential Rate Pause Amid Mixed Economic Data",
-    "US Treasury Yields Rise on Strong Jobs Report",
-    "Global Markets Rally on Trade Deal Optimism",
-    "Inflation Data Comes in Below Expectations",
-    "Wall Street Closes Higher in Broad-Based Rally",
-    "Oil Prices Surge After OPEC Announces Production Cuts",
-    "Consumer Confidence Index Hits Six-Month High",
-    "Retail Sales Exceed Forecasts in Latest Report",
-    "Housing Starts Decline for Third Consecutive Month",
-    "Tech Sector Leads Market Gains as AI Momentum Continues",
-]
+# Symbols used to populate "general market" news when no symbol is specified.
+_GENERAL_MARKET_SYMBOLS = ["SPY", "QQQ", "DIA", "^GSPC"]
 
-_STOCK_HEADLINE_TEMPLATES = [
-    "{symbol} Reports Record Q4 Revenue, Beating Estimates",
-    "{symbol} Announces $10B Stock Buyback Program",
-    "{symbol} Shares Surge on Strong Earnings Guidance",
-    "{symbol} Expands Partnership with Major Cloud Provider",
-    "{symbol} Faces Regulatory Scrutiny Over Market Practices",
-    "{symbol} Upgrades Full-Year Outlook After Solid Quarter",
-    "{symbol} Names New CEO Amid Strategic Pivot",
-    "{symbol} Launches New Product Line to Boost Growth",
-    "{symbol} Beats EPS Estimates by 15%, Revenue Misses",
-    "{symbol} Analysts Raise Price Target After Investor Day",
-]
-
-_SOURCES = [
-    "Reuters", "Bloomberg", "CNBC", "MarketWatch", "The Wall Street Journal",
-    "Barron's", "Financial Times", "Yahoo Finance", "Seeking Alpha", "Investor's Business Daily",
-]
-
-_SUMMARIES_GENERAL = [
-    "Markets reacted positively to the latest economic indicators, with major indices posting gains across the board.",
-    "Investors are weighing the implications of the latest Federal Reserve commentary on monetary policy direction.",
-    "Trading volumes surged as market participants repositioned ahead of key economic data releases.",
-    "Analysts note that current market conditions favor a cautious but optimistic outlook for the near term.",
-]
-
-_SUMMARIES_STOCK = [
-    "The company's latest quarterly results exceeded Wall Street expectations, driven by strong demand in its core business segments.",
-    "Shares moved sharply after the company provided updated guidance that surprised many analysts on the Street.",
-    "Institutional investors have been increasing their positions in the stock according to recent filings.",
-    "The announcement comes as the company seeks to diversify its revenue streams and expand into new markets.",
-]
+_NEWS_TTL_SECONDS = 300  # 5 minutes
 
 
-def generate_news(db: Session) -> None:
-    """Generate ~20 simulated market news items.
+def _normalise_news_item(item: dict, fallback_symbol: Optional[str] = None) -> Optional[dict]:
+    """Convert a yfinance news dict into our flat MarketNews shape.
 
-    Creates a mix of general market headlines and stock-specific news
-    with realistic timestamps spread over the last 24 hours.
+    yfinance v2+ returns items shaped like:
+      {"id": ..., "content": {"title", "summary", "pubDate", "provider": {"displayName"}, "canonicalUrl": {"url"}}}
+    Older versions return flat {"title", "publisher", "link", "providerPublishTime"}.
+    Returns None if the item can't be parsed.
     """
-    now = datetime.utcnow()
-    news_items = []
+    if not isinstance(item, dict):
+        return None
 
-    # General market news (~10)
-    for headline in random.sample(_GENERAL_HEADLINES, min(10, len(_GENERAL_HEADLINES))):
-        published = now - timedelta(
-            hours=random.uniform(0, 24),
-            minutes=random.randint(0, 59),
-        )
-        news_items.append(MarketNews(
-            stock_symbol=None,
-            headline=headline,
-            summary=random.choice(_SUMMARIES_GENERAL),
-            source=random.choice(_SOURCES),
-            url=None,
-            published_at=published,
-        ))
+    headline = None
+    summary = None
+    source = None
+    url = None
+    published_at = None
+    related_symbol = fallback_symbol
 
-    # Stock-specific news (~10)
-    selected_symbols = random.sample(list(STOCK_UNIVERSE.keys()), min(10, len(STOCK_UNIVERSE)))
-    for symbol in selected_symbols:
-        template = random.choice(_STOCK_HEADLINE_TEMPLATES)
-        headline = template.format(symbol=symbol)
-        published = now - timedelta(
-            hours=random.uniform(0, 24),
-            minutes=random.randint(0, 59),
-        )
-        news_items.append(MarketNews(
-            stock_symbol=symbol,
-            headline=headline,
-            summary=random.choice(_SUMMARIES_STOCK),
-            source=random.choice(_SOURCES),
-            url=None,
-            published_at=published,
-        ))
+    content = item.get("content") if isinstance(item.get("content"), dict) else None
 
-    db.bulk_save_objects(news_items)
-    db.commit()
+    if content:
+        headline = content.get("title")
+        summary = content.get("summary") or content.get("description")
+        prov = content.get("provider") if isinstance(content.get("provider"), dict) else {}
+        source = prov.get("displayName") or content.get("publisher")
+        canon = content.get("canonicalUrl") if isinstance(content.get("canonicalUrl"), dict) else {}
+        click = content.get("clickThroughUrl") if isinstance(content.get("clickThroughUrl"), dict) else {}
+        url = canon.get("url") or click.get("url")
+        pub = content.get("pubDate") or content.get("displayTime")
+        if pub:
+            try:
+                published_at = datetime.fromisoformat(str(pub).replace("Z", "+00:00")).replace(tzinfo=None)
+            except (ValueError, TypeError):
+                pass
+        # Try to extract a related symbol
+        finance = content.get("finance") if isinstance(content.get("finance"), dict) else {}
+        if isinstance(finance.get("stockTickers"), list) and finance["stockTickers"]:
+            first = finance["stockTickers"][0]
+            if isinstance(first, dict):
+                related_symbol = first.get("symbol") or related_symbol
+    else:
+        headline = item.get("title")
+        summary = item.get("summary")
+        source = item.get("publisher")
+        url = item.get("link")
+        ts = item.get("providerPublishTime")
+        if ts:
+            try:
+                published_at = datetime.utcfromtimestamp(int(ts))
+            except (ValueError, TypeError):
+                pass
+        related = item.get("relatedTickers") or []
+        if isinstance(related, list) and related:
+            related_symbol = related[0]
+
+    if not headline or not source:
+        return None
+    if not published_at:
+        published_at = datetime.utcnow()
+
+    return {
+        "stock_symbol": related_symbol,
+        "headline": headline[:1024],
+        "summary": (summary or "")[:4096] or None,
+        "source": source[:255],
+        "url": url,
+        "published_at": published_at,
+    }
+
+
+def fetch_news_for_symbol(symbol: str, max_items: int = 25) -> list[dict]:
+    """Pull real news from Yahoo Finance for one ticker. Returns normalised dicts."""
+    try:
+        import yfinance as yf
+        t = yf.Ticker(_to_yahoo_symbol(symbol))
+        raw = t.news or []
+    except Exception as e:
+        logger.warning(f"[News] yfinance fetch failed for {symbol}: {e}")
+        return []
+
+    out: list[dict] = []
+    for item in raw[:max_items]:
+        norm = _normalise_news_item(item, fallback_symbol=symbol)
+        if norm:
+            out.append(norm)
+    return out
+
+
+def refresh_news_cache(db: Session, symbol: Optional[str] = None) -> int:
+    """Pull fresh news from Yahoo Finance and upsert into MarketNews.
+
+    Caches by (headline, source) so we don't insert duplicates across calls.
+    Returns the number of new rows inserted.
+    """
+    sources_to_query: Iterable[Optional[str]]
+    if symbol:
+        sources_to_query = [symbol]
+    else:
+        sources_to_query = _GENERAL_MARKET_SYMBOLS
+
+    inserted = 0
+    seen_headlines = {
+        (h, s) for h, s in db.query(MarketNews.headline, MarketNews.source).all()
+    }
+
+    for sym in sources_to_query:
+        if sym is None:
+            continue
+        items = fetch_news_for_symbol(sym)
+        for item in items:
+            key = (item["headline"], item["source"])
+            if key in seen_headlines:
+                continue
+            seen_headlines.add(key)
+            # When fetching general market news, don't tag every item with the index symbol
+            stock_symbol = item.get("stock_symbol")
+            if symbol is None and stock_symbol in _GENERAL_MARKET_SYMBOLS:
+                stock_symbol = None
+            db.add(MarketNews(
+                stock_symbol=stock_symbol,
+                headline=item["headline"],
+                summary=item["summary"],
+                source=item["source"],
+                url=item["url"],
+                published_at=item["published_at"],
+            ))
+            inserted += 1
+
+    if inserted:
+        db.commit()
+    return inserted

@@ -15,9 +15,17 @@
 	{
       "id": "kanban-board",
       "name": "Kanban Board",
-      "description": "A Trello-like Kanban board for organizing tasks with drag-and-drop, labels, priorities, checklists, and due dates",
+      "description": "Local single-user Kanban board with drag-and-drop, labels, priorities, checklists, and due dates (no auth)",
       "folder": "kanban-board",
       "tags": ["kanban", "project management", "productivity"],
+      "version": "1.0.0"
+    },
+	{
+      "id": "kanban-online",
+      "name": "Kanban Online",
+      "description": "Multi-user online Kanban board with sign-up/login auth, drag-and-drop, labels, priorities, checklists, and due dates",
+      "folder": "kanban-online",
+      "tags": ["kanban", "project management", "productivity", "multi-user"],
       "version": "1.0.0"
     },
 	{
@@ -70,6 +78,14 @@
       "customizable": [
         {"key": "PET_DEFAULT_NAME", "label": "Default pet name", "type": "text", "default": "Bitsy", "placeholder": "e.g. Bitsy, Sparky, Zap"}
       ]
+    },
+    {
+      "id": "habit-tracker",
+      "name": "Habit Tracker",
+      "description": "Compact, customizable habit tracker with streaks, GitHub-style heatmap, and per-habit analytics. Track binary, count, duration, and avoidance habits in a Notion-monochrome layout.",
+      "folder": "habit-tracker",
+      "tags": ["productivity", "improvement", "lifestyle"],
+      "version": "1.0.0"
     }
   ]
 }

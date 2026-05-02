@@ -124,4 +124,4 @@ if _DIST_DIR.exists() and _DIST_ASSETS.exists():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port={{BACKEND_PORT}})
+    uvicorn.run(app, host="0.0.0.0", port=3109)

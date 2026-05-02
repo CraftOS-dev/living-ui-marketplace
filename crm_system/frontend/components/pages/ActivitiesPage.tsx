@@ -3,7 +3,7 @@ import { Button, Card, Select, Table, Badge, Modal, Input, Textarea, EmptyState 
 import type { AppController } from '../../AppController'
 import type { AppState, Activity } from '../../types'
 
-const BACKEND_URL = ((window as any).__CRAFTBOT_BACKEND_URL__ || 'http://localhost:{{BACKEND_PORT}}') + '/api'
+const BACKEND_URL = ((window as any).__CRAFTBOT_BACKEND_URL__ || 'http://localhost:3111') + '/api'
 
 interface ActivitiesPageProps {
   controller: AppController

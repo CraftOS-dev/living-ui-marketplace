@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import type { AppController } from '../AppController'
 
-const BACKEND_URL = (window as any).__CRAFTBOT_BACKEND_URL__ || 'http://localhost:{{BACKEND_PORT}}'
+const BACKEND_URL = (window as any).__CRAFTBOT_BACKEND_URL__ || 'http://localhost:3105'
 
 interface MarketOverviewPanelProps {
   controller: AppController

@@ -3,8 +3,6 @@ import type { AppController } from '../AppController'
 import type { Board, BoardStats, Priority, SearchParams } from '../types'
 import { Button } from './ui'
 import { toast } from 'react-toastify'
-import { MemberList } from './auth/MemberList'
-import { InviteModal } from './auth/InviteModal'
 
 const PRIORITY_OPTIONS: { value: Priority; label: string; color: string }[] = [
   { value: 'low', label: 'Low', color: '#22C55E' },
@@ -28,8 +26,7 @@ interface SidebarProps {
 export function Sidebar({ controller, board, stats, searchParams, onSearch, onRefresh, onClose }: SidebarProps) {
   const [newLabelName, setNewLabelName] = useState('')
   const [newLabelColor, setNewLabelColor] = useState(LABEL_COLORS[0])
-  const [activeTab, setActiveTab] = useState<'filters' | 'labels' | 'stats' | 'members'>('filters')
-  const [showInvite, setShowInvite] = useState(false)
+  const [activeTab, setActiveTab] = useState<'filters' | 'labels' | 'stats'>('filters')
 
   const handleCreateLabel = async () => {
     if (!newLabelName.trim()) return
@@ -63,7 +60,6 @@ export function Sidebar({ controller, board, stats, searchParams, onSearch, onRe
     { key: 'filters' as const, label: 'Filters' },
     { key: 'labels' as const, label: 'Labels' },
     { key: 'stats' as const, label: 'Stats' },
-    { key: 'members' as const, label: 'Members' },
   ]
 
   return (
@@ -227,22 +223,6 @@ export function Sidebar({ controller, board, stats, searchParams, onSearch, onRe
               </div>
               <Button variant="primary" size="sm" onClick={handleCreateLabel} fullWidth>Create Label</Button>
             </div>
-          </div>
-        )}
-
-        {/* Members Tab */}
-        {activeTab === 'members' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
-            <Button variant="primary" size="sm" onClick={() => setShowInvite(true)} fullWidth>
-              Invite / Join
-            </Button>
-            <MemberList resourceType="board" resourceId={board.id} />
-            <InviteModal
-              resourceType="board"
-              resourceId={board.id}
-              isOpen={showInvite}
-              onClose={() => setShowInvite(false)}
-            />
           </div>
         )}
 

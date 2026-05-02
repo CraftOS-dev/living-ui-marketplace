@@ -1,9 +1,8 @@
 """Tests for drawing tools endpoints."""
 
 
-def test_create_drawing(client):
+def test_create_drawing(client, seeded_universe):
     """POST /api/stocks/AAPL/drawings creates a drawing."""
-    client.post("/api/stocks/seed")
     response = client.post(
         "/api/stocks/AAPL/drawings",
         json={
@@ -20,10 +19,8 @@ def test_create_drawing(client):
     assert data["color"] == "#FF0000"
 
 
-def test_get_drawings(client):
+def test_get_drawings(client, seeded_universe):
     """GET /api/stocks/AAPL/drawings returns drawings."""
-    client.post("/api/stocks/seed")
-    # Create a drawing first
     client.post(
         "/api/stocks/AAPL/drawings",
         json={
@@ -41,9 +38,8 @@ def test_get_drawings(client):
     assert data[0]["toolType"] == "horizontal"
 
 
-def test_update_drawing(client):
+def test_update_drawing(client, seeded_universe):
     """PUT /api/drawings/{id} updates a drawing."""
-    client.post("/api/stocks/seed")
     create_resp = client.post(
         "/api/stocks/AAPL/drawings",
         json={
@@ -67,9 +63,8 @@ def test_update_drawing(client):
     assert data["color"] == "#00FF00"
 
 
-def test_delete_drawing(client):
+def test_delete_drawing(client, seeded_universe):
     """DELETE /api/drawings/{id} removes drawing."""
-    client.post("/api/stocks/seed")
     create_resp = client.post(
         "/api/stocks/AAPL/drawings",
         json={
@@ -83,7 +78,6 @@ def test_delete_drawing(client):
     del_resp = client.delete(f"/api/drawings/{drawing_id}")
     assert del_resp.status_code == 200
 
-    # Verify it's gone
     list_resp = client.get("/api/stocks/AAPL/drawings")
     assert list_resp.status_code == 200
     ids = [d["id"] for d in list_resp.json()]

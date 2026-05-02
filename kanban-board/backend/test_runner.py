@@ -12,7 +12,7 @@ Usage:
   python test_runner.py --internal
   python test_runner.py --unit
   python test_runner.py --compatibility
-  python test_runner.py --external --port 3101
+  python test_runner.py --external --port 3113
 """
 
 import argparse
@@ -574,7 +574,7 @@ def _cleanup_test_data(
 
 # TODO: Regex-based extraction is fragile and produces false positives.
 # It cannot reliably parse template literals where the base URL contains /api
-# (e.g., `${this.baseUrl}/items/${id}` where baseUrl='http://localhost:3101/api').
+# (e.g., `${this.baseUrl}/items/${id}` where baseUrl='http://localhost:3113/api').
 # Consider replacing with TypeScript AST parsing or a frontend API manifest.
 #
 # Regex patterns to extract fetch/API calls from TypeScript/JavaScript
@@ -954,7 +954,7 @@ def main():
     parser.add_argument("--unit", action="store_true", help="Run auto-generated CRUD unit tests")
     parser.add_argument("--compatibility", action="store_true", help="Run frontend-backend compatibility check")
     parser.add_argument("--external", action="store_true", help="Run external HTTP smoke tests")
-    parser.add_argument("--port", type=int, default=3101, help="Backend port for external tests")
+    parser.add_argument("--port", type=int, default=3113, help="Backend port for external tests")
     args = parser.parse_args()
 
     # Setup basic logging to stderr

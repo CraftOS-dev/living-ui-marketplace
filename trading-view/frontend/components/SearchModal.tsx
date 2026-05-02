@@ -10,7 +10,7 @@ interface SearchModalProps {
   onSelectStock: (symbol: string) => void
 }
 
-const BACKEND_URL = (window as any).__CRAFTBOT_BACKEND_URL__ || 'http://localhost:{{BACKEND_PORT}}'
+const BACKEND_URL = (window as any).__CRAFTBOT_BACKEND_URL__ || 'http://localhost:3105'
 
 export function SearchModal({ controller: _controller, isOpen, onClose, onSelectStock }: SearchModalProps) {
   const [query, setQuery] = useState('')

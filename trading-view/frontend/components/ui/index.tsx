@@ -882,6 +882,9 @@ export function Table<T extends Record<string, any>>({
                   fontWeight: 'var(--font-weight-semibold)' as any,
                   color: 'var(--text-secondary)',
                   backgroundColor: 'var(--bg-tertiary)',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
                 }}
               >
                 {col.header}

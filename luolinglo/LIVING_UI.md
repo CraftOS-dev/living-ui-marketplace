@@ -103,7 +103,9 @@ Luolinglo is a single-user language learning Living UI app. It supports 15+ cura
 | progress/StatsCards.tsx | Statistics grid |
 | progress/AchievementGrid.tsx | Achievement badges |
 | progress/WeeklyXPChart.tsx | Weekly XP bar chart |
-| progress/StreakCalendar.tsx | Practice day calendar |
+| progress/StreakCalendar.tsx | Compact GitHub-style 30-day practice calendar (14×14 cells, 4-tier intensity, legend) |
+| progress/ActivitySummary.tsx | Activity tab metric tiles (active days, XP, words, cards, quizzes) |
+| progress/RecentDays.tsx | Last-10-days activity list with per-day breakdown |
 | progress/PersonalBests.tsx | Personal records |
 | settings/SettingsView.tsx | App settings |
 | shared/ProgressBar.tsx | Reusable progress bar |

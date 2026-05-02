@@ -4,7 +4,7 @@ import type { IChartApi, ISeriesApi, Time } from 'lightweight-charts'
 import type { AppController } from '../AppController'
 import type { ChartConfig, ChartType, Timeframe, Candle } from '../types'
 
-const BACKEND_URL = (window as any).__CRAFTBOT_BACKEND_URL__ || 'http://localhost:{{BACKEND_PORT}}'
+const BACKEND_URL = (window as any).__CRAFTBOT_BACKEND_URL__ || 'http://localhost:3105'
 
 interface ChartWidgetProps {
   controller: AppController
@@ -94,10 +94,14 @@ export function ChartWidget({ config, onConfigChange }: ChartWidgetProps) {
   const candleMapRef = useRef<Map<string, Candle>>(new Map())
   const isFetchingRef = useRef(false)
   const isInitialLoadRef = useRef(true)
+  // Once a "before" fetch returns zero new candles, stop trying for that symbol/tf
+  const exhaustedRef = useRef(false)
 
   const [chartType, setChartType] = useState<ChartType>(config.chartType || 'candlestick')
   const [timeframe, setTimeframe] = useState<Timeframe>(config.timeframe || '1D')
   const [symbol, setSymbol] = useState(config.symbol || 'AAPL')
+  const [isLoading, setIsLoading] = useState(true)
+  const [isLoadingOlder, setIsLoadingOlder] = useState(false)
 
   // Helper to get sorted candles from the map
   const getSortedCandles = useCallback((): Candle[] => {
@@ -292,9 +296,12 @@ export function ChartWidget({ config, onConfigChange }: ChartWidgetProps) {
   useEffect(() => {
     candleMapRef.current.clear()
     isInitialLoadRef.current = true
+    exhaustedRef.current = false
+    setIsLoading(true)
     const load = async () => {
       await fetchCandles({ limit: 500 })
       updateSeriesData(true)
+      setIsLoading(false)
     }
     load()
   }, [symbol, timeframe])
@@ -327,27 +334,35 @@ export function ChartWidget({ config, onConfigChange }: ChartWidgetProps) {
     return () => clearInterval(interval)
   }, [symbol, timeframe, updateSeriesData, getSortedCandles])
 
-  // Lazy load: fetch older data when user scrolls to the left edge
+  // Lazy load: fetch older data when user scrolls to the left edge of the chart.
+  // The backend will pull more candles from Yahoo Finance on demand if the DB
+  // doesn't have enough older data cached.
   useEffect(() => {
     const chart = chartRef.current
     if (!chart) return
 
     const handler = () => {
+      if (isFetchingRef.current || exhaustedRef.current) return
       const logicalRange = chart.timeScale().getVisibleLogicalRange()
       if (!logicalRange) return
 
-      // If user scrolled so the left edge is near the beginning of loaded data
-      if (logicalRange.from < 10) {
+      // Trigger when the left edge of the visible range is within 20 bars of
+      // the start of loaded data — gives us a smooth scroll experience.
+      if (logicalRange.from < 20) {
         const candles = getSortedCandles()
         if (candles.length === 0) return
-
         const oldestTimestamp = candles[0].timestamp
-        // Fetch older candles before the oldest we have
-        fetchCandles({ before: oldestTimestamp, limit: 500 }).then((addedNew) => {
-          if (addedNew) {
-            updateSeriesData(false) // Don't reset viewport
-          }
-        })
+        setIsLoadingOlder(true)
+        fetchCandles({ before: oldestTimestamp, limit: 500 })
+          .then((addedNew) => {
+            if (addedNew) {
+              updateSeriesData(false) // preserve viewport
+            } else {
+              // No new candles came back → we've reached the start of available history
+              exhaustedRef.current = true
+            }
+          })
+          .finally(() => setIsLoadingOlder(false))
       }
     }
 
@@ -400,7 +415,35 @@ export function ChartWidget({ config, onConfigChange }: ChartWidgetProps) {
           ))}
         </select>
       </div>
-      <div ref={containerRef} style={{ flex: 1, position: 'relative', minHeight: 0 }} />
+      <div style={{ flex: 1, position: 'relative', minHeight: 0 }}>
+        <div ref={containerRef} style={{ position: 'absolute', inset: 0 }} />
+        {isLoading && (
+          <div style={{
+            position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+            backgroundColor: 'rgba(10, 10, 10, 0.85)', color: '#fff', fontSize: 13, gap: 8, zIndex: 2,
+          }}>
+            <span>Loading {symbol} historical data…</span>
+          </div>
+        )}
+        {isLoadingOlder && (
+          <div style={{
+            position: 'absolute', top: 8, left: 8, padding: '4px 8px',
+            backgroundColor: 'rgba(38, 38, 38, 0.92)', color: 'var(--text-secondary)', fontSize: 11,
+            borderRadius: 3, zIndex: 2, pointerEvents: 'none',
+          }}>
+            Loading older candles…
+          </div>
+        )}
+        {exhaustedRef.current && !isLoading && (
+          <div style={{
+            position: 'absolute', top: 8, left: 8, padding: '4px 8px',
+            backgroundColor: 'rgba(38, 38, 38, 0.6)', color: 'var(--text-secondary)', fontSize: 11,
+            borderRadius: 3, zIndex: 2, pointerEvents: 'none',
+          }}>
+            Earliest data reached
+          </div>
+        )}
+      </div>
     </div>
   )
 }

@@ -1,9 +1,8 @@
 import type { AppState, Board, BoardList, Card, Label, ChecklistItem, BoardStats, SearchParams } from './types'
 import { ApiService } from './services/ApiService'
 import { stateCache } from './services/StatePersistence'
-import { authService } from './services/AuthService'
 
-const BACKEND_URL = ((window as any).__CRAFTBOT_BACKEND_URL__ || 'http://localhost:{{BACKEND_PORT}}') + '/api'
+const BACKEND_URL = ((window as any).__CRAFTBOT_BACKEND_URL__ || 'http://localhost:3113') + '/api'
 
 export class AppController {
   private state: AppState = {
@@ -110,13 +109,13 @@ export class AppController {
   // ========================================================================
 
   async getBoards(): Promise<Board[]> {
-    const res = await authService.authFetch(`${BACKEND_URL}/boards`)
+    const res = await fetch(`${BACKEND_URL}/boards`)
     if (!res.ok) throw new Error('Failed to fetch boards')
     return res.json()
   }
 
   async createBoard(name: string): Promise<Board> {
-    const res = await authService.authFetch(`${BACKEND_URL}/boards`, {
+    const res = await fetch(`${BACKEND_URL}/boards`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name }),
@@ -126,13 +125,13 @@ export class AppController {
   }
 
   async getBoard(id: number): Promise<Board> {
-    const res = await authService.authFetch(`${BACKEND_URL}/boards/${id}`)
+    const res = await fetch(`${BACKEND_URL}/boards/${id}`)
     if (!res.ok) throw new Error('Failed to fetch board')
     return res.json()
   }
 
   async updateBoard(id: number, name: string): Promise<Board> {
-    const res = await authService.authFetch(`${BACKEND_URL}/boards/${id}`, {
+    const res = await fetch(`${BACKEND_URL}/boards/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name }),
@@ -142,7 +141,7 @@ export class AppController {
   }
 
   async deleteBoard(id: number): Promise<void> {
-    const res = await authService.authFetch(`${BACKEND_URL}/boards/${id}`, { method: 'DELETE' })
+    const res = await fetch(`${BACKEND_URL}/boards/${id}`, { method: 'DELETE' })
     if (!res.ok) throw new Error('Failed to delete board')
   }
 
@@ -151,7 +150,7 @@ export class AppController {
   // ========================================================================
 
   async createList(boardId: number, title: string): Promise<BoardList> {
-    const res = await authService.authFetch(`${BACKEND_URL}/lists`, {
+    const res = await fetch(`${BACKEND_URL}/lists`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ board_id: boardId, title }),
@@ -161,7 +160,7 @@ export class AppController {
   }
 
   async updateList(listId: number, title: string): Promise<BoardList> {
-    const res = await authService.authFetch(`${BACKEND_URL}/lists/${listId}`, {
+    const res = await fetch(`${BACKEND_URL}/lists/${listId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ title }),
@@ -171,12 +170,12 @@ export class AppController {
   }
 
   async deleteList(listId: number): Promise<void> {
-    const res = await authService.authFetch(`${BACKEND_URL}/lists/${listId}`, { method: 'DELETE' })
+    const res = await fetch(`${BACKEND_URL}/lists/${listId}`, { method: 'DELETE' })
     if (!res.ok) throw new Error('Failed to delete list')
   }
 
   async moveList(listId: number, position: number): Promise<void> {
-    const res = await authService.authFetch(`${BACKEND_URL}/lists/${listId}`, {
+    const res = await fetch(`${BACKEND_URL}/lists/${listId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ position }),
@@ -189,7 +188,7 @@ export class AppController {
   // ========================================================================
 
   async createCard(listId: number, title: string, extra?: Partial<Card>): Promise<Card> {
-    const res = await authService.authFetch(`${BACKEND_URL}/cards`, {
+    const res = await fetch(`${BACKEND_URL}/cards`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ list_id: listId, title, ...extra }),
@@ -199,13 +198,13 @@ export class AppController {
   }
 
   async getCard(cardId: number): Promise<Card> {
-    const res = await authService.authFetch(`${BACKEND_URL}/cards/${cardId}`)
+    const res = await fetch(`${BACKEND_URL}/cards/${cardId}`)
     if (!res.ok) throw new Error('Failed to fetch card')
     return res.json()
   }
 
   async updateCard(cardId: number, data: Record<string, unknown>): Promise<Card> {
-    const res = await authService.authFetch(`${BACKEND_URL}/cards/${cardId}`, {
+    const res = await fetch(`${BACKEND_URL}/cards/${cardId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
@@ -215,12 +214,12 @@ export class AppController {
   }
 
   async deleteCard(cardId: number): Promise<void> {
-    const res = await authService.authFetch(`${BACKEND_URL}/cards/${cardId}`, { method: 'DELETE' })
+    const res = await fetch(`${BACKEND_URL}/cards/${cardId}`, { method: 'DELETE' })
     if (!res.ok) throw new Error('Failed to delete card')
   }
 
   async moveCard(cardId: number, listId: number, position: number): Promise<Card> {
-    const res = await authService.authFetch(`${BACKEND_URL}/cards/${cardId}/move`, {
+    const res = await fetch(`${BACKEND_URL}/cards/${cardId}/move`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ list_id: listId, position }),
@@ -234,13 +233,13 @@ export class AppController {
   // ========================================================================
 
   async getLabels(boardId: number): Promise<Label[]> {
-    const res = await authService.authFetch(`${BACKEND_URL}/boards/${boardId}/labels`)
+    const res = await fetch(`${BACKEND_URL}/boards/${boardId}/labels`)
     if (!res.ok) throw new Error('Failed to fetch labels')
     return res.json()
   }
 
   async createLabel(boardId: number, name: string, color: string): Promise<Label> {
-    const res = await authService.authFetch(`${BACKEND_URL}/labels`, {
+    const res = await fetch(`${BACKEND_URL}/labels`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ board_id: boardId, name, color }),
@@ -250,7 +249,7 @@ export class AppController {
   }
 
   async updateLabel(labelId: number, data: Partial<Label>): Promise<Label> {
-    const res = await authService.authFetch(`${BACKEND_URL}/labels/${labelId}`, {
+    const res = await fetch(`${BACKEND_URL}/labels/${labelId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
@@ -260,17 +259,17 @@ export class AppController {
   }
 
   async deleteLabel(labelId: number): Promise<void> {
-    const res = await authService.authFetch(`${BACKEND_URL}/labels/${labelId}`, { method: 'DELETE' })
+    const res = await fetch(`${BACKEND_URL}/labels/${labelId}`, { method: 'DELETE' })
     if (!res.ok) throw new Error('Failed to delete label')
   }
 
   async assignLabel(cardId: number, labelId: number): Promise<void> {
-    const res = await authService.authFetch(`${BACKEND_URL}/cards/${cardId}/labels/${labelId}`, { method: 'PUT' })
+    const res = await fetch(`${BACKEND_URL}/cards/${cardId}/labels/${labelId}`, { method: 'PUT' })
     if (!res.ok) throw new Error('Failed to assign label')
   }
 
   async removeLabel(cardId: number, labelId: number): Promise<void> {
-    const res = await authService.authFetch(`${BACKEND_URL}/cards/${cardId}/labels/${labelId}`, { method: 'DELETE' })
+    const res = await fetch(`${BACKEND_URL}/cards/${cardId}/labels/${labelId}`, { method: 'DELETE' })
     if (!res.ok) throw new Error('Failed to remove label')
   }
 
@@ -279,7 +278,7 @@ export class AppController {
   // ========================================================================
 
   async createChecklistItem(cardId: number, text: string): Promise<ChecklistItem> {
-    const res = await authService.authFetch(`${BACKEND_URL}/checklist`, {
+    const res = await fetch(`${BACKEND_URL}/checklist`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ card_id: cardId, text }),
@@ -289,7 +288,7 @@ export class AppController {
   }
 
   async updateChecklistItem(itemId: number, data: Partial<ChecklistItem>): Promise<ChecklistItem> {
-    const res = await authService.authFetch(`${BACKEND_URL}/checklist/${itemId}`, {
+    const res = await fetch(`${BACKEND_URL}/checklist/${itemId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
@@ -299,7 +298,7 @@ export class AppController {
   }
 
   async deleteChecklistItem(itemId: number): Promise<void> {
-    const res = await authService.authFetch(`${BACKEND_URL}/checklist/${itemId}`, { method: 'DELETE' })
+    const res = await fetch(`${BACKEND_URL}/checklist/${itemId}`, { method: 'DELETE' })
     if (!res.ok) throw new Error('Failed to delete checklist item')
   }
 
@@ -308,7 +307,7 @@ export class AppController {
   // ========================================================================
 
   async searchCards(boardId: number, params: SearchParams): Promise<Card[]> {
-    const res = await authService.authFetch(`${BACKEND_URL}/search`, {
+    const res = await fetch(`${BACKEND_URL}/search`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ board_id: boardId, ...params }),
@@ -318,7 +317,7 @@ export class AppController {
   }
 
   async getBoardStats(boardId: number): Promise<BoardStats> {
-    const res = await authService.authFetch(`${BACKEND_URL}/stats`, {
+    const res = await fetch(`${BACKEND_URL}/stats`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ board_id: boardId }),
