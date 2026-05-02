@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Habit Tracker</title>
+    <title>{{PROJECT_NAME}}</title>
   </head>
   <body>
     <div id="root"></div>
@@ -14,7 +14,7 @@
       if (window.location.protocol === 'https:') {
         window.__CRAFTBOT_BACKEND_URL__ = window.location.origin;
       } else {
-        window.__CRAFTBOT_BACKEND_URL__ = 'http://' + window.location.hostname + ':3200';
+        window.__CRAFTBOT_BACKEND_URL__ = 'http://' + window.location.hostname + ':{{BACKEND_PORT}}';
       }
     </script>
 

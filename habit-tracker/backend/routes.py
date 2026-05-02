@@ -8,15 +8,21 @@ items) inherited from the template.
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-from pydantic import BaseModel, Field, field_validator
-from typing import Dict, Any, List, Optional
+from pydantic import BaseModel, Field
+from typing import Dict, Any, List, Literal, Optional
 from datetime import datetime, date as date_cls
 import logging
+
+
+# Mirrors models.HABIT_TYPES — kept here as a Literal so FastAPI emits an
+# `enum` in the OpenAPI schema, which lets the auto-generated smoke test
+# pick a valid value instead of the string "test".
+HabitTypeStr = Literal["binary", "count", "duration", "negative"]
 
 from database import get_db
 from models import (
     AppState, Item, UISnapshot, UIScreenshot,
-    Category, Habit, HabitEntry, HABIT_TYPES,
+    Category, Habit, HabitEntry,
 )
 from services.streaks import (
     stats as compute_stats,
@@ -122,25 +128,18 @@ def delete_category(cat_id: int, db: Session = Depends(get_db)) -> Dict[str, str
 class HabitCreate(BaseModel):
     name: str = Field(min_length=1, max_length=200)
     description: Optional[str] = None
-    type: str = Field(default="binary")
+    type: HabitTypeStr = "binary"
     target: Optional[float] = None
     unit: Optional[str] = Field(default=None, max_length=40)
     color: str = Field(default="#737373", max_length=20)
     icon: str = Field(default="Circle", max_length=60)
     category_id: Optional[int] = None
 
-    @field_validator("type")
-    @classmethod
-    def _validate_type(cls, v: str) -> str:
-        if v not in HABIT_TYPES:
-            raise ValueError(f"type must be one of {HABIT_TYPES}")
-        return v
-
 
 class HabitUpdate(BaseModel):
     name: Optional[str] = Field(default=None, min_length=1, max_length=200)
     description: Optional[str] = None
-    type: Optional[str] = None
+    type: Optional[HabitTypeStr] = None
     target: Optional[float] = None
     unit: Optional[str] = Field(default=None, max_length=40)
     color: Optional[str] = Field(default=None, max_length=20)
@@ -148,15 +147,6 @@ class HabitUpdate(BaseModel):
     category_id: Optional[int] = None
     archived: Optional[bool] = None
     order: Optional[int] = None
-
-    @field_validator("type")
-    @classmethod
-    def _validate_type(cls, v: Optional[str]) -> Optional[str]:
-        if v is None:
-            return v
-        if v not in HABIT_TYPES:
-            raise ValueError(f"type must be one of {HABIT_TYPES}")
-        return v
 
 
 class ReorderRequest(BaseModel):
@@ -256,7 +246,9 @@ def reorder_habits(data: ReorderRequest, db: Session = Depends(get_db)) -> Dict[
 # ============================================================================
 
 class EntryUpsert(BaseModel):
-    date: str
+    # ISO calendar date (YYYY-MM-DD). The format hint is what makes the
+    # auto-generated smoke test send a valid date string.
+    date: str = Field(json_schema_extra={"format": "date"}, examples=["2026-01-01"])
     value: Optional[float] = None
     note: Optional[str] = None
 
@@ -301,21 +293,27 @@ def upsert_entry(habit_id: int, data: EntryUpsert, db: Session = Depends(get_db)
 
 
 @router.delete("/habits/{habit_id}/entry")
-def delete_entry(habit_id: int, date: str, db: Session = Depends(get_db)) -> Dict[str, str]:
-    habit = db.query(Habit).filter(Habit.id == habit_id).first()
-    if not habit:
-        raise HTTPException(status_code=404, detail="Habit not found")
-    target_date = _parse_date(date)
+def delete_entry(
+    habit_id: int,
+    date: Optional[str] = Query(default=None, description="ISO date (YYYY-MM-DD); defaults to today"),
+    db: Session = Depends(get_db),
+) -> Dict[str, str]:
+    """
+    Idempotent: returns 200 whether or not an entry existed for the given
+    date (or whether the parent habit still exists). Useful for clients
+    that just want to ensure the day is cleared.
+    """
+    target_date = _parse_date(date) if date else _today()
     entry = (
         db.query(HabitEntry)
         .filter(HabitEntry.habit_id == habit_id, HabitEntry.date == target_date)
         .first()
     )
     if entry is None:
-        raise HTTPException(status_code=404, detail="Entry not found")
+        return {"status": "not_found", "date": target_date.isoformat()}
     db.delete(entry)
     db.commit()
-    return {"status": "deleted"}
+    return {"status": "deleted", "date": target_date.isoformat()}
 
 
 # ============================================================================

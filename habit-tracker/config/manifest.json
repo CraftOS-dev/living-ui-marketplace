@@ -1,5 +1,5 @@
 {
-  "id": "habit-tracker",
+  "id": "{{PROJECT_ID}}",
   "name": "Habit Tracker",
   "version": "1.0.0",
   "description": "Compact, customizable habit tracker with streaks, GitHub-style heatmap, and per-habit analytics. Track binary, count, duration, and avoidance habits in a Notion-monochrome layout.",
@@ -12,8 +12,8 @@
     "backend": "backend/main.py"
   },
   "ports": {
-    "frontend": 3201,
-    "backend": 3200
+    "frontend": {{PORT}},
+    "backend": {{BACKEND_PORT}}
   },
   "pipeline": {
     "backend": {
@@ -25,17 +25,17 @@
         {"name": "agent_tests", "command": "python -m pytest tests/ -v --tb=short", "required": true},
         {"name": "compatibility", "command": "python test_runner.py --compatibility", "required": false}
       ],
-      "start": "python -m uvicorn main:app --host 0.0.0.0 --port 3200",
-      "health": "http://localhost:3200/health",
+      "start": "python -m uvicorn main:app --host 0.0.0.0 --port {{BACKEND_PORT}}",
+      "health": "http://localhost:{{BACKEND_PORT}}/health",
       "post_start_tests": [
-        {"name": "external", "command": "python test_runner.py --external --port 3200", "required": true}
+        {"name": "external", "command": "python test_runner.py --external --port {{BACKEND_PORT}}", "required": true}
       ]
     },
     "frontend": {
       "cwd": ".",
       "install": "npm install",
       "build": "npm run build",
-      "start": "npm run preview -- --port 3201",
+      "start": "npm run preview -- --port {{PORT}}",
       "health": null
     }
   },

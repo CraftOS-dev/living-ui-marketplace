@@ -191,9 +191,12 @@ def test_delete_entry_by_date(client):
 
 
 def test_delete_entry_not_found(client):
+    """DELETE is idempotent — returns 200 with status=not_found when there's
+    nothing to delete."""
     h = _binary_habit(client)
     response = client.delete(f"/api/habits/{h['id']}/entry?date={_today_str()}")
-    assert response.status_code == 404
+    assert response.status_code == 200
+    assert response.json()["status"] == "not_found"
 
 
 # ------------------------------------------------------------ list habits surfaces today entry

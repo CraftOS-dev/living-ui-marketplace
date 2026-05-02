@@ -1,7 +1,7 @@
 {
-  "name": "Habit Tracker",
+  "name": "{{PROJECT_NAME}}",
   "version": "1.0.0",
-  "description": "Compact, customizable habit tracker with streaks, heatmap, and per-habit analytics",
+  "description": "{{PROJECT_DESCRIPTION}}",
   "type": "module",
   "scripts": {
     "dev": "vite",

@@ -11,7 +11,7 @@ import type {
 import { ApiService } from './services/ApiService'
 
 const BACKEND_URL =
-  (window as any).__CRAFTBOT_BACKEND_URL__ || 'http://localhost:3200'
+  (window as any).__CRAFTBOT_BACKEND_URL__ || 'http://localhost:{{BACKEND_PORT}}'
 
 interface HabitInput {
   name: string
