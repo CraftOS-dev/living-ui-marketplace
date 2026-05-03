@@ -142,6 +142,20 @@ import { Button, Card, Input, Alert, Table, Modal } from './components/ui'
 
 **Reference (read before frontend work):** [COMPONENTS.md](../CraftBot/skills/living-ui-creator/references/COMPONENTS.md) — full props, icons (`lucide-react`), toasts (`react-toastify`).
 
+## Responsive design (MANDATORY)
+
+Every Living UI must be mobile-friendly and adapt across viewport widths. Treat the desktop layout as the default and define explicit breakpoints for tablet and mobile. The browser-side check in Phase 8 verifies this — apps that break below ~768 px width do not pass review.
+
+Minimum requirements:
+
+- The app must render and remain usable from ~360 px wide upward (typical phone) through to wide desktop (≥1280 px).
+- Side panels, sidebars, and persistent split views must collapse, stack, or convert to overlay/sheet patterns on narrow viewports rather than overflow horizontally.
+- Tap targets on mobile should be at least ~36 px square; rows and buttons that are dense on desktop should grow on touch viewports.
+- Top bars, toolbars, and chip strips must wrap or scroll cleanly without clipping.
+- Modals and side panels must shrink with the viewport (`width: 100%; max-width: <size>`); fixed-pixel widths are not allowed for these.
+
+Use `react-toastify` and the preset components — they're already responsive. For per-app responsive logic, derive a viewport hook (`useViewport` or equivalent) from `window.innerWidth` with a `resize` listener and breakpoint thresholds.
+
 ## Agent API (built into `_template/`)
 
 Living UI exposes standard HTTP endpoints for agent observation:
@@ -321,16 +335,49 @@ const BACKEND_URL = (window as any).__CRAFTBOT_BACKEND_URL__ || 'http://localhos
 
 Mark this feature done in TodoWrite, start the next. Repeat A–D.
 
-### Phase 8 — Final Review
+### Phase 8 — Verification gate
 
-After all features are built:
+After all features are built, do the code-review checklist *and* the verification run. Until **all** of these pass, do not proceed to Phase 9.
+
+#### Code review checklist
 
 - Backend routes use **absolute imports** (`from models import ...`, never `from . import`).
 - Backend `routes.py` does **not** add `/api` prefix to route paths.
 - Every `to_dict()` returns all fields.
 - TypeScript types match backend model output.
 - Components import correctly from relative paths.
-- All tests pass: `cd backend && python -m pytest tests/ -v`.
+- Frontend uses preset UI components and design tokens (no raw `<button>`/`<input>`, no arbitrary colors).
+- App is responsive (see "Responsive design (MANDATORY)" section above).
+
+#### Verification run
+
+`npm run build` returning success and `curl /` returning 200 do **not** prove the app works — they prove it compiles. Render-loop bugs (e.g. React error #185), layout breakage, and runtime errors only surface in a real browser. The full marketplace pipeline also runs an automated post-start smoke test that you must reproduce locally before publishing.
+
+Run **all** of the following, in order:
+
+1. **Unit tests:**
+   ```bash
+   cd backend && python -m pytest tests/ -v
+   ```
+2. **Marketplace smoke test** — this is the same test the CraftBot install pipeline runs as `post_start_tests.external`. Failing locally means the install will fail.
+
+   First start the backend (in a separate shell):
+   ```bash
+   cd backend && python -m uvicorn main:app --port <backend-port>
+   ```
+   Then in another shell:
+   ```bash
+   cd backend
+   python test_runner.py --internal
+   python test_runner.py --external --port <backend-port>
+   ```
+   Both must report `ALL TESTS PASSED`. If any endpoint returns ≥400, fix it — see "Schema contract for the marketplace smoke test" below for the common causes.
+
+3. **Browser verification.** Build the frontend (`npm run build`), let `uvicorn` serve `dist/`, then open `http://localhost:<backend-port>` in a real browser:
+   - Open the developer console. It must be clean — no React errors, no failed network requests, no unhandled rejections.
+   - The app must initialize: not stuck on a loading screen, not a white screen, not the error boundary.
+   - Click through one create / read / update / delete flow per primary entity.
+   - Resize the browser window from desktop down to ~360 px width. The layout must not break above its declared min-width — no clipped controls, no horizontal scrollbars on top-level chrome, no overlapping elements.
 
 **Reference (run before signing off):** [STANDARDS.md](../CraftBot/skills/living-ui-creator/references/STANDARDS.md) — quality bars (data persistence, responsive 320–1200 px, contrast 4.5:1, validation, loading/empty states).
 
@@ -391,6 +438,51 @@ Steps:
    ```
 
 6. The app is now ready for commit. CraftBot can install it via the marketplace flow; local devs can run `setup_local.py` themselves.
+
+## Schema contract for the marketplace smoke test
+
+Every Living UI's `manifest.json` ships with `post_start_tests.external` running `python test_runner.py --external`. This auto-generates request bodies from your OpenAPI schema and hits every route with POST → GET → PUT → DELETE in alphabetical-by-path order. Most install failures come from PUT or DELETE returning 4xx because the auto-generated payload didn't match what the route expected.
+
+The rules below are how you make your routes pass that test. Apply them while writing routes (Phases 2–7), and verify by running `python test_runner.py --external --port <port>` in Phase 8 before publishing.
+
+### Pydantic schemas
+
+- **Enum-like string fields**: use `Literal["a", "b", "c"]`, never `str` with a `@field_validator` that checks the set. `Literal` makes Pydantic emit `enum: [...]` in OpenAPI; the test_runner picks the first value. A validator-only approach exposes a plain string in the schema, so the test sends `"test"` → 422.
+
+  ```python
+  from typing import Literal
+
+  Status = Literal["draft", "active", "archived"]
+
+  class ItemUpdate(BaseModel):
+      status: Optional[Status] = None
+  ```
+
+- **Date / email / URL strings**: add a format hint so the test_runner sends a valid sample value (`"2026-01-01"`, `"test@test.com"`, `"http://test.com"`). Without it the test sends `"test"`, which most parsers reject.
+
+  ```python
+  date: str = Field(json_schema_extra={"format": "date"})
+  email: str = Field(json_schema_extra={"format": "email"})
+  ```
+
+- **Optional fields**: Pydantic 2 emits `Optional[T]` as `anyOf: [{T}, {"type": "null"}]`. The bundled `test_runner._generate_value` resolves this correctly (picks the non-null variant) — but only if your `test_runner.py` is up to date. If you see `"test"` being sent for an `Optional[int]` or `Optional[bool]`, your `test_runner.py` is out of date and needs the `anyOf` handler at the top of `_generate_value`.
+
+### Endpoint shape
+
+- **DELETE endpoints must not require query parameters.** The auto-generator only fills in path parameters and request bodies; query parameters are never synthesized. Either default the query param (e.g. `date: Optional[str] = Query(None)` defaulting to today) or move the discriminator into the path: `DELETE /resource/{id}` instead of `DELETE /resource?id=...`.
+
+- **DELETE should be idempotent.** The smoke test deletes parents before children (`DELETE /api/habits/1` before `DELETE /api/habits/1/entry`). If the parent is already gone — or the row never existed — return `200 {"status": "not_found"}` rather than `404`. RFC 9110 explicitly allows this for DELETE, and it's how a well-behaved API should respond to "ensure absent" calls.
+
+- **Don't reject foreign-key existence at the route layer with 4xx.** The smoke test creates resources in alphabetical-by-path order, which can leave child relations un-resolvable. Accept any int and let SQLAlchemy enforce at insert time. If you must validate, do it only on POST, not on PUT.
+
+### Quick checklist before Phase 10
+
+- [ ] All enum-like fields use `Literal[...]`.
+- [ ] All date / email / URL fields have a `format` hint.
+- [ ] No DELETE endpoint has a required query parameter.
+- [ ] Every DELETE returns 200 if the resource was already absent.
+- [ ] No PUT route returns 4xx because of a referenced-resource check that doesn't account for ordering in the smoke test.
+- [ ] `python test_runner.py --external --port <port>` reports `ALL TESTS PASSED` against a fresh database.
 
 ## Files Summary
 

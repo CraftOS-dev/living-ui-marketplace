@@ -86,6 +86,14 @@
       "folder": "habit-tracker",
       "tags": ["productivity", "improvement", "lifestyle"],
       "version": "1.0.0"
+    },
+    {
+      "id": "word-improve",
+      "name": "Word Improve",
+      "description": "GitHub-style merge UI for prose. Paste text, get LLM variants per paragraph or sentence, pick what you like, and copy the compiled improvement. Uses CraftBot's configured LLM provider.",
+      "folder": "word-improve",
+      "tags": ["productivity", "AI", "writing"],
+      "version": "1.0.0"
     }
   ]
 }

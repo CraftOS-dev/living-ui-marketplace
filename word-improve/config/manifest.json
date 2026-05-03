@@ -1,0 +1,50 @@
+{
+  "id": "word-improve",
+  "name": "Word Improve",
+  "version": "1.0.0",
+  "description": "GitHub-style merge UI for prose. Paste text, get LLM variants per paragraph or sentence, pick what you like, copy the compiled result.",
+  "author": "CraftBot Agent",
+  "livingUIVersion": "1.0",
+  "features": [],
+  "createdAt": "2026-05-03T00:00:00",
+  "entrypoint": {
+    "frontend": "src/main.tsx",
+    "backend": "backend/main.py"
+  },
+  "ports": {
+    "frontend": 3211,
+    "backend": 3211
+  },
+  "pipeline": {
+    "backend": {
+      "cwd": "backend",
+      "install": "python -m pip install -r requirements.txt",
+      "tests": [
+        {"name": "internal", "command": "python test_runner.py --internal", "required": true},
+        {"name": "unit", "command": "python test_runner.py --unit", "required": true},
+        {"name": "agent_tests", "command": "python -m pytest tests/ -v --tb=short", "required": true},
+        {"name": "compatibility", "command": "python test_runner.py --compatibility", "required": false}
+      ],
+      "start": "python -m uvicorn main:app --host 0.0.0.0 --port 3211",
+      "health": "http://localhost:3211/health",
+      "post_start_tests": [
+        {"name": "external", "command": "python test_runner.py --external --port 3211", "required": true}
+      ]
+    },
+    "frontend": {
+      "cwd": ".",
+      "install": "npm install",
+      "build": "npm run build",
+      "start": "npm run preview -- --port 3211",
+      "health": null
+    }
+  },
+  "agentAwareness": {
+    "enabled": true,
+    "stateReportInterval": 1000,
+    "reportComponents": true,
+    "reportUserInputs": true,
+    "reportVisibleText": true
+  },
+  "theme": "system"
+}
