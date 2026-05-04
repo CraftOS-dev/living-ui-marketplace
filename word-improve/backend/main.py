@@ -5,7 +5,7 @@ FastAPI backend for Living UI projects.
 Provides REST API for state management and data persistence.
 
 To run manually:
-    uvicorn main:app --port 3211 --reload
+    uvicorn main:app --port {{BACKEND_PORT}} --reload
 """
 
 from fastapi import FastAPI
@@ -34,8 +34,8 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="Word Improve API",
-    description="Backend API for Word Improve Living UI",
+    title="{{PROJECT_NAME}} API",
+    description="Backend API for {{PROJECT_NAME}} Living UI",
     version="1.0.0",
     lifespan=lifespan,
 )
@@ -65,7 +65,7 @@ if _routes_dir.exists() and (_routes_dir / "__init__.py").exists():
 @app.get("/health")
 async def health_check():
     """Health check endpoint for process management."""
-    return {"status": "healthy", "project": "word-improve"}
+    return {"status": "healthy", "project": "{{PROJECT_ID}}"}
 
 
 # ============================================================================
@@ -131,4 +131,4 @@ if _DIST_DIR.exists() and _DIST_ASSETS.exists():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=3211)
+    uvicorn.run(app, host="0.0.0.0", port={{BACKEND_PORT}})

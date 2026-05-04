@@ -1,19 +1,19 @@
 {
-  "id": "word-improve",
-  "name": "Word Improve",
+  "id": "{{PROJECT_ID}}",
+  "name": "{{PROJECT_NAME}}",
   "version": "1.0.0",
-  "description": "GitHub-style merge UI for prose. Paste text, get LLM variants per paragraph or sentence, pick what you like, copy the compiled result.",
+  "description": "{{PROJECT_DESCRIPTION}}",
   "author": "CraftBot Agent",
   "livingUIVersion": "1.0",
   "features": [],
-  "createdAt": "2026-05-03T00:00:00",
+  "createdAt": "{{CREATED_AT}}",
   "entrypoint": {
     "frontend": "src/main.tsx",
     "backend": "backend/main.py"
   },
   "ports": {
-    "frontend": 3211,
-    "backend": 3211
+    "frontend": {{PORT}},
+    "backend": {{BACKEND_PORT}}
   },
   "pipeline": {
     "backend": {
@@ -25,15 +25,15 @@
         {"name": "agent_tests", "command": "python -m pytest tests/ -v --tb=short", "required": true},
         {"name": "compatibility", "command": "python test_runner.py --compatibility", "required": false}
       ],
-      "start": "python -m uvicorn main:app --host 0.0.0.0 --port 3211",
-      "health": "http://localhost:3211/health",
+      "start": "python -m uvicorn main:app --host 0.0.0.0 --port {{BACKEND_PORT}}",
+      "health": "http://localhost:{{BACKEND_PORT}}/health",
       "post_start_tests": []
     },
     "frontend": {
       "cwd": ".",
       "install": "npm install",
       "build": "npm run build",
-      "start": "npm run preview -- --port 3211",
+      "start": "npm run preview -- --port {{PORT}}",
       "health": null
     }
   },
@@ -44,5 +44,5 @@
     "reportUserInputs": true,
     "reportVisibleText": true
   },
-  "theme": "system"
+  "theme": "{{THEME}}"
 }

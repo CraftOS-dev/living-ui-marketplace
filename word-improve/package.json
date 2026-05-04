@@ -1,7 +1,7 @@
 {
-  "name": "Word Improve",
+  "name": "{{PROJECT_NAME}}",
   "version": "1.0.0",
-  "description": "GitHub-style merge UI for prose. Paste text, get LLM variants per paragraph or sentence, pick what you like, copy the compiled result.",
+  "description": "{{PROJECT_DESCRIPTION}}",
   "type": "module",
   "scripts": {
     "dev": "vite",
