@@ -81,7 +81,11 @@ export function MergeView({
           <Button
             size="md"
             variant="ghost"
-            onClick={() => controller.regenerate()}
+            onClick={() => {
+              // Errors land in state.error and render in the header Alert;
+              // swallow here so the unhandled rejection doesn't hit the console.
+              controller.regenerate().catch(() => {})
+            }}
             loading={regenerating}
             icon={<RefreshCw size={14} aria-hidden="true" />}
           >

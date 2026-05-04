@@ -31,7 +31,12 @@ export function SessionList({
   const handleDelete = async (id: number) => {
     if (!confirm('Delete this session? This cannot be undone.')) return
     setMenuOpenId(null)
-    await controller.deleteSession(id)
+    try {
+      await controller.deleteSession(id)
+    } catch {
+      // controller already wrote the message into state.error which the
+      // header Alert renders; nothing else to do here.
+    }
   }
 
   const handleRename = (id: number, currentTitle: string) => {

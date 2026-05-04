@@ -132,11 +132,15 @@ export class AppController {
         this.runCompile(true)
       }
     } catch (err) {
+      // Surface the error in state AND propagate to the caller — without the
+      // re-throw the promise resolves cleanly, the SessionInput handleSubmit's
+      // catch never runs, and a misleading "success" toast fires on failure.
       this.set({
         loading: false,
         generating: false,
         error: err instanceof Error ? err.message : 'Failed to create session',
       })
+      throw err
     }
   }
 
@@ -164,6 +168,7 @@ export class AppController {
       if (wasActive) this.set({ active: null, lastCompile: null })
     } catch (err) {
       this.set({ error: err instanceof Error ? err.message : 'Delete failed' })
+      throw err
     }
   }
 
@@ -181,6 +186,7 @@ export class AppController {
       }
     } catch (err) {
       this.set({ error: err instanceof Error ? err.message : 'Rename failed' })
+      throw err
     }
   }
 
@@ -208,6 +214,7 @@ export class AppController {
         regenerating: false,
         error: err instanceof Error ? err.message : 'Regenerate failed',
       })
+      throw err
     }
   }
 

@@ -57,8 +57,12 @@ export function MainView({ controller }: MainViewProps) {
   const handleDelete = async () => {
     if (!active) return
     if (!confirm('Delete this session? This cannot be undone.')) return
-    await controller.deleteSession(active.id)
-    toast.info('Session deleted')
+    try {
+      await controller.deleteSession(active.id)
+      toast.info('Session deleted')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Could not delete session')
+    }
   }
 
   const openRename = () => {
@@ -68,8 +72,12 @@ export function MainView({ controller }: MainViewProps) {
 
   const submitRename = async (title: string) => {
     if (!renameTarget) return
-    await controller.renameSession(renameTarget.id, title)
-    toast.success('Session renamed')
+    try {
+      await controller.renameSession(renameTarget.id, title)
+      toast.success('Session renamed')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Could not rename session')
+    }
   }
 
   // Drag-to-resize the compiled-result pane. In side-by-side mode the divider
@@ -193,7 +201,12 @@ export function MainView({ controller }: MainViewProps) {
                 ) : (
                   <div className="main__draft">
                     <p>This session has no variants yet.</p>
-                    <Button variant="primary" onClick={() => controller.regenerate()}>
+                    <Button
+                      variant="primary"
+                      onClick={() => {
+                        controller.regenerate().catch(() => {})
+                      }}
+                    >
                       Generate variants
                     </Button>
                   </div>
