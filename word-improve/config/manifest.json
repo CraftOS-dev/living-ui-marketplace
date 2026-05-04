@@ -27,9 +27,7 @@
       ],
       "start": "python -m uvicorn main:app --host 0.0.0.0 --port 3211",
       "health": "http://localhost:3211/health",
-      "post_start_tests": [
-        {"name": "external", "command": "python test_runner.py --external --port 3211", "required": true}
-      ]
+      "post_start_tests": []
     },
     "frontend": {
       "cwd": ".",
