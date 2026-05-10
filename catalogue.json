@@ -94,6 +94,14 @@
       "folder": "word-improve",
       "tags": ["productivity", "AI", "writing"],
       "version": "1.0.0"
+    },
+    {
+      "id": "pdf-splitter",
+      "name": "PDF Splitter",
+      "description": "Upload a PDF, preview pages, then split by selected pages, custom ranges, or every N pages. Download files individually or as a ZIP. Per-document split history, drag-and-drop upload, fully offline (PyMuPDF on the backend).",
+      "folder": "pdf-splitter",
+      "tags": ["pdf", "productivity", "files"],
+      "version": "1.0.0"
     }
   ]
 }
