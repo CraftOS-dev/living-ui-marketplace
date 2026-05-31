@@ -102,6 +102,14 @@
       "folder": "pdf-splitter",
       "tags": ["pdf", "productivity", "files"],
       "version": "1.0.0"
+    },
+    {
+      "id": "newsletter-tool",
+      "name": "Newsletter Tool",
+      "description": "Production newsletter platform like Loops or Beehiiv: subscribers with tags, drag-and-drop email builder, AI-generated copy via CraftBot's LLM, pre-built templates, scheduled sends through Gmail, plus open/click analytics and one-click unsubscribe.",
+      "folder": "newsletter-tool",
+      "tags": ["newsletter", "marketing", "email", "AI", "productivity"],
+      "version": "1.0.0"
     }
   ]
 }
