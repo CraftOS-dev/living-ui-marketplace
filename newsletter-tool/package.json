@@ -1,7 +1,7 @@
 {
-  "name": "Newsletter Tool",
+  "name": "{{PROJECT_NAME}}",
   "version": "1.0.0",
-  "description": "Production newsletter platform with subscribers, drag-and-drop email builder, AI generation, templates, scheduling, analytics, and Gmail sending.",
+  "description": "{{PROJECT_DESCRIPTION}}",
   "type": "module",
   "scripts": {
     "dev": "vite",
