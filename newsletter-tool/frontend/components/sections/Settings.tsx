@@ -46,7 +46,7 @@ export function Settings({ controller, senderIdentity, integrations }: SettingsP
 
   useAgentAware('Settings', {
     hasFromEmail: !!fromEmail,
-    gmailConnected: integrations?.gmail.google_workspace || false,
+    gmailConnected: integrations?.gmail.connected || false,
     llmConnected: integrations?.llm.connected || false,
   })
 
@@ -78,11 +78,11 @@ export function Settings({ controller, senderIdentity, integrations }: SettingsP
           <IntegrationRow
             icon={FiMail}
             name="Gmail send"
-            connected={integrations?.gmail.google_workspace || false}
+            connected={integrations?.gmail.connected || false}
             help={
-              integrations?.gmail.google_workspace
+              integrations?.gmail.connected
                 ? 'Connected via CraftBot. Real campaign sends go through your Gmail account.'
-                : 'Connect Google Workspace in CraftBot settings to enable real sending. Campaigns will fail until this is connected.'
+                : 'Connect Gmail in CraftBot settings to enable real sending. Campaigns will fail until this is connected.'
             }
           />
           <IntegrationRow

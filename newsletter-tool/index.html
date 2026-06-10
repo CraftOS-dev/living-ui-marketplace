@@ -9,13 +9,29 @@
     <div id="root"></div>
 
     <!-- Backend URL: if served via HTTPS (tunnel), use same origin.
-         Otherwise use same hostname + backend port (localhost/LAN). -->
+         Otherwise read the backend port from config/manifest.json (the single
+         source of truth) and use same hostname + that port (localhost/LAN). -->
     <script>
-      if (window.location.protocol === 'https:') {
-        window.__CRAFTBOT_BACKEND_URL__ = window.location.origin;
-      } else {
-        window.__CRAFTBOT_BACKEND_URL__ = 'http://' + window.location.hostname + ':{{BACKEND_PORT}}';
-      }
+      (function () {
+        if (window.location.protocol === 'https:') {
+          window.__CRAFTBOT_BACKEND_URL__ = window.location.origin;
+          return;
+        }
+        try {
+          var xhr = new XMLHttpRequest();
+          xhr.open('GET', '/config/manifest.json', false); // sync — must resolve before any other script runs
+          xhr.send();
+          if (xhr.status === 200) {
+            var manifest = JSON.parse(xhr.responseText);
+            var port = manifest && manifest.ports && manifest.ports.backend;
+            if (port) {
+              window.__CRAFTBOT_BACKEND_URL__ = 'http://' + window.location.hostname + ':' + port;
+            }
+          }
+        } catch (e) {
+          /* leave __CRAFTBOT_BACKEND_URL__ unset — ApiService will surface a clear error */
+        }
+      })();
     </script>
 
     <!-- Console & Network capture — runs before React, survives agent rewrites -->

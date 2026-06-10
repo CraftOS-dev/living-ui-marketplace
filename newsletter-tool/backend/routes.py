@@ -409,6 +409,7 @@ def import_subscribers(data: SubscriberImport, db: DBSession = Depends(get_db)) 
     updated = 0
     skipped = 0
     errors: List[str] = []
+    processed_emails = set()
 
     if not content:
         return {"inserted": 0, "updated": 0, "skipped": 0, "errors": ["empty input"]}
@@ -425,6 +426,9 @@ def import_subscribers(data: SubscriberImport, db: DBSession = Depends(get_db)) 
             continue
 
         email = first_cell.lower()
+        if email in processed_emails:
+            continue
+        processed_emails.add(email)
         first_name = (row[1].strip() if len(row) > 1 else "") or None
         last_name = (row[2].strip() if len(row) > 2 else "") or None
 
@@ -734,7 +738,10 @@ def send_campaign_now(campaign_id: int, db: DBSession = Depends(get_db)) -> Dict
         return {"status": "already_sending", "id": campaign_id}
     result = _run_async(send_campaign(db, campaign_id))
     db.refresh(campaign)
-    return {"campaign": campaign.to_summary(), "result": result}
+    # to_detail (not to_summary) so the frontend's local state keeps `blocks`.
+    # Without this, the autosave loop sees blocks go undefined in the response
+    # and PUTs `blocks: []` back over the saved content, erasing the campaign.
+    return {"campaign": campaign.to_detail(), "result": result}
 
 
 @router.post("/campaigns/{campaign_id}/schedule")
@@ -1000,7 +1007,7 @@ def get_integrations_status(db: DBSession = Depends(get_db)) -> Dict[str, Any]:
         gmail = _run_async(integrations_status())
     except Exception as e:
         logger.warning("[Routes] integrations_status failed: %s", e)
-        gmail = {"bridge": False, "google_workspace": False}
+        gmail = {"bridge": False, "connected": False}
     return {
         "llm": {"connected": llm_available()},
         "gmail": gmail,

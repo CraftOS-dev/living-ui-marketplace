@@ -40,6 +40,27 @@ SKIP_API_PREFIXES = (
     "/api/ui-screenshot",
 )
 
+# Action-sub-path suffixes that trigger external side effects against the *live*
+# database. The auto-generator can't distinguish "send this campaign" from
+# "create a campaign" — it walks every POST/PUT, including dangerous actions,
+# with auto-generated IDs pulled from the live DB. Skipping these is the only
+# safe default; opt-in tests should be written by hand against a test DB.
+#
+# DO NOT REMOVE without writing a real integration-test harness with a sandboxed
+# DB and mocked external services. A wrong entry here can send real email,
+# charge real money, or page real on-call.
+DANGEROUS_ACTION_SUFFIXES = (
+    "/send",
+    "/dispatch",
+    "/deliver",
+    "/publish",
+    "/notify",
+    "/import",
+    "/export",
+    "/schedule",
+    "/cancel",
+)
+
 
 # ============================================================================
 # Auto-payload generation from OpenAPI schemas
@@ -386,7 +407,15 @@ def run_external_tests(port: int) -> Dict[str, Any]:
         if r["path"].startswith("/api")
         and r["path"] not in SKIP_PATHS
         and not any(r["path"].startswith(prefix) for prefix in SKIP_API_PREFIXES)
+        and not any(r["path"].rstrip("/").endswith(suffix) for suffix in DANGEROUS_ACTION_SUFFIXES)
     ]
+    skipped_dangerous = [
+        r["path"] for r in routes
+        if r["path"].startswith("/api")
+        and any(r["path"].rstrip("/").endswith(suffix) for suffix in DANGEROUS_ACTION_SUFFIXES)
+    ]
+    for p in sorted(set(skipped_dangerous)):
+        logger.info(f"[SKIP-DANGEROUS] {p} — refusing to invoke against the live backend")
 
     # Group by base path (e.g., /api/sections, /api/cards)
     # Sort: POST first, then GET, then PUT, then DELETE

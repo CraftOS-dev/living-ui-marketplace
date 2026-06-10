@@ -125,7 +125,13 @@ _VALID_ALIGN = {"left", "center", "right"}
 
 
 def _safe_color(value: Any, fallback: str) -> str:
-    """Allow hex (#fff, #ff4f18) or short named tokens; fall back otherwise."""
+    """Allow hex (#fff, #ff4f18) or rgb(...); fall back otherwise.
+
+    rgb() is normalized to uppercase hex so the rest of the renderer only
+    deals with one color format. execCommand('foreColor') with styleWithCSS
+    emits rgb() in most browsers — without this, that output would round-trip
+    to the fallback color and silently lose the user's choice.
+    """
     if not isinstance(value, str):
         return fallback
     v = value.strip()
@@ -133,7 +139,198 @@ def _safe_color(value: Any, fallback: str) -> str:
         c in "0123456789abcdefABCDEF" for c in v[1:]
     ):
         return v
+    m = re.match(r"rgb\s*\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*\)", v)
+    if m:
+        r, g, b = (max(0, min(255, int(x))) for x in m.groups())
+        return f"#{r:02X}{g:02X}{b:02X}"
     return fallback
+
+
+# ----------------------------------------------------------------------
+# Inline-HTML sanitizer (for rich-text heading & text blocks)
+# ----------------------------------------------------------------------
+
+# Whitelist: only inline formatting that's safe across email clients.
+# Block-level tags (p, div, h1…) are stripped — the renderer wraps the
+# sanitized fragment in <p> / <h{n}> with the right inline styles.
+_ALLOWED_INLINE_TAGS = {"b", "strong", "i", "em", "u", "br", "span", "a"}
+_LINK_PROTOCOLS = ("http://", "https://", "mailto:")
+
+
+def _extract_color_from_style(style: Any) -> str:
+    if not isinstance(style, str):
+        return ""
+    m = re.search(r"color\s*:\s*([^;]+)", style, re.IGNORECASE)
+    if not m:
+        return ""
+    return _safe_color(m.group(1).strip(), "")
+
+
+def _extract_safe_styles(style: Any) -> str:
+    """Pick out the inline-formatting CSS properties we trust for emails.
+
+    Some browsers / older editor configs emit ``<span style="font-weight:
+    bold">`` for bold instead of ``<b>``. Keeping the whitelisted properties
+    means that content still bolds correctly after a round-trip through the
+    sanitizer. Anything not on this list is dropped.
+    """
+    if not isinstance(style, str) or not style:
+        return ""
+    parts: List[str] = []
+    color = _extract_color_from_style(style)
+    if color:
+        parts.append(f"color:{color}")
+    m = re.search(r"font-weight\s*:\s*([^;]+)", style, re.IGNORECASE)
+    if m and m.group(1).strip().lower() in ("bold", "bolder", "600", "700", "800", "900"):
+        parts.append("font-weight:bold")
+    m = re.search(r"font-style\s*:\s*([^;]+)", style, re.IGNORECASE)
+    if m and m.group(1).strip().lower() in ("italic", "oblique"):
+        parts.append("font-style:italic")
+    m = re.search(r"text-decoration(?:-line)?\s*:\s*([^;]+)", style, re.IGNORECASE)
+    if m:
+        val = m.group(1).strip().lower()
+        if "underline" in val:
+            parts.append("text-decoration:underline")
+        elif "line-through" in val:
+            parts.append("text-decoration:line-through")
+    return ";".join(parts)
+
+
+_BLANK_DIV_RE = re.compile(
+    r"<\s*div\b[^>]*>\s*<\s*br\s*/?\s*>\s*<\s*/\s*div\s*>",
+    re.IGNORECASE,
+)
+_BLOCK_OPEN_RE = re.compile(r"<\s*(?:div|p)\b[^>]*>", re.IGNORECASE)
+_BLOCK_CLOSE_RE = re.compile(r"<\s*/\s*(?:div|p)\s*>", re.IGNORECASE)
+
+
+def _normalize_block_breaks(html: str) -> str:
+    """ContentEditable produces ``<div>line</div>`` per new line in Chromium.
+
+    Convert each block wrapper to a single ``<br>`` so the rendered email
+    matches the editor visually: line-height spacing between lines, *no*
+    extra paragraph-margin between them. The whole text block ends up inside
+    one ``<p>`` (which still has the block-level margin below it, so the gap
+    between separate text BLOCKS is preserved).
+
+    Soft breaks (``<br>``) pass through unchanged.
+    """
+    if not html:
+        return ""
+    # Collapse "press Enter twice" -> single <br> (one blank line).
+    s = _BLANK_DIV_RE.sub("<br>", html)
+    # Remaining <div>/<p> opens are line breaks before their content.
+    s = _BLOCK_OPEN_RE.sub("<br>", s)
+    s = _BLOCK_CLOSE_RE.sub("", s)
+    # Bare newlines (from pastes / AI generations) are also line breaks; fold
+    # them into the same form so the collapse step sees one consistent token.
+    s = s.replace("\r\n", "\n").replace("\n", "<br>")
+    # Cap runs of <br>s at 2 (one visible blank line). Nested wrapper <div>s
+    # from pasted content can stack 3-4 <br>s on top of each other that the
+    # editor doesn't render — without this cap, the email shows huge gaps.
+    s = re.sub(r"(?:<br\s*/?>\s*){3,}", "<br><br>", s, flags=re.IGNORECASE)
+    # When the original innerHTML already starts/ends with a block wrapper, the
+    # substitution leaves stray <br>s at the edges that the editor doesn't show.
+    s = re.sub(r"^(?:\s*<br\s*/?>)+", "", s, flags=re.IGNORECASE)
+    s = re.sub(r"(?:<br\s*/?>\s*)+$", "", s, flags=re.IGNORECASE)
+    return s
+
+
+def _sanitize_inline_html(raw: str) -> str:
+    """Keep only whitelisted inline tags/attrs; escape everything else.
+
+    Notably:
+      - <span> keeps only ``style="color: …"`` and a few weight/style/decoration
+        properties (any other style is dropped).
+      - <font color="…"> is rewritten to <span style="color:…">.
+      - <a> requires a safe protocol; href is HTML-escaped; target/rel are
+        forced so links open in a new tab without leaking the opener.
+      - Stray text and entities pass through HTML-escaped.
+    """
+    from html.parser import HTMLParser
+
+    class _Sanitizer(HTMLParser):
+        def __init__(self) -> None:
+            super().__init__(convert_charrefs=False)
+            self.out: List[str] = []
+            self._open_font = 0
+
+        def _attrs(self, attrs: List) -> Dict[str, str]:
+            return {k.lower(): (v or "") for k, v in attrs}
+
+        def handle_starttag(self, tag: str, attrs: List) -> None:
+            tag = tag.lower()
+            if tag == "font":
+                # Legacy execCommand fallback — emit as <span style="color:…">.
+                color = _safe_color(self._attrs(attrs).get("color", ""), "")
+                if color:
+                    self.out.append(f'<span style="color:{color};">')
+                    self._open_font += 1
+                else:
+                    self._open_font += 1  # still track so end-tag balances
+                return
+            if tag not in _ALLOWED_INLINE_TAGS:
+                return
+            a = self._attrs(attrs)
+            if tag == "a":
+                href = a.get("href", "").strip()
+                if not (href.startswith(_LINK_PROTOCOLS) or href.startswith("{")):
+                    return  # drop unsafe links — children still render
+                escaped_href = html_module.escape(href, quote=True)
+                self.out.append(
+                    f'<a href="{escaped_href}" target="_blank" rel="noopener noreferrer">'
+                )
+                return
+            if tag == "span":
+                safe_style = _extract_safe_styles(a.get("style"))
+                if safe_style:
+                    self.out.append(f'<span style="{safe_style};">')
+                else:
+                    # No usable style — emit a bare span (still balances end-tag).
+                    self.out.append("<span>")
+                return
+            self.out.append(f"<{tag}>")
+
+        def handle_endtag(self, tag: str) -> None:
+            tag = tag.lower()
+            if tag == "font":
+                if self._open_font > 0:
+                    self._open_font -= 1
+                    self.out.append("</span>")
+                return
+            if tag in _ALLOWED_INLINE_TAGS:
+                self.out.append(f"</{tag}>")
+
+        def handle_startendtag(self, tag: str, attrs: List) -> None:
+            if tag.lower() == "br":
+                self.out.append("<br>")
+
+        def handle_data(self, data: str) -> None:
+            self.out.append(html_module.escape(data))
+
+        def handle_entityref(self, name: str) -> None:
+            self.out.append(f"&{name};")
+
+        def handle_charref(self, name: str) -> None:
+            self.out.append(f"&#{name};")
+
+    s = _Sanitizer()
+    s.feed(raw or "")
+    s.close()
+    # Balance any unclosed <font> tracking.
+    while s._open_font > 0:
+        s.out.append("</span>")
+        s._open_font -= 1
+    return "".join(s.out)
+
+
+def _strip_tags(raw: str) -> str:
+    """Plain-text version of a rich-text field for the text/plain MIME part."""
+    if not raw:
+        return ""
+    # <br> → newline so paragraphs survive in the plain-text alternative.
+    s = re.sub(r"(?i)<br\s*/?>", "\n", raw)
+    return re.sub(r"<[^>]+>", "", s)
 
 
 def _align(value: Any, fallback: str = "left") -> str:
@@ -151,7 +348,12 @@ def _render_block(
 
     if bt == "heading":
         level = max(1, min(int(block.get("level") or 1), 3))
-        text = _esc(_substitute(block.get("text") or "", context))
+        # Heading text may contain inline rich-text HTML (b/i/u/span color/a)
+        # from the editor. Substitute placeholders, normalize block wrappers
+        # (the editor's Enter key produces <div>line</div> in Chromium), then
+        # sanitize.
+        raw = _normalize_block_breaks(block.get("text") or "")
+        text = _sanitize_inline_html(_substitute(raw, context))
         size = {1: "28px", 2: "22px", 3: "18px"}[level]
         align = _align(block.get("align"))
         color = _safe_color(
@@ -165,7 +367,8 @@ def _render_block(
         )
 
     if bt == "text":
-        text = _esc(_substitute(block.get("text") or "", context))
+        raw = _normalize_block_breaks(block.get("text") or "")
+        text = _sanitize_inline_html(_substitute(raw, context))
         size_key = block.get("size") if block.get("size") in _TEXT_SIZE_PX else "normal"
         font_px = _TEXT_SIZE_PX[size_key]
         align = _align(block.get("align"))
@@ -173,22 +376,30 @@ def _render_block(
             block.get("color"),
             _design_color(design, "textColor", "#262626"),
         )
-        paragraphs = text.split("\n\n")
-        rendered = []
-        for p in paragraphs:
-            if not p.strip():
-                continue
-            p_html = p.replace("\n", "<br>")
-            rendered.append(
-                f'<p style="margin:0 0 16px 0;font-size:{font_px}px;line-height:1.6;'
-                f'color:{color};text-align:{align};">{p_html}</p>'
-            )
-        return "".join(rendered) or '<p style="margin:0 0 16px 0;">&nbsp;</p>'
+        # One <p> per text block. Every break (whether <br>, <div>-derived, or
+        # legacy \n / \n\n) is a soft break inside this paragraph. The 16px
+        # margin then sits ONLY between blocks — never between lines inside a
+        # block — so the rendered email matches the editor's WYSIWYG spacing
+        # instead of stacking per-paragraph margins the editor doesn't show.
+        body = text.replace("\n", "<br>")
+        if not body.strip():
+            return '<p style="margin:0 0 16px 0;">&nbsp;</p>'
+        return (
+            f'<p style="margin:0 0 16px 0;font-size:{font_px}px;line-height:1.6;'
+            f'color:{color};text-align:{align};">{body}</p>'
+        )
 
     if bt == "image":
         url = block.get("url") or ""
         alt = _esc(block.get("alt") or "")
-        if not url or not url.startswith(("http://", "https://")):
+        # Accept http(s) URLs and inline data: image URIs from the uploader.
+        # data: URIs render inline in most modern clients (Gmail, Apple Mail,
+        # Outlook 365); the editor caps uploads at 5 MB, so we don't recheck
+        # size here.
+        if not url or not (
+            url.startswith(("http://", "https://"))
+            or url.startswith("data:image/")
+        ):
             return ""
         align = _align(block.get("align"), "center")
         width_key = block.get("width") if block.get("width") in _IMAGE_WIDTH_VAL else "full"
@@ -242,10 +453,10 @@ def _render_blocks_text(blocks: List[Dict[str, Any]], context: Dict[str, str]) -
     for block in blocks:
         bt = (block.get("type") or "text").lower()
         if bt == "heading":
-            out.append(_substitute(block.get("text") or "", context).upper())
+            out.append(_strip_tags(_substitute(block.get("text") or "", context)).upper())
             out.append("")
         elif bt == "text":
-            out.append(_substitute(block.get("text") or "", context))
+            out.append(_strip_tags(_substitute(block.get("text") or "", context)))
             out.append("")
         elif bt == "button":
             label = _substitute(block.get("label") or "Click here", context)
@@ -324,11 +535,7 @@ def render_email(
 
     footer = (
         f"{org_line}"
-        f"<div>You're receiving this because you subscribed.</div>"
-        f"<div style=\"margin-top:8px;\">"
-        f"<a href=\"{_esc(unsubscribe_url)}\" "
-        f"style=\"color:#737373;text-decoration:underline;\">Unsubscribe</a>"
-        f"</div>"
+        f"<div>Created by Newsletter Tool livingUI</div>"
     )
 
     tracking_pixel = ""
@@ -362,6 +569,6 @@ def render_email(
         f"{(organization_name + ' · ' + organization_address).strip(' ·')}\n"
         if (organization_name or organization_address) else "\n\n---\n"
     )
-    text += f"Unsubscribe: {unsubscribe_url}\n"
+    text += "Created by Newsletter Tool livingUI\n"
 
     return {"html": html, "text": text}

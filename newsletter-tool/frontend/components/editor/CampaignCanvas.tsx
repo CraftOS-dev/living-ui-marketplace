@@ -47,6 +47,7 @@ import {
   FiUpload,
 } from 'react-icons/fi'
 import { RxDragHandleDots2 } from 'react-icons/rx'
+import { EditableRichText } from './RichTextEditor'
 import type {
   BlockAlign,
   ButtonBlock,
@@ -671,10 +672,11 @@ function HeadingRender({
   const level = block.level || 1
   const fontSize = ({ 1: 28, 2: 22, 3: 18 } as Record<number, number>)[level]
   return (
-    <EditableText
+    <EditableRichText
       value={block.text || ''}
       onChange={(text) => onUpdate({ text })}
       readonly={readonly}
+      singleLine
       placeholder="Your headline"
       style={{
         fontSize,
@@ -701,11 +703,11 @@ function TextRender({
 }) {
   const sizePx = TEXT_SIZE_PX[block.size || 'normal']
   return (
-    <EditableText
+    <EditableRichText
       value={block.text || ''}
       onChange={(text) => onUpdate({ text })}
       readonly={readonly}
-      placeholder="Write your paragraph here. Use {firstName} for personalization."
+      placeholder="Write your paragraph here. Highlight to format. Use {firstName} for personalization."
       style={{
         fontSize: sizePx,
         lineHeight: 1.6,

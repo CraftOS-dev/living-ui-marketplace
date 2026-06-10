@@ -8,7 +8,10 @@
  * Filters out noise: React internals, Vite HMR, browser-generated messages.
  */
 
-const BACKEND_URL = (window as any).__CRAFTBOT_BACKEND_URL__ || 'http://localhost:{{BACKEND_PORT}}'
+// Resolved at page load from /config/manifest.json by the inline script in index.html.
+// If it's empty, the flush() fetch below will simply fail — we don't fall back to a
+// guessed port because that masks real configuration problems.
+const BACKEND_URL: string = (window as any).__CRAFTBOT_BACKEND_URL__ || ''
 
 // Prefixes that indicate agent-written or app-level console.log messages
 const APP_LOG_PREFIXES = [

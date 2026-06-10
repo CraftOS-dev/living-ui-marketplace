@@ -190,7 +190,7 @@ export interface SenderIdentity {
 
 export interface IntegrationsStatus {
   llm: { connected: boolean }
-  gmail: { bridge: boolean; google_workspace: boolean }
+  gmail: { bridge: boolean; connected: boolean }
 }
 
 export interface TagCount {

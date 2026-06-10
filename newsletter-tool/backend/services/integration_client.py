@@ -12,9 +12,9 @@ Usage:
 
     # Make an authenticated API call
     result = await integration.request(
-        integration="google_workspace",
+        integration="gmail",
         method="GET",
-        url="https://www.googleapis.com/youtube/v3/channels?part=snippet&mine=true",
+        url="https://gmail.googleapis.com/gmail/v1/users/me/profile",
     )
     if result["status"] == 200:
         channels = result["data"]
@@ -53,9 +53,9 @@ class IntegrationClient:
 
         Returns a list like:
         [
-            {"id": "google_workspace", "connected": true, "granted": true},
-            {"id": "slack", "connected": true, "granted": false},
-            {"id": "discord", "connected": false, "granted": false},
+            {"id": "gmail", "connected": true},
+            {"id": "slack", "connected": true},
+            {"id": "discord", "connected": false},
         ]
         """
         if not self.available:
@@ -84,7 +84,7 @@ class IntegrationClient:
         Make an authenticated request to an external API via CraftBot proxy.
 
         Args:
-            integration: Platform ID (e.g., "google_workspace", "slack", "discord")
+            integration: Platform ID (e.g., "gmail", "slack", "discord")
             method: HTTP method (GET, POST, PUT, DELETE)
             url: Full URL to the external API endpoint
             headers: Optional extra headers (e.g., custom Accept header)

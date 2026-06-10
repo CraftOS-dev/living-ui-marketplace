@@ -298,12 +298,12 @@ function computeInsight({
   if (!dashboard) return { headline: 'Loading…', support: '' }
 
   // Gmail not connected — supersedes everything except an imminent send.
-  if (integrations && !integrations.gmail.google_workspace) {
+  if (integrations && !integrations.gmail.connected) {
     const next = scheduled[0]
     if (next && next.scheduledAt && new Date(next.scheduledAt).getTime() - Date.now() < DAY) {
       return {
         headline: `${next.name} is scheduled but Gmail isn't connected.`,
-        support: `Open Settings and link Google Workspace in CraftBot or the send will fail when its time comes.`,
+        support: `Open Settings and link Gmail in CraftBot or the send will fail when its time comes.`,
       }
     }
     return {

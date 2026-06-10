@@ -457,7 +457,7 @@ export class AppController {
       const integrations = await ApiService.getIntegrationsStatus()
       this.set({ integrations })
     } catch {
-      this.set({ integrations: { llm: { connected: false }, gmail: { bridge: false, google_workspace: false } } })
+      this.set({ integrations: { llm: { connected: false }, gmail: { bridge: false, connected: false } } })
     }
   }
 

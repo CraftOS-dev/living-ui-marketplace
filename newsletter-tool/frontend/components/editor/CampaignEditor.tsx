@@ -84,10 +84,14 @@ export function CampaignEditor({
     status: campaign?.status,
   })
 
-  // Auto-save after edits (debounced ~700ms)
+  // Auto-save after edits (debounced ~700ms).
+  // Never autosave a sent/sending campaign — the /send response shape changed
+  // between versions, and any local state shrinkage would otherwise be written
+  // back over the saved content. Sent campaigns are immutable by design.
   const lastSavedJson = useRef<string>('')
   useEffect(() => {
     if (!campaign) return
+    if (campaign.status === 'sent' || campaign.status === 'sending') return
     const snapshot = JSON.stringify({
       name: campaign.name,
       subject: campaign.subject,

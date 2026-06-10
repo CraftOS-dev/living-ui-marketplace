@@ -37,7 +37,7 @@ export function MainView({ controller }: MainViewProps) {
   })
 
   const llmConnected = !!state.integrations?.llm.connected
-  const gmailConnected = !!state.integrations?.gmail.google_workspace
+  const gmailConnected = !!state.integrations?.gmail.connected
 
   const isMobile = viewport.size === 'mobile'
 

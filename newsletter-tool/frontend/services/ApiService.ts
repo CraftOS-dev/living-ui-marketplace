@@ -1,5 +1,5 @@
 /**
- * {{PROJECT_NAME}} — thin REST client.
+ * Newsletter Tool — thin REST client.
  *
  * No state, no retry magic. Each method maps to one backend endpoint and
  * returns the parsed JSON response. Errors throw with a readable message so
@@ -24,7 +24,14 @@ import type {
 const BACKEND_URL =
   ((window as unknown as Record<string, unknown>).__CRAFTBOT_BACKEND_URL__ as
     | string
-    | undefined) || 'http://localhost:{{BACKEND_PORT}}'
+    | undefined) || ''
+if (!BACKEND_URL) {
+  // Fail loudly rather than silently masking a missing manifest with a guessed port.
+  console.error(
+    '[ApiService] __CRAFTBOT_BACKEND_URL__ is not set. ' +
+      'Could not load /config/manifest.json — the backend URL cannot be resolved.',
+  )
+}
 
 async function json<T>(path: string, init?: RequestInit): Promise<T> {
   const resp = await fetch(`${BACKEND_URL}${path}`, {

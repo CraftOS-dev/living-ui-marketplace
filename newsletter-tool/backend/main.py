@@ -4,9 +4,24 @@ Living UI Python Backend
 FastAPI backend for Living UI projects.
 Provides REST API for state management and data persistence.
 
-To run manually:
-    uvicorn main:app --port {{BACKEND_PORT}} --reload
+The port is the single source of truth in ../config/manifest.json
+(`ports.backend`). The launcher reads it; direct `python main.py` reads it
+too. Override with the PORT env var if needed.
 """
+
+import json
+import os
+from pathlib import Path
+
+
+def _manifest_port() -> int:
+    manifest = json.loads(
+        (Path(__file__).resolve().parent.parent / "config" / "manifest.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    return int(manifest["ports"]["backend"])
+
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -14,7 +29,6 @@ from contextlib import asynccontextmanager
 from routes import router
 from database import init_db
 from logger import setup_logging, cleanup_old_logs
-from pathlib import Path
 import logging
 
 # Initialize persistent file-based logging before anything else
@@ -131,4 +145,5 @@ if _DIST_DIR.exists() and _DIST_ASSETS.exists():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port={{BACKEND_PORT}})
+    port = int(os.environ.get("PORT") or _manifest_port())
+    uvicorn.run(app, host="0.0.0.0", port=port)
