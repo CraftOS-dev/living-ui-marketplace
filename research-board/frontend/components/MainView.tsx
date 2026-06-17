@@ -39,6 +39,8 @@ export function MainView({ controller }: MainViewProps) {
   const [connections, setConnections] = useState<Connection[]>([])
   const [connectMode, setConnectMode] = useState(false)
   const [connectSource, setConnectSource] = useState<BoardItem | null>(null)
+  const [zoom, setZoom] = useState(1)
+  const [deletePrompt, setDeletePrompt] = useState<{ id: number; x: number; y: number } | null>(null)
 
   const loadItems = useCallback(async () => {
     try {
@@ -98,14 +100,11 @@ export function MainView({ controller }: MainViewProps) {
   }
 
   const handleDragEnd = async (id: number, x: number, y: number) => {
-    // Adjust for canvas offset
-    const adjustedX = x - canvasOffset.x
-    const adjustedY = y - canvasOffset.y
-    setItems(prev => prev.map(item => item.id === id ? { ...item, x: adjustedX, y: adjustedY } : item))
+    // x/y from ItemCard are already canvas-content coordinates — no offset adjustment needed
+    setItems(prev => prev.map(item => item.id === id ? { ...item, x, y } : item))
     try {
-      await controller.updateItem(id, { x: adjustedX, y: adjustedY })
+      await controller.updateItem(id, { x, y })
     } catch (err) {
-      // Silently fail position updates
       console.error('Failed to save position:', err)
     }
   }
@@ -150,6 +149,15 @@ export function MainView({ controller }: MainViewProps) {
     }
   }
 
+  const handleUpdateConnectionColor = async (id: number, color: string) => {
+    try {
+      const updated = await controller.updateConnection(id, color)
+      setConnections(prev => prev.map(c => c.id === id ? updated : c))
+    } catch (err) {
+      toast.error('Failed to update connection')
+    }
+  }
+
   const handleAddButtonClick = (type?: ItemType) => {
     setAddModalType(type)
     setAddModalOpen(true)
@@ -179,6 +187,20 @@ export function MainView({ controller }: MainViewProps) {
 
   const handleCanvasMouseUp = () => {
     setIsPanning(false)
+  }
+
+  const handleWheel = (e: React.WheelEvent) => {
+    const newZoom = Math.min(3, Math.max(0.25, zoom - e.deltaY * 0.001))
+    const ratio = newZoom / zoom
+    const rect = canvasRef.current?.getBoundingClientRect()
+    if (!rect) { setZoom(newZoom); return }
+    const mx = e.clientX - rect.left
+    const my = e.clientY - rect.top
+    setCanvasOffset(prev => ({
+      x: mx - ratio * (mx - prev.x),
+      y: my - ratio * (my - prev.y),
+    }))
+    setZoom(newZoom)
   }
 
   const itemCounts = ITEM_TYPES.reduce((acc, { type }) => {
@@ -323,36 +345,72 @@ export function MainView({ controller }: MainViewProps) {
             onMouseMove={handleCanvasMouseMove}
             onMouseUp={handleCanvasMouseUp}
             onMouseLeave={handleCanvasMouseUp}
+            onWheel={handleWheel}
+            onClick={() => setDeletePrompt(null)}
           >
-            <ConnectionLines
-              items={items}
-              connections={connections}
-              canvasOffset={canvasOffset}
-              onDeleteConnection={handleDeleteConnection}
-            />
             <div
               className="canvas-content"
               style={{
-                transform: `translate(${canvasOffset.x}px, ${canvasOffset.y}px)`,
+                transformOrigin: '0 0',
+                transform: `translate(${canvasOffset.x}px, ${canvasOffset.y}px) scale(${zoom})`,
               }}
             >
+              <ConnectionLines
+                items={items}
+                connections={connections}
+                onConnectionClick={(id, x, y) => setDeletePrompt({ id, x, y })}
+              />
               {filteredItems.map(item => (
-                <div
+                <ItemCard
                   key={item.id}
-                  style={{
-                    outline: connectMode && connectSource?.id === item.id ? '2px solid #ef4444' : 'none',
-                    borderRadius: 'var(--radius-md)',
-                  }}
-                >
-                  <ItemCard
-                    item={item}
-                    onClick={() => handleItemClick(item)}
-                    onDrag={handleDrag}
-                    onDragEnd={handleDragEnd}
-                  />
-                </div>
+                  item={item}
+                  highlighted={connectMode && connectSource?.id === item.id}
+                  zoom={zoom}
+                  onClick={() => handleItemClick(item)}
+                  onDrag={handleDrag}
+                  onDragEnd={handleDragEnd}
+                />
               ))}
             </div>
+
+            {/* Connection options popup */}
+            {deletePrompt && (
+              <div
+                onClick={e => e.stopPropagation()}
+                style={{
+                  position: 'fixed',
+                  top: deletePrompt.y + 12,
+                  left: deletePrompt.x + 12,
+                  background: 'var(--bg-secondary)',
+                  border: '1px solid var(--border-color)',
+                  borderRadius: 'var(--radius-md)',
+                  padding: '8px 12px',
+                  zIndex: 1000,
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  fontSize: '13px',
+                }}
+              >
+                <span style={{ color: 'var(--text-secondary)', fontSize: '12px' }}>Color</span>
+                {['#ef4444', '#3b82f6', '#22c55e'].map(color => (
+                  <button
+                    key={color}
+                    onClick={() => { handleUpdateConnectionColor(deletePrompt.id, color); setDeletePrompt(null) }}
+                    style={{ width: 18, height: 18, borderRadius: '50%', background: color, border: '2px solid transparent', cursor: 'pointer', padding: 0 }}
+                    title={color === '#ef4444' ? 'Red' : color === '#3b82f6' ? 'Blue' : 'Green'}
+                  />
+                ))}
+                <div style={{ width: 1, height: 20, background: 'var(--border-color)' }} />
+                <button
+                  onClick={() => { handleDeleteConnection(deletePrompt.id); setDeletePrompt(null) }}
+                  style={{ background: 'transparent', color: '#ef4444', border: 'none', cursor: 'pointer', fontSize: '12px', fontWeight: 600 }}
+                >
+                  Remove
+                </button>
+              </div>
+            )}
           </div>
         )}
       </main>
@@ -568,6 +626,7 @@ export function MainView({ controller }: MainViewProps) {
           position: relative;
           overflow: hidden;
           cursor: default;
+          user-select: none;
           background-image:
             radial-gradient(circle, var(--border-color) 1px, transparent 1px);
           background-size: 24px 24px;
@@ -581,8 +640,8 @@ export function MainView({ controller }: MainViewProps) {
           position: absolute;
           top: 0;
           left: 0;
-          width: 3000px;
-          height: 3000px;
+          width: 6000px;
+          height: 6000px;
           will-change: transform;
         }
 

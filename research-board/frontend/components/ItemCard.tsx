@@ -6,12 +6,14 @@ const BACKEND_URL = ((window as any).__CRAFTBOT_BACKEND_URL__ || 'http://localho
 interface ItemCardProps {
   item: BoardItem
   onClick: () => void
+  highlighted?: boolean
+  zoom?: number
   onDrag?: (id: number, x: number, y: number) => void
   onDragEnd: (id: number, x: number, y: number) => void
 }
 
 function getYouTubeId(url: string): string | null {
-  const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]+)/)
+  const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/|youtube\.com\/shorts\/)([\w-]+)/)
   return match ? match[1] : null
 }
 
@@ -32,6 +34,7 @@ function ItemPreview({ item }: { item: BoardItem }) {
           <img
             src={src}
             alt={item.title}
+
             onError={() => setImgError(true)}
           />
         </div>
@@ -46,10 +49,10 @@ function ItemPreview({ item }: { item: BoardItem }) {
 
   if (item.type === 'video') {
     const src = item.filePath ? getFileUrl(item.filePath) : item.url || ''
-    if (src && item.filePath) {
+    if (src) {
       return (
         <div className="item-preview video-preview">
-          <video src={src} muted />
+          <video src={src} muted preload="metadata" onLoadedMetadata={e => { (e.target as HTMLVideoElement).currentTime = 0.1 }} />
           <div className="play-overlay">▶</div>
         </div>
       )
@@ -57,7 +60,6 @@ function ItemPreview({ item }: { item: BoardItem }) {
     return (
       <div className="item-preview icon-preview">
         <span className="preview-icon">🎬</span>
-        {item.url && <span className="preview-url">{item.url.slice(0, 30)}...</span>}
       </div>
     )
   }
@@ -70,6 +72,7 @@ function ItemPreview({ item }: { item: BoardItem }) {
           <img
             src={`https://img.youtube.com/vi/${videoId}/mqdefault.jpg`}
             alt={item.title}
+
             onError={() => {}}
           />
           <div className="youtube-badge">▶ YouTube</div>
@@ -84,6 +87,18 @@ function ItemPreview({ item }: { item: BoardItem }) {
   }
 
   if (item.type === 'doc') {
+    const fileSrc = item.filePath || item.url || ''
+    const src = fileSrc ? getFileUrl(fileSrc) : null
+    if (src && fileSrc.toLowerCase().endsWith('.pdf')) {
+      return (
+        <div className="item-preview" style={{ overflow: 'hidden' }}>
+          <object data={src} type="application/pdf" width="100%" height="100%"
+            style={{ pointerEvents: 'none' }}>
+            <span className="preview-icon">📄</span>
+          </object>
+        </div>
+      )
+    }
     return (
       <div className="item-preview icon-preview">
         <span className="preview-icon">📄</span>
@@ -119,7 +134,7 @@ const TYPE_LABELS: Record<string, string> = {
   note: 'Note',
 }
 
-export function ItemCard({ item, onClick, onDrag, onDragEnd }: ItemCardProps) {
+export function ItemCard({ item, onClick, highlighted, zoom = 1, onDrag, onDragEnd }: ItemCardProps) {
   const [isDragging, setIsDragging] = useState(false)
   // Track whether this gesture actually moved, so a plain click doesn't open the editor.
   const movedRef = useRef(false)
@@ -129,16 +144,17 @@ export function ItemCard({ item, onClick, onDrag, onDragEnd }: ItemCardProps) {
     e.preventDefault()
     // Capture the grab offset and start point in locals — reading drag state back
     // inside the move handler would be stale (state updates are async).
-    const offsetX = e.clientX - item.x
-    const offsetY = e.clientY - item.y
     const startX = e.clientX
     const startY = e.clientY
+    const startCanvasX = item.x
+    const startCanvasY = item.y
+    const z = zoom  // capture zoom at drag start
     movedRef.current = false
     setIsDragging(true)
 
     const handleMouseMove = (e: MouseEvent) => {
-      const newX = e.clientX - offsetX
-      const newY = e.clientY - offsetY
+      const newX = startCanvasX + (e.clientX - startX) / z
+      const newY = startCanvasY + (e.clientY - startY) / z
       if (!movedRef.current && Math.abs(e.clientX - startX) + Math.abs(e.clientY - startY) > 4) {
         movedRef.current = true
       }
@@ -147,7 +163,6 @@ export function ItemCard({ item, onClick, onDrag, onDragEnd }: ItemCardProps) {
         card.style.left = `${newX}px`
         card.style.top = `${newY}px`
       }
-      // Push the live position into state so connection lines follow the card.
       if (movedRef.current) onDrag?.(item.id, newX, newY)
     }
 
@@ -156,9 +171,7 @@ export function ItemCard({ item, onClick, onDrag, onDragEnd }: ItemCardProps) {
       document.removeEventListener('mousemove', handleMouseMove)
       document.removeEventListener('mouseup', handleMouseUp)
       if (movedRef.current) {
-        const newX = Math.max(0, e.clientX - offsetX)
-        const newY = Math.max(0, e.clientY - offsetY)
-        onDragEnd(item.id, newX, newY)
+        onDragEnd(item.id, startCanvasX + (e.clientX - startX) / z, startCanvasY + (e.clientY - startY) / z)
       }
     }
 
@@ -178,6 +191,7 @@ export function ItemCard({ item, onClick, onDrag, onDragEnd }: ItemCardProps) {
         left: item.x,
         top: item.y,
         cursor: isDragging ? 'grabbing' : 'grab',
+        outline: highlighted ? '2px solid #ef4444' : undefined,
       }}
       onMouseDown={handleMouseDown}
       onClick={() => {

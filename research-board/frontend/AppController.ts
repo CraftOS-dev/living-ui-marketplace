@@ -126,6 +126,16 @@ export class AppController {
     return response.json()
   }
 
+  async updateConnection(id: number, color: string): Promise<Connection> {
+    const response = await fetch(`${BACKEND_URL}/api/connections/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ color }),
+    })
+    if (!response.ok) throw new Error('Failed to update connection')
+    return response.json()
+  }
+
   async deleteConnection(id: number): Promise<void> {
     const response = await fetch(`${BACKEND_URL}/api/connections/${id}`, { method: 'DELETE' })
     if (!response.ok) throw new Error('Failed to delete connection')

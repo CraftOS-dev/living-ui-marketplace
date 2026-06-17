@@ -4,7 +4,7 @@ import { toast } from 'react-toastify'
 import type { BoardItem, UpdateBoardItemRequest } from '../types'
 import type { AppController } from '../AppController'
 
-const BACKEND_URL = ((window as any).__CRAFTBOT_BACKEND_URL__ || 'http://localhost:{{BACKEND_PORT}}')
+const BACKEND_URL = ((window as any).__CRAFTBOT_BACKEND_URL__ || 'http://localhost:3200')
 
 interface ItemDetailModalProps {
   item: BoardItem | null
@@ -127,7 +127,18 @@ export function ItemDetailModal({ item, open, onClose, onUpdate, onDelete }: Ite
     }
 
     if (item.type === 'doc') {
-      const src = item.filePath ? getFileUrl(item.filePath) : item.url || ''
+      const fileSrc = item.filePath || item.url || ''
+      const src = fileSrc ? getFileUrl(fileSrc) : ''
+      const isPdf = fileSrc.toLowerCase().endsWith('.pdf')
+      if (src && isPdf) {
+        return (
+          <div style={{ marginBottom: '16px', borderRadius: 'var(--radius-md)', overflow: 'hidden', height: '400px' }}>
+            <object data={src} type="application/pdf" width="100%" height="100%">
+              <a href={src} target="_blank" rel="noopener noreferrer" style={{ color: '#06b6d4' }}>📄 Open PDF</a>
+            </object>
+          </div>
+        )
+      }
       if (src) {
         return (
           <div style={{ marginBottom: '16px' }}>

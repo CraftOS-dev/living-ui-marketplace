@@ -51,6 +51,7 @@ export interface Connection {
   id: number
   sourceId: number
   targetId: number
+  color: string
   createdAt: string
 }
 

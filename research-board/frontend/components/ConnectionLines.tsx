@@ -6,8 +6,7 @@ const CARD_HEIGHT = 160 // approximate card height
 interface ConnectionLinesProps {
   items: BoardItem[]
   connections: Connection[]
-  canvasOffset: { x: number; y: number }
-  onDeleteConnection: (id: number) => void
+  onConnectionClick: (id: number, x: number, y: number) => void
 }
 
 function getItemCenter(item: BoardItem) {
@@ -17,7 +16,7 @@ function getItemCenter(item: BoardItem) {
   }
 }
 
-export function ConnectionLines({ items, connections, canvasOffset, onDeleteConnection }: ConnectionLinesProps) {
+export function ConnectionLines({ items, connections, onConnectionClick }: ConnectionLinesProps) {
   const itemMap = new Map(items.map(item => [item.id, item]))
 
   return (
@@ -26,11 +25,11 @@ export function ConnectionLines({ items, connections, canvasOffset, onDeleteConn
         position: 'absolute',
         top: 0,
         left: 0,
-        width: '3000px',
-        height: '3000px',
-        pointerEvents: 'none',
+        width: '6000px',
+        height: '6000px',
         zIndex: 0,
-        transform: `translate(${canvasOffset.x}px, ${canvasOffset.y}px)`,
+        pointerEvents: 'none',
+        overflow: 'visible',
       }}
     >
       {connections.map(conn => {
@@ -43,29 +42,27 @@ export function ConnectionLines({ items, connections, canvasOffset, onDeleteConn
 
         return (
           <g key={conn.id}>
-            {/* Invisible thick line for easier clicking */}
             <line
               x1={s.x} y1={s.y}
               x2={t.x} y2={t.y}
               stroke="transparent"
               strokeWidth={12}
               style={{ pointerEvents: 'stroke', cursor: 'pointer' }}
-              onClick={() => onDeleteConnection(conn.id)}
+              onClick={(e) => { e.stopPropagation(); onConnectionClick(conn.id, e.clientX, e.clientY) }}
             />
-            {/* Visible red line */}
             <line
               x1={s.x} y1={s.y}
               x2={t.x} y2={t.y}
-              stroke="#ef4444"
+              stroke={conn.color || '#ef4444'}
               strokeWidth={2}
               strokeLinecap="round"
+              style={{ pointerEvents: 'none' }}
             />
-            {/* Small dot at midpoint for visual feedback */}
             <circle
               cx={(s.x + t.x) / 2}
               cy={(s.y + t.y) / 2}
               r={4}
-              fill="#ef4444"
+              fill={conn.color || '#ef4444'}
               style={{ pointerEvents: 'none' }}
             />
           </g>

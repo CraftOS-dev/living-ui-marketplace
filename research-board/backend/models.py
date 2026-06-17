@@ -130,8 +130,9 @@ class Connection(Base):
     __tablename__ = "connections"
 
     id = Column(Integer, primary_key=True, index=True)
-    source_id = Column(Integer, nullable=False)  # Source BoardItem id
-    target_id = Column(Integer, nullable=False)  # Target BoardItem id
+    source_id = Column(Integer, nullable=False)
+    target_id = Column(Integer, nullable=False)
+    color = Column(String, default='#ef4444')
     created_at = Column(DateTime, default=datetime.utcnow)
 
     def to_dict(self) -> Dict[str, Any]:
@@ -139,6 +140,7 @@ class Connection(Base):
             "id": self.id,
             "sourceId": self.source_id,
             "targetId": self.target_id,
+            "color": self.color or '#ef4444',
             "createdAt": self.created_at.isoformat() if self.created_at else None,
         }
 

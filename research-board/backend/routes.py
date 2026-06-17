@@ -314,9 +314,11 @@ async def serve_file(filename: str):
 # ============================================================================
 
 class ConnectionCreate(BaseModel):
-    """Schema for creating a connection between two items."""
     source_id: int
     target_id: int
+
+class ConnectionUpdate(BaseModel):
+    color: str
 
 
 @router.get("/connections")
@@ -342,6 +344,17 @@ def create_connection(data: ConnectionCreate, db: Session = Depends(get_db)) -> 
     db.commit()
     db.refresh(connection)
     logger.info(f"[Routes] Created connection: {data.source_id} -> {data.target_id}")
+    return connection.to_dict()
+
+
+@router.put("/connections/{connection_id}")
+def update_connection(connection_id: int, data: ConnectionUpdate, db: Session = Depends(get_db)) -> Dict[str, Any]:
+    connection = db.query(Connection).filter(Connection.id == connection_id).first()
+    if not connection:
+        raise HTTPException(status_code=404, detail="Connection not found")
+    connection.color = data.color
+    db.commit()
+    db.refresh(connection)
     return connection.to_dict()
 
 

@@ -42,6 +42,13 @@ async def init_db():
     logger.info(f"[Database] Creating tables at {DATABASE_PATH}")
     Base.metadata.create_all(bind=engine)
 
+    # Migrate: add color column to connections if missing
+    with engine.connect() as conn:
+        cols = [row[1] for row in conn.execute(__import__('sqlalchemy').text("PRAGMA table_info(connections)"))]
+        if 'color' not in cols:
+            conn.execute(__import__('sqlalchemy').text("ALTER TABLE connections ADD COLUMN color TEXT DEFAULT '#ef4444'"))
+            conn.commit()
+
     # Ensure default app state exists
     from models import AppState
     db = SessionLocal()
