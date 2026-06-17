@@ -139,7 +139,7 @@ export class AppController {
   }
 
   async seedAccounts(): Promise<{ message: string; count: number }> {
-    return this.fetchJson(`${BACKEND_URL}/settings/seed-accounts`, {
+    return this.fetchJson(`${BACKEND_URL}/settings/seed`, {
       method: 'POST',
     })
   }

@@ -92,6 +92,11 @@ export function MainView({ controller }: MainViewProps) {
     }
   }
 
+  // Live position update during a drag (no persistence) so connection lines track the card.
+  const handleDrag = (id: number, x: number, y: number) => {
+    setItems(prev => prev.map(item => item.id === id ? { ...item, x, y } : item))
+  }
+
   const handleDragEnd = async (id: number, x: number, y: number) => {
     // Adjust for canvas offset
     const adjustedX = x - canvasOffset.x
@@ -342,6 +347,7 @@ export function MainView({ controller }: MainViewProps) {
                   <ItemCard
                     item={item}
                     onClick={() => handleItemClick(item)}
+                    onDrag={handleDrag}
                     onDragEnd={handleDragEnd}
                   />
                 </div>

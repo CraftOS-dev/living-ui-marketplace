@@ -89,6 +89,15 @@ export class AppController {
       this.state = { ...this.state, profile, dashboard }
       this.notifyListeners()
     } catch (error) {
+      // Re-running setup against a persisted DB returns 400 "Profile already exists".
+      // Recover by loading the existing profile instead of trapping the user on setup.
+      const existing = await ApiService.getProfile().catch(() => null)
+      if (existing) {
+        const dashboard = await ApiService.getDashboard().catch(() => this.state.dashboard)
+        this.state = { ...this.state, profile: existing, dashboard }
+        this.notifyListeners()
+        return
+      }
       throw error
     }
   }

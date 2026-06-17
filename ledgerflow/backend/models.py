@@ -151,6 +151,8 @@ class Account(Base):
             "code": self.code,
             "name": self.name,
             "accountType": self.account_type,
+            # Frontend reads `type`; keep `accountType` for the trial-balance views.
+            "type": self.account_type,
             "subType": self.sub_type,
             "parentId": self.parent_id,
             "description": self.description,

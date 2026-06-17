@@ -137,6 +137,11 @@ export function MainView({ controller }: MainViewProps) {
       />
 
       <main className="main">
+        {!state.llmAvailable && (
+          <Alert variant="warning" title="CraftBot LLM not configured">
+            Variants are placeholder stubs. Add an LLM provider API key in CraftBot settings to get real rewrites.
+          </Alert>
+        )}
         {!active ? (
           <div className="main__empty">
             <SessionInput controller={controller} busy={busy} />

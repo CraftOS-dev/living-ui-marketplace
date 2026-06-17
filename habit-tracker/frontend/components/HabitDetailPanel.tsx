@@ -23,6 +23,7 @@ export function HabitDetailPanel({ habit, controller, onClose, onEdit }: HabitDe
   const [loadingMap, setLoadingMap] = useState(false)
   const [activeCell, setActiveCell] = useState<HeatmapCell | null>(null)
   const [noteDraft, setNoteDraft] = useState('')
+  const [valueDraft, setValueDraft] = useState('')
   const { isMobile } = useViewport()
 
   useEffect(() => {
@@ -53,6 +54,7 @@ export function HabitDetailPanel({ habit, controller, onClose, onEdit }: HabitDe
         const today = map.cells[map.cells.length - 1]
         setActiveCell(today)
         setNoteDraft(today?.note || '')
+        setValueDraft(String(today?.value ?? 0))
       })
       .catch(() => {
         if (mounted) {
@@ -72,6 +74,7 @@ export function HabitDetailPanel({ habit, controller, onClose, onEdit }: HabitDe
   const onCellClick = async (cell: HeatmapCell) => {
     setActiveCell(cell)
     setNoteDraft(cell.note || '')
+    setValueDraft(String(cell.value ?? 0))
   }
 
   const onToggleCell = async () => {
@@ -102,16 +105,25 @@ export function HabitDetailPanel({ habit, controller, onClose, onEdit }: HabitDe
     }
   }
 
-  const onSetCellValue = async (raw: string) => {
+  // Commit the typed value once (on blur / Enter), not on every keystroke —
+  // otherwise the controlled input fights the user as each digit triggers a
+  // write + refetch that snaps the value back.
+  const onCommitCellValue = async () => {
     if (!activeCell) return
-    const v = Number(raw)
-    if (Number.isNaN(v) || v < 0) return
+    const v = Number(valueDraft)
+    if (Number.isNaN(v) || v < 0) {
+      // Invalid (e.g. emptied field) — revert to the last known value.
+      setValueDraft(String(activeCell.value ?? 0))
+      return
+    }
+    if (v === activeCell.value) return // unchanged — nothing to save
     try {
       await controller.upsertEntry(habit.id, activeCell.date, { value: v })
       const fresh = await controller.getHeatmap(habit.id, 365)
       setHeatmap(fresh)
       const updated = fresh.cells.find((c) => c.date === activeCell.date) || null
       setActiveCell(updated)
+      setValueDraft(String(updated?.value ?? v))
       const detail = await controller.getHabitDetail(habit.id)
       setStats({
         currentStreak: detail.currentStreak ?? 0,
@@ -315,9 +327,13 @@ export function HabitDetailPanel({ habit, controller, onClose, onEdit }: HabitDe
                 ) : (
                   <input
                     type="number"
-                    value={activeCell.value}
+                    value={valueDraft}
                     min={0}
-                    onChange={(e) => onSetCellValue(e.target.value)}
+                    onChange={(e) => setValueDraft(e.target.value)}
+                    onBlur={onCommitCellValue}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') (e.target as HTMLInputElement).blur()
+                    }}
                     style={{
                       width: 100,
                       height: 28,

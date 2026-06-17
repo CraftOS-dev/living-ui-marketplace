@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import type { BoardItem } from '../types'
 
 const BACKEND_URL = ((window as any).__CRAFTBOT_BACKEND_URL__ || 'http://localhost:{{BACKEND_PORT}}')
@@ -6,6 +6,7 @@ const BACKEND_URL = ((window as any).__CRAFTBOT_BACKEND_URL__ || 'http://localho
 interface ItemCardProps {
   item: BoardItem
   onClick: () => void
+  onDrag?: (id: number, x: number, y: number) => void
   onDragEnd: (id: number, x: number, y: number) => void
 }
 
@@ -118,36 +119,47 @@ const TYPE_LABELS: Record<string, string> = {
   note: 'Note',
 }
 
-export function ItemCard({ item, onClick, onDragEnd }: ItemCardProps) {
+export function ItemCard({ item, onClick, onDrag, onDragEnd }: ItemCardProps) {
   const [isDragging, setIsDragging] = useState(false)
-  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
+  // Track whether this gesture actually moved, so a plain click doesn't open the editor.
+  const movedRef = useRef(false)
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if ((e.target as HTMLElement).closest('.item-card-action')) return
     e.preventDefault()
+    // Capture the grab offset and start point in locals — reading drag state back
+    // inside the move handler would be stale (state updates are async).
+    const offsetX = e.clientX - item.x
+    const offsetY = e.clientY - item.y
+    const startX = e.clientX
+    const startY = e.clientY
+    movedRef.current = false
     setIsDragging(true)
-    setDragOffset({
-      x: e.clientX - item.x,
-      y: e.clientY - item.y,
-    })
 
     const handleMouseMove = (e: MouseEvent) => {
-      const newX = e.clientX - dragOffset.x
-      const newY = e.clientY - dragOffset.y
+      const newX = e.clientX - offsetX
+      const newY = e.clientY - offsetY
+      if (!movedRef.current && Math.abs(e.clientX - startX) + Math.abs(e.clientY - startY) > 4) {
+        movedRef.current = true
+      }
       const card = document.getElementById(`item-card-${item.id}`)
       if (card) {
         card.style.left = `${newX}px`
         card.style.top = `${newY}px`
       }
+      // Push the live position into state so connection lines follow the card.
+      if (movedRef.current) onDrag?.(item.id, newX, newY)
     }
 
     const handleMouseUp = (e: MouseEvent) => {
       setIsDragging(false)
-      const newX = Math.max(0, e.clientX - dragOffset.x)
-      const newY = Math.max(0, e.clientY - dragOffset.y)
-      onDragEnd(item.id, newX, newY)
       document.removeEventListener('mousemove', handleMouseMove)
       document.removeEventListener('mouseup', handleMouseUp)
+      if (movedRef.current) {
+        const newX = Math.max(0, e.clientX - offsetX)
+        const newY = Math.max(0, e.clientY - offsetY)
+        onDragEnd(item.id, newX, newY)
+      }
     }
 
     document.addEventListener('mousemove', handleMouseMove)
@@ -169,7 +181,12 @@ export function ItemCard({ item, onClick, onDragEnd }: ItemCardProps) {
       }}
       onMouseDown={handleMouseDown}
       onClick={() => {
-        if (!isDragging) onClick()
+        // Suppress the click that fires at the end of a drag.
+        if (movedRef.current) {
+          movedRef.current = false
+          return
+        }
+        onClick()
       }}
     >
       <div className="item-card-type-badge" style={{ backgroundColor: typeColor }}>

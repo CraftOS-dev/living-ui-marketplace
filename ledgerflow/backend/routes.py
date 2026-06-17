@@ -364,7 +364,7 @@ def create_account(data: Dict[str, Any], db: Session = Depends(get_db)):
         id=_new_id(),
         code=data["code"],
         name=data["name"],
-        account_type=data["accountType"],
+        account_type=data.get("accountType") or data["type"],
         sub_type=data.get("subType"),
         parent_id=data.get("parentId"),
         description=data.get("description"),
@@ -383,7 +383,7 @@ def update_account(account_id: str, data: Dict[str, Any], db: Session = Depends(
     if not account:
         raise HTTPException(status_code=404, detail="Account not found")
     for key, attr in [
-        ("code", "code"), ("name", "name"), ("accountType", "account_type"),
+        ("code", "code"), ("name", "name"), ("accountType", "account_type"), ("type", "account_type"),
         ("subType", "sub_type"), ("parentId", "parent_id"),
         ("description", "description"), ("currency", "currency"),
         ("openingBalance", "opening_balance"), ("isActive", "is_active"),
