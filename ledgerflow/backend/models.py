@@ -119,6 +119,7 @@ class Settings(Base):
             "currency": self.currency,
             "fiscalYearStart": self.fiscal_year_start,
             "taxRate": round(self.tax_rate or 0.0, 2),
+            "defaultTaxRate": round(self.tax_rate or 0.0, 2),  # alias the frontend reads
             "nextInvoiceNumber": self.next_invoice_number,
             "nextBillNumber": self.next_bill_number,
             "createdAt": self.created_at.isoformat() if self.created_at else None,
@@ -207,6 +208,7 @@ class Contact(Base):
             "id": self.id,
             "name": self.name,
             "contactType": self.contact_type,
+            "type": self.contact_type,  # alias the frontend reads
             "email": self.email,
             "phone": self.phone,
             "address": self.address,
@@ -243,11 +245,15 @@ class JournalEntry(Base):
         return {
             "id": self.id,
             "entryDate": self.entry_date.isoformat() if self.entry_date else None,
+            "date": self.entry_date.isoformat() if self.entry_date else None,  # alias the frontend reads
             "reference": self.reference,
             "description": self.description,
             "contactId": self.contact_id,
+            "contactName": self.contact.name if self.contact else None,
             "categoryId": self.category_id,
+            "categoryName": self.category.name if self.category else None,
             "entryType": self.entry_type,
+            "type": self.entry_type,  # alias the frontend reads
             "isReconciled": self.is_reconciled,
             "tags": self.tags,
             "totalAmount": total_amount,
@@ -311,7 +317,9 @@ class Invoice(Base):
             "id": self.id,
             "invoiceNumber": self.invoice_number,
             "contactId": self.contact_id,
+            "customerId": self.contact_id,  # alias the frontend reads
             "contactName": self.contact.name if self.contact else None,
+            "customerName": self.contact.name if self.contact else None,  # alias the frontend reads
             "journalEntryId": self.journal_entry_id,
             "issueDate": self.issue_date.isoformat() if self.issue_date else None,
             "dueDate": self.due_date.isoformat() if self.due_date else None,
@@ -381,7 +389,9 @@ class Bill(Base):
             "id": self.id,
             "billNumber": self.bill_number,
             "contactId": self.contact_id,
+            "vendorId": self.contact_id,  # alias the frontend reads
             "contactName": self.contact.name if self.contact else None,
+            "vendorName": self.contact.name if self.contact else None,  # alias the frontend reads
             "journalEntryId": self.journal_entry_id,
             "issueDate": self.issue_date.isoformat() if self.issue_date else None,
             "dueDate": self.due_date.isoformat() if self.due_date else None,
