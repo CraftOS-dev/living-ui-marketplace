@@ -86,8 +86,8 @@ export function TransactionsView({ controller, initialTab }: TransactionsViewPro
       const filters: TransactionFilters = { limit: pageSize, offset: page * pageSize }
       if (filterFromDate) filters.fromDate = filterFromDate
       if (filterToDate) filters.toDate = filterToDate
-      if (filterAccountId) filters.accountId = Number(filterAccountId)
-      if (filterCategoryId) filters.categoryId = Number(filterCategoryId)
+      if (filterAccountId) filters.accountId = filterAccountId
+      if (filterCategoryId) filters.categoryId = filterCategoryId
       if (filterType) filters.type = filterType
       if (filterSearch) filters.search = filterSearch
 
@@ -129,11 +129,11 @@ export function TransactionsView({ controller, initialTab }: TransactionsViewPro
       await controller.recordIncome({
         date: incDate,
         amount: parseFloat(incAmount),
-        depositAccountId: Number(incDepositAccountId),
-        revenueAccountId: Number(incRevenueAccountId),
+        depositAccountId: incDepositAccountId,
+        revenueAccountId: incRevenueAccountId,
         description: incDescription,
-        contactId: incContactId ? Number(incContactId) : undefined,
-        categoryId: incCategoryId ? Number(incCategoryId) : undefined,
+        contactId: incContactId || undefined,
+        categoryId: incCategoryId || undefined,
         reference: incReference || undefined,
       })
       toast.success('Income recorded')
@@ -154,11 +154,11 @@ export function TransactionsView({ controller, initialTab }: TransactionsViewPro
       await controller.recordExpense({
         date: expDate,
         amount: parseFloat(expAmount),
-        payFromAccountId: Number(expPayFromAccountId),
-        expenseAccountId: Number(expExpenseAccountId),
+        payFromAccountId: expPayFromAccountId,
+        expenseAccountId: expExpenseAccountId,
         description: expDescription,
-        contactId: expContactId ? Number(expContactId) : undefined,
-        categoryId: expCategoryId ? Number(expCategoryId) : undefined,
+        contactId: expContactId || undefined,
+        categoryId: expCategoryId || undefined,
         reference: expReference || undefined,
       })
       toast.success('Expense recorded')
@@ -179,8 +179,8 @@ export function TransactionsView({ controller, initialTab }: TransactionsViewPro
       await controller.recordTransfer({
         date: trfDate,
         amount: parseFloat(trfAmount),
-        fromAccountId: Number(trfFromAccountId),
-        toAccountId: Number(trfToAccountId),
+        fromAccountId: trfFromAccountId,
+        toAccountId: trfToAccountId,
         description: trfDescription,
         reference: trfReference || undefined,
       })
