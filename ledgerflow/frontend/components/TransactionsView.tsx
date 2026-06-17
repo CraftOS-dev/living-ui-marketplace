@@ -154,7 +154,7 @@ export function TransactionsView({ controller, initialTab }: TransactionsViewPro
       await controller.recordExpense({
         date: expDate,
         amount: parseFloat(expAmount),
-        payFromAccountId: expPayFromAccountId,
+        paymentAccountId: expPayFromAccountId,
         expenseAccountId: expExpenseAccountId,
         description: expDescription,
         contactId: expContactId || undefined,

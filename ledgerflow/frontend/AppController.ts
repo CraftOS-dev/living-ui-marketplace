@@ -412,7 +412,7 @@ export class AppController {
   }
 
   async getRecentTransactions(limit: number = 10): Promise<JournalEntry[]> {
-    return this.fetchJson<JournalEntry[]>(`${BACKEND_URL}/dashboard/recent-transactions?limit=${limit}`)
+    return this.fetchJson<JournalEntry[]>(`${BACKEND_URL}/dashboard/recent?limit=${limit}`)
   }
 
   async getOverdueItems(): Promise<{ invoices: Invoice[]; bills: Bill[] }> {

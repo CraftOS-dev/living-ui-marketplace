@@ -125,7 +125,7 @@ export function BillsView({ controller }: BillsViewProps) {
     try {
       await controller.recordBillPayment(showPaymentModal.id, {
         amount: parseFloat(paymentAmount),
-        payFromAccountId: paymentAccountId,
+        paymentAccountId: paymentAccountId,
       })
       toast.success('Payment recorded')
       setShowPaymentModal(null)

@@ -210,7 +210,7 @@ export interface RecordIncomeData {
 export interface RecordExpenseData {
   date: string
   amount: number
-  payFromAccountId: string
+  paymentAccountId: string
   expenseAccountId: string
   description: string
   contactId?: string
@@ -337,7 +337,7 @@ export interface UpdateBillData {
 
 export interface RecordBillPaymentData {
   amount: number
-  payFromAccountId: string
+  paymentAccountId: string
   date?: string
 }
 
