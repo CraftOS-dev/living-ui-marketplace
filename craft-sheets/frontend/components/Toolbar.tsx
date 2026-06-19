@@ -7,9 +7,11 @@ import {
   Columns3,
   Download,
   FilePlus2,
+  Italic,
   PaintBucket,
   Rows3,
   Trash2,
+  Underline,
   Upload,
 } from 'lucide-react'
 import { Button, Divider } from './ui'
@@ -23,6 +25,8 @@ interface ToolbarProps {
   onDeleteRow: () => void
   onDeleteColumn: () => void
   onToggleBold: () => void
+  onToggleItalic: () => void
+  onToggleUnderline: () => void
   onAlign: (align: CellAlign) => void
   onBackground: (color: string | null) => void
   onPaintBucket: () => void
@@ -95,10 +99,26 @@ export function Toolbar(props: ToolbarProps) {
         <Button
           size="sm"
           variant={props.format.bold ? 'primary' : 'ghost'}
-          title="Bold"
+          title="Bold (Ctrl+B)"
           onClick={props.onToggleBold}
         >
           <Bold size={14} />
+        </Button>
+        <Button
+          size="sm"
+          variant={props.format.italic ? 'primary' : 'ghost'}
+          title="Italic (Ctrl+I)"
+          onClick={props.onToggleItalic}
+        >
+          <Italic size={14} />
+        </Button>
+        <Button
+          size="sm"
+          variant={props.format.underline ? 'primary' : 'ghost'}
+          title="Underline (Ctrl+U)"
+          onClick={props.onToggleUnderline}
+        >
+          <Underline size={14} />
         </Button>
         <Button
           size="sm"
@@ -143,6 +163,21 @@ export function Toolbar(props: ToolbarProps) {
             }}
           />
         ))}
+        <input
+          type="color"
+          title="Custom fill color"
+          defaultValue="#ffffff"
+          onChange={(e) => props.onBackground(e.target.value)}
+          style={{
+            width: 20,
+            height: 20,
+            padding: 0,
+            border: '1px solid var(--border-primary)',
+            borderRadius: 'var(--radius-sm)',
+            cursor: 'pointer',
+            backgroundColor: 'transparent',
+          }}
+        />
         <Button
           size="sm"
           variant="ghost"

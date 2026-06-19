@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'react-toastify'
 import { useAgentAware } from '../agent/hooks'
 import type { AppController } from '../AppController'
@@ -14,7 +14,6 @@ import {
   parseRef,
   pasteRange,
   renameColumn,
-  setCellFormat,
   setCellRaw,
   setColumnType,
   setRangeFormat,
@@ -36,6 +35,8 @@ export function MainView({ controller }: MainViewProps) {
   const [active, setActive] = useState<Sheet | null>(null)
   const [selectedRef, setSelectedRef] = useState('A1')
   const [selectionEnd, setSelectionEnd] = useState<string | null>(null)
+  const [ctrlSelectedRefs, setCtrlSelectedRefs] = useState<Set<string>>(new Set())
+  const undoStack = useRef<Sheet[]>([])
   const [loading, setLoading] = useState(true)
   const [fatalError, setFatalError] = useState<string | null>(null)
   const [colMenu, setColMenu] = useState<{ index: number; anchor: { x: number; y: number } } | null>(null)
@@ -98,6 +99,9 @@ export function MainView({ controller }: MainViewProps) {
   // --- persistence helper ---------------------------------------------------
   const applyAndSave = useCallback(
     async (next: Sheet) => {
+      if (active) {
+        undoStack.current = [...undoStack.current.slice(-49), active]
+      }
       setActive(next) // optimistic
       try {
         const saved = await controller.saveSheet(next)
@@ -114,6 +118,26 @@ export function MainView({ controller }: MainViewProps) {
         console.error('[Craft Sheets] save failed', err)
       }
     },
+    [active, controller]
+  )
+
+  const applyWithoutUndo = useCallback(
+    async (prev: Sheet) => {
+      setActive(prev)
+      try {
+        const saved = await controller.saveSheet(prev)
+        setActive(saved)
+        setSheets((list) =>
+          list.map((s) =>
+            s.id === saved.id
+              ? { ...s, name: saved.name, numCols: saved.columns.length, numRows: saved.numRows }
+              : s
+          )
+        )
+      } catch {
+        toast.error('Failed to undo')
+      }
+    },
     [controller]
   )
 
@@ -121,11 +145,33 @@ export function MainView({ controller }: MainViewProps) {
   const handleSelect = useCallback((ref: string) => {
     setSelectedRef(ref)
     setSelectionEnd(null)
+    setCtrlSelectedRefs(new Set())
   }, [])
 
   const handleSelectionEnd = useCallback((end: string | null) => {
     setSelectionEnd(end)
   }, [])
+
+  const handleCtrlSelect = useCallback((ref: string) => {
+    setCtrlSelectedRefs((prev) => {
+      const next = new Set(prev)
+      if (next.has(ref)) next.delete(ref)
+      else next.add(ref)
+      return next
+    })
+  }, [])
+
+  const handleUndo = useCallback(() => {
+    const prev = undoStack.current[undoStack.current.length - 1]
+    if (!prev) return
+    undoStack.current = undoStack.current.slice(0, -1)
+    applyWithoutUndo(prev)
+  }, [applyWithoutUndo])
+
+  const effectiveRefs = useMemo(() => {
+    const rectRefs = selectionEnd ? getSelectionRefs(selectedRef, selectionEnd) : [selectedRef]
+    return [...new Set([...rectRefs, ...ctrlSelectedRefs])]
+  }, [selectedRef, selectionEnd, ctrlSelectedRefs])
 
   // --- cell + formatting handlers ------------------------------------------
   const commitCell = useCallback(
@@ -138,20 +184,36 @@ export function MainView({ controller }: MainViewProps) {
 
   const toggleBold = () => {
     if (!active) return
-    const fmt = getCellFormat(active, selectedRef)
-    applyAndSave(setCellFormat(active, selectedRef, { bold: !fmt.bold }))
+    const bold = !getCellFormat(active, selectedRef).bold
+    applyAndSave(setRangeFormat(active, effectiveRefs, { bold: bold || undefined }))
+  }
+  const toggleItalic = () => {
+    if (!active) return
+    const italic = !getCellFormat(active, selectedRef).italic
+    applyAndSave(setRangeFormat(active, effectiveRefs, { italic: italic || undefined }))
+  }
+  const toggleUnderline = () => {
+    if (!active) return
+    const underline = !getCellFormat(active, selectedRef).underline
+    applyAndSave(setRangeFormat(active, effectiveRefs, { underline: underline || undefined }))
   }
   const alignCell = (align: CellAlign) =>
-    active && applyAndSave(setCellFormat(active, selectedRef, { align }))
+    active && applyAndSave(setRangeFormat(active, effectiveRefs, { align }))
   const backgroundCell = (color: string | null) =>
-    active && applyAndSave(setCellFormat(active, selectedRef, { bg: color }))
+    active && applyAndSave(setRangeFormat(active, effectiveRefs, { bg: color }))
 
   const handlePaintBucket = useCallback(() => {
     if (!active) return
     const color = getCellFormat(active, selectedRef).bg ?? null
-    const refs = selectionEnd ? getSelectionRefs(selectedRef, selectionEnd) : [selectedRef]
-    applyAndSave(setRangeFormat(active, refs, { bg: color }))
-  }, [active, selectedRef, selectionEnd, applyAndSave])
+    applyAndSave(setRangeFormat(active, effectiveRefs, { bg: color }))
+  }, [active, selectedRef, effectiveRefs, applyAndSave])
+
+  const handleClearSelection = useCallback(() => {
+    if (!active) return
+    let next = active
+    for (const ref of effectiveRefs) next = setCellRaw(next, ref, '')
+    applyAndSave(next)
+  }, [active, effectiveRefs, applyAndSave])
 
   const handlePaste = useCallback(
     (values: string[][]) => {
@@ -319,6 +381,8 @@ export function MainView({ controller }: MainViewProps) {
         onDeleteRow={handleDeleteRow}
         onDeleteColumn={handleDeleteColumn}
         onToggleBold={toggleBold}
+        onToggleItalic={toggleItalic}
+        onToggleUnderline={toggleUnderline}
         onAlign={alignCell}
         onBackground={backgroundCell}
         onPaintBucket={handlePaintBucket}
@@ -333,11 +397,18 @@ export function MainView({ controller }: MainViewProps) {
           sheet={active}
           selectedRef={selectedRef}
           selectionEnd={selectionEnd}
+          ctrlSelectedRefs={ctrlSelectedRefs}
           onSelect={handleSelect}
           onSelectionEnd={handleSelectionEnd}
+          onCtrlSelect={handleCtrlSelect}
           onCommitCell={commitCell}
           onOpenColumnMenu={(index, anchor) => setColMenu({ index, anchor })}
           onPaste={handlePaste}
+          onToggleBold={toggleBold}
+          onToggleItalic={toggleItalic}
+          onToggleUnderline={toggleUnderline}
+          onUndo={handleUndo}
+          onClearSelection={handleClearSelection}
         />
       )}
 

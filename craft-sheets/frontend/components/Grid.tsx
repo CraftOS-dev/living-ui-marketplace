@@ -13,11 +13,18 @@ interface GridProps {
   sheet: Sheet
   selectedRef: string
   selectionEnd: string | null
+  ctrlSelectedRefs: Set<string>
   onSelect: (ref: string) => void
   onSelectionEnd: (end: string | null) => void
+  onCtrlSelect: (ref: string) => void
   onCommitCell: (ref: string, raw: string) => void
   onOpenColumnMenu: (index: number, anchor: { x: number; y: number }) => void
   onPaste: (values: string[][]) => void
+  onToggleBold: () => void
+  onToggleItalic: () => void
+  onToggleUnderline: () => void
+  onUndo: () => void
+  onClearSelection: () => void
 }
 
 const CELL_H = 28
@@ -31,11 +38,18 @@ export function Grid({
   sheet,
   selectedRef,
   selectionEnd,
+  ctrlSelectedRefs,
   onSelect,
   onSelectionEnd,
+  onCtrlSelect,
   onCommitCell,
   onOpenColumnMenu,
   onPaste,
+  onToggleBold,
+  onToggleItalic,
+  onToggleUnderline,
+  onUndo,
+  onClearSelection,
 }: GridProps) {
   const [editingRef, setEditingRef] = useState<string | null>(null)
   const [draft, setDraft] = useState('')
@@ -107,9 +121,14 @@ export function Grid({
     onSelect(makeRef(col, row))
   }
 
-  const handleCellMouseDown = (ref: string) => {
+  const handleCellMouseDown = (ref: string, e: React.MouseEvent) => {
+    if (e.ctrlKey || e.metaKey) {
+      onCtrlSelect(ref)
+      containerRef.current?.focus()
+      return
+    }
     isDragging.current = true
-    onSelect(ref) // MainView's handleSelect clears selectionEnd
+    onSelect(ref) // MainView's handleSelect clears selectionEnd + ctrlSelectedRefs
     containerRef.current?.focus()
   }
 
@@ -123,6 +142,14 @@ export function Grid({
     if (editingRef !== null) return
     const pos = parseRef(selectedRef) ?? { col: 0, row: 0 }
     const endPos = selectionEnd ? (parseRef(selectionEnd) ?? pos) : pos
+
+    // Ctrl hotkeys
+    if ((e.ctrlKey || e.metaKey) && !e.shiftKey) {
+      if (e.key === 'z' || e.key === 'Z') { e.preventDefault(); onUndo(); return }
+      if (e.key === 'b' || e.key === 'B') { e.preventDefault(); onToggleBold(); return }
+      if (e.key === 'i' || e.key === 'I') { e.preventDefault(); onToggleItalic(); return }
+      if (e.key === 'u' || e.key === 'U') { e.preventDefault(); onToggleUnderline(); return }
+    }
 
     // Shift+Arrow: extend selection end, keep anchor fixed
     if (e.shiftKey && ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
@@ -153,7 +180,7 @@ export function Grid({
         e.preventDefault(); startEdit(selectedRef); break
       case 'Backspace':
       case 'Delete':
-        e.preventDefault(); onCommitCell(selectedRef, ''); break
+        e.preventDefault(); onClearSelection(); break
       default:
         if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
           e.preventDefault()
@@ -242,6 +269,7 @@ export function Grid({
             draft={draft}
             editorRef={editorRef}
             selBounds={selBounds}
+            ctrlSelectedRefs={ctrlSelectedRefs}
             rawOf={rawOf}
             onCellMouseDown={handleCellMouseDown}
             onCellHover={handleCellHover}
@@ -282,8 +310,9 @@ interface RowCellsProps {
   draft: string
   editorRef: React.RefObject<HTMLInputElement>
   selBounds: SelectionBounds | null
+  ctrlSelectedRefs: Set<string>
   rawOf: (ref: string) => string
-  onCellMouseDown: (ref: string) => void
+  onCellMouseDown: (ref: string, e: React.MouseEvent) => void
   onCellHover: (ref: string) => void
   onStartEdit: (ref: string, initial?: string) => void
   onDraft: (v: string) => void
@@ -292,7 +321,7 @@ interface RowCellsProps {
 }
 
 function RowCells(props: RowCellsProps) {
-  const { sheet, row, cols, selectedRef, editingRef, selBounds } = props
+  const { sheet, row, cols, selectedRef, editingRef, selBounds, ctrlSelectedRefs } = props
 
   return (
     <>
@@ -327,17 +356,18 @@ function RowCells(props: RowCellsProps) {
         const align = fmt?.align ?? defaultAlign
         const { text, isError } = displayCell(sheet, ref)
         const inRange =
-          selBounds != null &&
-          c >= selBounds.minCol &&
-          c <= selBounds.maxCol &&
-          row >= selBounds.minRow &&
-          row <= selBounds.maxRow
+          (selBounds != null &&
+            c >= selBounds.minCol &&
+            c <= selBounds.maxCol &&
+            row >= selBounds.minRow &&
+            row <= selBounds.maxRow) ||
+          ctrlSelectedRefs.has(ref)
 
         return (
           <div
             key={ref}
             role="gridcell"
-            onMouseDown={() => props.onCellMouseDown(ref)}
+            onMouseDown={(e) => props.onCellMouseDown(ref, e)}
             onMouseEnter={() => props.onCellHover(ref)}
             onDoubleClick={() => props.onStartEdit(ref)}
             style={{
@@ -357,6 +387,8 @@ function RowCells(props: RowCellsProps) {
               whiteSpace: 'nowrap',
               fontSize: 'var(--font-size-sm)',
               fontWeight: fmt?.bold ? ('var(--font-weight-bold)' as any) : undefined,
+              fontStyle: fmt?.italic ? 'italic' : undefined,
+              textDecoration: fmt?.underline ? 'underline' : undefined,
               color: isError ? 'var(--color-error)' : fmt?.bg ? '#1a1a1a' : 'var(--text-primary)',
               userSelect: 'none',
             }}
