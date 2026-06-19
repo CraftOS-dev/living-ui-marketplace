@@ -1,13 +1,23 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Sheet } from '../types'
 import { colLetter, displayCell, makeRef, parseRef } from '../utils/grid'
+
+interface SelectionBounds {
+  minCol: number
+  maxCol: number
+  minRow: number
+  maxRow: number
+}
 
 interface GridProps {
   sheet: Sheet
   selectedRef: string
+  selectionEnd: string | null
   onSelect: (ref: string) => void
+  onSelectionEnd: (end: string | null) => void
   onCommitCell: (ref: string, raw: string) => void
   onOpenColumnMenu: (index: number, anchor: { x: number; y: number }) => void
+  onPaste: (values: string[][]) => void
 }
 
 const CELL_H = 28
@@ -17,14 +27,38 @@ const ROWNUM_W = 48
  * The scrollable spreadsheet grid. Owns inline-edit state and keyboard
  * navigation; commits raw cell content up to MainView which persists + evaluates.
  */
-export function Grid({ sheet, selectedRef, onSelect, onCommitCell, onOpenColumnMenu }: GridProps) {
+export function Grid({
+  sheet,
+  selectedRef,
+  selectionEnd,
+  onSelect,
+  onSelectionEnd,
+  onCommitCell,
+  onOpenColumnMenu,
+  onPaste,
+}: GridProps) {
   const [editingRef, setEditingRef] = useState<string | null>(null)
   const [draft, setDraft] = useState('')
   const containerRef = useRef<HTMLDivElement>(null)
   const editorRef = useRef<HTMLInputElement>(null)
+  const isDragging = useRef(false)
 
   const cols = sheet.columns.length
   const rows = sheet.numRows
+
+  // Rectangular bounds of the current selection range (null = single cell)
+  const selBounds = useMemo<SelectionBounds | null>(() => {
+    if (!selectionEnd) return null
+    const a = parseRef(selectedRef)
+    const b = parseRef(selectionEnd)
+    if (!a || !b) return null
+    return {
+      minCol: Math.min(a.col, b.col),
+      maxCol: Math.max(a.col, b.col),
+      minRow: Math.min(a.row, b.row),
+      maxRow: Math.max(a.row, b.row),
+    }
+  }, [selectedRef, selectionEnd])
 
   useEffect(() => {
     if (editingRef && editorRef.current) {
@@ -33,6 +67,13 @@ export function Grid({ sheet, selectedRef, onSelect, onCommitCell, onOpenColumnM
       editorRef.current.setSelectionRange(len, len)
     }
   }, [editingRef])
+
+  // Release drag when the mouse button is released anywhere in the window
+  useEffect(() => {
+    const up = () => { isDragging.current = false }
+    window.addEventListener('mouseup', up)
+    return () => window.removeEventListener('mouseup', up)
+  }, [])
 
   const rawOf = (ref: string) => sheet.cells[ref]?.raw ?? ''
 
@@ -66,15 +107,35 @@ export function Grid({ sheet, selectedRef, onSelect, onCommitCell, onOpenColumnM
     onSelect(makeRef(col, row))
   }
 
-  // Select a cell and ensure the grid keeps keyboard focus for navigation/typing.
-  const selectAndFocus = (ref: string) => {
-    onSelect(ref)
+  const handleCellMouseDown = (ref: string) => {
+    isDragging.current = true
+    onSelect(ref) // MainView's handleSelect clears selectionEnd
     containerRef.current?.focus()
   }
 
+  const handleCellHover = (ref: string) => {
+    if (!isDragging.current) return
+    // Return to single-cell when mouse moves back to anchor
+    onSelectionEnd(ref === selectedRef ? null : ref)
+  }
+
   const onKeyDown = (e: React.KeyboardEvent) => {
-    if (editingRef !== null) return // editor handles its own keys
+    if (editingRef !== null) return
     const pos = parseRef(selectedRef) ?? { col: 0, row: 0 }
+    const endPos = selectionEnd ? (parseRef(selectionEnd) ?? pos) : pos
+
+    // Shift+Arrow: extend selection end, keep anchor fixed
+    if (e.shiftKey && ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+      e.preventDefault()
+      let { col: ec, row: er } = endPos
+      if (e.key === 'ArrowUp') er = Math.max(0, er - 1)
+      else if (e.key === 'ArrowDown') er = Math.min(rows - 1, er + 1)
+      else if (e.key === 'ArrowLeft') ec = Math.max(0, ec - 1)
+      else if (e.key === 'ArrowRight') ec = Math.min(cols - 1, ec + 1)
+      const newEnd = makeRef(ec, er)
+      onSelectionEnd(newEnd === selectedRef ? null : newEnd)
+      return
+    }
 
     switch (e.key) {
       case 'ArrowUp':
@@ -102,6 +163,19 @@ export function Grid({ sheet, selectedRef, onSelect, onCommitCell, onOpenColumnM
     void pos
   }
 
+  const handlePaste = (e: React.ClipboardEvent) => {
+    if (editingRef !== null) return // let the cell input handle its own paste
+    e.preventDefault()
+    const text = e.clipboardData.getData('text/plain')
+    if (!text) return
+    const rows2d = text.split(/\r?\n/).map((row) => row.split('\t'))
+    // Strip trailing empty row that Excel/Sheets appends
+    while (rows2d.length > 0 && rows2d[rows2d.length - 1].every((v) => v === '')) {
+      rows2d.pop()
+    }
+    if (rows2d.length > 0) onPaste(rows2d)
+  }
+
   const gridTemplateColumns = `${ROWNUM_W}px ` + sheet.columns.map((c) => `${c.width}px`).join(' ')
 
   return (
@@ -109,6 +183,7 @@ export function Grid({ sheet, selectedRef, onSelect, onCommitCell, onOpenColumnM
       ref={containerRef}
       tabIndex={0}
       onKeyDown={onKeyDown}
+      onPaste={handlePaste}
       role="grid"
       aria-label={`${sheet.name} grid`}
       style={{
@@ -166,8 +241,10 @@ export function Grid({ sheet, selectedRef, onSelect, onCommitCell, onOpenColumnM
             editingRef={editingRef}
             draft={draft}
             editorRef={editorRef}
+            selBounds={selBounds}
             rawOf={rawOf}
-            onSelect={selectAndFocus}
+            onCellMouseDown={handleCellMouseDown}
+            onCellHover={handleCellHover}
             onStartEdit={startEdit}
             onDraft={setDraft}
             onCommit={commitEdit}
@@ -204,8 +281,10 @@ interface RowCellsProps {
   editingRef: string | null
   draft: string
   editorRef: React.RefObject<HTMLInputElement>
+  selBounds: SelectionBounds | null
   rawOf: (ref: string) => string
-  onSelect: (ref: string) => void
+  onCellMouseDown: (ref: string) => void
+  onCellHover: (ref: string) => void
   onStartEdit: (ref: string, initial?: string) => void
   onDraft: (v: string) => void
   onCommit: (moveTo?: string) => void
@@ -213,7 +292,7 @@ interface RowCellsProps {
 }
 
 function RowCells(props: RowCellsProps) {
-  const { sheet, row, cols, selectedRef, editingRef } = props
+  const { sheet, row, cols, selectedRef, editingRef, selBounds } = props
 
   return (
     <>
@@ -247,12 +326,19 @@ function RowCells(props: RowCellsProps) {
         const defaultAlign = colType === 'number' || colType === 'currency' ? 'right' : 'left'
         const align = fmt?.align ?? defaultAlign
         const { text, isError } = displayCell(sheet, ref)
+        const inRange =
+          selBounds != null &&
+          c >= selBounds.minCol &&
+          c <= selBounds.maxCol &&
+          row >= selBounds.minRow &&
+          row <= selBounds.maxRow
 
         return (
           <div
             key={ref}
             role="gridcell"
-            onMouseDown={() => props.onSelect(ref)}
+            onMouseDown={() => props.onCellMouseDown(ref)}
+            onMouseEnter={() => props.onCellHover(ref)}
             onDoubleClick={() => props.onStartEdit(ref)}
             style={{
               position: 'relative',
@@ -272,8 +358,21 @@ function RowCells(props: RowCellsProps) {
               fontSize: 'var(--font-size-sm)',
               fontWeight: fmt?.bold ? ('var(--font-weight-bold)' as any) : undefined,
               color: isError ? 'var(--color-error)' : fmt?.bg ? '#1a1a1a' : 'var(--text-primary)',
+              userSelect: 'none',
             }}
           >
+            {/* Range highlight overlay — rendered before text so text sits on top */}
+            {inRange && !selected && (
+              <div
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  backgroundColor: 'rgba(59, 130, 246, 0.15)',
+                  boxShadow: 'inset 0 0 0 1px rgba(59, 130, 246, 0.4)',
+                  pointerEvents: 'none',
+                }}
+              />
+            )}
             {editing ? (
               <input
                 ref={props.editorRef}
@@ -310,7 +409,9 @@ function RowCells(props: RowCellsProps) {
                 }}
               />
             ) : (
-              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{text}</span>
+              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', position: 'relative', zIndex: 2 }}>
+                {text}
+              </span>
             )}
           </div>
         )

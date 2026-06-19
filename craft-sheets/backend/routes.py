@@ -21,8 +21,8 @@ router = APIRouter()
 # Column types a spreadsheet column can take.
 ColumnType = Literal["text", "number", "date", "currency"]
 
-DEFAULT_NUM_COLS = 6
-DEFAULT_NUM_ROWS = 20
+DEFAULT_NUM_COLS = 12
+DEFAULT_NUM_ROWS = 30
 
 
 def default_columns(count: int = DEFAULT_NUM_COLS) -> List[Dict[str, Any]]:
