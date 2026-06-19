@@ -112,14 +112,6 @@
       "version": "1.0.0"
     },
     {
-      "id": "markdown-editor",
-      "name": "Markdown Editor",
-      "description": "VSCode-style markdown file viewer and editor for the CraftBot agent workspace. Split-pane layout with raw editor on the left and live GFM preview on the right. Full CRUD, scroll sync, line numbers, view mode toggle, and word/character count.",
-      "folder": "markdown-editor",
-      "tags": ["markdown", "editor", "preview", "writing", "files"],
-      "version": "1.0.0"
-    },
-    {
       "id": "markdown-tool",
       "name": "Markdown Editor",
       "description": "Three-panel markdown workspace: file browser, tabbed raw editor, and live GFM preview. Full file CRUD, resizable collapsible panels, and VSCode-style tabs.",

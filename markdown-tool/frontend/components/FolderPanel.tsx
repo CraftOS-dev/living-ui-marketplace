@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, type ReactNode } from 'react'
+import { useState, useCallback, useEffect, useRef, type ReactNode } from 'react'
 import { toast } from 'react-toastify'
 import {
   File, Folder, FolderOpen, FilePlus, FolderPlus,
@@ -21,9 +21,10 @@ interface FolderPanelProps {
   onOpenFile: (path: string) => void
   onRefresh: () => void
   onFileDeleted: (path: string) => void
+  onFileRenamed: (oldPath: string, newPath: string) => void
 }
 
-export function FolderPanel({ controller, activeFilePath, onOpenFile, onRefresh, onFileDeleted }: FolderPanelProps) {
+export function FolderPanel({ controller, activeFilePath, onOpenFile, onRefresh, onFileDeleted, onFileRenamed }: FolderPanelProps) {
   const [nodes, setNodes] = useState<FileNode[] | null>(null)
   const [loading, setLoading] = useState(false)
   const [loadingPaths, setLoadingPaths] = useState<Set<string>>(new Set())
@@ -33,6 +34,8 @@ export function FolderPanel({ controller, activeFilePath, onOpenFile, onRefresh,
   const [renameModal, setRenameModal] = useState<{ path: string; oldName: string } | null>(null)
   const [renameName, setRenameName] = useState('')
   const [deleteConfirm, setDeleteConfirm] = useState<{ path: string; name: string } | null>(null)
+  const [dragOverPath, setDragOverPath] = useState<string | null>(null)
+  const draggedPath = useRef<string | null>(null)
 
   const loadRoot = useCallback(async () => {
     setLoading(true)
@@ -118,6 +121,7 @@ export function FolderPanel({ controller, activeFilePath, onOpenFile, onRefresh,
     const newPath = dir ? `${dir}/${renameName.trim()}` : renameName.trim()
     try {
       await controller.renameItem(renameModal.path, newPath)
+      onFileRenamed(renameModal.path, newPath)
       toast.success('Renamed successfully')
       setRenameModal(null)
       setRenameName('')
@@ -143,21 +147,46 @@ export function FolderPanel({ controller, activeFilePath, onOpenFile, onRefresh,
     }
   }
 
+  async function handleDrop(e: React.DragEvent, targetFolderPath: string) {
+    e.preventDefault()
+    setDragOverPath(null)
+    const src = draggedPath.current
+    if (!src) return
+    const fileName = src.split('/').pop()!
+    const dst = `${targetFolderPath}/${fileName}`
+    if (src === dst) return
+    try {
+      await controller.renameItem(src, dst)
+      onFileRenamed(src, dst)
+      await loadRoot()
+      onRefresh()
+    } catch (err: any) {
+      toast.error(err?.message?.includes('409') ? 'A file with that name already exists in this folder' : 'Failed to move file')
+    }
+  }
+
   function renderNodes(nodes: FileNode[], depth = 0): ReactNode {
     return nodes.map(node => {
       const { item } = node
       const indent = depth * 14
       const isActive = item.path === activeFilePath
+      const isDragOver = dragOverPath === item.path
 
       return (
         <div key={item.path}>
           <div
-            className={`tree-item ${isActive ? 'tree-item-active' : ''} ${!item.is_dir && !item.is_markdown ? 'tree-item-muted' : ''}`}
+            className={`tree-item ${isActive ? 'tree-item-active' : ''} ${!item.is_dir && !item.is_markdown ? 'tree-item-muted' : ''} ${isDragOver ? 'tree-item-drag-over' : ''}`}
             style={{ paddingLeft: `${8 + indent}px` }}
+            draggable={!item.is_dir}
             onClick={() => {
               if (item.is_dir) toggleDir(item.path)
               else if (item.is_markdown) onOpenFile(item.path)
             }}
+            onDragStart={!item.is_dir ? () => { draggedPath.current = item.path } : undefined}
+            onDragEnd={!item.is_dir ? () => { draggedPath.current = null } : undefined}
+            onDragOver={item.is_dir ? e => { e.preventDefault(); setDragOverPath(item.path) } : undefined}
+            onDragLeave={item.is_dir ? () => setDragOverPath(null) : undefined}
+            onDrop={item.is_dir ? e => handleDrop(e, item.path) : undefined}
           >
             <span className="tree-arrow">
               {item.is_dir
@@ -175,6 +204,32 @@ export function FolderPanel({ controller, activeFilePath, onOpenFile, onRefresh,
             {loadingPaths.has(item.path) && <span className="tree-spinner">…</span>}
 
             <span className="tree-actions">
+              {item.is_dir && (
+                <>
+                  <button
+                    className="tree-action-btn"
+                    title="New file here"
+                    onClick={e => {
+                      e.stopPropagation()
+                      setNewItemModal({ type: 'file', parentPath: item.path })
+                      setNewItemName('')
+                    }}
+                  >
+                    <FilePlus size={12} />
+                  </button>
+                  <button
+                    className="tree-action-btn"
+                    title="New folder here"
+                    onClick={e => {
+                      e.stopPropagation()
+                      setNewItemModal({ type: 'directory', parentPath: item.path })
+                      setNewItemName('')
+                    }}
+                  >
+                    <FolderPlus size={12} />
+                  </button>
+                </>
+              )}
               <button
                 className="tree-action-btn"
                 title="Rename"
@@ -418,6 +473,12 @@ export function FolderPanel({ controller, activeFilePath, onOpenFile, onRefresh,
         }
         .tree-action-btn:hover { color: var(--text-primary); background-color: var(--bg-tertiary); }
         .tree-action-delete:hover { color: var(--color-error); background-color: var(--color-error-light); }
+
+        .tree-item-drag-over {
+          background-color: var(--color-primary-light) !important;
+          outline: 1px solid var(--color-primary);
+          outline-offset: -1px;
+        }
       `}</style>
     </div>
   )

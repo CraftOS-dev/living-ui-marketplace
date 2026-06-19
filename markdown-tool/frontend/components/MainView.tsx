@@ -152,6 +152,18 @@ export function MainView({ controller }: MainViewProps) {
     }
   }
 
+  function handleFileRenamed(oldPath: string, newPath: string) {
+    setTabs(prev => {
+      const next = prev.map(t => t.path === oldPath ? { ...t, path: newPath } : t)
+      debouncedSave({
+        openTabs: next.map(t => ({ path: t.path, savedContent: t.savedContent })) as any,
+        activeTab: activeTab === oldPath ? newPath : activeTab ?? undefined,
+      })
+      return next
+    })
+    if (activeTab === oldPath) setActiveTab(newPath)
+  }
+
   const activeTabData = tabs.find(t => t.path === activeTab) ?? null
 
   if (!sessionLoaded) {
@@ -206,6 +218,7 @@ export function MainView({ controller }: MainViewProps) {
               onOpenFile={openFile}
               onRefresh={() => setFolderRefreshKey(k => k + 1)}
               onFileDeleted={closeTab}
+              onFileRenamed={handleFileRenamed}
             />
           </div>
         )}
