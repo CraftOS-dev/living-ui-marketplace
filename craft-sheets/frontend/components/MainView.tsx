@@ -9,12 +9,15 @@ import {
   deleteColumn,
   deleteRow,
   getCellFormat,
+  getSelectionRefs,
   makeRef,
   parseRef,
+  pasteRange,
   renameColumn,
   setCellFormat,
   setCellRaw,
   setColumnType,
+  setRangeFormat,
 } from '../utils/grid'
 import { exportSheet, importFile } from '../utils/fileio'
 import { Alert, Button, Modal } from './ui'
@@ -32,6 +35,7 @@ export function MainView({ controller }: MainViewProps) {
   const [sheets, setSheets] = useState<SheetSummary[]>([])
   const [active, setActive] = useState<Sheet | null>(null)
   const [selectedRef, setSelectedRef] = useState('A1')
+  const [selectionEnd, setSelectionEnd] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [fatalError, setFatalError] = useState<string | null>(null)
   const [colMenu, setColMenu] = useState<{ index: number; anchor: { x: number; y: number } } | null>(null)
@@ -113,6 +117,16 @@ export function MainView({ controller }: MainViewProps) {
     [controller]
   )
 
+  // --- selection handlers ---------------------------------------------------
+  const handleSelect = useCallback((ref: string) => {
+    setSelectedRef(ref)
+    setSelectionEnd(null)
+  }, [])
+
+  const handleSelectionEnd = useCallback((end: string | null) => {
+    setSelectionEnd(end)
+  }, [])
+
   // --- cell + formatting handlers ------------------------------------------
   const commitCell = useCallback(
     (ref: string, raw: string) => {
@@ -131,6 +145,21 @@ export function MainView({ controller }: MainViewProps) {
     active && applyAndSave(setCellFormat(active, selectedRef, { align }))
   const backgroundCell = (color: string | null) =>
     active && applyAndSave(setCellFormat(active, selectedRef, { bg: color }))
+
+  const handlePaintBucket = useCallback(() => {
+    if (!active) return
+    const color = getCellFormat(active, selectedRef).bg ?? null
+    const refs = selectionEnd ? getSelectionRefs(selectedRef, selectionEnd) : [selectedRef]
+    applyAndSave(setRangeFormat(active, refs, { bg: color }))
+  }, [active, selectedRef, selectionEnd, applyAndSave])
+
+  const handlePaste = useCallback(
+    (values: string[][]) => {
+      if (!active) return
+      applyAndSave(pasteRange(active, selectedRef, values))
+    },
+    [active, selectedRef, applyAndSave]
+  )
 
   // --- structural handlers --------------------------------------------------
   const handleAddRow = () => active && applyAndSave(addRow(active))
@@ -158,7 +187,7 @@ export function MainView({ controller }: MainViewProps) {
     try {
       const full = await controller.getSheet(id)
       setActive(full)
-      setSelectedRef('A1')
+      handleSelect('A1')
       controller.rememberLastSheet(id)
     } catch {
       toast.error('Could not open that sheet')
@@ -170,7 +199,7 @@ export function MainView({ controller }: MainViewProps) {
       const created = await controller.createSheet({ name: `Sheet ${sheets.length + 1}` })
       await refreshSheets()
       setActive(created)
-      setSelectedRef('A1')
+      handleSelect('A1')
       controller.rememberLastSheet(created.id)
     } catch {
       toast.error('Could not create a sheet')
@@ -207,7 +236,7 @@ export function MainView({ controller }: MainViewProps) {
           setActive(fresh)
           controller.rememberLastSheet(fresh.id)
         }
-        setSelectedRef('A1')
+        handleSelect('A1')
       }
       toast.success(`Deleted "${target.name}"`)
     } catch {
@@ -222,7 +251,7 @@ export function MainView({ controller }: MainViewProps) {
       const created = await controller.createSheet(input)
       await refreshSheets()
       setActive(created)
-      setSelectedRef('A1')
+      handleSelect('A1')
       controller.rememberLastSheet(created.id)
       toast.success(`Imported "${created.name}"`)
     } catch (err) {
@@ -292,6 +321,7 @@ export function MainView({ controller }: MainViewProps) {
         onToggleBold={toggleBold}
         onAlign={alignCell}
         onBackground={backgroundCell}
+        onPaintBucket={handlePaintBucket}
         onImport={handleImport}
         onExport={handleExport}
       />
@@ -302,9 +332,12 @@ export function MainView({ controller }: MainViewProps) {
         <Grid
           sheet={active}
           selectedRef={selectedRef}
-          onSelect={setSelectedRef}
+          selectionEnd={selectionEnd}
+          onSelect={handleSelect}
+          onSelectionEnd={handleSelectionEnd}
           onCommitCell={commitCell}
           onOpenColumnMenu={(index, anchor) => setColMenu({ index, anchor })}
+          onPaste={handlePaste}
         />
       )}
 
