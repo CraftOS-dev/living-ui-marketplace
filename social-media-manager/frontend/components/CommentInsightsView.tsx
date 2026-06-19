@@ -152,6 +152,18 @@ export default function CommentInsightsView({ controller, state }: Props) {
 
       {!loading && result && (
         <>
+          {result.status === 'unavailable' && (
+            <Card style={{ padding: '20px', borderLeft: '4px solid var(--color-warning, #d97706)', display: 'flex', gap: '12px' }}>
+              <AlertCircle size={20} color="var(--color-warning, #d97706)" style={{ flexShrink: 0, marginTop: '2px' }} />
+              <div>
+                <div style={{ fontWeight: 600, marginBottom: '4px', fontSize: '14px' }}>Bridge Unavailable</div>
+                <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-secondary)' }}>
+                  {result.message || 'Connect CraftBot to use AI features.'}
+                </p>
+              </div>
+            </Card>
+          )}
+
           {(result.status === 'error' || result.status === 'restricted') && (
             <Card style={{ padding: '20px', borderLeft: '4px solid var(--color-warning, #d97706)', display: 'flex', gap: '12px' }}>
               <AlertCircle size={20} color="var(--color-warning, #d97706)" style={{ flexShrink: 0, marginTop: '2px' }} />

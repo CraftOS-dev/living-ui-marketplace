@@ -93,10 +93,11 @@ export function ComposerView({ controller, state }: ComposerViewProps) {
           if (post) {
             result = await controller.publishNow(post.id)
           }
+          if (result && result.status === 'ok') successCount++
         } else {
           result = await controller.createPost(payload)
+          if (result) successCount++
         }
-        if (result) successCount++
       }
       if (successCount === selectedList.length) {
         toast.success(scheduleMode === 'now' ? 'Posts published!' : 'Posts scheduled!')
