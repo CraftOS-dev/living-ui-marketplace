@@ -213,7 +213,7 @@ export default function CommentInsightsView({ controller, state }: Props) {
                     <div style={{ fontSize: '13px', fontWeight: 700, marginBottom: '10px', color: 'var(--text-secondary)' }}>Key Insights</div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px' }}>
                       {result.analysis.insights.map((ins, i) => (
-                        <div key={i} style={{ display: 'flex', gap: '10px', padding: '10px 12px', background: 'var(--color-primary)11', borderRadius: 'var(--radius-md)' }}>
+                        <div key={i} style={{ display: 'flex', gap: '10px', padding: '10px 12px', background: 'var(--color-primary-light)', borderRadius: 'var(--radius-md)' }}>
                           <span style={{ color: 'var(--color-primary)', fontWeight: 700, flexShrink: 0 }}>→</span>
                           <span style={{ fontSize: '13px' }}>{ins}</span>
                         </div>
