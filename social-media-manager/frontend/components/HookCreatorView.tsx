@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Zap, RefreshCw, Copy, ExternalLink } from 'lucide-react'
+import { Zap, RefreshCw, Copy, ExternalLink, Bookmark } from 'lucide-react'
 import { toast } from 'react-toastify'
 import { Button, Input, Card } from './ui'
 import type { AppController } from '../AppController'
@@ -178,7 +178,8 @@ export default function HookCreatorView({ controller, state }: Props) {
           {!loading && hooks.length === 0 && (
             <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--text-muted)' }}>
               <Zap size={40} style={{ marginBottom: '12px', opacity: 0.3 }} />
-              <p style={{ margin: 0 }}>Generate hooks to see results here</p>
+              <p style={{ margin: '0 0 6px', fontSize: '15px', fontWeight: 600, color: 'var(--text-secondary)' }}>Ready to generate</p>
+              <p style={{ margin: 0, fontSize: '13px', maxWidth: '260px', marginInline: 'auto', lineHeight: 1.5 }}>Enter your topic, pick a platform and tone, then click Generate. Each hook uses a different copywriting framework so you can test what lands.</p>
             </div>
           )}
 
@@ -198,6 +199,9 @@ export default function HookCreatorView({ controller, state }: Props) {
                   <div style={{ display: 'flex', gap: '8px', marginTop: 'auto' }}>
                     <Button variant="ghost" size="sm" onClick={() => copyHook(h.hook)} style={{ flex: 1 }}>
                       <Copy size={13} /> Copy
+                    </Button>
+                    <Button variant="ghost" size="sm" onClick={() => { controller.saveHookAsIdea(h.hook, platform); toast.success('Saved to Ideas!') }} style={{ flex: 1 }}>
+                      <Bookmark size={13} /> Save
                     </Button>
                     <Button variant="secondary" size="sm" onClick={() => useInPost(h.hook)} style={{ flex: 1 }}>
                       <ExternalLink size={13} /> Use in Post

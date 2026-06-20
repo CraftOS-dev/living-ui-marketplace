@@ -14,6 +14,7 @@ import {
   Wand2,
   MessageSquare,
   ChevronDown,
+  Lightbulb,
 } from 'lucide-react'
 import { Button } from './ui'
 import type { AppController } from '../AppController'
@@ -29,6 +30,7 @@ const NAV_ITEMS: { section: ActiveSection; label: string; icon: React.ReactNode 
   { section: 'composer', label: 'Compose', icon: <PenSquare size={16} /> },
   { section: 'calendar', label: 'Calendar', icon: <CalendarDays size={16} /> },
   { section: 'queue', label: 'Queue', icon: <Clock size={16} /> },
+  { section: 'ideas', label: 'Ideas', icon: <Lightbulb size={16} /> },
   { section: 'analytics', label: 'Analytics', icon: <BarChart2 size={16} /> },
 ]
 
@@ -60,10 +62,14 @@ export function Sidebar({ controller, state }: SidebarProps) {
   const handleSync = async () => {
     setSyncing(true)
     try {
-      await controller.syncAccounts()
-      toast.success('Accounts synced')
+      const ok = await controller.syncAccounts()
+      if (ok) {
+        toast.success('Accounts synced')
+      } else {
+        toast.error('Could not reach bridge — check CraftBot connection')
+      }
     } catch {
-      toast.error('Sync failed')
+      toast.error('Could not reach bridge — check CraftBot connection')
     } finally {
       setSyncing(false)
     }

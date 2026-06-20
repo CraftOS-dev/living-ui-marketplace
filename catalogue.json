@@ -110,6 +110,14 @@
       "folder": "newsletter-tool",
       "tags": ["newsletter", "marketing", "email", "AI", "productivity"],
       "version": "1.0.0"
+    },
+    {
+      "id": "social-media-manager",
+      "name": "Social Media Manager",
+      "description": "Compose, schedule, and analyze posts across Twitter/X, LinkedIn, and YouTube. Includes a post queue, calendar view, ideas board, hashtag library, AI caption generator, hook creator, text humanizer, and comment insights — all powered by CraftBot integrations.",
+      "folder": "social-media-manager",
+      "tags": ["social-media", "scheduling", "AI", "productivity", "integrations"],
+      "version": "1.0.0"
     }
   ]
 }

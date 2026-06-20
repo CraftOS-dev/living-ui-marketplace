@@ -10,6 +10,7 @@ import { AnalyticsView } from './AnalyticsView'
 import HookCreatorView from './HookCreatorView'
 import TextHumanizerView from './TextHumanizerView'
 import CommentInsightsView from './CommentInsightsView'
+import IdeasBoardView from './IdeasBoardView'
 
 interface MainViewProps {
   controller: AppController
@@ -38,6 +39,7 @@ export function MainView({ controller }: MainViewProps) {
         {activeSection === 'hooks' && <HookCreatorView controller={controller} state={state} />}
         {activeSection === 'humanizer' && <TextHumanizerView controller={controller} state={state} />}
         {activeSection === 'insights' && <CommentInsightsView controller={controller} state={state} />}
+        {activeSection === 'ideas' && <IdeasBoardView controller={controller} state={state} />}
       </main>
     </div>
   )

@@ -4,7 +4,7 @@
 
 export type Platform = 'twitter' | 'linkedin' | 'google_youtube'
 export type PostStatus = 'draft' | 'scheduled' | 'publishing' | 'published' | 'failed' | 'cancelled'
-export type ActiveSection = 'composer' | 'calendar' | 'queue' | 'analytics' | 'hooks' | 'humanizer' | 'insights'
+export type ActiveSection = 'composer' | 'calendar' | 'queue' | 'analytics' | 'hooks' | 'humanizer' | 'insights' | 'ideas'
 export type CaptionTone = 'professional' | 'casual' | 'playful' | 'persuasive' | 'informative'
 
 export interface Post {
@@ -79,6 +79,8 @@ export interface AppState {
   integrations: IntegrationsStatus | null
   analyticsSummary: AnalyticsSummary[]
   prefilledTool: PrefilledTool | null
+  ideas: Idea[]
+  hashtagSets: HashtagSet[]
   [key: string]: unknown
 }
 
@@ -120,4 +122,26 @@ export interface PrefilledTool {
   tool: 'hooks' | 'humanizer'
   text: string
   platform: Platform
+}
+
+export interface Idea {
+  id: number
+  title: string | null
+  content: string
+  platform: Platform | null
+  tags: string[]
+  source: 'manual' | 'hook_creator' | 'humanizer'
+  status: 'idea' | 'archived'
+  createdAt: string | null
+  updatedAt: string | null
+}
+
+export interface HashtagSet {
+  id: number
+  name: string
+  platform: Platform | null
+  tags: string[]
+  useCount: number
+  createdAt: string | null
+  updatedAt: string | null
 }

@@ -92,6 +92,9 @@ export function ComposerView({ controller, state }: ComposerViewProps) {
           const post = await controller.createPost(payload)
           if (post) {
             result = await controller.publishNow(post.id)
+            if (!result || result.status !== 'ok') {
+              await controller.deletePost(post.id)  // clean up orphaned draft
+            }
           }
           if (result && result.status === 'ok') successCount++
         } else {

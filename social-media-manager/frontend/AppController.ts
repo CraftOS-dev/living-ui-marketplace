@@ -13,6 +13,8 @@ import type {
   CaptionTone,
   HookResult,
   CommentInsightsResult,
+  Idea,
+  HashtagSet,
 } from './types'
 import { ApiService } from './services/ApiService'
 import { stateCache } from './services/StatePersistence'
@@ -43,6 +45,8 @@ export class AppController {
     integrations: null,
     analyticsSummary: [],
     prefilledTool: null,
+    ideas: [],
+    hashtagSets: [],
   }
 
   private listeners: Set<(state: AppState) => void> = new Set()
@@ -125,6 +129,7 @@ export class AppController {
         analyticsSummary,
         accounts,
       })
+      await Promise.all([this.refreshIdeas(), this.refreshHashtagSets()])
       console.log('[SMM] Initialized')
     } catch (err) {
       console.error('[SMM] Init error:', err)
@@ -153,14 +158,16 @@ export class AppController {
     }
   }
 
-  async syncAccounts(): Promise<void> {
+  async syncAccounts(): Promise<boolean> {
     try {
-      const result = await apiFetch<{ accounts: PlatformAccount[] }>('/accounts/sync', { method: 'POST' })
+      const result = await apiFetch<{ accounts: PlatformAccount[]; error?: string }>('/accounts/sync', { method: 'POST' })
       const accounts = result.accounts || []
       this.update({ accounts })
       await this.refreshIntegrations()
+      return !result.error
     } catch (err) {
       console.error('[SMM] syncAccounts:', err)
+      return false
     }
   }
 
@@ -230,6 +237,7 @@ export class AppController {
       })
       await this.refreshPosts()
       await this.refreshQueue()
+      await this.refreshCalendar()
       return post
     } catch (err) {
       console.error('[SMM] schedulePost:', err)
@@ -259,6 +267,7 @@ export class AppController {
       const post = await apiFetch<Post>(`/posts/${id}/cancel`, { method: 'POST' })
       await this.refreshPosts()
       await this.refreshQueue()
+      await this.refreshCalendar()
       return post
     } catch (err) {
       console.error('[SMM] cancelPost:', err)
@@ -432,6 +441,94 @@ export class AppController {
     } catch {
       return null
     }
+  }
+
+  // -------------------------------------------------------------------------
+  // Ideas Board
+  // -------------------------------------------------------------------------
+
+  async refreshIdeas(): Promise<void> {
+    try {
+      const ideas = await apiFetch<Idea[]>('/ideas')
+      this.update({ ideas })
+    } catch { /* ignore */ }
+  }
+
+  async createIdea(data: Partial<Idea> & { content: string }): Promise<Idea | null> {
+    try {
+      const idea = await apiFetch<Idea>('/ideas', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      })
+      await this.refreshIdeas()
+      return idea
+    } catch {
+      return null
+    }
+  }
+
+  async updateIdea(id: number, data: Partial<Idea>): Promise<void> {
+    try {
+      await apiFetch(`/ideas/${id}`, { method: 'PUT', body: JSON.stringify(data) })
+      await this.refreshIdeas()
+    } catch { /* ignore */ }
+  }
+
+  async deleteIdea(id: number): Promise<void> {
+    try {
+      await apiFetch(`/ideas/${id}`, { method: 'DELETE' })
+      await this.refreshIdeas()
+    } catch { /* ignore */ }
+  }
+
+  async promoteIdea(id: number): Promise<void> {
+    try {
+      await apiFetch(`/ideas/${id}/promote`, { method: 'POST' })
+      await this.refreshPosts()
+      this.update({ activeSection: 'composer' })
+    } catch { /* ignore */ }
+  }
+
+  async saveHookAsIdea(hook: string, platform: Platform): Promise<void> {
+    await this.createIdea({ content: hook, platform, source: 'hook_creator' })
+  }
+
+  // -------------------------------------------------------------------------
+  // Hashtag Sets
+  // -------------------------------------------------------------------------
+
+  async refreshHashtagSets(): Promise<void> {
+    try {
+      const hashtagSets = await apiFetch<HashtagSet[]>('/hashtag-sets')
+      this.update({ hashtagSets })
+    } catch { /* ignore */ }
+  }
+
+  async createHashtagSet(data: Partial<HashtagSet> & { name: string }): Promise<HashtagSet | null> {
+    try {
+      const set = await apiFetch<HashtagSet>('/hashtag-sets', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      })
+      await this.refreshHashtagSets()
+      return set
+    } catch {
+      return null
+    }
+  }
+
+  async updateHashtagSet(id: number, data: Partial<HashtagSet> & { incrementUseCount?: boolean }): Promise<void> {
+    try {
+      await apiFetch(`/hashtag-sets/${id}`, { method: 'PUT', body: JSON.stringify(data) })
+      await this.refreshHashtagSets()
+    } catch { /* ignore */ }
+  }
+
+  async deleteHashtagSet(id: number): Promise<void> {
+    try {
+      await apiFetch(`/hashtag-sets/${id}`, { method: 'DELETE' })
+      await this.refreshHashtagSets()
+    } catch { /* ignore */ }
   }
 
   // -------------------------------------------------------------------------
