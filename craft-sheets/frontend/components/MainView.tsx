@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'react-toastify'
 import { useAgentAware } from '../agent/hooks'
 import type { AppController } from '../AppController'
-import type { CellAlign, ColumnType, Sheet, SheetSummary } from '../types'
+import type { CellAlign, CellFormat, ColumnType, Sheet, SheetSummary } from '../types'
 import {
   addColumn,
   addRow,
@@ -13,6 +13,7 @@ import {
   makeRef,
   parseRef,
   pasteRange,
+  pasteRangeFull,
   renameColumn,
   setCellRaw,
   setColumnType,
@@ -220,6 +221,14 @@ export function MainView({ controller }: MainViewProps) {
     [active, selectedRef, applyAndSave]
   )
 
+  const handleRichPaste = useCallback(
+    (cells: { raw: string; format: CellFormat | null }[][]) => {
+      if (!active) return
+      applyAndSave(pasteRangeFull(active, selectedRef, cells))
+    },
+    [active, selectedRef, applyAndSave]
+  )
+
   // --- structural handlers --------------------------------------------------
   const handleAddRow = () => active && applyAndSave(addRow(active))
   const handleAddColumn = () => active && applyAndSave(addColumn(active))
@@ -401,6 +410,7 @@ export function MainView({ controller }: MainViewProps) {
           onCommitCell={commitCell}
           onOpenColumnMenu={(index, anchor) => setColMenu({ index, anchor })}
           onPaste={handlePaste}
+          onRichPaste={handleRichPaste}
           onToggleBold={toggleBold}
           onToggleItalic={toggleItalic}
           onToggleUnderline={toggleUnderline}

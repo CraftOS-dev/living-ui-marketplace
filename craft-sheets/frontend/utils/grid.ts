@@ -242,6 +242,41 @@ export function pasteRange(sheet: Sheet, startRef: string, values: string[][]): 
   return { ...next, cells }
 }
 
+/** Paste a 2-D array of full cell objects (raw + format) starting at startRef. */
+export function pasteRangeFull(
+  sheet: Sheet,
+  startRef: string,
+  cells: ({ raw: string; format: CellFormat | null })[][]
+): Sheet {
+  const start = parseRef(startRef)
+  if (!start || cells.length === 0) return sheet
+  const pasteRows = cells.length
+  const pasteCols = Math.max(...cells.map((r) => r.length), 0)
+  let next: Sheet = { ...sheet }
+  const neededRows = start.row + pasteRows
+  if (neededRows > next.numRows) next = { ...next, numRows: neededRows }
+  const neededCols = start.col + pasteCols
+  if (neededCols > next.columns.length) {
+    const newCols: Column[] = [...next.columns]
+    while (newCols.length < neededCols)
+      newCols.push({ name: colLetter(newCols.length), type: 'text', width: DEFAULT_COL_WIDTH })
+    next = { ...next, columns: newCols }
+  }
+  const cloned: Record<string, Cell> = {}
+  for (const [k, v] of Object.entries(next.cells))
+    cloned[k] = { ...v, format: v.format ? { ...v.format } : undefined }
+  for (let r = 0; r < cells.length; r++) {
+    for (let c = 0; c < cells[r].length; c++) {
+      const ref = makeRef(start.col + c, start.row + r)
+      const src = cells[r][c]
+      const fmt = src.format ? { ...src.format } : undefined
+      if (src.raw === '' && !fmt) { delete cloned[ref] }
+      else { cloned[ref] = { raw: src.raw, format: fmt } }
+    }
+  }
+  return { ...next, cells: cloned }
+}
+
 /** Delete a column (0-based), shifting columns/cells to its right left by one. */
 export function deleteColumn(sheet: Sheet, colIndex: number): Sheet {
   if (sheet.columns.length <= 1) return sheet

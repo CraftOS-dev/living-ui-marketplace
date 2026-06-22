@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import type { Sheet } from '../types'
+import type { CellFormat, Sheet } from '../types'
 import { colLetter, displayCell, makeRef, parseRef } from '../utils/grid'
 
 interface SelectionBounds {
@@ -20,6 +20,7 @@ interface GridProps {
   onCommitCell: (ref: string, raw: string) => void
   onOpenColumnMenu: (index: number, anchor: { x: number; y: number }) => void
   onPaste: (values: string[][]) => void
+  onRichPaste: (cells: { raw: string; format: CellFormat | null }[][]) => void
   onToggleBold: () => void
   onToggleItalic: () => void
   onToggleUnderline: () => void
@@ -45,6 +46,7 @@ export function Grid({
   onCommitCell,
   onOpenColumnMenu,
   onPaste,
+  onRichPaste,
   onToggleBold,
   onToggleItalic,
   onToggleUnderline,
@@ -199,50 +201,58 @@ export function Grid({
     if (editingRef !== null) return
     e.preventDefault()
 
-    if (selBounds) {
-      const rows2d: string[][] = []
-      for (let r = selBounds.minRow; r <= selBounds.maxRow; r++) {
-        const row: string[] = []
-        for (let c = selBounds.minCol; c <= selBounds.maxCol; c++)
-          row.push(rawOf(makeRef(c, r)))
-        rows2d.push(row)
-      }
-      e.clipboardData.setData('text/plain', rows2d.map((r) => r.join('\t')).join('\n'))
-      return
-    }
+    let minRow: number, maxRow: number, minCol: number, maxCol: number
 
-    if (ctrlSelectedRefs.size > 0) {
+    if (selBounds) {
+      minRow = selBounds.minRow; maxRow = selBounds.maxRow
+      minCol = selBounds.minCol; maxCol = selBounds.maxCol
+    } else if (ctrlSelectedRefs.size > 0) {
       const positions = [...ctrlSelectedRefs]
         .map((r) => parseRef(r))
         .filter(Boolean) as { col: number; row: number }[]
-      const minRow = Math.min(...positions.map((p) => p.row))
-      const maxRow = Math.max(...positions.map((p) => p.row))
-      const minCol = Math.min(...positions.map((p) => p.col))
-      const maxCol = Math.max(...positions.map((p) => p.col))
-      const rows2d: string[][] = []
-      for (let r = minRow; r <= maxRow; r++) {
-        const row: string[] = []
-        for (let c = minCol; c <= maxCol; c++)
-          row.push(rawOf(makeRef(c, r)))
-        rows2d.push(row)
-      }
-      e.clipboardData.setData('text/plain', rows2d.map((r) => r.join('\t')).join('\n'))
+      if (positions.length === 0) return
+      minRow = Math.min(...positions.map((p) => p.row)); maxRow = Math.max(...positions.map((p) => p.row))
+      minCol = Math.min(...positions.map((p) => p.col)); maxCol = Math.max(...positions.map((p) => p.col))
+    } else {
+      const cell = sheet.cells[selectedRef]
+      e.clipboardData.setData('text/plain', rawOf(selectedRef))
+      e.clipboardData.setData('application/x-craft-sheets',
+        JSON.stringify([[{ raw: cell?.raw ?? '', format: cell?.format ?? null }]]))
       return
     }
 
-    e.clipboardData.setData('text/plain', rawOf(selectedRef))
+    const textRows: string[][] = []
+    const richRows: { raw: string; format: CellFormat | null }[][] = []
+    for (let r = minRow; r <= maxRow; r++) {
+      const textRow: string[] = []
+      const richRow: { raw: string; format: CellFormat | null }[] = []
+      for (let c = minCol; c <= maxCol; c++) {
+        const ref = makeRef(c, r)
+        const cell = sheet.cells[ref]
+        textRow.push(rawOf(ref))
+        richRow.push({ raw: cell?.raw ?? '', format: cell?.format ?? null })
+      }
+      textRows.push(textRow)
+      richRows.push(richRow)
+    }
+    e.clipboardData.setData('text/plain', textRows.map((r) => r.join('\t')).join('\n'))
+    e.clipboardData.setData('application/x-craft-sheets', JSON.stringify(richRows))
   }
 
   const handlePaste = (e: React.ClipboardEvent) => {
-    if (editingRef !== null) return // let the cell input handle its own paste
+    if (editingRef !== null) return
     e.preventDefault()
+    const rich = e.clipboardData.getData('application/x-craft-sheets')
+    if (rich) {
+      try {
+        onRichPaste(JSON.parse(rich) as { raw: string; format: CellFormat | null }[][])
+        return
+      } catch { /* fall through to text */ }
+    }
     const text = e.clipboardData.getData('text/plain')
     if (!text) return
     const rows2d = text.split(/\r?\n/).map((row) => row.split('\t'))
-    // Strip trailing empty row that Excel/Sheets appends
-    while (rows2d.length > 0 && rows2d[rows2d.length - 1].every((v) => v === '')) {
-      rows2d.pop()
-    }
+    while (rows2d.length > 0 && rows2d[rows2d.length - 1].every((v) => v === '')) rows2d.pop()
     if (rows2d.length > 0) onPaste(rows2d)
   }
 
