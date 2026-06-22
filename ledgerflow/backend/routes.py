@@ -269,8 +269,8 @@ def update_settings(data: Dict[str, Any], db: Session = Depends(get_db)):
         settings.currency = data["currency"]
     if "fiscalYearStart" in data:
         settings.fiscal_year_start = data["fiscalYearStart"]
-    if "taxRate" in data:
-        settings.tax_rate = data["taxRate"]
+    if "taxRate" in data or "defaultTaxRate" in data:
+        settings.tax_rate = data.get("taxRate", data.get("defaultTaxRate"))
     settings.updated_at = datetime.utcnow()
     db.commit()
     db.refresh(settings)
@@ -364,7 +364,7 @@ def create_account(data: Dict[str, Any], db: Session = Depends(get_db)):
         id=_new_id(),
         code=data["code"],
         name=data["name"],
-        account_type=data["accountType"],
+        account_type=data.get("accountType") or data["type"],
         sub_type=data.get("subType"),
         parent_id=data.get("parentId"),
         description=data.get("description"),
@@ -383,7 +383,7 @@ def update_account(account_id: str, data: Dict[str, Any], db: Session = Depends(
     if not account:
         raise HTTPException(status_code=404, detail="Account not found")
     for key, attr in [
-        ("code", "code"), ("name", "name"), ("accountType", "account_type"),
+        ("code", "code"), ("name", "name"), ("accountType", "account_type"), ("type", "account_type"),
         ("subType", "sub_type"), ("parentId", "parent_id"),
         ("description", "description"), ("currency", "currency"),
         ("openingBalance", "opening_balance"), ("isActive", "is_active"),
@@ -492,7 +492,7 @@ def create_contact(data: Dict[str, Any], db: Session = Depends(get_db)):
     contact = Contact(
         id=_new_id(),
         name=data["name"],
-        contact_type=data["contactType"],
+        contact_type=data.get("contactType") or data["type"],
         email=data.get("email"),
         phone=data.get("phone"),
         address=data.get("address"),
@@ -511,7 +511,7 @@ def update_contact(contact_id: str, data: Dict[str, Any], db: Session = Depends(
     if not contact:
         raise HTTPException(status_code=404, detail="Contact not found")
     for key, attr in [
-        ("name", "name"), ("contactType", "contact_type"), ("email", "email"),
+        ("name", "name"), ("contactType", "contact_type"), ("type", "contact_type"), ("email", "email"),
         ("phone", "phone"), ("address", "address"), ("taxId", "tax_id"),
         ("notes", "notes"), ("isActive", "is_active"),
     ]:
@@ -725,7 +725,7 @@ def create_invoice(data: Dict[str, Any], db: Session = Depends(get_db)):
     inv = Invoice(
         id=inv_id,
         invoice_number=inv_number,
-        contact_id=data["contactId"],
+        contact_id=data.get("contactId") or data["customerId"],
         issue_date=_parse_date(data["issueDate"]),
         due_date=_parse_date(data["dueDate"]),
         status=data.get("status", "draft"),
@@ -770,7 +770,7 @@ def update_invoice(invoice_id: str, data: Dict[str, Any], db: Session = Depends(
         raise HTTPException(status_code=400, detail="Only draft invoices can be edited")
 
     for key, attr in [
-        ("contactId", "contact_id"), ("issueDate", None), ("dueDate", None),
+        ("contactId", "contact_id"), ("customerId", "contact_id"), ("issueDate", None), ("dueDate", None),
         ("notes", "notes"), ("taxRate", "tax_rate"),
     ]:
         if key in data:
@@ -943,7 +943,7 @@ def create_bill(data: Dict[str, Any], db: Session = Depends(get_db)):
     bill = Bill(
         id=bill_id,
         bill_number=bill_number,
-        contact_id=data["contactId"],
+        contact_id=data.get("contactId") or data["vendorId"],
         issue_date=_parse_date(data["issueDate"]),
         due_date=_parse_date(data["dueDate"]),
         status=data.get("status", "draft"),
@@ -988,7 +988,7 @@ def update_bill(bill_id: str, data: Dict[str, Any], db: Session = Depends(get_db
         raise HTTPException(status_code=400, detail="Only draft bills can be edited")
 
     for key, attr in [
-        ("contactId", "contact_id"), ("issueDate", None), ("dueDate", None),
+        ("contactId", "contact_id"), ("vendorId", "contact_id"), ("issueDate", None), ("dueDate", None),
         ("notes", "notes"), ("taxRate", "tax_rate"),
     ]:
         if key in data:

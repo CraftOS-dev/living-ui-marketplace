@@ -95,7 +95,7 @@ export function InvoicesView({ controller }: InvoicesViewProps) {
     setSaving(true)
     try {
       await controller.createInvoice({
-        customerId: Number(customerId),
+        customerId: customerId,
         issueDate,
         dueDate,
         taxRate: parseFloat(taxRate) || 0,
@@ -125,7 +125,7 @@ export function InvoicesView({ controller }: InvoicesViewProps) {
     try {
       await controller.recordInvoicePayment(showPaymentModal.id, {
         amount: parseFloat(paymentAmount),
-        depositAccountId: Number(paymentAccountId),
+        depositAccountId: paymentAccountId,
       })
       toast.success('Payment recorded')
       setShowPaymentModal(null)

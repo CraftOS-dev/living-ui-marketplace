@@ -95,7 +95,7 @@ export function BillsView({ controller }: BillsViewProps) {
     setSaving(true)
     try {
       await controller.createBill({
-        vendorId: Number(vendorId),
+        vendorId: vendorId,
         issueDate,
         dueDate,
         taxRate: parseFloat(taxRate) || 0,
@@ -125,7 +125,7 @@ export function BillsView({ controller }: BillsViewProps) {
     try {
       await controller.recordBillPayment(showPaymentModal.id, {
         amount: parseFloat(paymentAmount),
-        payFromAccountId: Number(paymentAccountId),
+        paymentAccountId: paymentAccountId,
       })
       toast.success('Payment recorded')
       setShowPaymentModal(null)

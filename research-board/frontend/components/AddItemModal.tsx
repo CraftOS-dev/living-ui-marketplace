@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Modal, Button, Input, Textarea } from './ui'
 import type { ItemType, CreateBoardItemRequest } from '../types'
 import type { AppController } from '../AppController'
@@ -28,6 +28,13 @@ export function AddItemModal({ open, onClose, onAdd, controller, defaultType }: 
   const [uploading, setUploading] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // The modal stays mounted between opens, so the useState initializer above only
+  // runs once. Re-sync the selected type to the requested type each time the modal
+  // opens (or the requested type changes) — otherwise it shows the previous type.
+  useEffect(() => {
+    if (open) setSelectedType(defaultType || null)
+  }, [open, defaultType])
 
   const reset = () => {
     setSelectedType(defaultType || null)

@@ -139,7 +139,7 @@ export class AppController {
   }
 
   async seedAccounts(): Promise<{ message: string; count: number }> {
-    return this.fetchJson(`${BACKEND_URL}/settings/seed-accounts`, {
+    return this.fetchJson(`${BACKEND_URL}/settings/seed`, {
       method: 'POST',
     })
   }
@@ -245,17 +245,22 @@ export class AppController {
   async getTransactions(filters?: TransactionFilters): Promise<JournalEntry[]> {
     const params = new URLSearchParams()
     if (filters) {
-      if (filters.fromDate) params.set('fromDate', filters.fromDate)
-      if (filters.toDate) params.set('toDate', filters.toDate)
-      if (filters.accountId) params.set('accountId', String(filters.accountId))
-      if (filters.categoryId) params.set('categoryId', String(filters.categoryId))
-      if (filters.type) params.set('type', filters.type)
+      if (filters.fromDate) params.set('from_date', filters.fromDate)
+      if (filters.toDate) params.set('to_date', filters.toDate)
+      if (filters.accountId) params.set('account_id', String(filters.accountId))
+      if (filters.categoryId) params.set('category_id', String(filters.categoryId))
+      if (filters.type) params.set('entry_type', filters.type)
       if (filters.search) params.set('search', filters.search)
       if (filters.limit) params.set('limit', String(filters.limit))
       if (filters.offset) params.set('offset', String(filters.offset))
     }
     const qs = params.toString()
-    return this.fetchJson<JournalEntry[]>(`${BACKEND_URL}/transactions${qs ? '?' + qs : ''}`)
+    // The list endpoint returns { transactions, total, ... }; unwrap it (and
+    // tolerate a bare array) so the table receives the list it expects.
+    const res = await this.fetchJson<{ transactions: JournalEntry[] } | JournalEntry[]>(
+      `${BACKEND_URL}/transactions${qs ? '?' + qs : ''}`
+    )
+    return Array.isArray(res) ? res : (res.transactions ?? [])
   }
 
   async getTransaction(id: number): Promise<JournalEntry> {
@@ -412,7 +417,7 @@ export class AppController {
   }
 
   async getRecentTransactions(limit: number = 10): Promise<JournalEntry[]> {
-    return this.fetchJson<JournalEntry[]>(`${BACKEND_URL}/dashboard/recent-transactions?limit=${limit}`)
+    return this.fetchJson<JournalEntry[]>(`${BACKEND_URL}/dashboard/recent?limit=${limit}`)
   }
 
   async getOverdueItems(): Promise<{ invoices: Invoice[]; bills: Bill[] }> {

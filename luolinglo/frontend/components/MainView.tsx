@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { toast } from 'react-toastify'
 import type { AppController, LuolingloState } from '../AppController'
 import type { ViewName } from '../types'
 import { AppLayout } from './layout/AppLayout'
@@ -42,8 +43,9 @@ export function MainView({ controller }: MainViewProps) {
     }) => {
       try {
         await controller.createProfile(data)
-      } catch (err) {
+      } catch (err: any) {
         console.error('[MainView] Failed to create profile:', err)
+        toast.error(err?.message || 'Could not start Luolinglo. Please try again.')
       }
     },
     [controller]

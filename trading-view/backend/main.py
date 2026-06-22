@@ -30,26 +30,40 @@ async def lifespan(app: FastAPI):
     await init_db()
     logger.info("[Backend] Database initialized")
 
-    # Auto-seed the symbol universe on startup so search and lazy-loading work
-    # immediately. Idempotent — only does the network download if the DB is empty.
-    from database import SessionLocal
-    from simulation import seed_stocks, refresh_news_cache
-    from models import Stock
-    db = SessionLocal()
-    try:
-        if db.query(Stock).count() == 0:
-            seed_stocks(db, warmup=True)
+    # Auto-seed the symbol universe in the BACKGROUND so /health responds
+    # immediately. The warmup does a network download that can take many seconds;
+    # running it inline before `yield` blocks startup and the launcher's health
+    # check times out → the app is wrongly marked "failed to launch". Idempotent —
+    # only downloads if the DB is empty; search/lazy-loading work meanwhile.
+    import asyncio
+
+    async def _seed_in_background():
+        def _work():
+            from database import SessionLocal
+            from simulation import seed_stocks, refresh_news_cache
+            from models import Stock
+            db = SessionLocal()
             try:
-                refresh_news_cache(db)
-            except Exception as ne:
-                logger.warning(f"[Backend] Initial news refresh failed: {ne}")
-            logger.info("[Backend] Auto-seeded stock universe")
-    except Exception as e:
-        logger.error(f"[Backend] Auto-seed failed: {e}")
-    finally:
-        db.close()
+                if db.query(Stock).count() == 0:
+                    seed_stocks(db, warmup=True)
+                    try:
+                        refresh_news_cache(db)
+                    except Exception as ne:
+                        logger.warning(f"[Backend] Initial news refresh failed: {ne}")
+                    logger.info("[Backend] Auto-seeded stock universe")
+            except Exception as e:
+                logger.error(f"[Backend] Auto-seed failed: {e}")
+            finally:
+                db.close()
+
+        # Offload the blocking work to a thread so the event loop stays responsive.
+        await asyncio.to_thread(_work)
+
+    seed_task = asyncio.create_task(_seed_in_background())
 
     yield
+
+    seed_task.cancel()
     logger.info("[Backend] Shutting down...")
 
 

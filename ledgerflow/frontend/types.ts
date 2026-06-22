@@ -188,8 +188,8 @@ export interface JournalEntry {
 export interface TransactionFilters {
   fromDate?: string
   toDate?: string
-  accountId?: number
-  categoryId?: number
+  accountId?: string
+  categoryId?: string
   type?: string
   search?: string
   limit?: number
@@ -199,30 +199,30 @@ export interface TransactionFilters {
 export interface RecordIncomeData {
   date: string
   amount: number
-  depositAccountId: number
-  revenueAccountId: number
+  depositAccountId: string
+  revenueAccountId: string
   description: string
-  contactId?: number
-  categoryId?: number
+  contactId?: string
+  categoryId?: string
   reference?: string
 }
 
 export interface RecordExpenseData {
   date: string
   amount: number
-  payFromAccountId: number
-  expenseAccountId: number
+  paymentAccountId: string
+  expenseAccountId: string
   description: string
-  contactId?: number
-  categoryId?: number
+  contactId?: string
+  categoryId?: string
   reference?: string
 }
 
 export interface RecordTransferData {
   date: string
   amount: number
-  fromAccountId: number
-  toAccountId: number
+  fromAccountId: string
+  toAccountId: string
   description: string
   reference?: string
 }
@@ -261,7 +261,7 @@ export interface Invoice {
 }
 
 export interface CreateInvoiceData {
-  customerId: number
+  customerId: string
   issueDate: string
   dueDate: string
   taxRate?: number
@@ -270,7 +270,7 @@ export interface CreateInvoiceData {
 }
 
 export interface UpdateInvoiceData {
-  customerId?: number
+  customerId?: string
   issueDate?: string
   dueDate?: string
   taxRate?: number
@@ -280,7 +280,7 @@ export interface UpdateInvoiceData {
 
 export interface RecordInvoicePaymentData {
   amount: number
-  depositAccountId: number
+  depositAccountId: string
   date?: string
 }
 
@@ -318,7 +318,7 @@ export interface Bill {
 }
 
 export interface CreateBillData {
-  vendorId: number
+  vendorId: string
   issueDate: string
   dueDate: string
   taxRate?: number
@@ -327,7 +327,7 @@ export interface CreateBillData {
 }
 
 export interface UpdateBillData {
-  vendorId?: number
+  vendorId?: string
   issueDate?: string
   dueDate?: string
   taxRate?: number
@@ -337,7 +337,7 @@ export interface UpdateBillData {
 
 export interface RecordBillPaymentData {
   amount: number
-  payFromAccountId: number
+  paymentAccountId: string
   date?: string
 }
 

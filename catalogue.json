@@ -112,6 +112,14 @@
       "version": "1.0.0"
     },
     {
+      "id": "craft-sheets",
+      "name": "Craft Sheets",
+      "description": "A small Excel-style spreadsheet with a live formula engine (=SUM, =AVERAGE, cell & range refs), named sheets via bottom tabs, typed columns, cell formatting, and CSV/Excel import & export.",
+      "folder": "craft-sheets",
+      "tags": ["spreadsheet", "productivity", "data", "formulas", "excel"],
+      "version": "1.0.0"
+    },
+    {
       "id": "markdown-tool",
       "name": "Markdown Editor",
       "description": "Three-panel markdown workspace: file browser, tabbed raw editor, and live GFM preview. Full file CRUD, resizable collapsible panels, and VSCode-style tabs.",

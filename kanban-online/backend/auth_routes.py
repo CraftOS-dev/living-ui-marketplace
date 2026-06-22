@@ -10,7 +10,7 @@ Then import and include the router in routes.py:
 """
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from auth_models import User, Membership, Invite

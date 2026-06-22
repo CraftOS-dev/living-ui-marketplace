@@ -1,6 +1,10 @@
 import type { AppState, Pet, ActivityLogEntry, EvolutionStatus, CareAction } from './types'
 import { ApiService } from './services/ApiService'
 
+// Backend URL — resolved from the host page (set in index.html), matching ApiService.
+// Data calls must target the backend origin, not the frontend's, so these are absolute.
+const API_BASE = (window as any).__CRAFTBOT_BACKEND_URL__ || 'http://localhost:3101'
+
 /**
  * AppController - CraftBot Pet Tamagotchi Controller
  *
@@ -51,10 +55,10 @@ export class AppController {
   async fetchPetState(): Promise<void> {
     try {
       // Try to get active pet
-      const petResponse = await fetch('/api/pet')
+      const petResponse = await fetch(`${API_BASE}/api/pet`)
       if (petResponse.status === 404) {
         // No active pet — check for retired pet
-        const retiredResponse = await fetch('/api/pet/retired')
+        const retiredResponse = await fetch(`${API_BASE}/api/pet/retired`)
         let retiredPet = null
         if (retiredResponse.ok) {
           const retiredData = await retiredResponse.json()
@@ -75,8 +79,8 @@ export class AppController {
         const pet: Pet = await petResponse.json()
         // Fetch activity log and evolution status in parallel
         const [activityResponse, evolutionResponse] = await Promise.all([
-          fetch('/api/pet/activity'),
-          fetch('/api/pet/evolution-status'),
+          fetch(`${API_BASE}/api/pet/activity`),
+          fetch(`${API_BASE}/api/pet/evolution-status`),
         ])
         const activityLog: ActivityLogEntry[] = activityResponse.ok ? await activityResponse.json() : []
         const evolutionStatus: EvolutionStatus | null = evolutionResponse.ok ? await evolutionResponse.json() : null
@@ -161,7 +165,7 @@ export class AppController {
     this.state = { ...this.state, loading: true }
     this.notifyListeners()
     try {
-      const response = await fetch('/api/pet', {
+      const response = await fetch(`${API_BASE}/api/pet`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name }),
@@ -184,7 +188,7 @@ export class AppController {
    */
   async performAction(action: CareAction): Promise<void> {
     try {
-      const response = await fetch(`/api/pet/${action}`, {
+      const response = await fetch(`${API_BASE}/api/pet/${action}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
       })
@@ -203,7 +207,7 @@ export class AppController {
    */
   async retirePet(): Promise<void> {
     try {
-      const response = await fetch('/api/pet/retire', {
+      const response = await fetch(`${API_BASE}/api/pet/retire`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
       })
