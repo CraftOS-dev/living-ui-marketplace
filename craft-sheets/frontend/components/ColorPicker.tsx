@@ -18,14 +18,17 @@ interface ColorPickerProps {
 
 export function ColorPicker({ icon, label, currentColor, onChange, customColors, onAddCustomColor }: ColorPickerProps) {
   const [isOpen, setIsOpen] = useState(false)
+  const [showCustomInput, setShowCustomInput] = useState(false)
+  const [pendingColor, setPendingColor] = useState('#000000')
   const containerRef = useRef<HTMLDivElement>(null)
-  const colorInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     if (!isOpen) return
     const handler = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node))
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
         setIsOpen(false)
+        setShowCustomInput(false)
+      }
     }
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
@@ -34,7 +37,7 @@ export function ColorPicker({ icon, label, currentColor, onChange, customColors,
   return (
     <div ref={containerRef} style={{ position: 'relative', display: 'inline-flex', flexDirection: 'column', alignItems: 'center' }}>
       <button
-        onClick={() => setIsOpen(o => !o)}
+        onClick={() => { setIsOpen(o => !o); setShowCustomInput(false) }}
         title={label}
         style={{
           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
@@ -57,7 +60,7 @@ export function ColorPicker({ icon, label, currentColor, onChange, customColors,
           boxShadow: '0 4px 12px rgba(0,0,0,0.3)', minWidth: 220,
         }}>
           <button
-            onClick={() => { onChange(null); setIsOpen(false) }}
+            onClick={() => { onChange(null); setIsOpen(false); setShowCustomInput(false) }}
             style={{
               fontSize: 'var(--font-size-xs)', color: 'var(--text-secondary)',
               background: 'transparent', border: '1px solid var(--border-secondary)',
@@ -68,7 +71,7 @@ export function ColorPicker({ icon, label, currentColor, onChange, customColors,
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(10, 18px)', gap: 2 }}>
             {PRESET_COLORS.map(color => (
               <button key={color} title={color}
-                onClick={() => { onChange(color); setIsOpen(false) }}
+                onClick={() => { onChange(color); setIsOpen(false); setShowCustomInput(false) }}
                 style={{ width: 18, height: 18, backgroundColor: color,
                   border: '1px solid var(--border-secondary)', borderRadius: 2, cursor: 'pointer', padding: 0 }} />
             ))}
@@ -78,21 +81,44 @@ export function ColorPicker({ icon, label, currentColor, onChange, customColors,
             <div style={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center' }}>
               {customColors.map((color, i) => (
                 <button key={i} title={color}
-                  onClick={() => { onChange(color); setIsOpen(false) }}
+                  onClick={() => { onChange(color); setIsOpen(false); setShowCustomInput(false) }}
                   style={{ width: 18, height: 18, backgroundColor: color,
                     border: '1px solid var(--border-secondary)', borderRadius: 2, cursor: 'pointer', padding: 0 }} />
               ))}
               <button
-                onClick={() => colorInputRef.current?.click()}
+                onClick={() => setShowCustomInput(v => !v)}
                 title="Add custom color"
                 style={{ width: 18, height: 18, display: 'flex', alignItems: 'center', justifyContent: 'center',
                   border: '1px dashed var(--border-primary)', borderRadius: 2, cursor: 'pointer',
                   color: 'var(--text-secondary)', fontSize: 12, backgroundColor: 'transparent' }}>
                 +
               </button>
-              <input ref={colorInputRef} type="color" style={{ display: 'none' }}
-                onChange={(e) => { onAddCustomColor(e.target.value); onChange(e.target.value); setIsOpen(false) }} />
             </div>
+            {showCustomInput && (
+              <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <input
+                  type="color"
+                  value={pendingColor}
+                  onChange={(e) => setPendingColor(e.target.value)}
+                  style={{ width: 32, height: 28, padding: 2, cursor: 'pointer',
+                    border: '1px solid var(--border-primary)', borderRadius: 4 }}
+                />
+                <div style={{ width: 18, height: 18, borderRadius: 2, flexShrink: 0,
+                  backgroundColor: pendingColor, border: '1px solid var(--border-secondary)' }} />
+                <button
+                  onClick={() => {
+                    onAddCustomColor(pendingColor)
+                    onChange(pendingColor)
+                    setIsOpen(false)
+                    setShowCustomInput(false)
+                  }}
+                  style={{ fontSize: 'var(--font-size-xs)', padding: '2px 8px', cursor: 'pointer',
+                    background: 'var(--color-primary)', color: '#fff',
+                    border: 'none', borderRadius: 'var(--radius-sm)' }}>
+                  Confirm
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
