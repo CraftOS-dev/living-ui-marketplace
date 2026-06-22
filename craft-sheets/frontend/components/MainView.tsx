@@ -205,12 +205,6 @@ export function MainView({ controller }: MainViewProps) {
   const fontColorCell = (color: string | null) =>
     active && applyAndSave(setRangeFormat(active, effectiveRefs, { color: color ?? undefined }))
 
-  const handlePaintBucket = useCallback(() => {
-    if (!active) return
-    const color = getCellFormat(active, selectedRef).bg ?? null
-    applyAndSave(setRangeFormat(active, effectiveRefs, { bg: color }))
-  }, [active, selectedRef, effectiveRefs, applyAndSave])
-
   const handleClearSelection = useCallback(() => {
     if (!active) return
     let next = active
@@ -389,7 +383,6 @@ export function MainView({ controller }: MainViewProps) {
         onAlign={alignCell}
         onBackground={backgroundCell}
         onFontColor={fontColorCell}
-        onPaintBucket={handlePaintBucket}
         onImport={handleImport}
         onExport={handleExport}
       />

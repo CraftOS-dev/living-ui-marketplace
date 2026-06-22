@@ -32,7 +32,6 @@ interface ToolbarProps {
   onAlign: (align: CellAlign) => void
   onBackground: (color: string | null) => void
   onFontColor: (color: string | null) => void
-  onPaintBucket: () => void
   onImport: (file: File) => void
   onExport: (format: 'csv' | 'xlsx') => void
 }
@@ -167,9 +166,6 @@ export function Toolbar(props: ToolbarProps) {
           customColors={customColors}
           onAddCustomColor={handleAddCustomColor}
         />
-        <Button size="sm" variant="ghost" title="Spread fill color to selection" onClick={props.onPaintBucket}>
-          <PaintBucket size={14} />
-        </Button>
         <ColorPicker
           icon={<Type size={14} />}
           label="Font color"

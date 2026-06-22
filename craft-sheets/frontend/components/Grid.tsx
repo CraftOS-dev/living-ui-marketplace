@@ -195,6 +195,44 @@ export function Grid({
     void pos
   }
 
+  const handleCopy = (e: React.ClipboardEvent) => {
+    if (editingRef !== null) return
+    e.preventDefault()
+
+    if (selBounds) {
+      const rows2d: string[][] = []
+      for (let r = selBounds.minRow; r <= selBounds.maxRow; r++) {
+        const row: string[] = []
+        for (let c = selBounds.minCol; c <= selBounds.maxCol; c++)
+          row.push(rawOf(makeRef(c, r)))
+        rows2d.push(row)
+      }
+      e.clipboardData.setData('text/plain', rows2d.map((r) => r.join('\t')).join('\n'))
+      return
+    }
+
+    if (ctrlSelectedRefs.size > 0) {
+      const positions = [...ctrlSelectedRefs]
+        .map((r) => parseRef(r))
+        .filter(Boolean) as { col: number; row: number }[]
+      const minRow = Math.min(...positions.map((p) => p.row))
+      const maxRow = Math.max(...positions.map((p) => p.row))
+      const minCol = Math.min(...positions.map((p) => p.col))
+      const maxCol = Math.max(...positions.map((p) => p.col))
+      const rows2d: string[][] = []
+      for (let r = minRow; r <= maxRow; r++) {
+        const row: string[] = []
+        for (let c = minCol; c <= maxCol; c++)
+          row.push(rawOf(makeRef(c, r)))
+        rows2d.push(row)
+      }
+      e.clipboardData.setData('text/plain', rows2d.map((r) => r.join('\t')).join('\n'))
+      return
+    }
+
+    e.clipboardData.setData('text/plain', rawOf(selectedRef))
+  }
+
   const handlePaste = (e: React.ClipboardEvent) => {
     if (editingRef !== null) return // let the cell input handle its own paste
     e.preventDefault()
@@ -215,6 +253,7 @@ export function Grid({
       ref={containerRef}
       tabIndex={0}
       onKeyDown={onKeyDown}
+      onCopy={handleCopy}
       onPaste={handlePaste}
       role="grid"
       aria-label={`${sheet.name} grid`}
