@@ -285,7 +285,7 @@ export function Grid({
             style={{
               position: 'sticky',
               top: 0,
-              zIndex: 2,
+              zIndex: 20,
               height: CELL_H,
               display: 'flex',
               alignItems: 'center',
@@ -345,7 +345,7 @@ function HeaderCorner() {
         position: 'sticky',
         top: 0,
         left: 0,
-        zIndex: 3,
+        zIndex: 30,
         height: CELL_H,
         backgroundColor: 'var(--bg-tertiary)',
         borderBottom: '1px solid var(--border-primary)',
@@ -384,7 +384,7 @@ function RowCells(props: RowCellsProps) {
         style={{
           position: 'sticky',
           left: 0,
-          zIndex: 1,
+          zIndex: 10,
           height: CELL_H,
           display: 'flex',
           alignItems: 'center',
@@ -495,7 +495,7 @@ function RowCells(props: RowCellsProps) {
                 }}
               />
             ) : (
-              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', position: 'relative', zIndex: 2 }}>
+              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', position: 'relative' }}>
                 {text}
               </span>
             )}
