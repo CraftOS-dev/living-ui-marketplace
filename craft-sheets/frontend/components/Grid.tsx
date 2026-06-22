@@ -127,6 +127,11 @@ export function Grid({
       containerRef.current?.focus()
       return
     }
+    if (e.shiftKey) {
+      onSelectionEnd(ref === selectedRef ? null : ref)
+      containerRef.current?.focus()
+      return
+    }
     isDragging.current = true
     onSelect(ref) // MainView's handleSelect clears selectionEnd + ctrlSelectedRefs
     containerRef.current?.focus()
@@ -389,7 +394,7 @@ function RowCells(props: RowCellsProps) {
               fontWeight: fmt?.bold ? ('var(--font-weight-bold)' as any) : undefined,
               fontStyle: fmt?.italic ? 'italic' : undefined,
               textDecoration: fmt?.underline ? 'underline' : undefined,
-              color: isError ? 'var(--color-error)' : fmt?.bg ? '#1a1a1a' : 'var(--text-primary)',
+              color: isError ? 'var(--color-error)' : (fmt?.color ?? (fmt?.bg ? '#1a1a1a' : 'var(--text-primary)')),
               userSelect: 'none',
             }}
           >
