@@ -167,6 +167,116 @@ export function deleteRow(sheet: Sheet, rowIndex: number): Sheet {
   return { ...sheet, cells, numRows: sheet.numRows - 1 }
 }
 
+// --- multi-cell selection helpers -------------------------------------------
+
+/** All A1 refs in the rectangular range defined by two corner refs. */
+export function getSelectionRefs(anchor: string, end: string): string[] {
+  const a = parseRef(anchor)
+  const b = parseRef(end)
+  if (!a || !b) return [anchor]
+  const minCol = Math.min(a.col, b.col)
+  const maxCol = Math.max(a.col, b.col)
+  const minRow = Math.min(a.row, b.row)
+  const maxRow = Math.max(a.row, b.row)
+  const refs: string[] = []
+  for (let r = minRow; r <= maxRow; r++) {
+    for (let c = minCol; c <= maxCol; c++) {
+      refs.push(makeRef(c, r))
+    }
+  }
+  return refs
+}
+
+/** Apply a format patch to every ref in the list. */
+export function setRangeFormat(sheet: Sheet, refs: string[], format: Partial<CellFormat>): Sheet {
+  let next = sheet
+  for (const ref of refs) {
+    next = setCellFormat(next, ref, format)
+  }
+  return next
+}
+
+// --- paste from clipboard ----------------------------------------------------
+
+/**
+ * Paste a 2-D array of tab-separated values starting at startRef.
+ * Automatically expands numRows / columns when the paste exceeds the grid.
+ */
+export function pasteRange(sheet: Sheet, startRef: string, values: string[][]): Sheet {
+  const start = parseRef(startRef)
+  if (!start || values.length === 0) return sheet
+
+  const pasteRows = values.length
+  const pasteCols = Math.max(...values.map((r) => r.length), 0)
+
+  let next: Sheet = { ...sheet }
+
+  const neededRows = start.row + pasteRows
+  if (neededRows > next.numRows) {
+    next = { ...next, numRows: neededRows }
+  }
+
+  const neededCols = start.col + pasteCols
+  if (neededCols > next.columns.length) {
+    const newCols: Column[] = [...next.columns]
+    while (newCols.length < neededCols) {
+      newCols.push({ name: colLetter(newCols.length), type: 'text', width: DEFAULT_COL_WIDTH })
+    }
+    next = { ...next, columns: newCols }
+  }
+
+  // Clone cells then apply paste values
+  const cells: Record<string, Cell> = {}
+  for (const [k, v] of Object.entries(next.cells)) {
+    cells[k] = { ...v, format: v.format ? { ...v.format } : undefined }
+  }
+  for (let r = 0; r < values.length; r++) {
+    for (let c = 0; c < values[r].length; c++) {
+      const ref = makeRef(start.col + c, start.row + r)
+      const val = values[r][c]
+      const existing = cells[ref] || { raw: '' }
+      cells[ref] = { ...existing, raw: val }
+    }
+  }
+
+  return { ...next, cells }
+}
+
+/** Paste a 2-D array of full cell objects (raw + format) starting at startRef. */
+export function pasteRangeFull(
+  sheet: Sheet,
+  startRef: string,
+  cells: ({ raw: string; format: CellFormat | null })[][]
+): Sheet {
+  const start = parseRef(startRef)
+  if (!start || cells.length === 0) return sheet
+  const pasteRows = cells.length
+  const pasteCols = Math.max(...cells.map((r) => r.length), 0)
+  let next: Sheet = { ...sheet }
+  const neededRows = start.row + pasteRows
+  if (neededRows > next.numRows) next = { ...next, numRows: neededRows }
+  const neededCols = start.col + pasteCols
+  if (neededCols > next.columns.length) {
+    const newCols: Column[] = [...next.columns]
+    while (newCols.length < neededCols)
+      newCols.push({ name: colLetter(newCols.length), type: 'text', width: DEFAULT_COL_WIDTH })
+    next = { ...next, columns: newCols }
+  }
+  const cloned: Record<string, Cell> = {}
+  for (const [k, v] of Object.entries(next.cells))
+    cloned[k] = { ...v, format: v.format ? { ...v.format } : undefined }
+  for (let r = 0; r < cells.length; r++) {
+    for (let c = 0; c < cells[r].length; c++) {
+      const ref = makeRef(start.col + c, start.row + r)
+      const src = cells[r][c]
+      const fmt = src.format ? { ...src.format } : undefined
+      if (src.raw === '' && !fmt) { delete cloned[ref] }
+      else { cloned[ref] = { raw: src.raw, format: fmt } }
+    }
+  }
+  return { ...next, cells: cloned }
+}
+
 /** Delete a column (0-based), shifting columns/cells to its right left by one. */
 export function deleteColumn(sheet: Sheet, colIndex: number): Sheet {
   if (sheet.columns.length <= 1) return sheet

@@ -109,16 +109,18 @@ from fastapi.responses import FileResponse
 
 _DIST_DIR = Path(__file__).parent.parent / "dist"
 _DIST_ASSETS = _DIST_DIR / "assets"
+_CONFIG_DIR = Path(__file__).parent.parent / "config"
+
+
+@app.get("/config/manifest.json")
+async def serve_manifest():
+    manifest = _CONFIG_DIR / "manifest.json"
+    if manifest.exists():
+        return FileResponse(manifest)
+    return {"error": "manifest not found"}
+
+
 if _DIST_DIR.exists() and _DIST_ASSETS.exists():
-    _CONFIG_DIR = Path(__file__).parent.parent / "config"
-
-    @app.get("/config/manifest.json")
-    async def serve_manifest():
-        manifest = _CONFIG_DIR / "manifest.json"
-        if manifest.exists():
-            return FileResponse(manifest)
-        return {"error": "manifest not found"}
-
     app.mount("/assets", StaticFiles(directory=str(_DIST_ASSETS)), name="assets")
 
     @app.get("/{path:path}")
@@ -131,4 +133,4 @@ if _DIST_DIR.exists() and _DIST_ASSETS.exists():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port={{BACKEND_PORT}})
+    uvicorn.run(app, host="0.0.0.0", port=int({{BACKEND_PORT}}))

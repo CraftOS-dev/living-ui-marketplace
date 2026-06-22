@@ -8,6 +8,9 @@ export type CellAlign = 'left' | 'center' | 'right'
 
 export interface CellFormat {
   bold?: boolean
+  italic?: boolean
+  underline?: boolean
+  color?: string
   align?: CellAlign
   bg?: string | null
 }
