@@ -118,6 +118,14 @@
       "folder": "craft-sheets",
       "tags": ["spreadsheet", "productivity", "data", "formulas", "excel"],
       "version": "1.0.0"
+    },
+    {
+      "id": "image-utility",
+      "name": "Image Utility",
+      "description": "Upload an image, crop it interactively, resize, compress, or convert to PNG/JPEG/WEBP, then download the edited file. All processing runs offline on the backend with Pillow.",
+      "folder": "image-utility",
+      "tags": ["image", "editing", "files", "productivity"],
+      "version": "1.0.0"
     }
   ]
 }

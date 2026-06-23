@@ -1,14 +1,14 @@
 {
   "id": "{{PROJECT_ID}}",
-  "name": "{{PROJECT_NAME}}",
+  "name": "Image Utility",
   "version": "1.0.0",
-  "description": "{{PROJECT_DESCRIPTION}}",
+  "description": "Upload an image, crop it interactively, resize, compress, or convert to PNG/JPEG/WEBP, then download the edited file. All processing runs offline on the backend with Pillow.",
   "author": "CraftBot Agent",
   "livingUIVersion": "1.0",
   "features": [],
-  "createdAt": "{{CREATED_AT}}",
+  "createdAt": "2026-06-01T00:00:00",
   "entrypoint": {
-    "frontend": "frontend/main.tsx",
+    "frontend": "src/main.tsx",
     "backend": "backend/main.py"
   },
   "ports": {
