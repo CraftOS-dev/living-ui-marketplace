@@ -12,7 +12,7 @@ Usage:
 
     # Make an authenticated API call
     result = await integration.request(
-        integration="google_workspace",
+        integration="gmail",
         method="GET",
         url="https://www.googleapis.com/youtube/v3/channels?part=snippet&mine=true",
     )

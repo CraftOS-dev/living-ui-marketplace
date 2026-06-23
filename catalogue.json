@@ -126,7 +126,7 @@
       "folder": "email-manager",
       "tags": ["email", "gmail", "productivity", "AI", "kanban"],
       "version": "1.0.0",
-      "requires_integrations": ["google_workspace"]
+      "requires_integrations": ["gmail"]
     }
   ]
 }

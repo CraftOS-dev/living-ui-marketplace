@@ -47,7 +47,7 @@ async def _fetch_column_emails(col: ColumnConfig) -> List[Dict[str, Any]]:
 
     encoded_query = urllib.parse.quote(col.query)
     list_result = await integration.request(
-        integration="google_workspace",
+        integration="gmail",
         method="GET",
         url=f"https://gmail.googleapis.com/gmail/v1/users/me/messages?q={encoded_query}&maxResults=20",
     )
@@ -62,7 +62,7 @@ async def _fetch_column_emails(col: ColumnConfig) -> List[Dict[str, Any]]:
 
     async def fetch_one(msg_id: str) -> Optional[Dict[str, Any]]:
         r = await integration.request(
-            integration="google_workspace",
+            integration="gmail",
             method="GET",
             url=(
                 f"https://gmail.googleapis.com/gmail/v1/users/me/messages/{msg_id}"
@@ -247,9 +247,9 @@ def update_column(
 
 @router.get("/gmail/status")
 async def get_gmail_status() -> Dict[str, Any]:
-    """Check whether the Gmail (google_workspace) integration is connected."""
+    """Check whether the Gmail integration is connected."""
     integrations = await integration.get_integrations()
-    gmail = next((i for i in integrations if i.get("id") == "google_workspace"), None)
+    gmail = next((i for i in integrations if i.get("id") == "gmail"), None)
     connected = gmail is not None and gmail.get("connected", False)
     return {"connected": connected, "email": None}
 
