@@ -6,6 +6,7 @@ export type ThemeId =
   | 'ocean'
   | 'forest'
   | 'pastel'
+  | 'custom'
 
 export interface ThemeVars {
   '--bg-primary': string
@@ -31,16 +32,87 @@ export interface ThemeMeta {
   swatches: [string, string, string, string] // bg, surface, text, accent
 }
 
-export const THEMES: Record<ThemeId, ThemeVars> = {
+export interface CustomColors {
+  bg: string
+  surface: string
+  text: string
+  accent: string
+}
+
+// ── Hex color utilities ──────────────────────────────────────────────────────
+
+function hexToRgb(hex: string): [number, number, number] {
+  const h = hex.replace('#', '')
+  const n = parseInt(h.length === 3 ? h.split('').map(c => c + c).join('') : h, 16)
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255]
+}
+
+function rgbToHex(r: number, g: number, b: number): string {
+  return '#' + [r, g, b].map(v => Math.round(Math.max(0, Math.min(255, v))).toString(16).padStart(2, '0')).join('')
+}
+
+function blendHex(a: string, b: string, t: number): string {
+  const [ar, ag, ab] = hexToRgb(a)
+  const [br, bg, bb] = hexToRgb(b)
+  return rgbToHex(ar + (br - ar) * t, ag + (bg - ag) * t, ab + (bb - ab) * t)
+}
+
+function adjustBrightness(hex: string, amount: number): string {
+  const [r, g, b] = hexToRgb(hex)
+  return rgbToHex(r + amount, g + amount, b + amount)
+}
+
+function luminance(hex: string): number {
+  const [r, g, b] = hexToRgb(hex)
+  return r + g + b // 0–765; < ~200 = dark, ≥ ~200 = light
+}
+
+// ── Custom theme derivation ──────────────────────────────────────────────────
+
+export function buildCustomThemeVars(c: CustomColors): ThemeVars {
+  const isDark = luminance(c.bg) < 200
+  const bgTertiary = blendHex(c.bg, c.surface, 0.5)
+  const textSecondary = blendHex(c.bg, c.text, 0.55)
+  const textMuted = blendHex(c.bg, c.text, 0.32)
+  const borderPrimary = blendHex(c.bg, c.surface, 0.35)
+  const borderSecondary = blendHex(c.bg, c.surface, 0.2)
+  const accentHover = isDark ? adjustBrightness(c.accent, -25) : adjustBrightness(c.accent, 25)
+  const [ar, ag, ab] = hexToRgb(c.accent)
+  const shadowStr = isDark ? '0.4' : '0.08'
+  const shadowMd = isDark ? '0.5' : '0.10'
+  const shadowLg = isDark ? '0.6' : '0.14'
+  return {
+    '--bg-primary': c.bg,
+    '--bg-secondary': c.surface,
+    '--bg-tertiary': bgTertiary,
+    '--text-primary': c.text,
+    '--text-secondary': textSecondary,
+    '--text-muted': textMuted,
+    '--border-primary': borderPrimary,
+    '--border-secondary': borderSecondary,
+    '--color-primary': c.accent,
+    '--color-primary-hover': accentHover,
+    '--color-primary-light': `rgba(${ar},${ag},${ab},0.15)`,
+    '--color-primary-subtle': `rgba(${ar},${ag},${ab},0.08)`,
+    '--shadow-sm': `0 1px 2px rgba(0,0,0,${shadowStr})`,
+    '--shadow-md': `0 4px 6px rgba(0,0,0,${shadowMd})`,
+    '--shadow-lg': `0 10px 15px rgba(0,0,0,${shadowLg})`,
+    '--overlay-color': isDark ? 'rgba(0,0,0,0.6)' : 'rgba(0,0,0,0.4)',
+  }
+}
+
+// ── Preset themes ────────────────────────────────────────────────────────────
+
+export const THEMES: Record<Exclude<ThemeId, 'custom'>, ThemeVars> = {
   craftbot: {
-    '--bg-primary': '#141517',
-    '--bg-secondary': '#1E1F22',
-    '--bg-tertiary': '#252628',
-    '--text-primary': '#F4F4F5',
-    '--text-secondary': '#9FA0A6',
-    '--text-muted': '#6B6C72',
-    '--border-primary': '#34353A',
-    '--border-secondary': '#252628',
+    '--bg-primary': '#191919',
+    '--bg-secondary': '#202020',
+    '--bg-tertiary': '#2A2A2A',
+    '--text-primary': '#E6E6E4',
+    '--text-secondary': '#9A9A97',
+    '--text-muted': '#6A6A67',
+    '--border-primary': '#363636',
+    '--border-secondary': '#2A2A2A',
     '--color-primary': '#FF4F18',
     '--color-primary-hover': '#E64515',
     '--color-primary-light': 'rgba(255,79,24,0.15)',
@@ -160,14 +232,14 @@ export const THEMES: Record<ThemeId, ThemeVars> = {
   },
 }
 
-export const THEME_META: Record<ThemeId, ThemeMeta> = {
-  craftbot:       { label: 'CraftBot',       swatches: ['#141517', '#1E1F22', '#F4F4F5', '#FF4F18'] },
+export const THEME_META: Record<Exclude<ThemeId, 'custom'>, ThemeMeta> = {
+  craftbot:         { label: 'CraftBot',       swatches: ['#191919', '#202020', '#E6E6E4', '#FF4F18'] },
   'craftbot-light': { label: 'CraftBot Light', swatches: ['#F7F7F8', '#FFFFFF', '#141517', '#FF4F18'] },
-  light:          { label: 'Light',          swatches: ['#FFFFFF', '#F5F5F5', '#111111', '#2563EB'] },
-  dark:           { label: 'Dark',           swatches: ['#0A0A0A', '#181818', '#FFFFFF', '#3B82F6'] },
-  ocean:          { label: 'Ocean',          swatches: ['#0F172A', '#1E293B', '#F8FAFC', '#38BDF8'] },
-  forest:         { label: 'Forest',         swatches: ['#0F1A14', '#1B2A21', '#F3F6F4', '#22C55E'] },
-  pastel:         { label: 'Pastel',         swatches: ['#FAF7FF', '#FFFFFF', '#40384D', '#C084FC'] },
+  light:            { label: 'Light',          swatches: ['#FFFFFF', '#F5F5F5', '#111111', '#2563EB'] },
+  dark:             { label: 'Dark',           swatches: ['#0A0A0A', '#181818', '#FFFFFF', '#3B82F6'] },
+  ocean:            { label: 'Ocean',          swatches: ['#0F172A', '#1E293B', '#F8FAFC', '#38BDF8'] },
+  forest:           { label: 'Forest',         swatches: ['#0F1A14', '#1B2A21', '#F3F6F4', '#22C55E'] },
+  pastel:           { label: 'Pastel',         swatches: ['#FAF7FF', '#FFFFFF', '#40384D', '#C084FC'] },
 }
 
 export const THEME_ORDER: ThemeId[] = [
@@ -178,28 +250,56 @@ export const THEME_ORDER: ThemeId[] = [
   'ocean',
   'forest',
   'pastel',
+  'custom',
 ]
 
 export const DEFAULT_THEME_ID: ThemeId = 'craftbot'
 
+export const DEFAULT_CUSTOM_COLORS: CustomColors = {
+  bg: '#191919',
+  surface: '#202020',
+  text: '#E6E6E4',
+  accent: '#FF4F18',
+}
+
+// ── Storage ──────────────────────────────────────────────────────────────────
+
 const STORAGE_KEY = 'living-ui-theme'
+const CUSTOM_COLORS_KEY = 'living-ui-custom-colors'
 
 export function loadStoredTheme(): ThemeId {
   try {
     const stored = localStorage.getItem(STORAGE_KEY)
-    if (stored && stored in THEMES) return stored as ThemeId
+    if (stored && (stored in THEMES || stored === 'custom')) return stored as ThemeId
   } catch {}
   return DEFAULT_THEME_ID
 }
 
 export function saveTheme(id: ThemeId): void {
-  try {
-    localStorage.setItem(STORAGE_KEY, id)
-  } catch {}
+  try { localStorage.setItem(STORAGE_KEY, id) } catch {}
 }
 
-export function applyThemeToDocument(id: ThemeId): void {
-  const vars = THEMES[id]
+export function loadCustomColors(): CustomColors {
+  try {
+    const raw = localStorage.getItem(CUSTOM_COLORS_KEY)
+    if (raw) {
+      const parsed = JSON.parse(raw)
+      if (parsed.bg && parsed.surface && parsed.text && parsed.accent) return parsed
+    }
+  } catch {}
+  return { ...DEFAULT_CUSTOM_COLORS }
+}
+
+export function saveCustomColors(colors: CustomColors): void {
+  try { localStorage.setItem(CUSTOM_COLORS_KEY, JSON.stringify(colors)) } catch {}
+}
+
+// ── Apply ────────────────────────────────────────────────────────────────────
+
+export function applyThemeToDocument(id: ThemeId, customColors?: CustomColors): void {
+  const vars: ThemeVars = id === 'custom'
+    ? buildCustomThemeVars(customColors ?? loadCustomColors())
+    : THEMES[id as Exclude<ThemeId, 'custom'>]
   const styleId = 'theme-widget-vars'
   let el = document.getElementById(styleId) as HTMLStyleElement | null
   if (!el) {
