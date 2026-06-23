@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import {
   AlignCenter,
   AlignLeft,
@@ -7,12 +7,16 @@ import {
   Columns3,
   Download,
   FilePlus2,
+  Italic,
   PaintBucket,
   Rows3,
   Trash2,
+  Type,
+  Underline,
   Upload,
 } from 'lucide-react'
 import { Button, Divider } from './ui'
+import { ColorPicker } from './ColorPicker'
 import type { CellAlign, CellFormat } from '../types'
 
 interface ToolbarProps {
@@ -23,23 +27,35 @@ interface ToolbarProps {
   onDeleteRow: () => void
   onDeleteColumn: () => void
   onToggleBold: () => void
+  onToggleItalic: () => void
+  onToggleUnderline: () => void
   onAlign: (align: CellAlign) => void
   onBackground: (color: string | null) => void
+  onFontColor: (color: string | null) => void
   onImport: (file: File) => void
   onExport: (format: 'csv' | 'xlsx') => void
 }
 
-const SWATCHES = ['#FFF3E0', '#E3F2FD', '#E8F5E9', '#FCE4EC', '#FFFDE7', '#EDE7F6']
-
 function Group({ children }: { children: React.ReactNode }) {
-  // display:contents lets each button wrap individually within the toolbar so
-  // nothing clips on narrow viewports, while keeping a logical grouping in code.
   return <div style={{ display: 'contents' }}>{children}</div>
 }
 
 export function Toolbar(props: ToolbarProps) {
   const fileInput = useRef<HTMLInputElement>(null)
   const align = props.format.align ?? 'left'
+
+  const [customColors, setCustomColors] = useState<string[]>(() => {
+    try { return JSON.parse(localStorage.getItem('craft-sheets-custom-colors') ?? '[]') }
+    catch { return [] }
+  })
+
+  const handleAddCustomColor = (color: string) => {
+    setCustomColors((prev) => {
+      const next = [color, ...prev.filter((c) => c !== color)].slice(0, 10)
+      localStorage.setItem('craft-sheets-custom-colors', JSON.stringify(next))
+      return next
+    })
+  }
 
   return (
     <div
@@ -94,10 +110,26 @@ export function Toolbar(props: ToolbarProps) {
         <Button
           size="sm"
           variant={props.format.bold ? 'primary' : 'ghost'}
-          title="Bold"
+          title="Bold (Ctrl+B)"
           onClick={props.onToggleBold}
         >
           <Bold size={14} />
+        </Button>
+        <Button
+          size="sm"
+          variant={props.format.italic ? 'primary' : 'ghost'}
+          title="Italic (Ctrl+I)"
+          onClick={props.onToggleItalic}
+        >
+          <Italic size={14} />
+        </Button>
+        <Button
+          size="sm"
+          variant={props.format.underline ? 'primary' : 'ghost'}
+          title="Underline (Ctrl+U)"
+          onClick={props.onToggleUnderline}
+        >
+          <Underline size={14} />
         </Button>
         <Button
           size="sm"
@@ -126,30 +158,22 @@ export function Toolbar(props: ToolbarProps) {
       </Group>
 
       <Group>
-        {SWATCHES.map((color) => (
-          <button
-            key={color}
-            title={`Fill ${color}`}
-            onClick={() => props.onBackground(color)}
-            style={{
-              width: 20,
-              height: 20,
-              borderRadius: 'var(--radius-sm)',
-              border: '1px solid var(--border-primary)',
-              backgroundColor: color,
-              cursor: 'pointer',
-              padding: 0,
-            }}
-          />
-        ))}
-        <Button
-          size="sm"
-          variant="ghost"
-          title="Clear fill"
-          onClick={() => props.onBackground(null)}
-        >
-          <PaintBucket size={14} />
-        </Button>
+        <ColorPicker
+          icon={<PaintBucket size={14} />}
+          label="Fill color"
+          currentColor={props.format.bg ?? null}
+          onChange={props.onBackground}
+          customColors={customColors}
+          onAddCustomColor={handleAddCustomColor}
+        />
+        <ColorPicker
+          icon={<Type size={14} />}
+          label="Font color"
+          currentColor={props.format.color ?? null}
+          onChange={props.onFontColor}
+          customColors={customColors}
+          onAddCustomColor={handleAddCustomColor}
+        />
       </Group>
 
       <Divider orientation="vertical" spacing="sm" />
@@ -177,7 +201,7 @@ export function Toolbar(props: ToolbarProps) {
           onChange={(e) => {
             const file = e.target.files?.[0]
             if (file) props.onImport(file)
-            e.target.value = '' // allow re-importing the same file
+            e.target.value = ''
           }}
         />
       </Group>

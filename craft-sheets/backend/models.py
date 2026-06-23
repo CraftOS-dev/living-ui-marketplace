@@ -123,7 +123,7 @@ class Sheet(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(255), nullable=False, default="Sheet 1")
     columns = Column(JSON, default=list)  # [{name, type, width}, ...]
-    num_rows = Column(Integer, default=20)
+    num_rows = Column(Integer, default=30)
     cells = Column(JSON, default=dict)  # {"A1": {"raw": "...", "format": {...}}}
     position = Column(Integer, default=0)  # tab order
     created_at = Column(DateTime, default=datetime.utcnow)

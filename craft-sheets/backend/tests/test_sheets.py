@@ -2,15 +2,15 @@
 
 
 def test_create_sheet_defaults(client):
-    """Creating with just a name gives a default 6x20 grid."""
+    """Creating with just a name gives a default 12x30 grid."""
     resp = client.post("/api/sheets", json={"name": "Budget"})
     assert resp.status_code == 200
     data = resp.json()
     assert data["name"] == "Budget"
     assert "id" in data
-    assert len(data["columns"]) == 6
+    assert len(data["columns"]) == 12
     assert data["columns"][0]["name"] == "A"
-    assert data["numRows"] == 20
+    assert data["numRows"] == 30
     assert data["values"] == {}
 
 
