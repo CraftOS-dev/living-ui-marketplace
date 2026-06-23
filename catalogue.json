@@ -118,6 +118,15 @@
       "folder": "craft-sheets",
       "tags": ["spreadsheet", "productivity", "data", "formulas", "excel"],
       "version": "1.0.0"
+    },
+    {
+      "id": "email-manager",
+      "name": "Email Manager",
+      "description": "Kanban-style Gmail inbox with 5 customizable filter columns, unread counts, and toggleable AI-powered per-column summaries. Requires Gmail integration.",
+      "folder": "email-manager",
+      "tags": ["email", "gmail", "productivity", "AI", "kanban"],
+      "version": "1.0.0",
+      "requires_integrations": ["google_workspace"]
     }
   ]
 }
