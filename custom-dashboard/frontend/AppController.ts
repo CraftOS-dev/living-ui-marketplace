@@ -19,12 +19,18 @@ export class AppController {
   private backendAvailable: boolean = false
 
   async initialize(): Promise<void> {
-    this.backendAvailable = await ApiService.healthCheck()
+    let available = false
+    for (let i = 0; i < 3; i++) {
+      available = await ApiService.healthCheck()
+      if (available) break
+      if (i < 2) await new Promise(r => setTimeout(r, 1000))
+    }
+    this.backendAvailable = available
     this.state = {
       ...this.state,
       initialized: true,
       loading: false,
-      error: this.backendAvailable ? null : 'Backend unavailable',
+      error: available ? null : 'Backend unavailable',
     }
     this.notifyListeners()
   }

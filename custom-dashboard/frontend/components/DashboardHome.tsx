@@ -91,6 +91,10 @@ export function DashboardHome({ controller, navigate }: DashboardHomeProps) {
   )
 
   const loadConfigs = useCallback(async () => {
+    if (!controller.isBackendAvailable()) {
+      setLoading(false)
+      return
+    }
     try {
       const all = await controller.getWidgetConfigs()
       setConfigs(all.sort((a, b) => a.position - b.position))

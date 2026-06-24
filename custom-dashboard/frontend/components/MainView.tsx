@@ -46,6 +46,36 @@ export function MainView({ controller }: MainViewProps) {
     )
   }
 
+  if (appState.error) {
+    return (
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        height: '100vh', flexDirection: 'column',
+        gap: 'var(--space-4)', padding: 'var(--space-8)',
+        textAlign: 'center',
+      }}>
+        <div style={{ fontSize: 48 }}>⚡</div>
+        <h2 style={{ fontSize: 'var(--font-size-xl)', fontWeight: 'var(--font-weight-semibold)' as any, margin: 0 }}>
+          Backend Unavailable
+        </h2>
+        <p style={{ color: 'var(--text-secondary)', maxWidth: 400, margin: 0 }}>
+          The backend server is not reachable. If you&apos;re testing locally, start it with:
+        </p>
+        <code style={{
+          backgroundColor: 'var(--bg-tertiary)',
+          padding: 'var(--space-2) var(--space-4)',
+          borderRadius: 'var(--radius-md)',
+          fontSize: 'var(--font-size-sm)',
+        }}>
+          uvicorn main:app --port 3200
+        </code>
+        <Button variant="primary" onClick={() => controller.refresh()}>
+          Retry
+        </Button>
+      </div>
+    )
+  }
+
   const navigate = (v: DashboardView) => setView(v)
 
   const isWidgetView = view !== 'home' && view !== 'store'
