@@ -111,15 +111,18 @@ If the app needs multiple users, login, teams, or shared data:
 │
 ├── frontend/
 │   ├── main.tsx                # React entry — DO NOT EDIT
-│   ├── App.tsx                 # Root with ToastContainer
+│   ├── App.tsx                 # Root with ToastContainer + ThemeWidget — DO NOT EDIT
 │   ├── AppController.ts        # State management — EDIT
 │   ├── types.ts                # TS interfaces — EDIT
 │   ├── agent/hooks.ts          # `useAgentAware` — DO NOT EDIT
+│   ├── theme/
+│   │   └── themes.ts           # Theme presets + CSS variable injection — DO NOT EDIT
 │   ├── components/
+│   │   ├── ThemeWidget.tsx     # Draggable floating theme switcher — DO NOT EDIT
 │   │   ├── ui/index.tsx        # Preset UI — DO NOT EDIT
 │   │   └── MainView.tsx        # Main view — EDIT
 │   ├── services/               # ApiService, UICapture, etc. — DO NOT EDIT
-│   ├── styles/global.css       # Design tokens
+│   ├── styles/global.css       # Design tokens + CSS variable definitions
 │   └── vite-env.d.ts
 │
 ├── config/manifest.json        # Pipeline config + placeholders
@@ -141,6 +144,54 @@ import { Button, Card, Input, Alert, Table, Modal } from './components/ui'
 ```
 
 **Reference (read before frontend work):** [COMPONENTS.md](../CraftBot/skills/living-ui-creator/references/COMPONENTS.md) — full props, icons (`lucide-react`), toasts (`react-toastify`).
+
+## Theme Widget (MANDATORY)
+
+Every Living UI ships with a draggable floating theme switcher pre-installed from `_template/`. It gives users 7 preset color themes (CraftBot, Ocean, Forest, Pastel, Slate, Rose, CraftBot Light) plus a fully customizable one with live color pickers. The chosen theme is persisted in `localStorage` and survives page reloads.
+
+### What is already in the template
+
+`_template/` ships these files — **do not create, copy, or rewrite them for a new app:**
+
+| File | Purpose |
+|---|---|
+| `frontend/theme/themes.ts` | Theme definitions, CSS variable injection, localStorage helpers |
+| `frontend/components/ThemeWidget.tsx` | The floating palette button + panel UI |
+
+`App.tsx` (copied from `_template/`) already has the import and renders `<ThemeWidget />` as the last child of `<div className="app">`. No wiring is needed for a new app scaffolded from `_template/`.
+
+### If wiring is missing
+
+If you are working with a pre-existing app that predates the theme widget:
+
+```tsx
+// Add to imports in App.tsx
+import { ThemeWidget } from './components/ThemeWidget'
+
+// Add as last child of <div className="app">
+<ThemeWidget />
+```
+
+### Rules for app development
+
+- **Do not modify `themes.ts` or `ThemeWidget.tsx`** for a specific app. These files are shared infrastructure, identical across all apps. Design customization happens through the Custom theme in the widget UI at runtime, not in code.
+- **Never use `z-index` ≥ 600** for any app-specific element (modals, sidebars, overlays, drawers). The theme widget floats at z-index 600 — anything at or above it will permanently cover the widget. The existing token hierarchy is: dropdown 100 → sticky 200 → modal 300 → tooltip 400 → toast 500 → **theme widget 600**.
+- **Never hardcode hex colors** in component styles. Use the CSS custom properties defined in `global.css` — `var(--bg-primary)`, `var(--bg-secondary)`, `var(--color-primary)`, `var(--text-primary)`, etc. These are what the theme widget controls. Hardcoded colors break theming.
+
+### CSS variable reference
+
+The 16 CSS custom properties the theme system drives (all defined in `themes.ts` and declared in `global.css`):
+
+```
+--bg-primary        --bg-secondary       --bg-tertiary
+--text-primary      --text-secondary     --text-muted
+--border-primary    --border-secondary
+--color-primary     --color-primary-hover  --color-primary-light  --color-primary-subtle
+--shadow-sm         --shadow-md          --shadow-lg
+--overlay-color
+```
+
+Use these everywhere color appears in your components.
 
 ## Responsive design (MANDATORY)
 
@@ -492,6 +543,8 @@ The rules below are how you make your routes pass that test. Apply them while wr
 | `backend/routes.py` | API endpoints | Add CRUD operations |
 | `backend/tests/test_<feature>.py` | Pytest tests | Test-first per feature |
 | `frontend/types.ts` | TypeScript types | Match backend models |
+| `frontend/theme/themes.ts` | Theme presets + CSS variable injection | **DO NOT EDIT** |
+| `frontend/components/ThemeWidget.tsx` | Draggable floating theme switcher | **DO NOT EDIT** |
 | `frontend/components/` | UI components | Build the interface |
 | `frontend/AppController.ts` | State management | Connect UI to backend |
 | `frontend/components/MainView.tsx` | Main view | Wire components |
@@ -532,6 +585,12 @@ Items marked **(preserved)** are unchanged from SKILL.md. Items marked **(adapte
 - **`send_message(wait_for_user_reply=True)`** — *(not applicable)*: doesn't exist in this context. During Phase 0, ask the user directly in conversation or use a structured question tool. Do not re-prompt the user during Phases 1–10 unless genuinely blocked.
 - **`living_ui_notify_ready(...)`** — *(not applicable)*: doesn't exist here. Replaced by Phase 10 Marketplace Publish.
 - **Task session ID as `project_id`** — *(not applicable)*: there is no task session ID here; `{{PROJECT_ID}}` stays a placeholder.
+
+### Theme widget additions
+
+- **Never edit `frontend/theme/themes.ts` or `frontend/components/ThemeWidget.tsx`** for a specific app. These are shared infrastructure, identical across all apps. Customize via the Custom theme in the widget at runtime.
+- **Never use `z-index` ≥ 600** for app-specific UI. The theme widget floats at 600; anything above it permanently covers the widget.
+- **Never hardcode hex color values** in component styles — always use the CSS custom properties (`var(--bg-primary)`, `var(--color-primary)`, etc.). The theme widget drives these; hardcoded colors break theming.
 
 ### Marketplace-only additions
 
