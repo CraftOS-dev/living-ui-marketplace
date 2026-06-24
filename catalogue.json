@@ -120,6 +120,14 @@
       "version": "1.0.0"
     },
     {
+      "id": "markdown-tool",
+      "name": "Markdown Editor",
+      "description": "Three-panel markdown workspace: file browser, tabbed raw editor, and live GFM preview. Full file CRUD, resizable collapsible panels, and VSCode-style tabs.",
+      "folder": "markdown-tool",
+      "tags": ["markdown", "editor", "preview", "files", "workspace"],
+      "version": "1.0.0"
+    },
+    {
       "id": "image-utility",
       "name": "Image Utility",
       "description": "Upload an image, crop it interactively, resize, compress, or convert to PNG/JPEG/WEBP, then download the edited file. All processing runs offline on the backend with Pillow.",
