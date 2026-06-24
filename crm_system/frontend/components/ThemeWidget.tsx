@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import {
   THEME_META,
   THEME_ORDER,
+  DEFAULT_CUSTOM_COLORS,
   applyThemeToDocument,
   loadCustomColors,
   loadStoredTheme,
@@ -46,14 +47,28 @@ export function ThemeWidget() {
   const containerRef = useRef<HTMLDivElement>(null)
   const dragStartRef = useRef<{ x: number; y: number } | null>(null)
   const didDragRef = useRef(false)
+  const activeThemeRef = useRef<ThemeId>('craftbot')
+  const customColorsRef = useRef<CustomColors>(DEFAULT_CUSTOM_COLORS)
 
-  // Apply stored theme on mount
+  // Apply stored theme on mount; re-apply after CraftBot parent overrides
   useEffect(() => {
     const id = loadStoredTheme()
     const colors = loadCustomColors()
+    activeThemeRef.current = id
+    customColorsRef.current = colors
     setActiveTheme(id)
     setCustomColors(colors)
     applyThemeToDocument(id, colors)
+
+    const onCraftBotTheme = (e: MessageEvent) => {
+      if (e.data && e.data.type === 'craftbot-theme') {
+        requestAnimationFrame(() =>
+          applyThemeToDocument(activeThemeRef.current, customColorsRef.current)
+        )
+      }
+    }
+    window.addEventListener('message', onCraftBotTheme)
+    return () => window.removeEventListener('message', onCraftBotTheme)
   }, [])
 
   // Click-outside closes panel
@@ -72,6 +87,7 @@ export function ThemeWidget() {
   // ── Theme selection ──────────────────────────────────────────────────────
 
   function selectTheme(id: ThemeId) {
+    activeThemeRef.current = id
     if (id === 'custom') {
       setActiveTheme('custom')
       saveTheme('custom')
@@ -88,6 +104,7 @@ export function ThemeWidget() {
 
   function updateCustomColor(field: keyof CustomColors, value: string) {
     const updated = { ...customColors, [field]: value }
+    customColorsRef.current = updated
     setCustomColors(updated)
     saveCustomColors(updated)
     applyThemeToDocument('custom', updated)

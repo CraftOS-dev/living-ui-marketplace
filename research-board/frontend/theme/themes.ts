@@ -305,10 +305,10 @@ export function applyThemeToDocument(id: ThemeId, customColors?: CustomColors): 
   if (!el) {
     el = document.createElement('style')
     el.id = styleId
-    document.head.appendChild(el)
   }
   const declarations = (Object.keys(vars) as (keyof ThemeVars)[])
     .map((k) => `${k}:${vars[k]}`)
     .join(';')
   el.textContent = `:root{${declarations}}`
+  document.head.appendChild(el)
 }
