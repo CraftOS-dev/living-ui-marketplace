@@ -53,33 +53,36 @@ export function RemindersWidget({ controller, navigate }: RemindersWidgetProps) 
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
-      {reminders.map(r => {
-        const remaining = timeRemaining(r.dueDate, r.dueTime)
-        const isOverdue = remaining === 'Overdue'
-        return (
-          <div key={r.id} style={{
-            display: 'flex', alignItems: 'center', gap: 'var(--space-2)',
-          }}>
-            <Bell size={14} style={{ color: isOverdue ? 'var(--color-error)' : 'var(--color-primary)', flexShrink: 0 }} />
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{
-                fontSize: 'var(--font-size-sm)', color: 'var(--text-primary)',
-                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-              }}>
-                {r.title}
-              </div>
-              <div style={{ fontSize: 'var(--font-size-xs)', color: isOverdue ? 'var(--color-error)' : 'var(--text-muted)' }}>
-                {remaining}
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+        {reminders.map(r => {
+          const remaining = timeRemaining(r.dueDate, r.dueTime)
+          const isOverdue = remaining === 'Overdue'
+          return (
+            <div key={r.id} style={{
+              display: 'flex', alignItems: 'center', gap: 'var(--space-2)',
+            }}>
+              <Bell size={14} style={{ color: isOverdue ? 'var(--color-error)' : 'var(--color-primary)', flexShrink: 0 }} />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{
+                  fontSize: 'var(--font-size-sm)', color: 'var(--text-primary)',
+                  overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                }}>
+                  {r.title}
+                </div>
+                <div style={{ fontSize: 'var(--font-size-xs)', color: isOverdue ? 'var(--color-error)' : 'var(--text-muted)' }}>
+                  {remaining}
+                </div>
               </div>
             </div>
-          </div>
-        )
-      })}
+          )
+        })}
+      </div>
       <button
         onClick={() => navigate('reminders')}
         style={{
-          marginTop: 'var(--space-1)',
+          marginTop: 'auto',
+          paddingTop: 'var(--space-2)',
           fontSize: 'var(--font-size-xs)',
           color: 'var(--color-primary)',
           background: 'none', border: 'none', cursor: 'pointer',

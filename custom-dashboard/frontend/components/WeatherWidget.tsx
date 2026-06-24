@@ -33,6 +33,10 @@ export function getWeatherDesc(code: number | null): string {
   return 'Thunderstorm'
 }
 
+function dayAbbr(dateStr: string): string {
+  return new Date(dateStr + 'T12:00:00').toLocaleDateString([], { weekday: 'short' })
+}
+
 export function WeatherWidget({ controller, navigate }: WeatherWidgetProps) {
   const [weather, setWeather] = useState<WeatherData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -45,7 +49,7 @@ export function WeatherWidget({ controller, navigate }: WeatherWidgetProps) {
 
   if (!weather?.cityName) {
     return (
-      <div style={{ textAlign: 'center', paddingTop: 'var(--space-2)' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100%', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
         <Thermometer size={32} style={{ color: 'var(--text-muted)', marginBottom: 'var(--space-2)' }} />
         <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', marginBottom: 'var(--space-3)' }}>
           Set your city to see weather
@@ -68,13 +72,17 @@ export function WeatherWidget({ controller, navigate }: WeatherWidgetProps) {
     )
   }
 
+  const forecastDays = weather.forecast.slice(1, 3)
+
   return (
-    <div>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-1)', marginBottom: 'var(--space-2)' }}>
         <MapPin size={12} style={{ color: 'var(--text-muted)' }} />
         <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--text-muted)' }}>{weather.cityName}</span>
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
+
+      {/* Current conditions */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', marginBottom: 'var(--space-3)' }}>
         <span style={{ fontSize: 40 }}>{getWeatherIcon(weather.weatherCode)}</span>
         <div>
           <div style={{
@@ -87,14 +95,49 @@ export function WeatherWidget({ controller, navigate }: WeatherWidgetProps) {
           </div>
           <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--text-secondary)', marginTop: 2 }}>
             {getWeatherDesc(weather.weatherCode)}
+            {weather.tempHigh !== null ? ` · H:${Math.round(weather.tempHigh)}° L:${Math.round(weather.tempLow ?? 0)}°` : ''}
           </div>
         </div>
       </div>
-      {weather.tempHigh !== null && (
-        <div style={{ marginTop: 'var(--space-2)', fontSize: 'var(--font-size-xs)', color: 'var(--text-muted)' }}>
-          H: {Math.round(weather.tempHigh)}° · L: {Math.round(weather.tempLow ?? 0)}°
+
+      {/* 2-day forecast */}
+      {forecastDays.length > 0 && (
+        <div style={{ display: 'flex', gap: 'var(--space-2)', marginBottom: 'var(--space-2)' }}>
+          {forecastDays.map(day => (
+            <div key={day.date} style={{
+              flex: 1,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 2,
+              padding: 'var(--space-2)',
+              borderRadius: 'var(--radius-md)',
+              backgroundColor: 'var(--bg-tertiary)',
+            }}>
+              <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--text-muted)', fontWeight: 'var(--font-weight-medium)' as any }}>
+                {dayAbbr(day.date)}
+              </span>
+              <span style={{ fontSize: 20 }}>{getWeatherIcon(day.code)}</span>
+              <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--text-secondary)' }}>
+                {Math.round(day.high)}° / {Math.round(day.low)}°
+              </span>
+            </div>
+          ))}
         </div>
       )}
+
+      <button
+        onClick={() => navigate('weather')}
+        style={{
+          marginTop: 'auto',
+          fontSize: 'var(--font-size-xs)',
+          color: 'var(--color-primary)',
+          background: 'none', border: 'none', cursor: 'pointer',
+          textAlign: 'left', padding: 0,
+        }}
+      >
+        View details →
+      </button>
     </div>
   )
 }

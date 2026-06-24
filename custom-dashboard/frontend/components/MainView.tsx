@@ -11,6 +11,7 @@ import { TodoFull } from './TodoFull'
 import { NotesFull } from './NotesFull'
 import { RemindersFull } from './RemindersFull'
 import { BriefingFull } from './BriefingFull'
+import { SlotFull } from './SlotWidget'
 import { LayoutDashboard, Store, ArrowLeft } from 'lucide-react'
 import { Button } from './ui'
 
@@ -26,6 +27,11 @@ const WIDGET_LABELS: Record<string, string> = {
   notes: 'Notes',
   reminders: 'Reminders',
   briefing: 'Daily Briefing',
+  'slot-1': 'Slot 1',
+  'slot-2': 'Slot 2',
+  'slot-3': 'Slot 3',
+  'slot-4': 'Slot 4',
+  'slot-5': 'Slot 5',
 }
 
 export function MainView({ controller }: MainViewProps) {
@@ -67,7 +73,7 @@ export function MainView({ controller }: MainViewProps) {
           borderRadius: 'var(--radius-md)',
           fontSize: 'var(--font-size-sm)',
         }}>
-          uvicorn main:app --port {{BACKEND_PORT}}
+          {'uvicorn main:app --port {{BACKEND_PORT}}'}
         </code>
         <Button variant="primary" onClick={() => controller.refresh()}>
           Retry
@@ -158,6 +164,11 @@ export function MainView({ controller }: MainViewProps) {
         {view === 'notes' && <NotesFull controller={controller} />}
         {view === 'reminders' && <RemindersFull controller={controller} />}
         {view === 'briefing' && <BriefingFull controller={controller} />}
+        {view === 'slot-1' && <SlotFull controller={controller} slotId="slot-1" />}
+        {view === 'slot-2' && <SlotFull controller={controller} slotId="slot-2" />}
+        {view === 'slot-3' && <SlotFull controller={controller} slotId="slot-3" />}
+        {view === 'slot-4' && <SlotFull controller={controller} slotId="slot-4" />}
+        {view === 'slot-5' && <SlotFull controller={controller} slotId="slot-5" />}
       </main>
     </div>
   )

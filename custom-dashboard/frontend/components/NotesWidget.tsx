@@ -43,33 +43,36 @@ export function NotesWidget({ controller, navigate }: NotesWidgetProps) {
   const preview = note.content ? note.content.slice(0, 120) + (note.content.length > 120 ? '…' : '') : '(empty)'
 
   return (
-    <div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-1)', marginBottom: 'var(--space-2)' }}>
-        {note.pinned && <Pin size={12} style={{ color: 'var(--color-primary)' }} />}
-        <span style={{
-          fontWeight: 'var(--font-weight-semibold)' as any,
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <div style={{ flex: 1 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-1)', marginBottom: 'var(--space-2)' }}>
+          {note.pinned && <Pin size={12} style={{ color: 'var(--color-primary)' }} />}
+          <span style={{
+            fontWeight: 'var(--font-weight-semibold)' as any,
+            fontSize: 'var(--font-size-sm)',
+            color: 'var(--text-primary)',
+            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+          }}>
+            {note.title}
+          </span>
+        </div>
+        <div style={{
           fontSize: 'var(--font-size-sm)',
-          color: 'var(--text-primary)',
-          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-        }}>
-          {note.title}
-        </span>
-      </div>
-      <div style={{
-        fontSize: 'var(--font-size-sm)',
-        color: 'var(--text-secondary)',
-        lineHeight: 'var(--line-height-relaxed)',
-        display: '-webkit-box',
-        WebkitLineClamp: 3,
-        WebkitBoxOrient: 'vertical',
-        overflow: 'hidden',
-      } as any}>
-        {preview}
+          color: 'var(--text-secondary)',
+          lineHeight: 'var(--line-height-relaxed)',
+          display: '-webkit-box',
+          WebkitLineClamp: 3,
+          WebkitBoxOrient: 'vertical',
+          overflow: 'hidden',
+        } as any}>
+          {preview}
+        </div>
       </div>
       <button
         onClick={() => navigate('notes')}
         style={{
-          marginTop: 'var(--space-2)',
+          marginTop: 'auto',
+          paddingTop: 'var(--space-2)',
           fontSize: 'var(--font-size-xs)',
           color: 'var(--color-primary)',
           background: 'none', border: 'none', cursor: 'pointer', padding: 0,

@@ -36,12 +36,12 @@ export function CalendarWidget({ controller, navigate }: CalendarWidgetProps) {
   const t = today()
   const todayLabel = new Date().toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })
 
-  return (
-    <div>
-      <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--text-muted)', marginBottom: 'var(--space-2)' }}>
-        {todayLabel}
-      </div>
-      {events.length === 0 ? (
+  if (events.length === 0) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+        <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--text-muted)', marginBottom: 'var(--space-2)' }}>
+          {todayLabel}
+        </div>
         <EmptyState
           icon={<CalendarDays size={24} />}
           message="No upcoming events"
@@ -54,38 +54,58 @@ export function CalendarWidget({ controller, navigate }: CalendarWidgetProps) {
             </button>
           }
         />
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
-          {events.map(event => (
-            <div key={event.id} style={{
-              display: 'flex',
-              alignItems: 'flex-start',
-              gap: 'var(--space-2)',
-              padding: 'var(--space-2)',
-              borderRadius: 'var(--radius-md)',
-              backgroundColor: 'var(--bg-tertiary)',
-            }}>
+      </div>
+    )
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--text-muted)', marginBottom: 'var(--space-2)' }}>
+        {todayLabel}
+      </div>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+        {events.map(event => (
+          <div key={event.id} style={{
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: 'var(--space-2)',
+            padding: 'var(--space-2)',
+            borderRadius: 'var(--radius-md)',
+            backgroundColor: 'var(--bg-tertiary)',
+          }}>
+            <div style={{
+              width: 3, height: 36, borderRadius: 2,
+              backgroundColor: event.color ?? 'var(--color-primary)',
+              flexShrink: 0,
+            }} />
+            <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{
-                width: 3, height: 36, borderRadius: 2,
-                backgroundColor: event.color ?? 'var(--color-primary)',
-                flexShrink: 0,
-              }} />
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{
-                  fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)' as any,
-                  color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                }}>
-                  {event.title}
-                </div>
-                <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--text-muted)' }}>
-                  {event.eventDate === t ? 'Today' : event.eventDate}
-                  {event.startTime ? ` · ${event.startTime}` : ''}
-                </div>
+                fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)' as any,
+                color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+              }}>
+                {event.title}
+              </div>
+              <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--text-muted)' }}>
+                {event.eventDate === t ? 'Today' : event.eventDate}
+                {event.startTime ? ` · ${event.startTime}` : ''}
               </div>
             </div>
-          ))}
-        </div>
-      )}
+          </div>
+        ))}
+      </div>
+      <button
+        onClick={() => navigate('calendar')}
+        style={{
+          marginTop: 'auto',
+          paddingTop: 'var(--space-2)',
+          fontSize: 'var(--font-size-xs)',
+          color: 'var(--color-primary)',
+          background: 'none', border: 'none', cursor: 'pointer',
+          textAlign: 'left', padding: 0,
+        }}
+      >
+        View all →
+      </button>
     </div>
   )
 }

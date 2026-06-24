@@ -19,7 +19,8 @@ import httpx
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
-WIDGET_IDS = ["clock", "weather", "calendar", "todos", "notes", "reminders", "briefing"]
+WIDGET_IDS = ["clock", "weather", "calendar", "todos", "notes", "reminders", "briefing",
+              "slot-1", "slot-2", "slot-3", "slot-4", "slot-5"]
 
 
 # ============================================================================
@@ -227,9 +228,9 @@ def update_widget_config(
     if update.position is not None:
         config.position = update.position
     if update.widget_settings is not None:
-        current = config.widget_settings or {}
-        current.update(update.widget_settings)
-        config.widget_settings = current
+        merged = dict(config.widget_settings or {})
+        merged.update(update.widget_settings)
+        config.widget_settings = merged
     config.updated_at = datetime.utcnow()
     db.commit()
     db.refresh(config)

@@ -51,12 +51,12 @@ export function BriefingWidget({ controller, navigate }: BriefingWidgetProps) {
   const preview = briefing.content.slice(0, 150) + (briefing.content.length > 150 ? '…' : '')
 
   return (
-    <div>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <div style={{
+        flex: 1,
         fontSize: 'var(--font-size-sm)',
         color: 'var(--text-secondary)',
         lineHeight: 'var(--line-height-relaxed)',
-        marginBottom: 'var(--space-2)',
         display: '-webkit-box',
         WebkitLineClamp: 4,
         WebkitBoxOrient: 'vertical',
@@ -64,7 +64,7 @@ export function BriefingWidget({ controller, navigate }: BriefingWidgetProps) {
       } as any}>
         {preview}
       </div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', paddingTop: 'var(--space-2)' }}>
         <button
           onClick={() => navigate('briefing')}
           style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-primary)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}

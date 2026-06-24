@@ -10,6 +10,7 @@ export interface AppState {
 }
 
 export type WidgetId = 'clock' | 'weather' | 'calendar' | 'todos' | 'notes' | 'reminders' | 'briefing'
+  | 'slot-1' | 'slot-2' | 'slot-3' | 'slot-4' | 'slot-5'
 
 export type DashboardView = 'home' | 'store' | WidgetId
 

@@ -10,9 +10,9 @@ interface ClockWidgetProps {
 
 function formatTime(date: Date, use24h: boolean): string {
   if (use24h) {
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })
   }
-  return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true })
+  return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true })
 }
 
 function formatDate(date: Date): string {

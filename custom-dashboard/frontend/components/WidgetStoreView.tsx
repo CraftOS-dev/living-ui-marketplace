@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import type { AppController } from '../AppController'
 import type { WidgetConfig, WidgetId } from '../types'
 import { Card, Toggle } from './ui'
-import { Clock, Cloud, CalendarDays, CheckSquare, FileText, Bell, Sparkles } from 'lucide-react'
+import { Clock, Cloud, CalendarDays, CheckSquare, FileText, Bell, Sparkles, Box } from 'lucide-react'
 import { toast } from 'react-toastify'
 
 interface WidgetStoreViewProps {
@@ -17,6 +17,11 @@ const WIDGET_INFO: Record<WidgetId, { label: string; description: string; icon: 
   notes:     { label: 'Notes',         description: 'Quick notes scratchpad with multi-note support and auto-save.',     icon: <FileText size={20} /> },
   reminders: { label: 'Reminders',     description: 'Set reminders with due dates and track upcoming deadlines.',       icon: <Bell size={20} /> },
   briefing:  { label: 'Daily Briefing',description: 'AI-generated summary of your day: tasks, reminders, and weather.', icon: <Sparkles size={20} /> },
+  'slot-1':  { label: 'Slot 1',         description: 'Empty placeholder widget slot.',                                   icon: <Box size={20} /> },
+  'slot-2':  { label: 'Slot 2',         description: 'Empty placeholder widget slot.',                                   icon: <Box size={20} /> },
+  'slot-3':  { label: 'Slot 3',         description: 'Empty placeholder widget slot.',                                   icon: <Box size={20} /> },
+  'slot-4':  { label: 'Slot 4',         description: 'Empty placeholder widget slot.',                                   icon: <Box size={20} /> },
+  'slot-5':  { label: 'Slot 5',         description: 'Empty placeholder widget slot.',                                   icon: <Box size={20} /> },
 }
 
 export function WidgetStoreView({ controller }: WidgetStoreViewProps) {

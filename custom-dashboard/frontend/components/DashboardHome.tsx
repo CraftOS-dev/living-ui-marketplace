@@ -26,8 +26,9 @@ import { TodoWidget } from './TodoWidget'
 import { NotesWidget } from './NotesWidget'
 import { RemindersWidget } from './RemindersWidget'
 import { BriefingWidget } from './BriefingWidget'
+import { SlotWidget } from './SlotWidget'
 import { EmptyState } from './ui'
-import { Clock, Cloud, CalendarDays, CheckSquare, FileText, Bell, Sparkles, Store } from 'lucide-react'
+import { Clock, Cloud, CalendarDays, CheckSquare, FileText, Bell, Sparkles, Store, Box } from 'lucide-react'
 
 interface DashboardHomeProps {
   controller: AppController
@@ -42,6 +43,11 @@ const WIDGET_META: Record<string, { label: string; icon: React.ReactNode; compon
   notes:     { label: 'Notes',         icon: <FileText size={14} />,    component: NotesWidget },
   reminders: { label: 'Reminders',     icon: <Bell size={14} />,        component: RemindersWidget },
   briefing:  { label: 'Daily Briefing',icon: <Sparkles size={14} />,    component: BriefingWidget },
+  'slot-1':  { label: 'Slot 1',         icon: <Box size={14} />,         component: SlotWidget },
+  'slot-2':  { label: 'Slot 2',         icon: <Box size={14} />,         component: SlotWidget },
+  'slot-3':  { label: 'Slot 3',         icon: <Box size={14} />,         component: SlotWidget },
+  'slot-4':  { label: 'Slot 4',         icon: <Box size={14} />,         component: SlotWidget },
+  'slot-5':  { label: 'Slot 5',         icon: <Box size={14} />,         component: SlotWidget },
 }
 
 interface SortableWidgetProps {
