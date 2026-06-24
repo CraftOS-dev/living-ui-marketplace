@@ -134,6 +134,14 @@
       "folder": "image-utility",
       "tags": ["image", "editing", "files", "productivity"],
       "version": "1.0.0"
+    },
+    {
+      "id": "custom-dashboard",
+      "name": "Personal Dashboard",
+      "description": "Customizable homepage with 7 drag-and-drop widgets: live clock, real-time weather (Open-Meteo), calendar with month grid, to-do list with priorities, notes with auto-save, reminders with time-remaining, and an AI daily briefing via CraftBot LLM.",
+      "folder": "custom-dashboard",
+      "tags": ["dashboard", "productivity", "widgets", "homepage", "AI", "weather"],
+      "version": "1.0.0"
     }
   ]
 }
