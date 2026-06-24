@@ -2,11 +2,11 @@
 
 
 def test_get_widget_configs_creates_defaults(client):
-    """GET /widget-configs should create 7 default configs if none exist."""
+    """GET /widget-configs should create 12 default configs if none exist."""
     response = client.get("/api/widget-configs")
     assert response.status_code == 200
     data = response.json()
-    assert len(data) == 7
+    assert len(data) == 12
     widget_ids = {w["widgetId"] for w in data}
     assert "clock" in widget_ids
     assert "weather" in widget_ids
@@ -18,7 +18,7 @@ def test_get_widget_configs_idempotent(client):
     client.get("/api/widget-configs")
     response = client.get("/api/widget-configs")
     assert response.status_code == 200
-    assert len(response.json()) == 7
+    assert len(response.json()) == 12
 
 
 def test_update_widget_config_enabled(client):
