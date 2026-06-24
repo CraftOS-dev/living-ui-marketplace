@@ -5,6 +5,7 @@ import { MainView } from './components/MainView'
 import { AppController } from './AppController'
 import { uiCapture } from './services/UICapture'
 import { AuthProvider, useAuth } from './components/auth/AuthProvider'
+import { ThemeWidget } from './components/ThemeWidget'
 import { LoginPage } from './components/auth/LoginPage'
 import { RegisterPage } from './components/auth/RegisterPage'
 
@@ -53,6 +54,7 @@ function App() {
           pauseOnHover
           theme="colored"
         />
+        <ThemeWidget />
       </div>
     </AuthProvider>
   )

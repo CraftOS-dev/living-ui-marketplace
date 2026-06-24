@@ -4,6 +4,7 @@ import 'react-toastify/dist/ReactToastify.css'
 import { MainView } from './components/MainView'
 import { AppController } from './AppController'
 import { uiCapture } from './services/UICapture'
+import { ThemeWidget } from './components/ThemeWidget'
 
 // Initialize the controller (auto-loads documents in constructor)
 const controller = new AppController()
@@ -33,6 +34,7 @@ function App() {
         pauseOnHover
         theme="colored"
       />
+      <ThemeWidget />
     </div>
   )
 }
