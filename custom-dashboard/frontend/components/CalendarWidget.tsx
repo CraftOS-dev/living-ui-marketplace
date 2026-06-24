@@ -38,7 +38,7 @@ export function CalendarWidget({ controller, navigate }: CalendarWidgetProps) {
 
   if (events.length === 0) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
         <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--text-muted)', marginBottom: 'var(--space-2)' }}>
           {todayLabel}
         </div>
@@ -59,7 +59,7 @@ export function CalendarWidget({ controller, navigate }: CalendarWidgetProps) {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
       <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--text-muted)', marginBottom: 'var(--space-2)' }}>
         {todayLabel}
       </div>
@@ -97,11 +97,11 @@ export function CalendarWidget({ controller, navigate }: CalendarWidgetProps) {
         onClick={() => navigate('calendar')}
         style={{
           marginTop: 'auto',
-          paddingTop: 'var(--space-2)',
+          padding: 'var(--space-2) 0 0 0',
           fontSize: 'var(--font-size-xs)',
           color: 'var(--color-primary)',
           background: 'none', border: 'none', cursor: 'pointer',
-          textAlign: 'left', padding: 0,
+          textAlign: 'left',
         }}
       >
         View all →

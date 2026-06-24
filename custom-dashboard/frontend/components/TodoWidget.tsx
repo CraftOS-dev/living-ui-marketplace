@@ -57,7 +57,7 @@ export function TodoWidget({ controller, navigate }: TodoWidgetProps) {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 'var(--space-1)' }}>
         {tasks.map(task => (
           <div key={task.id} style={{
@@ -86,11 +86,11 @@ export function TodoWidget({ controller, navigate }: TodoWidgetProps) {
         onClick={() => navigate('todos')}
         style={{
           marginTop: 'auto',
-          paddingTop: 'var(--space-2)',
+          padding: 'var(--space-2) 0 0 0',
           fontSize: 'var(--font-size-xs)',
           color: 'var(--color-primary)',
           background: 'none', border: 'none', cursor: 'pointer',
-          textAlign: 'left', padding: 0,
+          textAlign: 'left',
         }}
       >
         View all tasks →

@@ -53,7 +53,7 @@ export function RemindersWidget({ controller, navigate }: RemindersWidgetProps) 
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
         {reminders.map(r => {
           const remaining = timeRemaining(r.dueDate, r.dueTime)
@@ -82,11 +82,11 @@ export function RemindersWidget({ controller, navigate }: RemindersWidgetProps) 
         onClick={() => navigate('reminders')}
         style={{
           marginTop: 'auto',
-          paddingTop: 'var(--space-2)',
+          padding: 'var(--space-2) 0 0 0',
           fontSize: 'var(--font-size-xs)',
           color: 'var(--color-primary)',
           background: 'none', border: 'none', cursor: 'pointer',
-          textAlign: 'left', padding: 0,
+          textAlign: 'left',
         }}
       >
         View all →

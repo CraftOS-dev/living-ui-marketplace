@@ -43,7 +43,7 @@ export function NotesWidget({ controller, navigate }: NotesWidgetProps) {
   const preview = note.content ? note.content.slice(0, 120) + (note.content.length > 120 ? '…' : '') : '(empty)'
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
       <div style={{ flex: 1 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-1)', marginBottom: 'var(--space-2)' }}>
           {note.pinned && <Pin size={12} style={{ color: 'var(--color-primary)' }} />}
@@ -72,10 +72,10 @@ export function NotesWidget({ controller, navigate }: NotesWidgetProps) {
         onClick={() => navigate('notes')}
         style={{
           marginTop: 'auto',
-          paddingTop: 'var(--space-2)',
+          padding: 'var(--space-2) 0 0 0',
           fontSize: 'var(--font-size-xs)',
           color: 'var(--color-primary)',
-          background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+          background: 'none', border: 'none', cursor: 'pointer',
         }}
       >
         Open notes →

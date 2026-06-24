@@ -49,7 +49,7 @@ export function WeatherWidget({ controller, navigate }: WeatherWidgetProps) {
 
   if (!weather?.cityName) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', height: '100%', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', flex: 1, alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
         <Thermometer size={32} style={{ color: 'var(--text-muted)', marginBottom: 'var(--space-2)' }} />
         <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', marginBottom: 'var(--space-3)' }}>
           Set your city to see weather
@@ -72,13 +72,19 @@ export function WeatherWidget({ controller, navigate }: WeatherWidgetProps) {
     )
   }
 
-  const forecastDays = weather.forecast.slice(1, 3)
+  const forecastDays = weather.forecast.slice(0, 2)
+  const todayName = new Date().toLocaleDateString([], { weekday: 'long' })
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-1)', marginBottom: 'var(--space-2)' }}>
         <MapPin size={12} style={{ color: 'var(--text-muted)' }} />
         <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--text-muted)' }}>{weather.cityName}</span>
+      </div>
+
+      {/* Today label */}
+      <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--text-muted)', fontWeight: 'var(--font-weight-medium)' as any, marginBottom: 4 }}>
+        Today · {todayName}
       </div>
 
       {/* Current conditions */}

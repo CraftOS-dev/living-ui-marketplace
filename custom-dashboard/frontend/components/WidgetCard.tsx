@@ -37,7 +37,7 @@ export function WidgetCard({ title, icon, onExpand, children, dragHandleProps }:
         >
           <GripVertical size={14} />
         </span>
-        <span style={{ color: 'var(--color-primary)', display: 'flex' }}>{icon}</span>
+        <span style={{ color: 'var(--color-primary)', display: 'flex', width: 16, height: 16, alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{icon}</span>
         <span style={{
           flex: 1,
           fontWeight: 'var(--font-weight-semibold)' as any,
@@ -67,7 +67,7 @@ export function WidgetCard({ title, icon, onExpand, children, dragHandleProps }:
       </div>
 
       {/* Content */}
-      <div style={{ flex: 1, padding: 'var(--space-3)', overflow: 'hidden' }}>
+      <div style={{ flex: 1, padding: 'var(--space-3)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
         {children}
       </div>
     </div>
