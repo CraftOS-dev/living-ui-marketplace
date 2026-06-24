@@ -141,7 +141,7 @@ export function ThemeWidget() {
   function getContainerStyle(): React.CSSProperties {
     const base: React.CSSProperties = {
       position: 'fixed',
-      zIndex: 300,
+      zIndex: 600,
       userSelect: 'none',
     }
     if (dragging && dragPos) {
