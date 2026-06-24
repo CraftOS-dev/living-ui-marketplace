@@ -67,7 +67,7 @@ export function MainView({ controller }: MainViewProps) {
           borderRadius: 'var(--radius-md)',
           fontSize: 'var(--font-size-sm)',
         }}>
-          uvicorn main:app --port 3200
+          uvicorn main:app --port {{BACKEND_PORT}}
         </code>
         <Button variant="primary" onClick={() => controller.refresh()}>
           Retry

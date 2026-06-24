@@ -1,6 +1,6 @@
-# Personal Dashboard
+# {{PROJECT_NAME}}
 
-Your customizable personal homepage with widgets for clock, weather, calendar, tasks, notes, reminders, and daily briefing
+{{PROJECT_DESCRIPTION}}
 
 ## Overview
 

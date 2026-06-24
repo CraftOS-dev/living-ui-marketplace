@@ -1,7 +1,7 @@
 {
-  "name": "Personal Dashboard",
+  "name": "{{PROJECT_NAME}}",
   "version": "1.0.0",
-  "description": "Your customizable personal homepage with widgets for clock, weather, calendar, tasks, notes, reminders, and daily briefing",
+  "description": "{{PROJECT_DESCRIPTION}}",
   "type": "module",
   "scripts": {
     "dev": "vite",

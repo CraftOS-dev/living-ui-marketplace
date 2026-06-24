@@ -34,7 +34,7 @@ export class StatePersistence<T extends Record<string, unknown>> {
    * @param options - Configuration options
    */
   constructor(
-    projectId: string = 'local-dev',
+    projectId: string = '{{PROJECT_ID}}',
     namespace: string = 'state',
     options: PersistenceOptions = {}
   ) {
@@ -158,18 +158,18 @@ export const uiPreferences = new StatePersistence<{
   sidebarWidth: number
   fontSize: number
   [key: string]: unknown
-}>('local-dev', 'ui-prefs', { debounceMs: 1000 })
+}>('{{PROJECT_ID}}', 'ui-prefs', { debounceMs: 1000 })
 
 /**
  * Draft/temporary data persistence
  */
 export const draftStorage = new StatePersistence<{
   [key: string]: unknown
-}>('local-dev', 'drafts', { debounceMs: 300 })
+}>('{{PROJECT_ID}}', 'drafts', { debounceMs: 300 })
 
 /**
  * Cache for backend data (faster initial load)
  */
 export const stateCache = new StatePersistence<{
   [key: string]: unknown
-}>('local-dev', 'cache', { debounceMs: 1000 })
+}>('{{PROJECT_ID}}', 'cache', { debounceMs: 1000 })
