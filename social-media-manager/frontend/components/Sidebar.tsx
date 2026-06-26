@@ -294,7 +294,7 @@ export function Sidebar({ controller, state }: SidebarProps) {
           {(aiGroupOpen || collapsed) && (
             <>
               {([
-                { section: 'hooks' as const, label: 'Hook Creator', icon: <Zap size={16} /> },
+                { section: 'hooks' as const, label: 'Post Creator', icon: <Zap size={16} /> },
                 { section: 'humanizer' as const, label: 'Humanizer', icon: <Wand2 size={16} /> },
                 { section: 'insights' as const, label: 'Insights', icon: <MessageSquare size={16} /> },
               ] as { section: import('../types').ActiveSection; label: string; icon: React.ReactNode }[]).map(({ section, label, icon }) => {

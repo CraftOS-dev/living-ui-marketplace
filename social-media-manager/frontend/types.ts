@@ -79,6 +79,7 @@ export interface AppState {
   integrations: IntegrationsStatus | null
   analyticsSummary: AnalyticsSummary[]
   prefilledTool: PrefilledTool | null
+  composerPrefill: { text: string; platform: Platform } | null
   ideas: Idea[]
   hashtagSets: HashtagSet[]
   [key: string]: unknown

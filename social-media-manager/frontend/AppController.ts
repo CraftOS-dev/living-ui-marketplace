@@ -45,6 +45,7 @@ export class AppController {
     integrations: null,
     analyticsSummary: [],
     prefilledTool: null,
+    composerPrefill: null,
     ideas: [],
     hashtagSets: [],
   }
@@ -394,10 +395,18 @@ export class AppController {
     this.update({ prefilledTool: { tool, text, platform }, activeSection: tool })
   }
 
+  sendToComposer(text: string, platform: Platform): void {
+    this.update({ composerPrefill: { text, platform }, activeSection: 'composer' })
+  }
+
+  consumeComposerPrefill(): void {
+    this.update({ composerPrefill: null })
+  }
+
   async generateHooks(
     topic: string,
     platform: Platform,
-    opts?: { audience?: string; tone?: string; goal?: string; count?: number }
+    opts?: { description?: string; audience?: string; tone?: string; goal?: string; count?: number }
   ): Promise<HookResult[]> {
     try {
       const res = await apiFetch<{ status: string; hooks: HookResult[] }>('/ai/generate-hooks', {
@@ -408,6 +417,24 @@ export class AppController {
       return res.hooks || []
     } catch {
       return []
+    }
+  }
+
+  async generatePost(
+    topic: string,
+    hook: string,
+    platform: Platform,
+    opts?: { description?: string; audience?: string; tone?: string; goal?: string }
+  ): Promise<string> {
+    try {
+      const res = await apiFetch<{ status: string; post: string }>('/ai/generate-post', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ topic, hook, platform, ...opts }),
+      })
+      return res.post || ''
+    } catch {
+      return ''
     }
   }
 

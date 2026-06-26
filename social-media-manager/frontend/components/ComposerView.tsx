@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Bird, Linkedin, Youtube, Image, Sparkles, Send, Clock, X, Zap, Wand2 } from 'lucide-react'
 import { Button, Textarea } from './ui'
 import { PlatformPreview } from './PlatformPreview'
@@ -31,6 +31,16 @@ export function ComposerView({ controller, state }: ComposerViewProps) {
   const [uploading, setUploading] = useState(false)
   const [aiModalOpen, setAiModalOpen] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
+
+  // Seed from a "Use in Post" handoff (e.g. Post Creator), then clear it so it applies once.
+  useEffect(() => {
+    const pf = state.composerPrefill
+    if (!pf) return
+    setGlobalContent(pf.text)
+    setSelectedPlatforms(new Set([pf.platform]))
+    setActivePlatform(pf.platform)
+    controller.consumeComposerPrefill()
+  }, [state.composerPrefill])
 
   const selectedList = Array.from(selectedPlatforms)
 

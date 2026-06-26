@@ -61,11 +61,22 @@ class CaptionRequest(BaseModel):
 
 class HookRequest(BaseModel):
     topic: str
+    description: Optional[str] = None
     platform: Platform
     audience: str = "general audience"
     tone: Literal["professional", "casual", "playful", "persuasive", "edgy"] = "casual"
     goal: Literal["grow_followers", "drive_clicks", "drive_dms", "increase_saves", "spark_debate"] = "grow_followers"
     count: int = Field(default=5, ge=3, le=7)
+
+
+class PostRequest(BaseModel):
+    topic: str
+    hook: str
+    description: Optional[str] = None
+    platform: Platform
+    audience: str = "general audience"
+    tone: Literal["professional", "casual", "playful", "persuasive", "edgy"] = "casual"
+    goal: Literal["grow_followers", "drive_clicks", "drive_dms", "increase_saves", "spark_debate"] = "grow_followers"
 
 
 class HumanizeRequest(BaseModel):
@@ -726,6 +737,20 @@ async def generate_caption(data: CaptionRequest) -> Dict[str, Any]:
 # AI Writing Suite
 # ============================================================================
 
+# Shared so hooks and full posts come out sounding human in the same generation pass.
+HUMANIZE_RULES = (
+    "Sound authentically human, not AI-generated:\n"
+    "- Vary sentence length. Short punches. Then longer elaborations.\n"
+    "- Avoid AI-tell words: leverage, delve, multifaceted, navigate, facilitate, ensure, "
+    "realm, intricate, foster, pivotal, comprehensive, tapestry, robust, crucial, imperative, innovative.\n"
+    "- No 'not only X but also Y' parallel constructions.\n"
+    "- No hollow openers ('In today's world', 'It's important to note', 'In conclusion').\n"
+    "- Take one clear, non-hedged stance. Prefer specifics over vague claims. Never invent facts."
+)
+PLATFORM_NAMES = {"twitter": "Twitter/X", "linkedin": "LinkedIn", "google_youtube": "YouTube"}
+PLATFORM_CHAR_LIMITS = {"twitter": 280, "linkedin": 3000, "google_youtube": 10000}
+
+
 @router.post("/ai/generate-hooks")
 async def generate_hooks(data: HookRequest) -> Dict[str, Any]:
     from services.integration_client import integration
@@ -739,8 +764,10 @@ async def generate_hooks(data: HookRequest) -> Dict[str, Any]:
         "google_youtube": "written as a spoken sentence (the first thing viewers hear)",
     }.get(data.platform, "")
 
+    description_line = f"Post description: {data.description}\n" if data.description else ""
     prompt = (
         f"Topic: {data.topic}\n"
+        f"{description_line}"
         f"Platform: {platform_name} — {platform_constraints}\n"
         f"Audience: {data.audience}\n"
         f"Tone: {data.tone}\n"
@@ -754,6 +781,7 @@ async def generate_hooks(data: HookRequest) -> Dict[str, Any]:
         "Data/Number (statistics/counts), Curiosity Gap (information asymmetry), "
         "Problem-Solution (pain + resolution), Social Proof (authority/results), "
         "Contrarian (challenges advice), Story (narrative opening), Question (direct address). "
+        f"{HUMANIZE_RULES} "
         "Return ONLY valid JSON array, no markdown fences: "
         '[{"hook":"...","framework":"Data/Number","explanation":"one sentence why it works"}]'
     )
@@ -771,6 +799,43 @@ async def generate_hooks(data: HookRequest) -> Dict[str, Any]:
     except Exception as e:
         logger.warning("[Routes] generate-hooks failed: %s", e)
         return {"status": "error", "hooks": [], "message": str(e)}
+
+
+@router.post("/ai/generate-post")
+async def generate_post(data: PostRequest) -> Dict[str, Any]:
+    from services.integration_client import integration
+    if not integration.available:
+        return {"status": "unavailable", "post": ""}
+
+    platform_name = PLATFORM_NAMES.get(data.platform, data.platform)
+    limit = PLATFORM_CHAR_LIMITS.get(data.platform, 3000)
+
+    description_line = f"Post description: {data.description}\n" if data.description else ""
+    prompt = (
+        f"Chosen hook (open with this, refine only if needed): {data.hook}\n"
+        f"Topic: {data.topic}\n"
+        f"{description_line}"
+        f"Platform: {platform_name} (max {limit} characters)\n"
+        f"Audience: {data.audience}\n"
+        f"Tone: {data.tone}\n"
+        f"Goal: {data.goal}\n\n"
+        "Write the full post."
+    )
+    system = (
+        f"You are an expert social media copywriter for {platform_name}. "
+        "Write one complete, ready-to-publish post that opens with the chosen hook and delivers on it. "
+        f"Stay within {limit} characters and match the platform's native style. "
+        f"{HUMANIZE_RULES} "
+        "Return ONLY the post text — no preamble, no quotes, no explanation."
+    )
+    try:
+        result = await integration.llm_complete(prompt, system)
+        if not result:
+            return {"status": "unavailable", "post": ""}
+        return {"status": "ok", "post": result.strip()}
+    except Exception as e:
+        logger.warning("[Routes] generate-post failed: %s", e)
+        return {"status": "error", "post": "", "message": str(e)}
 
 
 @router.post("/ai/humanize")
