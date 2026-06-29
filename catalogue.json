@@ -134,6 +134,22 @@
       "folder": "image-utility",
       "tags": ["image", "editing", "files", "productivity"],
       "version": "1.0.0"
+    },
+    {
+      "id": "brainstorm-graph",
+      "name": "Brainstorm Graph",
+      "description": "Agentic brainstorming tool: give a topic and CraftBot spawns a growing graph of questions, answers, and ideas. Two views: Obsidian-style graph canvas and tree outline. CraftBot drives exploration autonomously.",
+      "folder": "brainstorm-graph",
+      "tags": ["brainstorming", "AI", "graph", "productivity"],
+      "version": "1.0.0"
+    },
+    {
+      "id": "social-media-manager",
+      "name": "Social Media Manager",
+      "description": "Compose, schedule, publish, and analyze posts across Twitter/X, LinkedIn, and YouTube — with an AI writing suite built in.",
+      "folder": "social-media-manager",
+      "tags": ["social-media", "AI", "productivity", "marketing"],
+      "version": "1.0.0"
     }
   ]
 }
