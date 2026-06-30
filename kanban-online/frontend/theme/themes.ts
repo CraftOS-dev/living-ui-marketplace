@@ -1,12 +1,19 @@
-export type ThemeId =
+// User-facing theme IDs — each auto-resolves to a dark or light variant
+// based on the CraftBot app's current mode. 'custom' is always applied as-is.
+export type ThemeId = 'craftbot' | 'normal' | 'ocean' | 'forest' | 'pastel' | 'custom'
+
+// Internal keys used in THEMES — includes both dark and light variants
+type InternalId =
   | 'craftbot'
   | 'craftbot-light'
-  | 'light'
   | 'dark'
+  | 'light'
   | 'ocean'
+  | 'ocean-light'
   | 'forest'
+  | 'forest-light'
   | 'pastel'
-  | 'custom'
+  | 'pastel-dark'
 
 export interface ThemeVars {
   '--bg-primary': string
@@ -29,7 +36,7 @@ export interface ThemeVars {
 
 export interface ThemeMeta {
   label: string
-  swatches: [string, string, string, string] // bg, surface, text, accent
+  swatches: [string, string, string, string] // bg, surface, text, accent (dark variant)
 }
 
 export interface CustomColors {
@@ -101,9 +108,9 @@ export function buildCustomThemeVars(c: CustomColors): ThemeVars {
   }
 }
 
-// ── Preset themes ────────────────────────────────────────────────────────────
+// ── Internal preset themes ───────────────────────────────────────────────────
 
-export const THEMES: Record<Exclude<ThemeId, 'custom'>, ThemeVars> = {
+const THEMES: Record<InternalId, ThemeVars> = {
   craftbot: {
     '--bg-primary': '#191919',
     '--bg-secondary': '#202020',
@@ -194,6 +201,24 @@ export const THEMES: Record<Exclude<ThemeId, 'custom'>, ThemeVars> = {
     '--shadow-lg': '0 10px 15px rgba(0,0,0,0.6)',
     '--overlay-color': 'rgba(0,0,0,0.6)',
   },
+  'ocean-light': {
+    '--bg-primary': '#F0F9FF',
+    '--bg-secondary': '#E0F2FE',
+    '--bg-tertiary': '#BAE6FD',
+    '--text-primary': '#0C4A6E',
+    '--text-secondary': '#075985',
+    '--text-muted': '#0284C7',
+    '--border-primary': '#BAE6FD',
+    '--border-secondary': '#E0F2FE',
+    '--color-primary': '#0284C7',
+    '--color-primary-hover': '#0369A1',
+    '--color-primary-light': 'rgba(2,132,199,0.12)',
+    '--color-primary-subtle': 'rgba(2,132,199,0.06)',
+    '--shadow-sm': '0 1px 2px rgba(0,0,0,0.05)',
+    '--shadow-md': '0 4px 6px rgba(0,0,0,0.08)',
+    '--shadow-lg': '0 10px 15px rgba(0,0,0,0.12)',
+    '--overlay-color': 'rgba(0,0,0,0.4)',
+  },
   forest: {
     '--bg-primary': '#0F1A14',
     '--bg-secondary': '#1B2A21',
@@ -211,6 +236,24 @@ export const THEMES: Record<Exclude<ThemeId, 'custom'>, ThemeVars> = {
     '--shadow-md': '0 4px 6px rgba(0,0,0,0.5)',
     '--shadow-lg': '0 10px 15px rgba(0,0,0,0.6)',
     '--overlay-color': 'rgba(0,0,0,0.6)',
+  },
+  'forest-light': {
+    '--bg-primary': '#F0FDF4',
+    '--bg-secondary': '#DCFCE7',
+    '--bg-tertiary': '#BBF7D0',
+    '--text-primary': '#14532D',
+    '--text-secondary': '#166534',
+    '--text-muted': '#16A34A',
+    '--border-primary': '#BBF7D0',
+    '--border-secondary': '#DCFCE7',
+    '--color-primary': '#16A34A',
+    '--color-primary-hover': '#15803D',
+    '--color-primary-light': 'rgba(22,163,74,0.12)',
+    '--color-primary-subtle': 'rgba(22,163,74,0.06)',
+    '--shadow-sm': '0 1px 2px rgba(0,0,0,0.05)',
+    '--shadow-md': '0 4px 6px rgba(0,0,0,0.08)',
+    '--shadow-lg': '0 10px 15px rgba(0,0,0,0.12)',
+    '--overlay-color': 'rgba(0,0,0,0.4)',
   },
   pastel: {
     '--bg-primary': '#FAF7FF',
@@ -230,28 +273,46 @@ export const THEMES: Record<Exclude<ThemeId, 'custom'>, ThemeVars> = {
     '--shadow-lg': '0 10px 15px rgba(0,0,0,0.12)',
     '--overlay-color': 'rgba(0,0,0,0.4)',
   },
+  'pastel-dark': {
+    '--bg-primary': '#1A1023',
+    '--bg-secondary': '#231530',
+    '--bg-tertiary': '#2E1B40',
+    '--text-primary': '#F3E8FF',
+    '--text-secondary': '#D8B4FE',
+    '--text-muted': '#A855F7',
+    '--border-primary': '#4C1D95',
+    '--border-secondary': '#3B0764',
+    '--color-primary': '#C084FC',
+    '--color-primary-hover': '#A855F7',
+    '--color-primary-light': 'rgba(192,132,252,0.15)',
+    '--color-primary-subtle': 'rgba(192,132,252,0.08)',
+    '--shadow-sm': '0 1px 2px rgba(0,0,0,0.4)',
+    '--shadow-md': '0 4px 6px rgba(0,0,0,0.5)',
+    '--shadow-lg': '0 10px 15px rgba(0,0,0,0.6)',
+    '--overlay-color': 'rgba(0,0,0,0.6)',
+  },
 }
+
+// Resolves user-facing ThemeId + mode → internal theme vars
+const VARIANT: Record<Exclude<ThemeId, 'custom'>, { dark: InternalId; light: InternalId }> = {
+  craftbot: { dark: 'craftbot',      light: 'craftbot-light' },
+  normal:   { dark: 'dark',          light: 'light'          },
+  ocean:    { dark: 'ocean',         light: 'ocean-light'    },
+  forest:   { dark: 'forest',        light: 'forest-light'   },
+  pastel:   { dark: 'pastel-dark',   light: 'pastel'         },
+}
+
+// ── Public metadata (user-facing themes only) ────────────────────────────────
 
 export const THEME_META: Record<Exclude<ThemeId, 'custom'>, ThemeMeta> = {
-  craftbot:         { label: 'CraftBot',       swatches: ['#191919', '#202020', '#E6E6E4', '#FF4F18'] },
-  'craftbot-light': { label: 'CraftBot Light', swatches: ['#F7F7F8', '#FFFFFF', '#141517', '#FF4F18'] },
-  light:            { label: 'Light',          swatches: ['#FFFFFF', '#F5F5F5', '#111111', '#2563EB'] },
-  dark:             { label: 'Dark',           swatches: ['#0A0A0A', '#181818', '#FFFFFF', '#3B82F6'] },
-  ocean:            { label: 'Ocean',          swatches: ['#0F172A', '#1E293B', '#F8FAFC', '#38BDF8'] },
-  forest:           { label: 'Forest',         swatches: ['#0F1A14', '#1B2A21', '#F3F6F4', '#22C55E'] },
-  pastel:           { label: 'Pastel',         swatches: ['#FAF7FF', '#FFFFFF', '#40384D', '#C084FC'] },
+  craftbot: { label: 'CraftBot', swatches: ['#191919', '#202020', '#E6E6E4', '#FF4F18'] },
+  normal:   { label: 'Normal',   swatches: ['#0A0A0A', '#181818', '#FFFFFF', '#3B82F6'] },
+  ocean:    { label: 'Ocean',    swatches: ['#0F172A', '#1E293B', '#F8FAFC', '#38BDF8'] },
+  forest:   { label: 'Forest',   swatches: ['#0F1A14', '#1B2A21', '#F3F6F4', '#22C55E'] },
+  pastel:   { label: 'Pastel',   swatches: ['#1A1023', '#231530', '#F3E8FF', '#C084FC'] },
 }
 
-export const THEME_ORDER: ThemeId[] = [
-  'craftbot',
-  'craftbot-light',
-  'light',
-  'dark',
-  'ocean',
-  'forest',
-  'pastel',
-  'custom',
-]
+export const THEME_ORDER: ThemeId[] = ['craftbot', 'normal', 'ocean', 'forest', 'pastel', 'custom']
 
 export const DEFAULT_THEME_ID: ThemeId = 'craftbot'
 
@@ -270,7 +331,10 @@ const CUSTOM_COLORS_KEY = 'living-ui-custom-colors'
 export function loadStoredTheme(): ThemeId {
   try {
     const stored = localStorage.getItem(STORAGE_KEY)
-    if (stored && (stored in THEMES || stored === 'custom')) return stored as ThemeId
+    // Migrate old IDs from before the dark/light merge
+    if (stored === 'craftbot-light') return 'craftbot'
+    if (stored === 'light' || stored === 'dark') return 'normal'
+    if (stored && (stored in VARIANT || stored === 'custom')) return stored as ThemeId
   } catch {}
   return DEFAULT_THEME_ID
 }
@@ -296,10 +360,16 @@ export function saveCustomColors(colors: CustomColors): void {
 
 // ── Apply ────────────────────────────────────────────────────────────────────
 
-export function applyThemeToDocument(id: ThemeId, customColors?: CustomColors): void {
-  const vars: ThemeVars = id === 'custom'
-    ? buildCustomThemeVars(customColors ?? loadCustomColors())
-    : THEMES[id as Exclude<ThemeId, 'custom'>]
+export function applyThemeToDocument(
+  id: ThemeId,
+  mode: 'dark' | 'light' = 'dark',
+  customColors?: CustomColors,
+): void {
+  const vars: ThemeVars =
+    id === 'custom'
+      ? buildCustomThemeVars(customColors ?? loadCustomColors())
+      : THEMES[VARIANT[id][mode]]
+
   const styleId = 'theme-widget-vars'
   let el = document.getElementById(styleId) as HTMLStyleElement | null
   if (!el) {
@@ -307,7 +377,7 @@ export function applyThemeToDocument(id: ThemeId, customColors?: CustomColors): 
     el.id = styleId
   }
   const declarations = (Object.keys(vars) as (keyof ThemeVars)[])
-    .map((k) => `${k}:${vars[k]}`)
+    .map(k => `${k}:${vars[k]}`)
     .join(';')
   el.textContent = `:root{${declarations}}`
   document.head.appendChild(el)

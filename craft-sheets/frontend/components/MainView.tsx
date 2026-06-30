@@ -26,7 +26,6 @@ import { FormulaBar } from './FormulaBar'
 import { Grid } from './Grid'
 import { SheetTabs } from './SheetTabs'
 import { ColumnMenu } from './ColumnMenu'
-import { ThemeWidget } from './ThemeWidget'
 
 interface MainViewProps {
   controller: AppController
@@ -463,7 +462,6 @@ export function MainView({ controller }: MainViewProps) {
         This will permanently delete <strong>{confirmDelete?.name}</strong> and all of its data.
       </Modal>
 
-      <ThemeWidget />
     </div>
   )
 }
