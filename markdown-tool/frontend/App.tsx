@@ -6,10 +6,7 @@ import { AppController } from './AppController'
 import { uiCapture } from './services/UICapture'
 import {
   applyThemeToDocument,
-  loadCustomColors,
-  loadStoredTheme,
-  saveCustomColors,
-  saveTheme,
+  DEFAULT_CUSTOM_COLORS,
   type CustomColors,
   type ThemeId,
 } from './theme/themes'
@@ -18,9 +15,11 @@ import {
 const controller = new AppController()
 
 function App() {
-  const themIdRef = useRef<ThemeId>(loadStoredTheme())
+  // Start with defaults — the CraftBot shell sends the correct per-project
+  // theme via 'livingui-theme' on mount, before the iframe becomes visible.
+  const themIdRef = useRef<ThemeId>('craftbot')
   const modeRef = useRef<'dark' | 'light'>('dark')
-  const customColorsRef = useRef<CustomColors>(loadCustomColors())
+  const customColorsRef = useRef<CustomColors>({ ...DEFAULT_CUSTOM_COLORS })
 
   useEffect(() => {
     controller.initialize()
@@ -30,7 +29,6 @@ function App() {
       componentName: 'App',
     })
 
-    // Apply stored theme immediately using dark as default until parent responds
     applyThemeToDocument(themIdRef.current, modeRef.current, customColorsRef.current)
 
     const onMessage = (e: MessageEvent) => {
@@ -44,14 +42,12 @@ function App() {
       }
 
       if (e.data.type === 'livingui-theme') {
-        // Parent sent a theme selection from the CraftBot shell modal
+        // Parent sent the per-project theme selection — apply in memory only.
+        // Do NOT write to localStorage; the shell owns per-project persistence.
         const themeId = e.data.themeId as ThemeId
         themIdRef.current = themeId
-        saveTheme(themeId)
         if (e.data.customColors) {
-          const colors = e.data.customColors as CustomColors
-          customColorsRef.current = colors
-          saveCustomColors(colors)
+          customColorsRef.current = e.data.customColors as CustomColors
         }
         applyThemeToDocument(themeId, modeRef.current, customColorsRef.current)
       }
