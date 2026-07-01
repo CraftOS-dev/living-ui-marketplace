@@ -84,16 +84,6 @@ def _generate_value(schema: Dict[str, Any], definitions: Dict[str, Any]) -> Any:
         ref_schema = definitions.get(ref_name, {})
         return generate_payload_from_schema(ref_schema, definitions)
 
-    # anyOf / oneOf — pick the first non-null type. Must be checked before
-    # defaulting field_type below, since these schemas have no top-level
-    # "type" key (e.g. Optional[X] fields), which would otherwise silently
-    # default to "string" and never reach this branch.
-    for key in ("anyOf", "oneOf"):
-        if key in schema:
-            for variant in schema[key]:
-                if variant.get("type") != "null":
-                    return _generate_value(variant, definitions)
-
     field_type = schema.get("type", "string")
 
     if field_type == "string":
@@ -130,6 +120,13 @@ def _generate_value(schema: Dict[str, Any], definitions: Dict[str, Any]) -> Any:
         return {}
     elif field_type == "null":
         return None
+
+    # anyOf / oneOf — pick the first non-null type
+    for key in ("anyOf", "oneOf"):
+        if key in schema:
+            for variant in schema[key]:
+                if variant.get("type") != "null":
+                    return _generate_value(variant, definitions)
 
     return "test"
 

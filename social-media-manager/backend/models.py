@@ -217,7 +217,7 @@ class Idea(Base):
     source     = Column(String(50), default="manual")
     status     = Column(String(20), default="idea")
     created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow)
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -241,7 +241,7 @@ class HashtagSet(Base):
     tags       = Column(JSON, default=list)
     use_count  = Column(Integer, default=0)
     created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow)
 
     def to_dict(self) -> Dict[str, Any]:
         return {
