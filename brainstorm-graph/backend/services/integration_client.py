@@ -20,12 +20,9 @@ Usage:
         channels = result["data"]
 """
 
-import logging
 import os
 import httpx
 from typing import Any, Dict, List, Optional
-
-logger = logging.getLogger(__name__)
 
 BRIDGE_URL = os.environ.get("CRAFTBOT_BRIDGE_URL", "")
 BRIDGE_TOKEN = os.environ.get("CRAFTBOT_BRIDGE_TOKEN", "")
@@ -135,14 +132,8 @@ class IntegrationClient:
             )
             if r.status_code == 200:
                 return r.json().get("content", "")
-            logger.warning(
-                "[llm_complete] bridge returned HTTP %s: %s",
-                r.status_code,
-                r.text[:500],
-            )
             return ""
-        except Exception as e:
-            logger.warning("[llm_complete] request failed: %s", e)
+        except Exception:
             return ""
 
     async def close(self):
