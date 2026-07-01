@@ -691,6 +691,8 @@ async def expand_node(node_id: int, db: Session = Depends(get_db)) -> Dict[str, 
     if not node:
         return {"status": "not_found"}
     session = db.query(BrainstormSession).filter(BrainstormSession.id == node.session_id).first()
+    if not session:
+        return {"status": "not_found"}
     new_nodes = await _run_expand(node, session, db)
     logger.info("[expand] Node %s → %d children", node_id, len(new_nodes))
     return {"status": "ok", "nodeId": node_id, "newNodes": new_nodes}
@@ -704,6 +706,8 @@ async def answer_node(node_id: int, db: Session = Depends(get_db)) -> Dict[str, 
     if node.node_type != "question":
         return {"status": "error", "message": "Only question nodes can be answered"}
     session = db.query(BrainstormSession).filter(BrainstormSession.id == node.session_id).first()
+    if not session:
+        return {"status": "not_found"}
     answer = await _run_answer(node, session, db)
     logger.info("[answer] Node %s answered", node_id)
     return {"status": "ok", "nodeId": node_id, "node": answer}
