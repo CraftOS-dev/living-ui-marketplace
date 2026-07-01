@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from typing import Dict, Any, List, Optional
 from database import get_db
-from models import AppState, Item, UISnapshot, UIScreenshot, Pet, ActivityLog
+from models import AppState, Item, UISnapshot, UIScreenshot, Pet, ActivityLog, _iso_utc
 from datetime import datetime
 import logging
 import base64
@@ -601,4 +601,4 @@ def update_ui_screenshot(data: UIScreenshotUpdate, db: Session = Depends(get_db)
     screenshot.timestamp = datetime.utcnow()
     db.commit()
     db.refresh(screenshot)
-    return {"status": "updated", "timestamp": screenshot.timestamp.isoformat()}
+    return {"status": "updated", "timestamp": _iso_utc(screenshot.timestamp)}
