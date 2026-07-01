@@ -1,11 +1,12 @@
 import { useState, useCallback, useEffect, useRef, type ReactNode } from 'react'
 import { toast } from 'react-toastify'
 import {
-  File, Folder, FolderOpen, FilePlus, FolderPlus,
+  File, Folder, FolderOpen, FilePlus, FolderPlus, FileUp, FolderUp,
   Pencil, Trash2, ChevronRight, ChevronDown,
 } from 'lucide-react'
 import type { FileItem } from '../types'
 import type { AppController } from '../AppController'
+import { UploadConflictError } from '../AppController'
 import { Modal, Input, Button } from './ui'
 
 interface FileNode {
@@ -36,6 +37,14 @@ export function FolderPanel({ controller, activeFilePath, onOpenFile, onRefresh,
   const [deleteConfirm, setDeleteConfirm] = useState<{ path: string; name: string } | null>(null)
   const [dragOverPath, setDragOverPath] = useState<string | null>(null)
   const draggedPath = useRef<string | null>(null)
+
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const folderInputRef = useRef<HTMLInputElement>(null)
+  const [uploadConflict, setUploadConflict] = useState<{
+    items: { file: File; relativePath: string }[]
+    conflicts: string[]
+  } | null>(null)
+  const [uploading, setUploading] = useState(false)
 
   const loadRoot = useCallback(async () => {
     setLoading(true)
@@ -145,6 +154,50 @@ export function FolderPanel({ controller, activeFilePath, onOpenFile, onRefresh,
     } catch {
       toast.error('Failed to delete')
     }
+  }
+
+  async function performUpload(items: { file: File; relativePath: string }[], overwrite: boolean) {
+    if (items.length === 0) return
+    setUploading(true)
+    try {
+      const result = await controller.uploadFiles(items, overwrite)
+      toast.success(`Uploaded ${result.written.length} file${result.written.length === 1 ? '' : 's'}`)
+      setUploadConflict(null)
+      await loadRoot()
+      onRefresh()
+    } catch (e: any) {
+      if (e instanceof UploadConflictError) {
+        setUploadConflict({ items, conflicts: e.conflicts })
+      } else {
+        toast.error('Failed to upload')
+      }
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  function handleFileInputChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const fileList = e.target.files
+    e.target.value = ''
+    if (!fileList || fileList.length === 0) return
+    const items = Array.from(fileList).map(file => ({ file, relativePath: file.name }))
+    performUpload(items, false)
+  }
+
+  function handleFolderInputChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const fileList = e.target.files
+    e.target.value = ''
+    if (!fileList || fileList.length === 0) return
+    const items = Array.from(fileList).map(file => ({
+      file,
+      relativePath: (file as any).webkitRelativePath || file.name,
+    }))
+    performUpload(items, false)
+  }
+
+  function handleConfirmOverwrite() {
+    if (!uploadConflict) return
+    performUpload(uploadConflict.items, true)
   }
 
   async function handleDrop(e: React.DragEvent, targetFolderPath: string) {
@@ -281,8 +334,39 @@ export function FolderPanel({ controller, activeFilePath, onOpenFile, onRefresh,
           >
             <FolderPlus size={14} />
           </button>
+          <button
+            className="folder-btn"
+            title="Upload File"
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <FileUp size={14} />
+          </button>
+          <button
+            className="folder-btn"
+            title="Upload Folder"
+            onClick={() => folderInputRef.current?.click()}
+          >
+            <FolderUp size={14} />
+          </button>
         </div>
       </div>
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".md,.markdown"
+        multiple
+        style={{ display: 'none' }}
+        onChange={handleFileInputChange}
+      />
+      <input
+        ref={folderInputRef}
+        type="file"
+        multiple
+        style={{ display: 'none' }}
+        onChange={handleFolderInputChange}
+        {...({ webkitdirectory: '', directory: '' } as any)}
+      />
 
       <div className="folder-tree">
         {loading ? (
@@ -351,6 +435,30 @@ export function FolderPanel({ controller, activeFilePath, onOpenFile, onRefresh,
             <div style={{ display: 'flex', gap: 'var(--space-2)', justifyContent: 'flex-end' }}>
               <Button variant="ghost" onClick={() => setDeleteConfirm(null)}>Cancel</Button>
               <Button variant="danger" onClick={handleDelete}>Delete</Button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* Upload Conflict Modal */}
+      {uploadConflict && (
+        <Modal open onClose={() => setUploadConflict(null)} title="File(s) Already Exist">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+            <p>
+              The following file{uploadConflict.conflicts.length === 1 ? '' : 's'} already
+              exist{uploadConflict.conflicts.length === 1 ? 's' : ''} in the workspace.
+              Overwrite {uploadConflict.conflicts.length === 1 ? 'it' : 'them'}?
+            </p>
+            <ul style={{ margin: 0, paddingLeft: 'var(--space-4)', maxHeight: 200, overflowY: 'auto' }}>
+              {uploadConflict.conflicts.map(path => (
+                <li key={path} style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: 'var(--font-size-sm)' }}>
+                  {path}
+                </li>
+              ))}
+            </ul>
+            <div style={{ display: 'flex', gap: 'var(--space-2)', justifyContent: 'flex-end' }}>
+              <Button variant="ghost" onClick={() => setUploadConflict(null)}>Cancel</Button>
+              <Button variant="danger" onClick={handleConfirmOverwrite} loading={uploading}>Overwrite</Button>
             </div>
           </div>
         </Modal>
