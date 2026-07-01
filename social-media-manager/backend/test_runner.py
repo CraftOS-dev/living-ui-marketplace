@@ -40,6 +40,13 @@ SKIP_API_PREFIXES = (
     "/api/ui-snapshot",
     "/api/ui-screenshot",
 )
+# Routes that call out to an LLM — real completions can take well past the default
+# timeout, so give these extra headroom instead of failing on client-side timeout.
+SLOW_API_PREFIXES = (
+    "/api/ai/",
+)
+DEFAULT_TIMEOUT = 10
+SLOW_TIMEOUT = 130
 
 
 # ============================================================================
@@ -517,7 +524,8 @@ def _test_endpoint(
             headers=headers,
         )
 
-        resp = urllib.request.urlopen(req, timeout=10)
+        timeout = SLOW_TIMEOUT if any(path.startswith(prefix) for prefix in SLOW_API_PREFIXES) else DEFAULT_TIMEOUT
+        resp = urllib.request.urlopen(req, timeout=timeout)
         status_code = resp.status
         test_result["status_code"] = status_code
 
