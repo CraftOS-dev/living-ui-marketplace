@@ -23,6 +23,7 @@ A desktop-style markdown editing environment running in the browser. Users can b
 ### Features
 
 - Full file CRUD: create, rename, delete files and folders
+- Upload existing `.md` files or entire local folders into the workspace, with conflict confirmation before overwriting
 - Clicking a `.md` file opens it in both editor and preview simultaneously
 - Multiple files open as VSCode-style tabs (click to switch, × to close, ● unsaved indicator)
 - All three panels resizable via drag dividers
@@ -35,6 +36,7 @@ A desktop-style markdown editing environment running in the browser. Users can b
 
 - Non-markdown files (images, etc.) are shown in the file tree but are not openable
 - New files without `.md` extension have `.md` auto-appended
+- Uploading a file/folder that already exists at the target path requires explicit user confirmation to overwrite (no silent overwrite)
 - Delete is permanent with a confirmation modal (no trash/undo)
 - Workspace root defaults to `<app>/workspace/` unless `WORKSPACE_ROOT` env var is set
 
@@ -59,6 +61,7 @@ A desktop-style markdown editing environment running in the browser. Users can b
 | GET | /api/files/read | Read file content (`?path=`) |
 | PUT | /api/files/write | Write file content (`{path, content}`) |
 | POST | /api/files/create | Create file or directory (`{path, type: "file"\|"directory"}`) |
+| POST | /api/files/upload | Upload one or more files (multipart: `files`, `relative_paths`, `parent_path`, `overwrite`) — 409 with conflict list if `overwrite=false` and target(s) exist |
 | PUT | /api/files/rename | Rename/move item (`{old_path, new_path}`) |
 | DELETE | /api/files/delete | Delete file or directory (`?path=`) — idempotent |
 | GET | /api/session | Get persisted editor session |
@@ -141,3 +144,5 @@ Manual verification checklist:
 8. Drag dividers between panels — panels resize
 9. Click toggle buttons in toolbar — fold/unfold panels
 10. Reload page — tabs, panel widths, and visibility restore from session
+11. Click "Upload File" — select one or more local `.md` files — they appear in the tree
+12. Click "Upload Folder" — select a local folder — its structure appears nested under a new top-level folder; re-uploading the same folder prompts an overwrite confirmation

@@ -9,9 +9,16 @@ from sqlalchemy import Column, Integer, String, DateTime, Boolean, Text, JSON, F
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from datetime import datetime
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 Base = declarative_base()
+
+
+def _iso_utc(dt) -> Optional[str]:
+    """Serialize a naive UTC datetime as an unambiguous UTC ISO 8601 string."""
+    if dt is None:
+        return None
+    return dt.isoformat() + "Z"
 
 
 class AppState(Base):
@@ -30,8 +37,8 @@ class AppState(Base):
         return {
             "id": self.id,
             "data": self.data or {},
-            "createdAt": self.created_at.isoformat() if self.created_at else None,
-            "updatedAt": self.updated_at.isoformat() if self.updated_at else None,
+            "createdAt": _iso_utc(self.created_at),
+            "updatedAt": _iso_utc(self.updated_at),
         }
 
     def update_data(self, updates: Dict[str, Any]) -> None:
@@ -64,7 +71,7 @@ class UISnapshot(Base):
             "componentState": self.component_state or {},
             "currentView": self.current_view,
             "viewport": self.viewport or {},
-            "timestamp": self.timestamp.isoformat() if self.timestamp else None,
+            "timestamp": _iso_utc(self.timestamp),
         }
 
 
@@ -85,7 +92,7 @@ class UIScreenshot(Base):
             "imageData": self.image_data,
             "width": self.width,
             "height": self.height,
-            "timestamp": self.timestamp.isoformat() if self.timestamp else None,
+            "timestamp": _iso_utc(self.timestamp),
         }
 
 
@@ -112,8 +119,8 @@ class Item(Base):
             "completed": self.completed,
             "order": self.order,
             "extraData": self.extra_data or {},
-            "createdAt": self.created_at.isoformat() if self.created_at else None,
-            "updatedAt": self.updated_at.isoformat() if self.updated_at else None,
+            "createdAt": _iso_utc(self.created_at),
+            "updatedAt": _iso_utc(self.updated_at),
         }
 
 
@@ -251,13 +258,13 @@ class Pet(Base):
             "is_sleeping": self.is_sleeping,
             "is_sick": self.is_sick,
             "is_retired": self.is_retired,
-            "retired_at": self.retired_at.isoformat() if self.retired_at else None,
+            "retired_at": _iso_utc(self.retired_at),
             "evolution_points": self.evolution_points,
             "age_minutes": round(self.age_minutes, 1),
-            "cooldowns": self.cooldowns or {},
+            "cooldowns": {k: (v + "Z" if v else v) for k, v in (self.cooldowns or {}).items()},
             "mood": self.compute_mood(),
-            "created_at": self.created_at.isoformat() if self.created_at else None,
-            "last_updated": self.last_updated.isoformat() if self.last_updated else None,
+            "created_at": _iso_utc(self.created_at),
+            "last_updated": _iso_utc(self.last_updated),
         }
 
 
@@ -281,5 +288,5 @@ class ActivityLog(Base):
             "pet_id": self.pet_id,
             "action": self.action,
             "description": self.description,
-            "timestamp": self.timestamp.isoformat() if self.timestamp else None,
+            "timestamp": _iso_utc(self.timestamp),
         }

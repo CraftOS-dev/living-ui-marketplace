@@ -4,6 +4,15 @@ import { stateCache } from './services/StatePersistence'
 
 const BACKEND_URL = (window as any).__CRAFTBOT_BACKEND_URL__ || 'http://localhost:3200'
 
+export class UploadConflictError extends Error {
+  conflicts: string[]
+  constructor(conflicts: string[]) {
+    super(`Upload conflict: ${conflicts.length} file(s) already exist`)
+    this.name = 'UploadConflictError'
+    this.conflicts = conflicts
+  }
+}
+
 export class AppController {
   private state: AppState = { initialized: false, loading: true, error: null }
   private listeners: Set<(state: AppState) => void> = new Set()
@@ -130,6 +139,28 @@ export class AppController {
 
   async deleteItem(path: string): Promise<void> {
     await this.apiDelete(`/api/files/delete?path=${encodeURIComponent(path)}`)
+  }
+
+  async uploadFiles(
+    items: { file: File; relativePath: string }[],
+    overwrite: boolean,
+    parentPath: string = '',
+  ): Promise<{ status: 'uploaded'; written: string[] }> {
+    const formData = new FormData()
+    for (const { file, relativePath } of items) {
+      formData.append('files', file)
+      formData.append('relative_paths', relativePath)
+    }
+    formData.append('parent_path', parentPath)
+    formData.append('overwrite', String(overwrite))
+
+    const resp = await fetch(`${BACKEND_URL}/api/files/upload`, { method: 'POST', body: formData })
+    if (resp.status === 409) {
+      const body = await resp.json().catch(() => null)
+      throw new UploadConflictError(body?.detail?.conflicts ?? [])
+    }
+    if (!resp.ok) throw new Error(`POST /api/files/upload → ${resp.status}: ${resp.statusText}`)
+    return resp.json()
   }
 
   // ──────────────────────────────────────────────────────────────
