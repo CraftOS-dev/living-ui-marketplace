@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func, extract
 from pydantic import BaseModel, Field
 from typing import Dict, Any, List, Optional, Literal
-from database import get_db, SessionLocal
+from database import get_db
 from models import AppState, UISnapshot, UIScreenshot, Post, PostAnalytics, PlatformAccount
 from datetime import datetime
 import logging
@@ -1022,112 +1022,93 @@ async def list_ideas(
     platform: Optional[str] = None,
     status: Optional[str] = None,
     q: Optional[str] = None,
+    db: Session = Depends(get_db),
 ) -> List[Dict[str, Any]]:
     from models import Idea
-    db = SessionLocal()
-    try:
-        query = db.query(Idea)
-        if platform:
-            query = query.filter(Idea.platform == platform)
-        if status:
-            query = query.filter(Idea.status == status)
-        if q:
-            q_lower = f"%{q.lower()}%"
-            from sqlalchemy import or_, func
-            query = query.filter(
-                or_(
-                    func.lower(Idea.content).like(q_lower),
-                    func.lower(Idea.title).like(q_lower),
-                )
+    query = db.query(Idea)
+    if platform:
+        query = query.filter(Idea.platform == platform)
+    if status:
+        query = query.filter(Idea.status == status)
+    if q:
+        q_lower = f"%{q.lower()}%"
+        from sqlalchemy import or_, func
+        query = query.filter(
+            or_(
+                func.lower(Idea.content).like(q_lower),
+                func.lower(Idea.title).like(q_lower),
             )
-        ideas = query.order_by(Idea.created_at.desc()).all()
-        return [i.to_dict() for i in ideas]
-    finally:
-        db.close()
+        )
+    ideas = query.order_by(Idea.created_at.desc()).all()
+    return [i.to_dict() for i in ideas]
 
 
 @router.post("/ideas")
-async def create_idea(data: IdeaCreate) -> Dict[str, Any]:
+async def create_idea(data: IdeaCreate, db: Session = Depends(get_db)) -> Dict[str, Any]:
     from models import Idea
-    db = SessionLocal()
-    try:
-        idea = Idea(
-            content=data.content,
-            title=data.title,
-            platform=data.platform,
-            tags=data.tags,
-            source=data.source,
-        )
-        db.add(idea)
-        db.commit()
-        db.refresh(idea)
-        return idea.to_dict()
-    finally:
-        db.close()
+    idea = Idea(
+        content=data.content,
+        title=data.title,
+        platform=data.platform,
+        tags=data.tags,
+        source=data.source,
+    )
+    db.add(idea)
+    db.commit()
+    db.refresh(idea)
+    return idea.to_dict()
 
 
 @router.put("/ideas/{idea_id}")
-async def update_idea(idea_id: int, data: IdeaUpdate) -> Dict[str, Any]:
+async def update_idea(idea_id: int, data: IdeaUpdate, db: Session = Depends(get_db)) -> Dict[str, Any]:
     from models import Idea
-    db = SessionLocal()
-    try:
-        idea = db.query(Idea).filter(Idea.id == idea_id).first()
-        if not idea:
-            return {"status": "not_found"}
-        if data.content is not None:
-            idea.content = data.content
-        if data.title is not None:
-            idea.title = data.title
-        if data.platform is not None:
-            idea.platform = data.platform
-        if data.tags is not None:
-            idea.tags = data.tags
-        if data.status is not None:
-            idea.status = data.status
-        idea.updated_at = datetime.utcnow()
-        db.commit()
-        db.refresh(idea)
-        return idea.to_dict()
-    finally:
-        db.close()
+    idea = db.query(Idea).filter(Idea.id == idea_id).first()
+    if not idea:
+        return {"status": "not_found"}
+    if data.content is not None:
+        idea.content = data.content
+    if data.title is not None:
+        idea.title = data.title
+    if data.platform is not None:
+        idea.platform = data.platform
+    if data.tags is not None:
+        idea.tags = data.tags
+    if data.status is not None:
+        idea.status = data.status
+    idea.updated_at = datetime.utcnow()
+    db.commit()
+    db.refresh(idea)
+    return idea.to_dict()
 
 
 @router.delete("/ideas/{idea_id}")
-async def delete_idea(idea_id: int) -> Dict[str, str]:
+async def delete_idea(idea_id: int, db: Session = Depends(get_db)) -> Dict[str, str]:
     from models import Idea
-    db = SessionLocal()
-    try:
-        idea = db.query(Idea).filter(Idea.id == idea_id).first()
-        if not idea:
-            return {"status": "not_found"}
-        db.delete(idea)
-        db.commit()
-        return {"status": "deleted"}
-    finally:
-        db.close()
+    idea = db.query(Idea).filter(Idea.id == idea_id).first()
+    if not idea:
+        return {"status": "not_found"}
+    db.delete(idea)
+    db.commit()
+    return {"status": "deleted"}
 
 
 @router.post("/ideas/{idea_id}/promote")
-async def promote_idea(idea_id: int) -> Dict[str, Any]:
+async def promote_idea(idea_id: int, db: Session = Depends(get_db)) -> Dict[str, Any]:
     from models import Idea, Post
-    db = SessionLocal()
-    try:
-        idea = db.query(Idea).filter(Idea.id == idea_id).first()
-        if not idea:
-            return {"status": "not_found"}
-        post = Post(
-            global_content=idea.content,
-            platform=idea.platform or "twitter",
-            status="draft",
-        )
-        db.add(post)
-        idea.status = "archived"
-        idea.updated_at = datetime.utcnow()
-        db.commit()
-        db.refresh(post)
-        return post.to_dict()
-    finally:
-        db.close()
+    idea = db.query(Idea).filter(Idea.id == idea_id).first()
+    if not idea:
+        return {"status": "not_found"}
+    post = Post(
+        global_content=idea.content,
+        platform=idea.platform or "twitter",
+        status="draft",
+    )
+    db.add(post)
+    idea.status = "archived"
+    idea.updated_at = datetime.utcnow()
+    db.commit()
+    db.refresh(post)
+    return post.to_dict()
 
 
 # ============================================================================
@@ -1135,64 +1116,48 @@ async def promote_idea(idea_id: int) -> Dict[str, Any]:
 # ============================================================================
 
 @router.get("/hashtag-sets")
-async def list_hashtag_sets() -> List[Dict[str, Any]]:
+async def list_hashtag_sets(db: Session = Depends(get_db)) -> List[Dict[str, Any]]:
     from models import HashtagSet
-    db = SessionLocal()
-    try:
-        sets = db.query(HashtagSet).order_by(HashtagSet.created_at.desc()).all()
-        return [s.to_dict() for s in sets]
-    finally:
-        db.close()
+    sets = db.query(HashtagSet).order_by(HashtagSet.created_at.desc()).all()
+    return [s.to_dict() for s in sets]
 
 
 @router.post("/hashtag-sets")
-async def create_hashtag_set(data: HashtagSetCreate) -> Dict[str, Any]:
+async def create_hashtag_set(data: HashtagSetCreate, db: Session = Depends(get_db)) -> Dict[str, Any]:
     from models import HashtagSet
-    db = SessionLocal()
-    try:
-        hs = HashtagSet(name=data.name, platform=data.platform, tags=data.tags)
-        db.add(hs)
-        db.commit()
-        db.refresh(hs)
-        return hs.to_dict()
-    finally:
-        db.close()
+    hs = HashtagSet(name=data.name, platform=data.platform, tags=data.tags)
+    db.add(hs)
+    db.commit()
+    db.refresh(hs)
+    return hs.to_dict()
 
 
 @router.put("/hashtag-sets/{set_id}")
-async def update_hashtag_set(set_id: int, data: HashtagSetUpdate) -> Dict[str, Any]:
+async def update_hashtag_set(set_id: int, data: HashtagSetUpdate, db: Session = Depends(get_db)) -> Dict[str, Any]:
     from models import HashtagSet
-    db = SessionLocal()
-    try:
-        hs = db.query(HashtagSet).filter(HashtagSet.id == set_id).first()
-        if not hs:
-            return {"status": "not_found"}
-        if data.name is not None:
-            hs.name = data.name
-        if data.platform is not None:
-            hs.platform = data.platform
-        if data.tags is not None:
-            hs.tags = data.tags
-        if data.incrementUseCount:
-            hs.use_count = (hs.use_count or 0) + 1
-        hs.updated_at = datetime.utcnow()
-        db.commit()
-        db.refresh(hs)
-        return hs.to_dict()
-    finally:
-        db.close()
+    hs = db.query(HashtagSet).filter(HashtagSet.id == set_id).first()
+    if not hs:
+        return {"status": "not_found"}
+    if data.name is not None:
+        hs.name = data.name
+    if data.platform is not None:
+        hs.platform = data.platform
+    if data.tags is not None:
+        hs.tags = data.tags
+    if data.incrementUseCount:
+        hs.use_count = (hs.use_count or 0) + 1
+    hs.updated_at = datetime.utcnow()
+    db.commit()
+    db.refresh(hs)
+    return hs.to_dict()
 
 
 @router.delete("/hashtag-sets/{set_id}")
-async def delete_hashtag_set(set_id: int) -> Dict[str, str]:
+async def delete_hashtag_set(set_id: int, db: Session = Depends(get_db)) -> Dict[str, str]:
     from models import HashtagSet
-    db = SessionLocal()
-    try:
-        hs = db.query(HashtagSet).filter(HashtagSet.id == set_id).first()
-        if not hs:
-            return {"status": "not_found"}
-        db.delete(hs)
-        db.commit()
-        return {"status": "deleted"}
-    finally:
-        db.close()
+    hs = db.query(HashtagSet).filter(HashtagSet.id == set_id).first()
+    if not hs:
+        return {"status": "not_found"}
+    db.delete(hs)
+    db.commit()
+    return {"status": "deleted"}
