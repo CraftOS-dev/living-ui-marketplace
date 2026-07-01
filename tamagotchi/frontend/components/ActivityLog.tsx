@@ -35,9 +35,11 @@ export function ActivityLog({ entries }: ActivityLogProps) {
         <h3 style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px', margin: '0 0 12px 0' }}>
           Activity
         </h3>
-        <p style={{ fontSize: '13px', color: 'var(--text-secondary)', textAlign: 'center', padding: '16px 0', margin: 0 }}>
-          No activity yet. Start caring for your pet!
-        </p>
+        <div style={{ height: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <p style={{ fontSize: '13px', color: 'var(--text-secondary)', textAlign: 'center', margin: 0 }}>
+            No activity yet. Start caring for your pet!
+          </p>
+        </div>
       </Card>
     )
   }
@@ -58,7 +60,7 @@ export function ActivityLog({ entries }: ActivityLogProps) {
           {entries.length}
         </span>
       </h3>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '200px', overflowY: 'auto' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', height: '200px', overflowY: 'auto' }}>
         {entries.map((entry) => (
           <div
             key={entry.id}

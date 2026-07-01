@@ -43,6 +43,7 @@ SKIP_API_PREFIXES = (
     "/api/files/create",
     "/api/files/rename",
     "/api/files/delete",
+    "/api/files/upload",  # multipart body; generic JSON payload generator can't synthesize a file part, and must not perform real writes during deploy smoke test
     "/api/files/read",   # requires a real workspace path — no safe generated value exists
     "/api/session",      # PUT receives typed fields (int/bool/list); test runner sends strings → 422
 )
