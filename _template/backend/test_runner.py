@@ -23,6 +23,7 @@ import sys
 import traceback
 import urllib.request
 import urllib.error
+import urllib.parse
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple
@@ -196,9 +197,13 @@ def run_internal_tests() -> Dict[str, Any]:
 
                     # Check for path parameters
                     path_params = []
+                    # Check for required query parameters
+                    query_params = []
                     for param in details.get("parameters", []):
                         if param.get("in") == "path":
                             path_params.append(param["name"])
+                        elif param.get("in") == "query" and param.get("required"):
+                            query_params.append({"name": param["name"], "schema": param.get("schema", {})})
 
                     route_info = {
                         "method": method.upper(),
@@ -206,6 +211,7 @@ def run_internal_tests() -> Dict[str, Any]:
                         "has_request_body": has_request_body,
                         "body_schema": body_schema,
                         "path_params": path_params,
+                        "query_params": query_params,
                         "level": "light",
                     }
                     result["routes"].append(route_info)
@@ -421,6 +427,13 @@ def run_external_tests(port: int) -> Dict[str, Any]:
         path = route["path"]
         path_params = route.get("path_params", [])
 
+        # Skip routes whose request body isn't JSON (e.g. multipart file uploads) —
+        # we can't auto-generate a payload for these from the OpenAPI schema.
+        if method in ("POST", "PUT", "PATCH") and route.get("has_request_body") and not route.get("body_schema"):
+            logger.info(f"[SKIP] {method} {path} — non-JSON request body (e.g. file upload)")
+            result["tests"].append({"method": method, "path": path, "status": "skipped", "reason": "non-JSON request body (e.g. file upload)"})
+            continue
+
         # Skip parameterized paths if we don't have test data yet
         if path_params:
             # Try to find a matching created resource
@@ -478,6 +491,10 @@ def _test_endpoint(
 ) -> Dict[str, Any]:
     """Test a single endpoint and return the result."""
     url = f"{base_url}{path}"
+    query_params = route.get("query_params") or []
+    if query_params:
+        query_values = {p["name"]: _generate_value(p["schema"], definitions) for p in query_params}
+        url = f"{url}?{urllib.parse.urlencode(query_values)}"
     test_result: Dict[str, Any] = {
         "method": method,
         "path": path,
