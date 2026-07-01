@@ -178,21 +178,23 @@ export function FolderPanel({ controller, activeFilePath, onOpenFile, onRefresh,
 
   function handleFileInputChange(e: React.ChangeEvent<HTMLInputElement>) {
     const fileList = e.target.files
+    if (fileList && fileList.length > 0) {
+      const items = Array.from(fileList).map(file => ({ file, relativePath: file.name }))
+      performUpload(items, false)
+    }
     e.target.value = ''
-    if (!fileList || fileList.length === 0) return
-    const items = Array.from(fileList).map(file => ({ file, relativePath: file.name }))
-    performUpload(items, false)
   }
 
   function handleFolderInputChange(e: React.ChangeEvent<HTMLInputElement>) {
     const fileList = e.target.files
+    if (fileList && fileList.length > 0) {
+      const items = Array.from(fileList).map(file => ({
+        file,
+        relativePath: (file as any).webkitRelativePath || file.name,
+      }))
+      performUpload(items, false)
+    }
     e.target.value = ''
-    if (!fileList || fileList.length === 0) return
-    const items = Array.from(fileList).map(file => ({
-      file,
-      relativePath: (file as any).webkitRelativePath || file.name,
-    }))
-    performUpload(items, false)
   }
 
   function handleConfirmOverwrite() {
