@@ -3,7 +3,7 @@ import { ApiService } from './services/ApiService'
 
 // Backend URL — resolved from the host page (set in index.html), matching ApiService.
 // Data calls must target the backend origin, not the frontend's, so these are absolute.
-const API_BASE = (window as any).__CRAFTBOT_BACKEND_URL__ || 'http://localhost:3101'
+const API_BASE = (window as any).__CRAFTBOT_BACKEND_URL__ || 'http://localhost:{{BACKEND_PORT}}'
 
 /**
  * AppController - CraftBot Pet Tamagotchi Controller
