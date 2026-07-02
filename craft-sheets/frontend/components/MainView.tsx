@@ -461,6 +461,7 @@ export function MainView({ controller }: MainViewProps) {
       >
         This will permanently delete <strong>{confirmDelete?.name}</strong> and all of its data.
       </Modal>
+
     </div>
   )
 }

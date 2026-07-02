@@ -4,7 +4,7 @@ Living UI API Routes — Markdown Editor
 State management, workspace file operations, and editor session persistence.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File, Form
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from typing import Dict, Any, List, Optional, Literal
@@ -237,6 +237,45 @@ def create_item(data: FileCreateRequest) -> Dict[str, Any]:
         return {"status": "created", "path": data.path, "type": data.type}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to create: {e}")
+
+
+@router.post("/files/upload")
+async def upload_files(
+    files: List[UploadFile] = File(...),
+    relative_paths: List[str] = Form(...),
+    parent_path: str = Form(default=""),
+    overwrite: bool = Form(default=False),
+) -> Dict[str, Any]:
+    """Upload one or more files (optionally preserving a folder structure via relative_paths)."""
+    if len(files) != len(relative_paths):
+        raise HTTPException(status_code=400, detail="files and relative_paths length mismatch")
+    if not files:
+        raise HTTPException(status_code=400, detail="No files provided")
+
+    resolved = []
+    for f, rel in zip(files, relative_paths):
+        if not rel or not rel.strip():
+            raise HTTPException(status_code=400, detail="Empty relative path")
+        full_rel = (parent_path.rstrip("/") + "/" + rel) if parent_path else rel
+        resolved.append((_safe_path(full_rel), full_rel, f))
+
+    if not overwrite:
+        conflicts = [full_rel for target, full_rel, _ in resolved if target.exists()]
+        if conflicts:
+            raise HTTPException(status_code=409, detail={"conflicts": conflicts})
+
+    written = []
+    try:
+        for target, full_rel, upload in resolved:
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(await upload.read())
+            written.append(full_rel)
+        logger.info(f"[Routes] Uploaded {len(written)} file(s)")
+        return {"status": "uploaded", "written": written}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to upload: {e}")
 
 
 @router.put("/files/rename")

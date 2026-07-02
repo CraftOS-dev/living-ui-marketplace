@@ -1,28 +1,69 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import { MainView } from './components/MainView'
 import { AppController } from './AppController'
 import { uiCapture } from './services/UICapture'
+import {
+  applyThemeToDocument,
+  DEFAULT_CUSTOM_COLORS,
+  type CustomColors,
+  type ThemeId,
+} from './theme/themes'
 
 // Initialize the controller
 const controller = new AppController()
 
 function App() {
+  // Start with defaults — the CraftBot shell sends the correct per-project
+  // theme via 'livingui-theme' on mount, before the iframe becomes visible.
+  const themIdRef = useRef<ThemeId>('craftbot')
+  const modeRef = useRef<'dark' | 'light'>('dark')
+  const customColorsRef = useRef<CustomColors>({ ...DEFAULT_CUSTOM_COLORS })
+
   useEffect(() => {
-    // Start the controller on mount
     controller.initialize()
 
-    // Register app state for UI capture (agent observation via HTTP)
     uiCapture.registerComponent('App', {
       initialized: true,
       componentName: 'App',
     })
 
+    applyThemeToDocument(themIdRef.current, modeRef.current, customColorsRef.current)
+
+    const onMessage = (e: MessageEvent) => {
+      if (!e.data) return
+
+      if (e.data.type === 'craftbot-theme') {
+        // Parent broadcast its dark/light mode — re-apply current theme with new mode
+        const mode: 'dark' | 'light' = e.data.theme === 'light' ? 'light' : 'dark'
+        modeRef.current = mode
+        applyThemeToDocument(themIdRef.current, mode, customColorsRef.current)
+      }
+
+      if (e.data.type === 'livingui-theme') {
+        // Parent sent the per-project theme selection — apply in memory only.
+        // Do NOT write to localStorage; the shell owns per-project persistence.
+        const themeId = e.data.themeId as ThemeId
+        themIdRef.current = themeId
+        if (e.data.customColors) {
+          customColorsRef.current = e.data.customColors as CustomColors
+        }
+        applyThemeToDocument(themeId, modeRef.current, customColorsRef.current)
+      }
+    }
+
+    window.addEventListener('message', onMessage)
+
+    // Request the current mode from the parent CraftBot shell
+    try {
+      window.parent.postMessage({ type: 'craftbot-theme-request' }, '*')
+    } catch {}
+
     return () => {
-      // Cleanup on unmount
       controller.cleanup()
       uiCapture.unregisterComponent('App')
+      window.removeEventListener('message', onMessage)
     }
   }, [])
 
