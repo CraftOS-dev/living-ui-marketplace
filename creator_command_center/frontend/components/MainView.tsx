@@ -102,7 +102,7 @@ export function MainView({ controller }: MainViewProps) {
             controller={controller}
             channels={channels}
             videos={videos}
-            isConnected={isConnected('google_workspace')}
+            isConnected={isConnected('google_youtube')}
             onDataChange={loadData}
           />
         )}

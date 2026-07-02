@@ -5,7 +5,7 @@ import type { ReactNode } from 'react'
 
 // Only show platforms relevant to content creators
 const PLATFORM_INFO: Record<string, { label: string; icon: ReactNode; color: string }> = {
-  google_workspace: { label: 'YouTube & Gmail', icon: <Youtube size={24} />, color: '#FF0000' },
+  google_youtube: { label: 'YouTube', icon: <Youtube size={24} />, color: '#FF0000' },
   discord: { label: 'Discord', icon: <MessageCircle size={24} />, color: '#5865F2' },
   twitter: { label: 'Twitter / X', icon: <Twitter size={24} />, color: '#1DA1F2' },
   notion: { label: 'Notion', icon: <BookOpen size={24} />, color: '#000000' },
@@ -137,10 +137,10 @@ export function DashboardView({ integrationStatus, channels, videos, onViewYouTu
         </div>
       )}
 
-      {!channel && integrationStatus.integrations.find(i => i.id === 'google_workspace' && i.connected) && (
+      {!channel && integrationStatus.integrations.find(i => i.id === 'google_youtube' && i.connected) && (
         <Card>
           <div style={{ padding: 'var(--space-4)', textAlign: 'center', color: 'var(--text-muted)' }}>
-            Google connected but no YouTube data yet. Go to the YouTube tab and click Sync.
+            YouTube connected but no data yet. Go to the YouTube tab and click Sync.
           </div>
         </Card>
       )}
