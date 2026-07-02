@@ -19,7 +19,7 @@ import type {
 import { ApiService } from './services/ApiService'
 import { stateCache } from './services/StatePersistence'
 
-const BACKEND_URL = (window as any).__CRAFTBOT_BACKEND_URL__ || 'http://localhost:3208'
+const BACKEND_URL = (window as any).__CRAFTBOT_BACKEND_URL__ || 'http://localhost:{{BACKEND_PORT}}'
 const API = `${BACKEND_URL}/api`
 
 async function apiFetch<T = unknown>(path: string, opts?: RequestInit): Promise<T> {

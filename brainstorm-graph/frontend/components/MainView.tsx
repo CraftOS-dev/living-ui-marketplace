@@ -231,6 +231,7 @@ export function MainView({ controller }: Props) {
           {state.view === 'graph' && (
             <GraphView
               nodes={state.nodes}
+              activeSessionId={state.activeSessionId}
               expandingNodeId={state.expandingNodeId}
               onExpand={handleExpand}
               onAnswer={handleAnswer}
