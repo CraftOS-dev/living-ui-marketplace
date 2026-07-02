@@ -44,7 +44,7 @@ export class AppController {
 
   private listeners: Set<(state: AppState) => void> = new Set()
   private backendAvailable: boolean = false
-  private baseUrl: string = (window as any).__CRAFTBOT_BACKEND_URL__ || 'http://localhost:3105'
+  private baseUrl: string = (window as any).__CRAFTBOT_BACKEND_URL__ || 'http://localhost:{{BACKEND_PORT}}'
 
   // Polling
   private _priceInterval: ReturnType<typeof setInterval> | null = null

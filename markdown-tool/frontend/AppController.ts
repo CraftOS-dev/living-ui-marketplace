@@ -2,7 +2,7 @@ import type { AppState, FileItem, EditorSession } from './types'
 import { ApiService } from './services/ApiService'
 import { stateCache } from './services/StatePersistence'
 
-const BACKEND_URL = (window as any).__CRAFTBOT_BACKEND_URL__ || 'http://localhost:3200'
+const BACKEND_URL = (window as any).__CRAFTBOT_BACKEND_URL__ || 'http://localhost:{{BACKEND_PORT}}'
 
 export class UploadConflictError extends Error {
   conflicts: string[]
