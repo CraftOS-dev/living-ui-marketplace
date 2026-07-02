@@ -793,7 +793,9 @@ async def generate_hooks(data: HookRequest) -> Dict[str, Any]:
         # Strip markdown fences if present
         cleaned = re.sub(r"```(?:json)?|```", "", result).strip()
         hooks = json.loads(cleaned)
-        if not isinstance(hooks, list):
+        if isinstance(hooks, dict):
+            hooks = [hooks]
+        elif not isinstance(hooks, list):
             hooks = []
         return {"status": "ok", "hooks": hooks}
     except Exception as e:
