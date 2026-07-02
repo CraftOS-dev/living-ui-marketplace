@@ -7,6 +7,7 @@ const INITIAL_OFFSET = { x: -800, y: -100 }
 
 interface Props {
   nodes: BrainstormNode[]
+  activeSessionId: number | null
   expandingNodeId: number | null
   onExpand: (id: number) => void
   onAnswer: (id: number) => void
@@ -42,8 +43,9 @@ function buildEdges(nodes: BrainstormNode[]): Edge[] {
     .filter(Boolean) as Edge[]
 }
 
-export function GraphView({ nodes, expandingNodeId, onExpand, onAnswer, onDelete, onAddChild, onEdit, onUpdatePosition }: Props) {
+export function GraphView({ nodes, activeSessionId, expandingNodeId, onExpand, onAnswer, onDelete, onAddChild, onEdit, onUpdatePosition }: Props) {
   const [offset, setOffset] = useState(INITIAL_OFFSET)
+  const containerRef = useRef<HTMLDivElement>(null)
   const panning = useRef(false)
   const panStart = useRef({ x: 0, y: 0, ox: 0, oy: 0 })
 
@@ -67,11 +69,31 @@ export function GraphView({ nodes, expandingNodeId, onExpand, onAnswer, onDelete
     return () => { window.removeEventListener('mousemove', onMove); window.removeEventListener('mouseup', onUp) }
   }, [])
 
+  // Re-center the viewport on the loaded session's nodes whenever the active
+  // session changes — otherwise nodes render relative to whatever pan offset
+  // was left over from the previous session (or the static initial offset,
+  // which only happens to cover the default root-node position).
+  useEffect(() => {
+    if (nodes.length === 0) return
+    const container = containerRef.current
+    const viewportW = container?.clientWidth || 1200
+    const viewportH = container?.clientHeight || 800
+    const minX = Math.min(...nodes.map(n => n.x))
+    const maxX = Math.max(...nodes.map(n => n.x)) + CARD_WIDTH
+    const minY = Math.min(...nodes.map(n => n.y))
+    const maxY = Math.max(...nodes.map(n => n.y)) + CARD_HEIGHT
+    setOffset({
+      x: viewportW / 2 - (minX + maxX) / 2,
+      y: viewportH / 2 - (minY + maxY) / 2,
+    })
+  }, [activeSessionId])
+
   const edges = buildEdges(nodes)
 
   return (
     <div
       className="graph-container"
+      ref={containerRef}
       onMouseDown={handleCanvasMouseDown}
       style={{ cursor: panning.current ? 'grabbing' : 'grab' }}
     >
