@@ -13,6 +13,7 @@ const TYPE_COLORS: Record<string, string> = {
 
 interface Props {
   node: BrainstormNode
+  scale: number
   isExpanding: boolean
   onExpand: () => void
   onAnswer: () => void
@@ -22,7 +23,7 @@ interface Props {
   onDragEnd: (x: number, y: number) => void
 }
 
-export function NodeCard({ node, isExpanding, onExpand, onAnswer, onDelete, onAddChild, onEdit, onDragEnd }: Props) {
+export function NodeCard({ node, scale, isExpanding, onExpand, onAnswer, onDelete, onAddChild, onEdit, onDragEnd }: Props) {
   const [pos, setPos] = useState({ x: node.x, y: node.y })
   const dragging = useRef(false)
   const dragStart = useRef({ mx: 0, my: 0, nx: 0, ny: 0 })
@@ -40,8 +41,10 @@ export function NodeCard({ node, isExpanding, onExpand, onAnswer, onDelete, onAd
     moved.current = false
     dragStart.current = { mx: e.clientX, my: e.clientY, nx: pos.x, ny: pos.y }
     const onMove = (ev: MouseEvent) => {
-      const dx = ev.clientX - dragStart.current.mx
-      const dy = ev.clientY - dragStart.current.my
+      // Drag deltas are raw screen pixels, but pos is in canvas coordinates —
+      // at zoom level `scale`, one screen pixel equals 1/scale canvas pixels.
+      const dx = (ev.clientX - dragStart.current.mx) / scale
+      const dy = (ev.clientY - dragStart.current.my) / scale
       if (Math.abs(dx) > 4 || Math.abs(dy) > 4) moved.current = true
       setPos({ x: dragStart.current.nx + dx, y: dragStart.current.ny + dy })
     }
@@ -50,8 +53,8 @@ export function NodeCard({ node, isExpanding, onExpand, onAnswer, onDelete, onAd
       document.removeEventListener('mousemove', onMove)
       document.removeEventListener('mouseup', onUp)
       if (moved.current) {
-        const dx = ev.clientX - dragStart.current.mx
-        const dy = ev.clientY - dragStart.current.my
+        const dx = (ev.clientX - dragStart.current.mx) / scale
+        const dy = (ev.clientY - dragStart.current.my) / scale
         onDragEnd(dragStart.current.nx + dx, dragStart.current.ny + dy)
       } else {
         // click (not drag) — open editor

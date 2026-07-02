@@ -453,7 +453,10 @@ def run_external_tests(port: int) -> Dict[str, Any]:
             # Track created resources for later PUT/DELETE tests
             if method == "POST" and test_result.get("response_body"):
                 body = test_result["response_body"]
-                resource_id = body.get("id")
+                # create_session returns a nested {"session": {...}, "rootNode": {...}}
+                # envelope rather than a flat {"id": ...} body — fall back to the
+                # nested id so cleanup can find and delete it like every other resource.
+                resource_id = body.get("id") or (body.get("session") or {}).get("id")
                 if resource_id is not None:
                     base_path = _get_base_path(route["path"])
                     created_resources.setdefault(base_path, []).append(resource_id)
