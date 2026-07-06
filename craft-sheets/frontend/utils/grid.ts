@@ -8,6 +8,8 @@ import type { Cell, CellFormat, Column, ColumnType, Sheet } from '../types'
 
 export const DEFAULT_COL_WIDTH = 120
 export const MIN_COL_WIDTH = 64
+export const DEFAULT_ROW_HEIGHT = 28
+export const MIN_ROW_HEIGHT = 20
 
 // --- A1 reference helpers ---------------------------------------------------
 
@@ -153,6 +155,12 @@ export function setColumnWidth(sheet: Sheet, index: number, width: number): Shee
   return { ...sheet, columns }
 }
 
+export function setRowHeight(sheet: Sheet, rowIndex: number, height: number): Sheet {
+  const h = Math.max(MIN_ROW_HEIGHT, Math.round(height))
+  const rowHeights = { ...sheet.rowHeights, [String(rowIndex)]: h }
+  return { ...sheet, rowHeights }
+}
+
 /** Delete a row (0-based), shifting cells below it up by one. */
 export function deleteRow(sheet: Sheet, rowIndex: number): Sheet {
   if (sheet.numRows <= 1) return sheet
@@ -164,7 +172,14 @@ export function deleteRow(sheet: Sheet, rowIndex: number): Sheet {
     const newRow = pos.row > rowIndex ? pos.row - 1 : pos.row
     cells[makeRef(pos.col, newRow)] = cell
   }
-  return { ...sheet, cells, numRows: sheet.numRows - 1 }
+  const rowHeights: Record<string, number> = {}
+  for (const [key, h] of Object.entries(sheet.rowHeights || {})) {
+    const idx = Number(key)
+    if (idx === rowIndex) continue
+    const newIdx = idx > rowIndex ? idx - 1 : idx
+    rowHeights[String(newIdx)] = h
+  }
+  return { ...sheet, cells, rowHeights, numRows: sheet.numRows - 1 }
 }
 
 // --- multi-cell selection helpers -------------------------------------------

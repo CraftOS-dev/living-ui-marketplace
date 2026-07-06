@@ -17,7 +17,9 @@ import {
   renameColumn,
   setCellRaw,
   setColumnType,
+  setColumnWidth,
   setRangeFormat,
+  setRowHeight,
 } from '../utils/grid'
 import { exportSheet, importFile } from '../utils/fileio'
 import { Alert, Button, Modal } from './ui'
@@ -242,6 +244,10 @@ export function MainView({ controller }: MainViewProps) {
     const col = parseRef(selectedRef)?.col ?? 0
     applyAndSave(deleteColumn(active, col))
   }
+  const handleResizeColumn = (index: number, width: number) =>
+    active && applyAndSave(setColumnWidth(active, index, width))
+  const handleResizeRow = (row: number, height: number) =>
+    active && applyAndSave(setRowHeight(active, row, height))
 
   // --- sheet (tab) handlers -------------------------------------------------
   const refreshSheets = useCallback(async () => {
@@ -409,6 +415,8 @@ export function MainView({ controller }: MainViewProps) {
           onCtrlSelect={handleCtrlSelect}
           onCommitCell={commitCell}
           onOpenColumnMenu={(index, anchor) => setColMenu({ index, anchor })}
+          onResizeColumn={handleResizeColumn}
+          onResizeRow={handleResizeRow}
           onPaste={handlePaste}
           onRichPaste={handleRichPaste}
           onToggleBold={toggleBold}

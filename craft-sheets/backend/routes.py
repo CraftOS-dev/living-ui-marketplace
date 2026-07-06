@@ -67,6 +67,7 @@ class SheetCreate(BaseModel):
     columns: List[ColumnSchema] = Field(default_factory=list)
     numRows: int = DEFAULT_NUM_ROWS
     cells: Dict[str, Any] = Field(default_factory=dict)
+    rowHeights: Dict[str, int] = Field(default_factory=dict)
 
 
 class SheetUpdate(BaseModel):
@@ -75,6 +76,7 @@ class SheetUpdate(BaseModel):
     columns: List[ColumnSchema] = Field(default_factory=list)
     numRows: int = DEFAULT_NUM_ROWS
     cells: Dict[str, Any] = Field(default_factory=dict)
+    rowHeights: Dict[str, int] = Field(default_factory=dict)
 
 
 class UISnapshotUpdate(BaseModel):
@@ -252,6 +254,7 @@ def create_sheet(data: SheetCreate, db: Session = Depends(get_db)) -> Dict[str, 
         columns=columns,
         num_rows=num_rows,
         cells=data.cells or {},
+        row_heights=data.rowHeights or {},
         position=max_pos,
     )
     db.add(sheet)
@@ -281,6 +284,7 @@ def update_sheet(sheet_id: int, data: SheetUpdate, db: Session = Depends(get_db)
     sheet.columns = [c.model_dump() for c in data.columns] or default_columns()
     sheet.num_rows = data.numRows if data.numRows and data.numRows > 0 else DEFAULT_NUM_ROWS
     sheet.cells = data.cells or {}
+    sheet.row_heights = data.rowHeights or {}
 
     db.commit()
     db.refresh(sheet)

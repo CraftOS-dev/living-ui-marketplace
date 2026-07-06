@@ -1,93 +1,48 @@
 """
 LLM Service for Luolinglo
 
-Wraps CraftBot's LLMInterface to provide language learning AI features.
-Reuses the user's configured API key and LLM provider.
+Calls CraftBot's LLM bridge (via services.integration_client) to provide
+language learning AI features. CraftBot resolves the provider/model/API key
+centrally, server-side — this module no longer duplicates that logic.
 """
 
-import sys
 import json
+import re
 import hashlib
 import logging
-from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 from datetime import datetime, timedelta
+
+from services.integration_client import integration
 
 logger = logging.getLogger(__name__)
 
-# Add CraftBot root to path so we can import its modules.
-# llm_service.py lives at:
-#   {CraftBot}/agent_file_system/workspace/living_ui/{project}/backend/llm_service.py
-# So we need 6 .parent calls to reach {CraftBot}.
-_CRAFTBOT_ROOT = Path(__file__).resolve().parent.parent.parent.parent.parent.parent
-if str(_CRAFTBOT_ROOT) not in sys.path:
-    sys.path.insert(0, str(_CRAFTBOT_ROOT))
-
-_llm_instance = None
-
-
-def _get_llm():
-    """Lazy-initialize the LLM interface using CraftBot's settings."""
-    global _llm_instance
-    if _llm_instance is not None:
-        return _llm_instance
-
-    try:
-        from app.config import get_api_key, get_llm_provider, get_llm_model
-        from agent_core.core.impl.llm.interface import LLMInterface
-
-        provider = get_llm_provider()
-        model = get_llm_model()
-        api_key = get_api_key(provider)
-
-        if not api_key:
-            logger.warning("[LLM] No API key configured for provider: %s", provider)
-            return None
-
-        _llm_instance = LLMInterface(
-            provider=provider,
-            model=model,
-            api_key=api_key,
-            temperature=0.7,
-            max_tokens=4000,
-        )
-        logger.info("[LLM] Initialized with provider=%s, model=%s", provider, model)
-        return _llm_instance
-    except Exception as e:
-        logger.error("[LLM] Failed to initialize: %s", e)
-        return None
-
 
 async def generate_text(system_prompt: str, user_prompt: str) -> Optional[str]:
-    """Generate text using the LLM."""
-    llm = _get_llm()
-    if llm is None:
+    """Generate text using CraftBot's LLM bridge."""
+    if not integration.available:
+        logger.warning("[LLM] CraftBot bridge not configured (CRAFTBOT_BRIDGE_URL/TOKEN unset)")
         return None
 
     try:
-        response = await llm.generate_response_async(
-            system_prompt=system_prompt,
-            user_prompt=user_prompt,
-        )
-        return response
+        response = await integration.llm_complete(user_prompt, system_prompt)
     except Exception as e:
         logger.error("[LLM] Generation failed: %s", e)
         return None
 
+    if not response:
+        logger.error("[LLM] Bridge call returned empty response")
+        return None
+
+    return response
+
 
 def parse_json_response(text: str) -> Optional[Any]:
-    """Parse a JSON response from LLM output, handling markdown code blocks."""
+    """Parse a JSON response from LLM output, stripping markdown code fences anywhere in the string."""
     if not text:
         return None
 
-    cleaned = text.strip()
-    if cleaned.startswith("```json"):
-        cleaned = cleaned[7:]
-    elif cleaned.startswith("```"):
-        cleaned = cleaned[3:]
-    if cleaned.endswith("```"):
-        cleaned = cleaned[:-3]
-    cleaned = cleaned.strip()
+    cleaned = re.sub(r"```(?:json)?", "", text).strip()
 
     try:
         return json.loads(cleaned)

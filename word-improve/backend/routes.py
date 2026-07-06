@@ -446,6 +446,13 @@ def _persist_segments(
 # Session routes
 # ============================================================================
 
+@router.get("/llm-status")
+def llm_status() -> Dict[str, Any]:
+    """Lightweight check so the frontend can show an accurate LLM-availability
+    banner immediately on page load, instead of only after a generate call."""
+    return {"llmAvailable": llm_available()}
+
+
 @router.post("/sessions")
 def create_session(data: SessionCreate, db: DBSession = Depends(get_db)) -> Dict[str, Any]:
     sess = Session(

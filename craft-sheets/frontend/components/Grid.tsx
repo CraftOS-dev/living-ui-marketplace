@@ -1,6 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { CellFormat, Sheet } from '../types'
-import { colLetter, displayCell, makeRef, parseRef } from '../utils/grid'
+import {
+  colLetter,
+  displayCell,
+  makeRef,
+  parseRef,
+  DEFAULT_ROW_HEIGHT,
+  MIN_COL_WIDTH,
+  MIN_ROW_HEIGHT,
+} from '../utils/grid'
 
 interface SelectionBounds {
   minCol: number
@@ -19,6 +27,8 @@ interface GridProps {
   onCtrlSelect: (ref: string) => void
   onCommitCell: (ref: string, raw: string) => void
   onOpenColumnMenu: (index: number, anchor: { x: number; y: number }) => void
+  onResizeColumn: (index: number, width: number) => void
+  onResizeRow: (row: number, height: number) => void
   onPaste: (values: string[][]) => void
   onRichPaste: (cells: { raw: string; format: CellFormat | null }[][]) => void
   onToggleBold: () => void
@@ -45,6 +55,8 @@ export function Grid({
   onCtrlSelect,
   onCommitCell,
   onOpenColumnMenu,
+  onResizeColumn,
+  onResizeRow,
   onPaste,
   onRichPaste,
   onToggleBold,
@@ -61,6 +73,72 @@ export function Grid({
 
   const cols = sheet.columns.length
   const rows = sheet.numRows
+
+  const rowHeight = (r: number) => sheet.rowHeights?.[String(r)] ?? DEFAULT_ROW_HEIGHT
+
+  // Column/row header-edge resize (separate from the cell-range `isDragging` above).
+  const resizeDrag = useRef<{
+    type: 'col' | 'row'
+    index: number
+    startCoord: number
+    startSize: number
+  } | null>(null)
+  const [liveSize, setLiveSize] = useState<{ type: 'col' | 'row'; index: number; size: number } | null>(null)
+  // Mirrors `liveSize` for the mouseup listener below, which is attached once
+  // (not re-attached per pixel of drag) and would otherwise close over a
+  // stale `liveSize` from when the effect last ran.
+  const liveSizeRef = useRef(liveSize)
+  liveSizeRef.current = liveSize
+
+  const startColResize = (index: number, clientX: number) => {
+    resizeDrag.current = { type: 'col', index, startCoord: clientX, startSize: sheet.columns[index].width }
+    document.body.style.cursor = 'col-resize'
+    document.body.style.userSelect = 'none'
+  }
+  const startRowResize = (index: number, clientY: number) => {
+    resizeDrag.current = { type: 'row', index, startCoord: clientY, startSize: rowHeight(index) }
+    document.body.style.cursor = 'row-resize'
+    document.body.style.userSelect = 'none'
+  }
+
+  useEffect(() => {
+    const onMove = (e: MouseEvent) => {
+      const d = resizeDrag.current
+      if (!d) return
+      const coord = d.type === 'col' ? e.clientX : e.clientY
+      const delta = coord - d.startCoord
+      const min = d.type === 'col' ? MIN_COL_WIDTH : MIN_ROW_HEIGHT
+      const next = Math.max(min, Math.round(d.startSize + delta))
+      setLiveSize({ type: d.type, index: d.index, size: next })
+    }
+    const onUp = () => {
+      const d = resizeDrag.current
+      if (d) {
+        const finalSize =
+          liveSizeRef.current && liveSizeRef.current.type === d.type && liveSizeRef.current.index === d.index
+            ? liveSizeRef.current.size
+            : d.startSize
+        if (d.type === 'col') onResizeColumn(d.index, finalSize)
+        else onResizeRow(d.index, finalSize)
+      }
+      resizeDrag.current = null
+      setLiveSize(null)
+      document.body.style.cursor = ''
+      document.body.style.userSelect = ''
+    }
+    window.addEventListener('mousemove', onMove)
+    window.addEventListener('mouseup', onUp)
+    return () => {
+      window.removeEventListener('mousemove', onMove)
+      window.removeEventListener('mouseup', onUp)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [onResizeColumn, onResizeRow])
+
+  const effectiveColWidth = (c: number) =>
+    liveSize && liveSize.type === 'col' && liveSize.index === c ? liveSize.size : sheet.columns[c].width
+  const effectiveRowHeight = (r: number) =>
+    liveSize && liveSize.type === 'row' && liveSize.index === r ? liveSize.size : rowHeight(r)
 
   // Rectangular bounds of the current selection range (null = single cell)
   const selBounds = useMemo<SelectionBounds | null>(() => {
@@ -256,7 +334,8 @@ export function Grid({
     if (rows2d.length > 0) onPaste(rows2d)
   }
 
-  const gridTemplateColumns = `${ROWNUM_W}px ` + sheet.columns.map((c) => `${c.width}px`).join(' ')
+  const gridTemplateColumns = `${ROWNUM_W}px ` + sheet.columns.map((_, c) => `${effectiveColWidth(c)}px`).join(' ')
+  const gridTemplateRows = `${CELL_H}px ` + Array.from({ length: rows }, (_, r) => `${effectiveRowHeight(r)}px`).join(' ')
 
   return (
     <div
@@ -274,7 +353,7 @@ export function Grid({
         backgroundColor: 'var(--bg-primary)',
       }}
     >
-      <div style={{ display: 'grid', gridTemplateColumns, width: 'max-content', minWidth: '100%' }}>
+      <div style={{ display: 'grid', gridTemplateColumns, gridTemplateRows, width: 'max-content', minWidth: '100%' }}>
         {/* Header row */}
         <HeaderCorner />
         {sheet.columns.map((col, c) => (
@@ -308,6 +387,25 @@ export function Grid({
             <span style={{ color: 'var(--text-muted)', fontWeight: 'var(--font-weight-normal)' as any }}>
               {colLetter(c)}
             </span>
+            <div
+              role="separator"
+              aria-orientation="vertical"
+              title="Drag to resize column"
+              onMouseDown={(e) => {
+                e.stopPropagation()
+                startColResize(c, e.clientX)
+              }}
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                position: 'absolute',
+                right: -3,
+                top: 0,
+                bottom: 0,
+                width: 6,
+                cursor: 'col-resize',
+                zIndex: 25,
+              }}
+            />
           </div>
         ))}
 
@@ -331,6 +429,7 @@ export function Grid({
             onDraft={setDraft}
             onCommit={commitEdit}
             onCancel={cancelEdit}
+            onRowHandleDown={(clientY) => startRowResize(r, clientY)}
           />
         ))}
       </div>
@@ -372,6 +471,7 @@ interface RowCellsProps {
   onDraft: (v: string) => void
   onCommit: (moveTo?: string) => void
   onCancel: () => void
+  onRowHandleDown: (clientY: number) => void
 }
 
 function RowCells(props: RowCellsProps) {
@@ -385,7 +485,7 @@ function RowCells(props: RowCellsProps) {
           position: 'sticky',
           left: 0,
           zIndex: 10,
-          height: CELL_H,
+          height: '100%',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -398,6 +498,24 @@ function RowCells(props: RowCellsProps) {
         }}
       >
         {row + 1}
+        <div
+          role="separator"
+          aria-orientation="horizontal"
+          title="Drag to resize row"
+          onMouseDown={(e) => {
+            e.stopPropagation()
+            props.onRowHandleDown(e.clientY)
+          }}
+          style={{
+            position: 'absolute',
+            left: 0,
+            right: 0,
+            bottom: -3,
+            height: 6,
+            cursor: 'row-resize',
+            zIndex: 25,
+          }}
+        />
       </div>
 
       {Array.from({ length: cols }, (_, c) => {
@@ -426,7 +544,7 @@ function RowCells(props: RowCellsProps) {
             onDoubleClick={() => props.onStartEdit(ref)}
             style={{
               position: 'relative',
-              height: CELL_H,
+              height: '100%',
               padding: '0 6px',
               display: 'flex',
               alignItems: 'center',

@@ -40,8 +40,8 @@ export function GenerateWordsForm({ onGenerated }: GenerateWordsFormProps) {
       await ApiService.generateVocabulary(resolvedCategory, difficulty, count)
       toast.success(`Generated ${count} words for "${resolvedCategory}"`)
       onGenerated()
-    } catch {
-      toast.error('Failed to generate vocabulary')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to generate vocabulary')
     } finally {
       setLoading(false)
     }
@@ -84,11 +84,11 @@ export function GenerateWordsForm({ onGenerated }: GenerateWordsFormProps) {
         <Input
           label="Number of Words"
           type="number"
-          min={5}
-          max={20}
+          min={1}
+          max={30}
           value={String(count)}
-          onChange={(e) => setCount(Math.min(20, Math.max(5, Number(e.target.value))))}
-          hint="Between 5 and 20 words"
+          onChange={(e) => setCount(Math.min(30, Math.max(1, Number(e.target.value))))}
+          hint="Between 1 and 30 words"
         />
 
         <Button type="submit" loading={loading} fullWidth>

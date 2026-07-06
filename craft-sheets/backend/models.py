@@ -125,6 +125,7 @@ class Sheet(Base):
     columns = Column(JSON, default=list)  # [{name, type, width}, ...]
     num_rows = Column(Integer, default=30)
     cells = Column(JSON, default=dict)  # {"A1": {"raw": "...", "format": {...}}}
+    row_heights = Column(JSON, default=dict)  # {"3": 42, ...} row index (str) -> px height
     position = Column(Integer, default=0)  # tab order
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -136,6 +137,7 @@ class Sheet(Base):
             "columns": self.columns or [],
             "numRows": self.num_rows if self.num_rows is not None else 0,
             "cells": self.cells or {},
+            "rowHeights": self.row_heights or {},
             "position": self.position or 0,
             "createdAt": self.created_at.isoformat() if self.created_at else None,
             "updatedAt": self.updated_at.isoformat() if self.updated_at else None,

@@ -32,6 +32,8 @@ export interface Sheet {
   name: string
   columns: Column[]
   numRows: number
+  /** Sparse map of row index (as string) -> px height. Missing = default height. */
+  rowHeights: Record<string, number>
   cells: Record<string, Cell>
   position: number
   createdAt?: string

@@ -221,9 +221,9 @@ export function DashboardView({ controller, onNavigate, onNewTransaction }: Dash
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
               {expenseBreakdown.slice(0, 8).map((item, idx) => (
-                <div key={item.category} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+                <div key={item.accountId} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
                   <div style={{ width: 80, fontSize: 'var(--font-size-xs)', color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flexShrink: 0 }}>
-                    {item.category}
+                    {item.accountName}
                   </div>
                   <div style={{ flex: 1, height: 16, backgroundColor: 'var(--bg-tertiary)', borderRadius: 'var(--radius-sm)', overflow: 'hidden' }}>
                     <div
