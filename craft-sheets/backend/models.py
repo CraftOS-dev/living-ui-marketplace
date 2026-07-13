@@ -126,6 +126,8 @@ class Sheet(Base):
     num_rows = Column(Integer, default=30)
     cells = Column(JSON, default=dict)  # {"A1": {"raw": "...", "format": {...}}}
     row_heights = Column(JSON, default=dict)  # {"3": 42, ...} row index (str) -> px height
+    frozen_rows = Column(Integer, default=0)  # number of leading rows pinned while scrolling
+    frozen_cols = Column(Integer, default=0)  # number of leading columns pinned while scrolling
     position = Column(Integer, default=0)  # tab order
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -138,6 +140,8 @@ class Sheet(Base):
             "numRows": self.num_rows if self.num_rows is not None else 0,
             "cells": self.cells or {},
             "rowHeights": self.row_heights or {},
+            "frozenRows": self.frozen_rows or 0,
+            "frozenCols": self.frozen_cols or 0,
             "position": self.position or 0,
             "createdAt": self.created_at.isoformat() if self.created_at else None,
             "updatedAt": self.updated_at.isoformat() if self.updated_at else None,
