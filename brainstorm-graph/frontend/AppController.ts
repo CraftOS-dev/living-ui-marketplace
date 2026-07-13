@@ -1,4 +1,4 @@
-import type { AppState, BrainstormSession, BrainstormNode, NodeCreateInput, ExploreResult, SessionSummary } from './types'
+import type { AppState, BrainstormSession, BrainstormNode, NodeCreateInput, ExploreResult, ExploreOptions, SessionSummary } from './types'
 import { ApiService } from './services/ApiService'
 import { stateCache } from './services/StatePersistence'
 
@@ -142,8 +142,12 @@ export class AppController {
   }
 
   async updateNodePosition(id: number, x: number, y: number): Promise<void> {
-    await api('/api/nodes/' + id, { method: 'PUT', body: JSON.stringify({ x, y }) })
+    // Optimistic: patch local state immediately so the node's position prop
+    // never lags behind NodeCard's local drag state after drop — otherwise
+    // NodeCard's resync-on-render guard sees a stale x/y for one render and
+    // snaps the card back before the PATCH resolves and snaps it forward again.
     this.patch({ nodes: this.state.nodes.map(n => n.id === id ? { ...n, x, y } : n) })
+    await api('/api/nodes/' + id, { method: 'PUT', body: JSON.stringify({ x, y }) })
   }
 
   async deleteNode(id: number): Promise<void> {
@@ -190,21 +194,29 @@ export class AppController {
     }
   }
 
-  async exploreSession(): Promise<void> {
+  async exploreSession(opts: ExploreOptions): Promise<ExploreResult> {
     const { activeSessionId } = this.state
-    if (!activeSessionId) return
+    if (!activeSessionId) throw new Error('No active session')
     this.patch({ agentRunning: true })
     try {
       const result = await api<ExploreResult>(
         '/api/sessions/' + activeSessionId + '/explore',
-        { method: 'POST' }
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            strategy: opts.strategy,
+            effort: opts.effort,
+            startNodeId: opts.startNodeId,
+          }),
+        }
       )
-      if (result.newNodes) {
+      if (result.newNodes && result.newNodes.length) {
         this.patch({ nodes: [...this.state.nodes, ...result.newNodes] })
       }
       if (result.node) {
         this.patch({ nodes: [...this.state.nodes, result.node] })
       }
+      return result
     } finally {
       this.patch({ agentRunning: false })
     }

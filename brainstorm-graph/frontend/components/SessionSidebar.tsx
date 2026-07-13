@@ -6,13 +6,14 @@ import type { BrainstormSession } from '../types'
 interface Props {
   sessions: BrainstormSession[]
   activeSessionId: number | null
+  collapsed?: boolean
   onSelect: (id: number) => void
   onCreate: (title: string, topic: string) => void
   onRename: (id: number, title: string) => void
   onDelete: (id: number) => void
 }
 
-export function SessionSidebar({ sessions, activeSessionId, onSelect, onCreate, onRename, onDelete }: Props) {
+export function SessionSidebar({ sessions, activeSessionId, collapsed = false, onSelect, onCreate, onRename, onDelete }: Props) {
   const [creating, setCreating] = useState(false)
   const [newTitle, setNewTitle] = useState('')
   const [newTopic, setNewTopic] = useState('')
@@ -38,7 +39,8 @@ export function SessionSidebar({ sessions, activeSessionId, onSelect, onCreate, 
   }
 
   return (
-    <aside className="session-sidebar">
+    <aside className={`session-sidebar ${collapsed ? 'collapsed' : ''}`}>
+      <div className="sidebar-inner">
       <div className="sidebar-header">
         <span className="sidebar-title">Sessions</span>
         <button className="icon-btn" onClick={() => setCreating(true)} title="New session">
@@ -83,6 +85,7 @@ export function SessionSidebar({ sessions, activeSessionId, onSelect, onCreate, 
           </div>
         ))}
       </div>
+      </div>
 
       <Modal open={creating} onClose={() => setCreating(false)} title="New Brainstorm Session" size="sm"
         footer={
@@ -116,16 +119,28 @@ export function SessionSidebar({ sessions, activeSessionId, onSelect, onCreate, 
           min-width: 220px;
           background: var(--bg-secondary);
           border-right: 1px solid var(--border-color, rgba(255,255,255,0.08));
+          height: 100%;
+          overflow: hidden;
+          transition: width 0.18s ease, min-width 0.18s ease, border-color 0.18s ease;
+        }
+        .session-sidebar.collapsed {
+          width: 0;
+          min-width: 0;
+          border-right-color: transparent;
+        }
+        .sidebar-inner {
           display: flex;
           flex-direction: column;
           height: 100%;
-          overflow: hidden;
+          width: 220px;
         }
         .sidebar-header {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          padding: 14px 12px 10px;
+          height: 48px;
+          box-sizing: border-box;
+          padding: 0 12px;
           border-bottom: 1px solid var(--border-color, rgba(255,255,255,0.08));
         }
         .sidebar-title { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-secondary); }

@@ -74,7 +74,7 @@ function App() {
     <div className="app">
       <MainView controller={controller} />
       <ToastContainer
-        position="top-right"
+        position="bottom-right"
         autoClose={3000}
         hideProgressBar={false}
         newestOnTop
