@@ -10,7 +10,7 @@ const backendUrl = `${backendBase}/api`
 
 // Initialize UI capture for agent observation
 // This replaces WebSocket-based AgentBridge with HTTP
-uiCapture.initialize(backendUrl, true, 2000) // Auto-capture every 2 seconds
+uiCapture.initialize(backendUrl)
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
