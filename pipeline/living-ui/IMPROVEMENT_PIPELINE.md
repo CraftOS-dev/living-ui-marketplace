@@ -11,14 +11,14 @@ Stages: **I1** parse feedback → **I2** clarify (if needed) → **I3** fix plan
 1. **Every human-reported issue ends in exactly one documented state:** `fixed`, `could-not-reproduce` (with the reproduction attempt as evidence), or `deferred-with-human-approval`. **Never silently dropped.** This mirrors the per-file accounting rule that governs migrations (MIGRATION_GUIDE §0.9) and exists for the same reason: silently curated feedback is how trust in an autonomous pipeline dies — the human stops believing "done" means done.
 2. **QA rerun after any code change, scoped by the impact matrix** (QA_GATES §4) — every gate the change class touches, **always ending with G8**. Never skip a gate the matrix names; never hand the human a folder that hasn't passed G8 that round.
 3. **Never argue with feedback.** If an issue seems wrong, either reproduce your understanding and ask (I2), or fix it as stated. "Works as intended" is a question for the human, not a disposition the runner assigns itself.
-4. **`review_round` increments at the start of every round** and is written to the queue file. **Max 5 rounds** — then §8's exit.
+4. **`review_round` increments at the start of every round** and is logged in ITERATION_LOG. **Max 5 rounds** — then §8's exit.
 5. **New-feature requests are not bug fixes.** Anything that would add a new entity or a Must-sized feature gets flagged (I3), not smuggled into a fix round.
 
 ---
 
 ## 1. Stage I1 — Parse feedback
 
-Set `status: IMPROVING`, increment `review_round`, bump `updated`, log entry.
+Log status `IMPROVING`, increment `review_round`, log entry.
 
 Write `runs/<run_id>/qa/feedback-round-<n>.md`:
 
@@ -53,7 +53,7 @@ Extend `feedback-round-<n>.md` with a plan per issue:
 - Test: <the pytest/browser check that will prove it, added or updated first>
 ```
 
-- **`new-feature` rows:** if it fits the round (small, no new entity), fold it in and note that. If it exceeds a round's scope, flag it in I6's re-present message with options (defer to a follow-up request in the queue / human approves scope growth). Deferral requires the human's explicit OK → disposition `deferred-with-human-approval`.
+- **`new-feature` rows:** if it fits the round (small, no new entity), fold it in and note that. If it exceeds a round's scope, flag it in I6's re-present message with options (defer to a separate follow-up request / human approves scope growth). Deferral requires the human's explicit OK → disposition `deferred-with-human-approval`.
 - **Suspected non-bugs:** attempt reproduction first. Reproduced → it's a bug. Not reproduced → record the exact steps tried; disposition `could-not-reproduce`, surfaced prominently in I6 with "tell me the steps and I'll take another pass".
 
 ## 4. Stage I4 — Implement
@@ -74,7 +74,7 @@ Bound hit → BLOCKED per README §8, with the round's feedback table and final 
 
 ## 6. Stage I6 — Re-present
 
-Set `status: AWAITING_HUMAN_REVIEW`, log it. Append to `runs/<run_id>/REVIEW_REQUEST.md` and post as the message, then **end the turn**:
+Log status `AWAITING_HUMAN_REVIEW`. Append to `runs/<run_id>/REVIEW_REQUEST.md` and post as the message, then **end the turn**:
 
 ```markdown
 # Round <n> results — <App Name> (<slug>)
@@ -107,7 +107,7 @@ Reply **APPROVED** to publish, or list remaining/new issues. Round <n> of 5.
 - [ ] `could-not-reproduce` rows show the attempted steps.
 - [ ] Deferrals have explicit human approval, or are presented as `needs-decision` this round.
 - [ ] Impact-matrix gate rerun evidenced in a new qa-report, ending with a green G8 audit (import-ready folder).
-- [ ] `review_round` in the queue file matches the round number in the messages.
+- [ ] `review_round` in ITERATION_LOG matches the round number in the messages.
 - [ ] App `LIVING_UI.md`/`DESIGN_SPEC.md` updated if the round changed model/endpoints/layout.
 
 ## 8. When things go wrong
@@ -115,4 +115,4 @@ Reply **APPROVED** to publish, or list remaining/new issues. Round <n> of 5.
 - **Round 5 reached without APPROVED:** stop. Present the history (rounds, what changed, what keeps bouncing) and offer: (a) park as BLOCKED for the human to take over the code, (b) human triages the remaining issues to `deferred` and approves, (c) abandon → FAILED. Do not start round 6 on your own authority.
 - **Feedback contradicts SPEC/earlier feedback:** the newest human statement wins; note the supersession in the feedback table and update SPEC §6's register.
 - **Fix requires touching DO-NOT-EDIT files** (`main.py`, `main.tsx`, `themes.ts`, `_template/`): BLOCKED — that class of fix is a platform change, not an app change.
-- **Human replies with a brand-new app idea mid-round:** that's a new queue request — say so, point at `queue/REQUEST_TEMPLATE.md`, finish the current round.
+- **Human replies with a brand-new app idea mid-round:** that's a separate request — say so, point at [NEW_APP_PROMPT.md](NEW_APP_PROMPT.md) (start it only once the current run reaches a terminal state — one request in flight at a time), finish the current round.

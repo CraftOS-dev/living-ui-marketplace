@@ -1,6 +1,6 @@
 # `pipeline/living-ui/` — Autonomous Living UI creation pipeline
 
-This folder owns the process of turning a short, human-written requirement into a finished, reviewed, published Living UI app in the [living-ui-marketplace](../../living-ui-marketplace/) — with the human involved at exactly three points: **enqueue a request**, **paste a kickoff prompt into CraftBot chat**, and **test the app at one review gate**.
+This folder owns the process of turning a short, human-written requirement into a finished, reviewed, published Living UI app in the [living-ui-marketplace](../../living-ui-marketplace/) — with the human involved at exactly two points: **fill in and paste [NEW_APP_PROMPT.md](NEW_APP_PROMPT.md)**, and **test the app at one review gate**. One app at a time — there's no queue.
 
 It is the autonomous replacement for the manual flow in [NEW_APP_PROMPT.md](NEW_APP_PROMPT.md). The work is split across **two runners**:
 
@@ -13,9 +13,11 @@ The handoff is automatic: the research runner's last stage launches `claude -p` 
 
 | Doc | What it is | Who reads it, when |
 |---|---|---|
-| **README.md** (this file) | Hard rules, path resolution, queue spec + state machine, run artifacts, mode routing, kickoff prompts | Creation runner + human, start of **every** run. The research runner does **not** read this — its doc restates everything it needs |
+| **README.md** (this file) | Hard rules, path resolution, state machine, run artifacts, mode routing, kickoff prompts | Creation runner + human, start of **every** run. The research runner does **not** read this — its doc restates everything it needs |
+| [NEW_APP_PROMPT.md](NEW_APP_PROMPT.md) | The single fill-in-and-paste block that starts a run — no separate queue or request file | Human, to start a request |
 | [LESSONS.md](LESSONS.md) | Append-only lessons from past runs | Creation runner, start of **every** run, immediately after this file |
 | [RESEARCH_PIPELINE.md](RESEARCH_PIPELINE.md) | The research SOP (stages R1–R8): claim → research subagents → SPEC.md → Playwright reference capture → DESIGN_SPEC.md → handoff launch. **Written for CraftBot; fully self-contained** | Research runner (CraftBot), its only required reading. C8 keeps its §2 Standing corrections in sync |
+| [RESEARCH_PIPELINE_CLAUDE.md](RESEARCH_PIPELINE_CLAUDE.md) | Same R1–R8 stages, same output contract — a lighter, judgment-based variant for when a Claude Code session does research instead of CraftBot | Research runner (Claude Code), if you choose this runner for a given request |
 | [CREATION_PIPELINE.md](CREATION_PIPELINE.md) | The creation SOP (stages C1–C8): claim handed-off run → validate bundle → build → QA → review → publish | Creation runner, mode CREATE |
 | [QA_GATES.md](QA_GATES.md) | The automated gate list G1–G8 (G8 = restore to import-ready state), fix–retest impact matrix, QA report template | Creation runner, from stage C5 and improvement stage I5 |
 | [IMPROVEMENT_PIPELINE.md](IMPROVEMENT_PIPELINE.md) | Human-feedback iteration loop (stages I1–I6) | Creation runner, mode IMPROVE, or when a review reply lists issues |
@@ -28,13 +30,13 @@ The handoff is automatic: the research runner's last stage launches `claude -p` 
 ## 0. Hard rules
 
 1. **Read [LESSONS.md](LESSONS.md) before doing anything else, every run.** Lessons are corrections paid for by past failures; skipping them re-buys the same failures. (Research-runner equivalent: RESEARCH_PIPELINE §2 Standing corrections, which C8 keeps in sync.)
-2. **The queue file's `status` field is the only state store.** Every transition edits the queue file *and* appends one line to the run's `ITERATION_LOG.md`. A run whose status doesn't match reality is a process bug — stop and fix it before continuing.
-3. **One request in flight per pipeline. Resume before you claim — within the states your pipeline owns.** The research runner owns `QUEUED` → entry into `HANDOFF`; the creation runner owns exit from `HANDOFF` → `DONE` (state table in §3.2 has the Owner column). Neither runner ever claims, advances, or edits a queue file sitting in the other pipeline's states. If a queue file in your pipeline's states is in a non-terminal active state, resume that run (see §8) before claiming new work. v1 assumes at most one live session per pipeline; never run two sessions of the same pipeline against the queue at once.
+2. **The run's `ITERATION_LOG.md` is the only state store.** Its last logged status line is the run's current status — there is no separate request/queue file to keep in sync. A run whose log doesn't match reality is a process bug — stop and fix it before continuing.
+3. **One request in flight, ever. Resume before you start something new — within the states your pipeline owns.** The research runner owns everything up to entry into `HANDOFF`; the creation runner owns exit from `HANDOFF` → `DONE` (state table in §3.2 has the Owner column). Neither runner ever advances a run sitting in the other pipeline's states. Before doing anything else, scan `runs/` for a folder whose ITERATION_LOG hasn't reached a terminal status (`DONE`/`FAILED`) — if one exists, resume it (see §8) instead of starting new work. v1 assumes at most one live session per pipeline at a time.
 4. **Never edit `_template/`, [LIVING_UI_GUIDE.md](LIVING_UI_GUIDE.md), the skill references, or `GLOBAL_LIVING_UI.md`.** If a run reveals they should change, record a `PROPOSAL:` line in LESSONS.md and continue. The pipeline improves itself through LESSONS.md, not by mutating its ground truth.
 5. **Marketplace repo: branch + PR only.** Never commit to its default branch, never `--force`, never merge your own PR. The human reviews and merges.
 6. **Human contact happens only at the review gate (C6/I6) and BLOCKED escalations.** Everywhere the guide says "ask the user", the pipeline means: consult `SPEC.md` / `DESIGN_SPEC.md`; if silent, apply a Safe Assumption from [QUESTIONNAIRE.md](../../skills/living-ui-creator/references/QUESTIONNAIRE.md) and log it in the assumptions register and ITERATION_LOG.
 7. **Visual identity is CraftBot's, always.** Reference products inform *structure and behavior* (layout, navigation, interactions). Colors, fonts, spacing, radii, and components come exclusively from [GLOBAL_LIVING_UI.md](../../agent_file_system/GLOBAL_LIVING_UI.md), the `global.css` design tokens, and the preset components. No exceptions, ever.
-8. **Never weaken a gate to pass it.** No deleting failing tests, no lowering thresholds, no skipping viewports, no "this check doesn't apply here". Fix the app, or go BLOCKED with the failure documented. This rule exists because a gate you can quietly bend is not a gate. **This also covers re-characterizing a red result as passing or non-blocking in a log line** — e.g. calling a failed test "an expected artifact" or "fuzzing noise" — **without independently-verified, quoted command evidence** (the exact command and its output, pasted into ITERATION_LOG or the QA report) proving it isn't a real failure. A run-1 incident logged "PUT failures are expected test runner fuzzing artifacts" over a gate whose own JSON output said `"status": "fail"`; no test was deleted, so the letter of this rule didn't catch it — the spirit does. If you can't produce the command output that justifies dismissing a failure, it isn't dismissible: fix it or go BLOCKED.
+8. **Never weaken a gate to pass it.** No deleting failing tests, no lowering thresholds, no skipping viewports, no "this check doesn't apply here" — and no re-characterizing a red result as passing or non-blocking without quoting the command output that proves it. Fix the app, or go BLOCKED with the failure documented.
 9. **All run artifacts live under `runs/<run_id>/`.** Nothing in the repo root, nothing in system temp dirs. A fresh session must be able to find everything a dead session left behind.
 10. **The human only ever sees an import-ready app.** The human tests by importing the folder into CraftBot — so QA gate **G8 (restore to base import-ready state + audit)** must pass before *every* review handoff (C6 and each I6 round), not just at publish. Base state means: placeholders (`{{PORT}}` / `{{BACKEND_PORT}}` / `{{PROJECT_ID}}`) intact, and zero runtime artifacts (`node_modules/`, `dist/`, `package-lock.json`, `__pycache__/`, `living_ui.db*`, `logs/`, `uploads/`, caches). This rule exists because run 1 handed over a placeholder-substituted folder with `node_modules/` — the import threw backend errors and the size blocked upload.
 11. **Respect the token budget (§9).** A run to the review gate should cost **≤ ~80% of a Sonnet session** so headroom remains for feedback rounds. Run 1 cost 124%; the §9 rules are the correction — follow them unless they'd compromise output quality (research depth and QA rigor are explicitly not budget cuts).
@@ -81,9 +83,9 @@ The kickoff prompt (§5) sets the mode on its `Mode:` line.
 
 | Mode | Runner | Behavior |
 |---|---|---|
-| **RESEARCH** | CraftBot | Resume any in-flight research run (states `RESEARCHING`/`SPEC_READY`). Otherwise claim the next `QUEUED` request (claim rule in §3) and run [RESEARCH_PIPELINE.md](RESEARCH_PIPELINE.md) stages R1–R8, ending with the handoff launch. If the queue is empty and nothing research-owned is in flight: report "queue empty" and stop. |
-| **CREATE** | Claude Code | Resume any in-flight creation run per §8 (states `HANDOFF` with a dead launcher, `BUILDING`, `SELF_QA`, `IMPROVING`, `PUBLISHING`). Otherwise claim the oldest `HANDOFF` file and run [CREATION_PIPELINE.md](CREATION_PIPELINE.md) as far as it goes without the human — normally until `AWAITING_HUMAN_REVIEW`. If nothing is in flight or `HANDOFF`: report "nothing handed off yet" and stop — never claim `QUEUED`/`RESEARCHING`/`SPEC_READY` files (those belong to the research pipeline). |
-| **IMPROVE `<slug>`** | Claude Code | Locate the queue file for `<slug>`. Its status must be `AWAITING_HUMAN_REVIEW` or `BLOCKED` — anything else, report the mismatch and stop. Take the feedback from the kickoff message and run [IMPROVEMENT_PIPELINE.md](IMPROVEMENT_PIPELINE.md). A feedback message of exactly `APPROVED` routes to publish (CREATION_PIPELINE §7) instead. |
+| **RESEARCH** | CraftBot (default) **or** Claude Code | Resume an in-flight research run (`runs/*/ITERATION_LOG.md` last status `RESEARCHING`/`SPEC_READY`) if one exists. Otherwise start the request from [NEW_APP_PROMPT.md](NEW_APP_PROMPT.md) and run the research stages R1–R8, ending with the handoff. CraftBot follows [RESEARCH_PIPELINE.md](RESEARCH_PIPELINE.md); a Claude Code session doing research instead follows [RESEARCH_PIPELINE_CLAUDE.md](RESEARCH_PIPELINE_CLAUDE.md) — same stages, same output contract, either is a valid producer of the handoff bundle. |
+| **CREATE** | Claude Code | Resume an in-flight creation run per §8 (last status `HANDOFF` with a dead launcher, `BUILDING`, `SELF_QA`, `IMPROVING`, `PUBLISHING`). Otherwise find the run whose ITERATION_LOG last status is `HANDOFF` and run [CREATION_PIPELINE.md](CREATION_PIPELINE.md) as far as it goes without the human — normally until `AWAITING_HUMAN_REVIEW`. If nothing is in flight or `HANDOFF`: report "nothing handed off yet" and stop — never advance a run still logged as `RESEARCHING`/`SPEC_READY` (that belongs to the research pipeline). |
+| **IMPROVE `<slug>`** | Claude Code | Locate `runs/<slug>-*/ITERATION_LOG.md`. Its last status must be `AWAITING_HUMAN_REVIEW` or `BLOCKED` — anything else, report the mismatch and stop. Take the feedback from the kickoff message and run [IMPROVEMENT_PIPELINE.md](IMPROVEMENT_PIPELINE.md). A feedback message of exactly `APPROVED` routes to publish (CREATION_PIPELINE §7) instead. |
 
 `AUTO` is a **deprecated alias for CREATE** (pre-split kickoffs used it); treat it identically to CREATE.
 
@@ -91,38 +93,28 @@ A bare in-conversation reply after a review request (same session still open) is
 
 ---
 
-## 3. Queue specification
+## 3. Starting a request
 
-The queue is the folder `pipeline/living-ui/queue/`. One markdown file per request. **This schema is the adapter contract**: a future Google Sheets (or DB) intake replaces only this section — one row per request, columns = the front-matter fields, and the status state machine is unchanged.
+There is no queue — one request in flight at a time (README rule 3). The human fills in and pastes [NEW_APP_PROMPT.md](NEW_APP_PROMPT.md) directly into a chat; that message **is** the request. The research runner (whichever doc it's following) parses it for:
 
-### 3.1 Request file
+| Field | Where it comes from | Used for |
+|---|---|---|
+| `app_name` (display name) | NEW_APP_PROMPT.md `APP` block | catalogue entry, manifest |
+| `slug` | NEW_APP_PROMPT.md `APP` block | app folder name **and** catalogue id, and `run_id = <slug>-<YYYYMMDD>` |
+| `tags` | NEW_APP_PROMPT.md `APP` block | catalogue tags |
+| requirement text | NEW_APP_PROMPT.md `REQUIREMENT` paragraph | everything research and the spec are built from — references and constraints are written directly into this paragraph rather than kept as separate structured fields |
 
-Name: `queue/<YYYYMMDD>-<slug>.md` (date prefix gives FIFO ordering within a priority). Humans create requests by copying [queue/REQUEST_TEMPLATE.md](queue/REQUEST_TEMPLATE.md).
+All of it gets copied verbatim into the new run's `ITERATION_LOG.md` header at R1/claim time (§4) — that's the only place it's persisted going forward, so a resumed session can always recover the original ask without a separate request file to consult.
 
-| Field | Type | Written by | When |
-|---|---|---|---|
-| `app_name` | string | human | at enqueue — display name for catalogue/manifest |
-| `slug` | kebab-case string | human | at enqueue — app folder name **and** catalogue id |
-| `tags` | list of 3–5 strings | human | at enqueue — catalogue tags |
-| `priority` | 1 (high) / 2 (normal) / 3 (low) | human | at enqueue |
-| `status` | state name | human writes `QUEUED` once; **runner only** after claim | every transition |
-| `requested` | YYYY-MM-DD | human | at enqueue |
-| `claimed_by` | string | runner | at claim — short session label |
-| `run_id` | string | runner | at claim — `<slug>-<YYYYMMDD>` |
-| `updated` | YYYY-MM-DD | runner | every status change |
-| `review_round` | int | runner | starts 0; +1 per improvement round |
-| `pr_url` | URL | runner | at publish |
-| `blocked_reason` | string | runner | when entering BLOCKED/FAILED; cleared on resume |
+`review_round`, `pr_url`, and `blocked_reason` (during a BLOCKED episode) aren't structured fields either — they're just stated in the relevant ITERATION_LOG line when they matter (e.g. `... | BLOCKED | reason: ... | next: ...`, `... | PUBLISHING | pr_url: https://... | next: ...`).
 
-Body sections (free text): `## Requirement` (1–10 sentences), `## References` (products/URLs the human already likes — these are **pinned** and outrank all research findings), `## Constraints` (auth needs, integrations, explicit non-goals).
-
-### 3.2 Status state machine
+### 3.1 Status state machine
 
 ```
       RESEARCH PIPELINE (CraftBot)          │        CREATION PIPELINE (Claude Code)
                                             │
-QUEUED → RESEARCHING → SPEC_READY → HANDOFF ──► BUILDING → SELF_QA → AWAITING_HUMAN_REVIEW
-(human)                          (launch claude)                          │
+        RESEARCHING → SPEC_READY → HANDOFF ──► BUILDING → SELF_QA → AWAITING_HUMAN_REVIEW
+(human pastes NEW_APP_PROMPT.md)  (launch claude)                          │
                                             │             ┌──────────────┤
                                             │             │ (issues)     │ (APPROVED)
                                             │             ▼              ▼
@@ -135,12 +127,13 @@ QUEUED → RESEARCHING → SPEC_READY → HANDOFF ──► BUILDING → SELF_QA
            └── human abandons → FAILED (terminal)
 ```
 
+Every state above is a value that gets **logged in `ITERATION_LOG.md`**, not written to a separate file — see §0 rule 2.
+
 | State | Owner | Meaning | Exits to |
 |---|---|---|---|
-| `QUEUED` | human | Human dropped the file; untouched by any runner | `RESEARCHING` (research claim, R1) |
-| `RESEARCHING` | research | Claimed; research subagents → SPEC.md in progress | `SPEC_READY`, `BLOCKED` |
+| `RESEARCHING` | research | Request started (R1); research subagents → SPEC.md in progress | `SPEC_READY`, `BLOCKED` |
 | `SPEC_READY` | research | SPEC.md passed its gate; design-reference capture + DESIGN_SPEC.md happen here | `HANDOFF`, `BLOCKED` |
-| `HANDOFF` | boundary | Research complete; bundle verified; creation runner launched. **The creation runner flips this to `BUILDING` as its very first queue write (C2)** — a file sitting in `HANDOFF` for more than ~10 minutes means the launch died; paste the Creation kickoff (§5) manually | `BUILDING`, `BLOCKED` |
+| `HANDOFF` | boundary | Research complete; bundle verified; creation runner launched. **The creation runner logs this as `BUILDING` as its very first status write (C2)** — a run sitting at `HANDOFF` for more than ~10 minutes means the launch died; paste the Creation kickoff (§5) manually | `BUILDING`, `BLOCKED` |
 | `BUILDING` | creation | Bundle validated; guide Phases 1–9 in progress | `SELF_QA`, `BLOCKED` |
 | `SELF_QA` | creation | QA_GATES loop running | `AWAITING_HUMAN_REVIEW`, `BLOCKED` |
 | `AWAITING_HUMAN_REVIEW` | creation | Review request posted; runner idle or session ended | `PUBLISHING` (APPROVED), `IMPROVING` (issues) |
@@ -150,7 +143,7 @@ QUEUED → RESEARCHING → SPEC_READY → HANDOFF ──► BUILDING → SELF_QA
 | `BLOCKED` | either | Escape hatch; `blocked_reason` filled (prefixed with the pipeline that hit it); human message posted (§8) | previous state (unblock), `FAILED` |
 | `FAILED` | — | **Terminal.** Human explicitly abandoned the request | — |
 
-**Claim rule (research):** among `status: QUEUED` files, pick lowest `priority` number, then oldest `requested`, then oldest filename. **Claim rule (creation):** among `status: HANDOFF` files, pick the oldest `updated`. For both: rule 3 applies first — resume any in-flight run in your own pipeline's states before claiming.
+Since there's at most one run in flight, there's no claim rule to speak of — resume it (rule 3) if it's yours to resume, otherwise there's nothing to do until the human pastes a fresh NEW_APP_PROMPT.md.
 
 ---
 
@@ -173,41 +166,33 @@ runs/<slug>-<YYYYMMDD>/
 └── thumbnail.png           # captured during QA; copied into the app folder at publish
 ```
 
-**ITERATION_LOG.md format** — one line per event, appended immediately when it happens:
+**ITERATION_LOG.md format** — one line per event, appended immediately when it happens. The `<STATUS>` token in each line **is** the state store (§0 rule 2) — nothing else records it:
 
 ```
 2026-07-08 14:02 | BUILDING | feature 3/6 done: categories CRUD, 12 tests green | next: feature 4 (media attachments)
 2026-07-08 14:40 | SELF_QA  | entered QA loop, iteration 1 | next: G1
 ```
 
-Rule: a fresh session must be able to reconstruct where the run stands from ITERATION_LOG alone. Write every log line with that reader in mind — state what is done, what is verified, and what comes next.
+The header (written at R1) also carries the original ask verbatim — app name, slug, tags, and the full requirement text from NEW_APP_PROMPT.md — since there's no separate request file to fall back on.
+
+Rule: a fresh session must be able to reconstruct where the run stands, and what was originally asked for, from ITERATION_LOG alone. Write every log line with that reader in mind — state what is done, what is verified, and what comes next.
 
 ---
 
 ## 5. Kickoff prompts
 
-These are the only things the human pastes to start a runner. **They never change** — all routing and logic lives in these docs, so the pipeline can evolve without re-teaching the human.
+The prompt that **starts** a run lives entirely in [NEW_APP_PROMPT.md](NEW_APP_PROMPT.md) (both the CraftBot and Claude Code research variants) — fill it in, paste it, done. The prompts below are for what comes **after** that: the automatic handoff, and the human's replies at the review gate. **They never change** — all routing and logic lives in these docs, so the pipeline can evolve without re-teaching the human.
 
-**Research (paste into CraftBot chat — this is the one prompt that starts the whole autonomous run):**
-
-```
-You are the Living UI RESEARCH pipeline runner.
-Read the file /workspace/pipeline/living-ui/RESEARCH_PIPELINE.md in full and
-follow it exactly, stage by stage, in order.
-Mode: RESEARCH — resume any in-flight research run, otherwise claim the next
-QUEUED request, and take it through stage R8 (handoff).
-```
-
-**Creation (auto-launched by RESEARCH_PIPELINE R8; paste the same words into a Claude Code session if the queue file is stuck in HANDOFF):**
+**Creation (auto-launched by the research stage's handoff step; paste the same words into a Claude Code session if a run is stuck in `HANDOFF`):**
 
 ```
 You are the Living UI CREATION pipeline runner.
 Read agent_file_system/workspace/pipeline/living-ui/README.md and
 CREATION_PIPELINE.md in the CraftBot repo and follow them exactly.
-Mode: CREATE — resume any in-flight creation run first; otherwise claim the
-oldest queue file with status HANDOFF, validate the handoff bundle, and take
-it to AWAITING_HUMAN_REVIEW. If nothing is in flight or HANDOFF, report that
-and stop.
+Mode: CREATE — resume any in-flight creation run first; otherwise find the run
+under runs/ whose ITERATION_LOG last status is HANDOFF, validate the handoff
+bundle, and take it to AWAITING_HUMAN_REVIEW. If nothing is in flight or
+HANDOFF, report that and stop.
 ```
 
 **Feedback / approval (IMPROVE, paste into a Claude Code session):**
@@ -229,12 +214,12 @@ My feedback on the current build:
 
 ```
 ┌──────────────────────────────────────────────────────────────────┐
-│ Human: copy queue/REQUEST_TEMPLATE.md → queue/<date>-<slug>.md   │
-│        paste RESEARCH kickoff prompt into CraftBot chat          │
+│ Human: fill in and paste NEW_APP_PROMPT.md into CraftBot chat    │
+│        (or a Claude Code session, for the Claude Code variant)   │
 └───────────────┬──────────────────────────────────────────────────┘
                 ▼
 ┌──── RESEARCH PIPELINE — CraftBot ────────────────────────────────┐
-│ R1 Claim & preflight        status → RESEARCHING                 │
+│ R1 Start & preflight        status → RESEARCHING                 │
 │ R2 Decompose request                                             │
 │ R3 Research (4 parallel subagents) → research/*.md               │
 │ R4 Merge + questionnaire self-interview                          │
@@ -246,7 +231,7 @@ My feedback on the current build:
 └───────────────┬──────────────────────────────────────────────────┘
                 ▼
 ┌──── CREATION PIPELINE — Claude Code ─────────────────────────────┐
-│ C1 Claim handed-off run                                          │
+│ C1 Find & resume the handed-off run                              │
 │ C2 Validate bundle + spec review (amendments) → BUILDING         │
 │ C4 Build (LIVING_UI_GUIDE Phases 1–9)                            │
 │ C5 Self-QA (QA_GATES G1–G8, ≤5 iterations,     → SELF_QA         │
@@ -273,14 +258,14 @@ My feedback on the current build:
 
 ## 7. Pre-run self-check
 
-**Creation runner (Claude Code)** — before touching the queue, confirm:
+**Creation runner (Claude Code)** — before touching anything, confirm:
 
 - [ ] This README and [LESSONS.md](LESSONS.md) read in full this session.
 - [ ] `CRAFTBOT_ROOT` and `MARKETPLACE_ROOT` resolved; `MARKETPLACE_ROOT` exists and `git -C <MARKETPLACE_ROOT> status` works (apply the `safe.directory` fix from §1 if not).
 - [ ] `git -C <MARKETPLACE_ROOT> status --short` is clean, or every dirty path belongs to a run being resumed.
 - [ ] `gh auth status` checked (result logged; only blocks C7).
 - [ ] Mode determined from the kickoff prompt.
-- [ ] In-flight-run scan done (§8) over **creation-owned states only** before any claim.
+- [ ] Scan of `runs/*/ITERATION_LOG.md` done (§8) over **creation-owned states only** before claiming the handed-off run.
 - [ ] On claim: ITERATION_LOG `CLAIMED (creation)` line written (status flips at C2, not C1).
 
 **Research runner (CraftBot)** — its self-check lives inside [RESEARCH_PIPELINE.md](RESEARCH_PIPELINE.md) stage R1; it does not use this list.
@@ -291,16 +276,13 @@ My feedback on the current build:
 
 **BLOCKED protocol** — the only escape hatch, usable from any active state:
 
-1. Set `status: BLOCKED` and fill `blocked_reason` in the queue file; bump `updated`.
-2. Append an ITERATION_LOG line stating exactly where the run stopped and why.
-3. Post a message to the human: *what happened, what was tried (with evidence), and 2–3 concrete options* (e.g. "A: relax constraint X, B: drop feature Y, C: abandon"). Then **end the turn**. Do not keep grinding past a bound "just in case".
-4. On the human's answer: restore `status` to the state that was left (clear `blocked_reason`), log the decision, continue.
+1. Append an ITERATION_LOG line: `status: BLOCKED`, with the reason stated inline (prefixed `research:` or `creation:` per which pipeline hit it).
+2. Post a message to the human: *what happened, what was tried (with evidence), and 2–3 concrete options* (e.g. "A: relax constraint X, B: drop feature Y, C: abandon"). Then **end the turn**. Do not keep grinding past a bound "just in case".
+3. On the human's answer: log the decision and the status being restored (back to the state that was left), continue.
 
-**Session died mid-run** — a queue file is in an active state but no session is working it: read its `ITERATION_LOG.md` bottom-up to find the last verified position, verify that position against reality (do the files/tests it claims actually exist/pass?), log a `RESUMED` line, and continue from there. Trust the log's *claims* only after spot-checking them.
+**Session died mid-run** — a run under `runs/` hasn't reached a terminal status but no session is working it: read its `ITERATION_LOG.md` bottom-up to find the last verified position, verify that position against reality (do the files/tests it claims actually exist/pass?), log a `RESUMED` line, and continue from there. Trust the log's *claims* only after spot-checking them.
 
-**Double claim** — two queue files claimed by different `claimed_by` labels, or one file claimed twice: stop, report both to the human, let them pick. v1 has no locking; the "resume before claim" rule is the mitigation.
-
-**Queue file conflicts** — if the queue file was hand-edited while a run was in flight (human changed requirements mid-build): treat the edit as feedback, log it, and fold it in at the next natural boundary (before C4 → into SPEC; after C4 → as an improvement-round issue). Never silently overwrite a human edit.
+**Mid-run requirement changes** — if the human sends new/changed requirements while a run is in flight (in chat, not by editing any file — there's no request file to edit): treat it as feedback, log it, and fold it in at the next natural boundary (before C4 → into SPEC; after C4 → as an improvement-round issue).
 
 **Guide/pipeline contradiction** — if these docs and [LIVING_UI_GUIDE.md](LIVING_UI_GUIDE.md) genuinely conflict beyond the documented amendments (CREATION_PIPELINE §4): the guide wins for build mechanics, this pipeline wins for process/state; record the conflict as a `PROPOSAL:` in LESSONS.md.
 

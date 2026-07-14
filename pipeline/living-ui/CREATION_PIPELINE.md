@@ -1,6 +1,6 @@
 # Creation Pipeline — handed-off research to published PR
 
-The standing operating procedure for mode **CREATE** (runner: **Claude Code**; `AUTO` is a deprecated alias): take one handed-off request from claim to a marketplace PR. Read [README.md](README.md) (rules, paths, queue spec) and [LESSONS.md](LESSONS.md) first — this doc assumes both.
+The standing operating procedure for mode **CREATE** (runner: **Claude Code**; `AUTO` is a deprecated alias): take one handed-off request from claim to a marketplace PR. Read [README.md](README.md) (rules, paths, state machine) and [LESSONS.md](LESSONS.md) first — this doc assumes both.
 
 Research and design happen **before** this pipeline, in [RESEARCH_PIPELINE.md](RESEARCH_PIPELINE.md) (stages R1–R8, run by CraftBot). This pipeline is normally launched headless by that pipeline's R8 stage; the manual Creation kickoff (README §5) enters it identically.
 
@@ -15,15 +15,15 @@ Stages: **C1** claim → **C2** handoff validation & spec review → ~~C3~~ (ret
 3. **The guide's FORBIDDEN list applies verbatim** ([LIVING_UI_GUIDE.md](LIVING_UI_GUIDE.md) "FORBIDDEN actions") — never `metadata` as a column name, never relative backend imports, never raw HTML elements, never edit `main.py`/`main.tsx`/`themes.ts`, never edit `_template/`, etc.
 4. **All README hard rules remain in force** — especially rule 3 (per-pipeline state ownership), rule 6 (human contact only at C6/BLOCKED) and rule 10 (placeholders).
 5. **Iteration bounds are absolute**: QA loop ≤5 iterations + 2-strike (C5). Bound hit → BLOCKED, never "one more try".
-6. **Research-owned statuses are off-limits.** `QUEUED`, `RESEARCHING`, and `SPEC_READY` belong to the research runner (CraftBot). Never claim, advance, or edit a queue file in those states. If the queue holds only research-owned or terminal states and nothing creation-owned is in flight, report "nothing handed off yet" and stop.
+6. **Research-owned statuses are off-limits.** `RESEARCHING` and `SPEC_READY` belong to the research runner (CraftBot). Never advance a run whose ITERATION_LOG last status is one of those. If nothing under `runs/` shows `HANDOFF` or a creation-owned status, report "nothing handed off yet" and stop.
 
 ---
 
 ## 1. Stage C1 — Claim
 
 1. Apply the README §7 pre-run self-check. The in-flight scan covers **creation-owned states only**: `HANDOFF` (with no live launcher session working it), `BUILDING`, `SELF_QA`, `IMPROVING`, `PUBLISHING` — resume beats claim (README §8).
-2. Otherwise claim the **oldest `updated` file with `status: HANDOFF`**. None → report "nothing handed off yet" and stop (hard rule 6).
-3. The run folder `runs/<run_id>/` already exists — the research runner created it (`run_id` is in the queue front matter). **Do not flip `status` yet** — C2 does that, so a stuck handoff (launch died before Claude started) stays distinguishable in the queue file from a claimed one.
+2. Otherwise find the run under `runs/` whose ITERATION_LOG last status is `HANDOFF`. None → report "nothing handed off yet" and stop (hard rule 6). (There's at most one — README rule 3.)
+3. The run folder `runs/<run_id>/` already exists — the research runner created it, and its ITERATION_LOG header carries the original `app_name`/`slug`/`tags`/requirement verbatim (there's no separate request file). **Do not log a new status yet** — C2 does that, so a stuck handoff (launch died before Claude started) stays distinguishable from a claimed one.
 4. Create the missing QA folder and append to the existing ITERATION_LOG:
    ```sh
    mkdir -p pipeline/living-ui/runs/<run_id>/qa
@@ -54,11 +54,11 @@ $fb=Test-Path "$r/research/capture-fallback.md"
 if ($png -ge 4 -or $fb) { "PASS shots ($png png, fallback=$fb)" } else { "FAIL shots" }
 ```
 
-Any FAIL → `status: BLOCKED`, `blocked_reason: "creation: handoff bundle incomplete — <failing items> — rerun research"`, message to the human, stop. (There is no live research session to bounce to; the human re-kicks the research pipeline.)
+Any FAIL → log status `BLOCKED` with `reason: creation: handoff bundle incomplete — <failing items> — rerun research`, message to the human, stop. (There is no live research session to bounce to; the human re-kicks the research pipeline with a fresh NEW_APP_PROMPT.md.)
 
 ### 2b. Spec review
 
-Read the queue request body, SPEC.md, and DESIGN_SPEC.md, and check:
+Read the original requirement (verbatim in the ITERATION_LOG header), SPEC.md, and DESIGN_SPEC.md, and check:
 
 - **Coverage** — every sentence of `## Requirement` maps to a Must/Should/Won't; every `## Constraints` line is respected.
 - **Testability** — acceptance criteria name a user action and an observable result; persistence criteria exist.
@@ -76,7 +76,7 @@ Read the queue request body, SPEC.md, and DESIGN_SPEC.md, and check:
 
 One row per gap you repaired (added criteria, fixed data model, re-scoped a Must, corrected a platform contradiction). Where SPEC §1–8 and §9 conflict, **§9 wins**. Amend up to moderate gaps yourself — a strong model repairing weak-model output is the designed path, cheaper than a research rerun. Escalate (BLOCKED) only when the *request itself* is ambiguous enough that amending would be guessing the human's intent, or on a 2a failure.
 
-**Exit:** manifest all-PASS quoted in ITERATION_LOG; review done; §9 present (empty table with a "no amendments needed" row is a valid outcome); set **`status: BUILDING`** — this is deliberately the creation runner's first status write, and it must happen within minutes of session start so a queue file sitting in `HANDOFF` reliably signals a dead launch.
+**Exit:** manifest all-PASS quoted in ITERATION_LOG; review done; §9 present (empty table with a "no amendments needed" row is a valid outcome); log status **`BUILDING`** — this is deliberately the creation runner's first status write, and it must happen within minutes of session start so a run sitting at `HANDOFF` reliably signals a dead launch.
 
 ---
 
@@ -96,7 +96,7 @@ cp -r _template/ <slug>/        # never edit _template itself
 test -f <slug>/setup_local.py && echo scaffold-ok || echo "WRONG SCAFFOLD MECHANISM — rescaffold with cp -r _template/"
 ```
 
-**Never call the `living_ui_scaffold` action (or any other built-in Living UI scaffold tool) here.** That tool is for direct, non-pipeline chat-driven builds — it copies a *different* template (`app/data/living_ui_template/`) into `agent_file_system/workspace/living_ui/<slug>_<hexid>/` with ports/IDs already live-substituted and no `setup_local.py` at all. Using it here silently breaks the marketplace layout every later stage assumes (placeholders for G8's audit, `setup_local.py` for QA_GATES §1, the `<MARKETPLACE_ROOT>/<slug>/` path for the eventual PR). The `test -f setup_local.py` check above exists specifically to catch this mistake immediately — if it prints `WRONG SCAFFOLD MECHANISM`, stop and redo the scaffold with the `cp -r` command, don't improvise around the missing file.
+**Never call the `living_ui_scaffold` action here** — it's the tool for direct, non-pipeline chat-driven builds and copies a different template (`app/data/living_ui_template/`) with no `setup_local.py`, breaking every downstream marketplace-layout assumption (G8's audit, the eventual PR path). If the check above prints `WRONG SCAFFOLD MECHANISM`, redo it with `cp -r`.
 
 Then **follow [LIVING_UI_GUIDE.md](LIVING_UI_GUIDE.md) Phases 1–9 exactly**, with these amendments — the only deltas; everything else is the guide, unmodified:
 
@@ -123,9 +123,9 @@ git add <slug>/
 git commit -m "feat(<slug>): add <Name> Living UI (pre-QA)"
 ```
 
-This is what makes `git checkout -- <slug>/` a *real* revert during QA and improvement rounds. Run 1 skipped it — the folder was untracked, the documented revert was a silent no-op, and the human received a placeholder-substituted, `node_modules`-laden folder that failed to import. (If the human asks to hold commits, note it in ITERATION_LOG and rely on G8's template-byte-restore fallback instead.)
+This is what makes `git checkout -- <slug>/` a *real* revert during QA and improvement rounds — an uncommitted folder makes that revert a silent no-op. (If the human asks to hold commits, note it in ITERATION_LOG and rely on G8's template-byte-restore fallback instead.)
 
-**Exit:** all Must features built with green feature tests; `LIVING_UI.md` real — verified mechanically, not by your own claim: `grep -n "<!-- Agent:" LIVING_UI.md` must be empty, quote it in the log line; pre-QA commit made; log shows every feature.
+**Exit:** all Must features built with green feature tests; `LIVING_UI.md` filled in (`grep -n "<!-- Agent:" LIVING_UI.md` empty — quote it in the log line); pre-QA commit made; log shows every feature.
 
 ---
 
@@ -178,7 +178,7 @@ improvement round. Round limit: 5.
 
 - Reply is `APPROVED` (case-insensitive), alone or with clearly non-blocking notes → confirm the notes are non-blocking (if any doubt, treat as issues) → Stage C7. Log the approval.
 - Anything else → the reply is the issue list → [IMPROVEMENT_PIPELINE.md](IMPROVEMENT_PIPELINE.md) stage I1.
-- No reply (session ends) → the queue file already says `AWAITING_HUMAN_REVIEW`; a future session in either mode picks it up cleanly.
+- No reply (session ends) → ITERATION_LOG already shows `AWAITING_HUMAN_REVIEW`; a future session in either mode picks it up cleanly.
 
 ---
 
@@ -197,7 +197,7 @@ Set `status: PUBLISHING`. The heavy lifting already happened: the app has been i
    {
      "id": "<slug>", "name": "<App Name>",
      "description": "<one-line description>",
-     "folder": "<slug>", "tags": [<queue-file tags>], "version": "1.0.0"
+     "folder": "<slug>", "tags": [<tags from the original kickoff message>], "version": "1.0.0"
    }
    ```
 4. **Commit and push** (branch `app/<slug>` already exists from C4; create it now if commits were held at the human's request):
@@ -231,7 +231,7 @@ Set `status: PUBLISHING`. The heavy lifting already happened: the app has been i
    ## Screenshot
    <thumbnail.png renders in the diff — reference it>
    ```
-6. **Close out the queue file:** `status: DONE`, `pr_url: <url>`, `updated: <today>`; final ITERATION_LOG line with the PR URL.
+6. **Close out the run:** final ITERATION_LOG line, status `DONE`, with the PR URL stated inline.
 
 **Escape hatches:** `gh` unauthenticated or push rejected → BLOCKED with the exact error (the branch/commit work is preserved locally; nothing is lost). Never retry with `--force`.
 
@@ -256,7 +256,7 @@ If the answer to all four is genuinely "nothing" — a clean, boring run — wri
 
 Before reporting done:
 
-- [ ] Queue file: `status: DONE`, `pr_url`, `updated`, `review_round` all correct.
+- [ ] ITERATION_LOG: final status `DONE`, with `pr_url` and the round count stated in the closing line.
 - [ ] Placeholders intact **in the commit**: `git show HEAD:<slug>/config/manifest.json | grep "{{PORT}}"` succeeds.
 - [ ] No artifacts in the commit: `git show --stat HEAD` lists no node_modules/dist/db/logs/__pycache__ paths.
 - [ ] PR open, base = default branch, body complete.
@@ -272,7 +272,7 @@ Report to the human: *"<App Name> published — PR: <url>. Review round count: <
 
 | Stage | Failure | Action |
 |---|---|---|
-| C1 | Queue file malformed (missing `run_id`, bad slug) or run folder missing | BLOCKED — the research handoff is broken; ask the human to re-kick the research pipeline |
+| C1 | No run under `runs/` shows `HANDOFF`, or its folder/ITERATION_LOG is malformed | BLOCKED — the research handoff is broken; ask the human to re-kick the research pipeline |
 | C2 | Bundle mechanically incomplete (manifest FAIL) | BLOCKED with `blocked_reason: "creation: handoff bundle incomplete — rerun research"` |
 | C2 | SPEC gaps too fundamental to amend (request intent unclear) | BLOCKED with the specific ambiguity + 2–3 interpretation options for the human |
 | C4 | A Must feature turns out to need an un-requested external service | Don't build it silently and don't drop it silently — BLOCKED with options (drop to Won't / human authorizes the integration) |
