@@ -455,7 +455,7 @@ Edit `LIVING_UI.md`. Update **every** section with real implementation details:
 - **Key Files table** — update if you added files.
 - Remove **all** HTML comments and placeholder/example data.
 
-Do not advance to Phase 10 if `LIVING_UI.md` still has placeholder content.
+Do not advance to Phase 10 if `LIVING_UI.md` still has placeholder content. Verify mechanically, not by memory: `grep -n "<!-- Agent:" LIVING_UI.md` must return nothing before you consider this phase done.
 
 ### Phase 10 — Marketplace Publish (replaces `living_ui_notify_ready`)
 
@@ -524,7 +524,7 @@ The rules below are how you make your routes pass that test. Apply them while wr
   email: str = Field(json_schema_extra={"format": "email"})
   ```
 
-- **Optional fields**: Pydantic 2 emits `Optional[T]` as `anyOf: [{T}, {"type": "null"}]`. The bundled `test_runner._generate_value` resolves this correctly (picks the non-null variant) — but only if your `test_runner.py` is up to date. If you see `"test"` being sent for an `Optional[int]` or `Optional[bool]`, your `test_runner.py` is out of date and needs the `anyOf` handler at the top of `_generate_value`.
+- **Optional fields**: Pydantic 2 emits `Optional[T]` as `anyOf: [{T}, {"type": "null"}]`. The bundled `test_runner._generate_value` resolves this correctly (picks the non-null variant) — but only if your `test_runner.py` is up to date. **If you see the literal string `"test"` being sent for an `Optional[int]`, `Optional[bool]`, or `Optional[datetime]` field in a G5 failure, that is this bug, not a fluke or a "fuzzing artifact" — do not write it off.** Open `backend/test_runner.py` and check whether the `anyOf`/`oneOf` resolution in `_generate_value` runs *before* `field_type = schema.get("type", "string")` defaults and the `"string"` branch's `return`s — if the anyOf check is below that dispatch, it's dead code and every Optional field falls into the string branch. Fix it in your local copy (this file is app-folder-owned even though it started as template boilerplate) and re-run G5. Then, per QA_GATES.md's impact matrix, append a `PROPOSAL:` line to `LESSONS.md` so the fix can reach `_template/` — a past run fixed this locally and skipped that step, and the identical bug shipped again in the next app.
 
 ### Endpoint shape
 

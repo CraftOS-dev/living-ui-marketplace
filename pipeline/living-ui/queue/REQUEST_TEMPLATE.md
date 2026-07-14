@@ -2,8 +2,10 @@
   HOW TO ENQUEUE A LIVING UI REQUEST
   1. Copy this file to queue/<YYYYMMDD>-<slug>.md  (e.g. queue/20260708-invoice-manager.md)
   2. Fill in the front matter and the three body sections.
-  3. Leave status: QUEUED — the pipeline runner owns it from claim onward.
-  4. Paste the AUTO kickoff prompt (README.md §5) into a Claude Code session.
+  3. Leave status: QUEUED — the pipeline runners own it from claim onward.
+  4. Paste the RESEARCH kickoff prompt (README.md §5) into CraftBot chat.
+     Research, handoff to Claude Code, build, and QA then run autonomously
+     until AWAITING_HUMAN_REVIEW.
 -->
 ---
 app_name: ""              # Display name, e.g. "Invoice Manager"

@@ -1,6 +1,6 @@
 # QA Gates — the automated verification loop
 
-The gate list every build must pass before a human ever sees it. Executed from [CREATION_PIPELINE.md](CREATION_PIPELINE.md) stage C5 and from [IMPROVEMENT_PIPELINE.md](IMPROVEMENT_PIPELINE.md) stage I5 — identically both times. There is no "improvement builds get a lighter pass".
+The gate list every build must pass before a human ever sees it. Executed by the **creation runner** (Claude Code) from [CREATION_PIPELINE.md](CREATION_PIPELINE.md) stage C5 and from [IMPROVEMENT_PIPELINE.md](IMPROVEMENT_PIPELINE.md) stage I5 — identically both times. There is no "improvement builds get a lighter pass".
 
 All paths below are relative to the app folder `<MARKETPLACE_ROOT>/<slug>/`.
 
@@ -11,7 +11,7 @@ All paths below are relative to the app folder `<MARKETPLACE_ROOT>/<slug>/`.
 1. **Gate order is fixed.** G1 → G8, no reordering, no skipping. Cheap gates run first so expensive ones see fewer broken builds. **G8 (restore to base import-ready state) is the exit — the human only ever receives a folder that CraftBot can import.**
 2. **A code fix invalidates the gates its change class touches.** After any fix, re-run per the impact matrix in §4 — not a blanket full cascade. (Run 1 measured full cascades on frontend-only fixes as a real cost driver with zero catch-rate; the matrix keeps the safety, drops the waste.)
 3. **Evidence pasted or it didn't happen — but keep it terse.** Every gate result in the QA report includes a one-line summary plus failure excerpts only; never full logs. Use quiet flags: `pytest -q --tb=short`, `tail -5` on test_runner output, one combined server-restart command block per cycle.
-4. **Never weaken a gate to pass it** (README hard rule 8). No deleted tests, no lowered thresholds, no skipped viewports, no `required: false` edits to the manifest.
+4. **Never weaken a gate to pass it** (README hard rule 8). No deleted tests, no lowered thresholds, no skipped viewports, no `required: false` edits to the manifest, and no re-characterizing a red result as passing/non-blocking in ITERATION_LOG or a QA report without independently-verified, quoted command evidence attached inline. A gate result is only PASS if the tool's own output says so — never write "expected artifact" or equivalent over a failure you haven't fixed.
 5. **The iteration caps are absolute.** Max **5 full iterations**, plus the **2-strike rule**: if the *same identical failure* survives two fix attempts, stop early. Either bound hit → BLOCKED per README §8, with the final QA report attached to the escalation message.
 6. **Fresh database for smoke tests.** G5 runs against a clean `living_ui.db` — delete `backend/living_ui.db*` before starting the server. Stale data hides ordering bugs the installer will hit.
 
@@ -31,6 +31,8 @@ python -m pip install -r backend/requirements.txt
 npm install
 ```
 
+**If `setup_local.py` isn't found here, don't improvise manual setup steps** — that means Stage C4 scaffolded with the wrong mechanism (see CREATION_PIPELINE.md C4's prohibition on the `living_ui_scaffold` action). Go back and rescaffold correctly with `cp -r _template/ <slug>/` in `<MARKETPLACE_ROOT>`; this is a process error to fix at the source, not a QA-stage workaround.
+
 Log the ports in ITERATION_LOG. Server start/stop used by G5/G6:
 
 ```sh
@@ -45,18 +47,18 @@ Log the ports in ITERATION_LOG. Server start/stop used by G5/G6:
 
 | # | Gate | Command | Pass criteria |
 |---|---|---|---|
-| G1 | Backend domain tests | `cd backend && python -m pytest tests/ -q --tb=short` | 0 failures, 0 errors; `tests/test_example.py` deleted; **domain-rule tests only** — generic per-entity CRUD is intentionally left to G3/G5 (`test_runner.py` auto-generates it). Write pytest for what the runner can't infer: SPEC acceptance criteria, cross-entity semantics (e.g. items-return-to-pool), ordering, dedupe, smoke-contract tolerances |
+| G1 | Backend domain tests | `cd backend && python -m pytest tests/ -q --tb=short` | 0 failures, 0 errors; `tests/test_example.py` deleted — **verify mechanically**, don't take your own word for it: `test -f tests/test_example.py && echo STILL EXISTS \|\| echo deleted-ok`, quote the output; **domain-rule tests only** — generic per-entity CRUD is intentionally left to G3/G5 (`test_runner.py` auto-generates it). Write pytest for what the runner can't infer: SPEC acceptance criteria, cross-entity semantics (e.g. items-return-to-pool), ordering, dedupe, smoke-contract tolerances |
 | G2 | Internal smoke | `cd backend && python test_runner.py --internal` | `ALL TESTS PASSED` (writes `logs/test_discovery.json` used by G5) |
 | G3 | Auto CRUD units | `cd backend && python test_runner.py --unit` | `ALL TESTS PASSED` |
 | G4 | Frontend build | `npm run build` | exit 0; zero TypeScript errors; `dist/` produced |
-| G5 | External smoke | fresh DB → start uvicorn → `cd backend && python test_runner.py --external --port 3200` | `ALL TESTS PASSED`; no endpoint returns ≥400 |
+| G5 | External smoke | fresh DB → start uvicorn → `cd backend && python test_runner.py --external --port 3200` | `ALL TESTS PASSED`; no endpoint returns ≥400 — **verify mechanically against the JSON, not your own summary of the terminal output**: `python -c "import json,sys; d=json.load(open('logs/test_results.json')); sys.exit(0 if d['status']=='pass' and not d.get('errors') else 1)" && echo G5-PASS \|\| echo G5-FAIL`, quote the output in the QA report. If it prints `G5-FAIL`, the gate is red — fix it or go BLOCKED. Never write "expected artifact" / "fuzzing noise" / similar over an entry in `errors` you haven't fixed (hard rule 4) |
 | G6 | Real-browser pass | serve built `dist/` via the running uvicorn; drive with Playwright | all sub-checks in §2.1 |
 | G7 | Adversarial review | strict-PM checklist pass (§3) | zero BLOCKER, zero MAJOR findings |
 | G8 | Restore to base import-ready state | §7 procedure + audit | placeholders intact, zero runtime artifacts, size sane — the folder imports into CraftBot as a fresh app |
 
 `test_runner.py --compatibility` is deliberately **not** a gate: the template marks it non-required and it has known false positives (regex scan of frontend `fetch()` calls). Run it once as advisory input for G7 if you like; it cannot pass or fail the build.
 
-**G5 failures** are almost always the schema contract — fix per the "Schema contract for the marketplace smoke test" section of [LIVING_UI_GUIDE.md](LIVING_UI_GUIDE.md) (`Literal[...]` enums, format hints, no required query params on DELETE, idempotent DELETE, no FK 4xx on PUT).
+**G5 failures** are almost always the schema contract — fix per the "Schema contract for the marketplace smoke test" section of [LIVING_UI_GUIDE.md](LIVING_UI_GUIDE.md) (`Literal[...]` enums, format hints, no required query params on DELETE, idempotent DELETE, no FK 4xx on PUT). **If the 422 body shows the literal string `"test"` sent for a field typed `Optional[int]`/`Optional[bool]`/`Optional[datetime]` (not a plain `str`), that is a `test_runner.py` bug, not an app bug** — its `_generate_value()` is failing to resolve the field's `anyOf`/`oneOf` schema. Fix your local copy of `backend/test_runner.py` directly (permitted below — it's app-folder-owned even though it started as template boilerplate) and re-run G5. This is a known recurring bug class: it must never be waved off as "expected"/"fuzzing" (hard rule 4) — see also the mandatory `PROPOSAL:` requirement in the impact matrix below.
 
 ### 2.1 G6 sub-checks (browser required — see §2.2)
 
@@ -90,6 +92,9 @@ Inputs, walked item by item — every one gets a ✅ or a finding:
 2. **[STANDARDS.md](../../skills/living-ui-creator/references/STANDARDS.md) "Must Have (Blocking)" list** — data persists, mobile 320px, loading states, no console errors, build succeeds.
 3. **[VERIFY.md](../../skills/living-ui-creator/references/VERIFY.md) sections 2–6** — functional, UI/UX, error handling, requirements completeness (nothing missing, nothing over-engineered), code quality.
 4. **DESIGN_SPEC.md conformance** — screens, navigation, and interactions match what was specified; deviations are either justified in ITERATION_LOG or findings.
+5. **Type-safety escape hatches** — `grep -rn "as any" frontend/` (also check for bare `: any` on API-facing state/params). Every hit is a MAJOR finding unless the QA report justifies it inline (e.g. a genuinely untyped third-party callback) — an `as any` cast on a call into `ApiService` almost always means the form/state type has drifted from the backend schema, exactly the class of bug that produces G5 422s.
+6. **Per-entity CRUD reachability** — for every entity in SPEC.md's data model, confirm there's an actual UI surface (button/form/menu reachable from the running app) that calls each of its create/update/delete API client methods — not just that the typed methods exist in `ApiService.ts`/`AppController.ts`. An entity with full API-client CRUD but no UI wiring is a MAJOR finding (the smoke test can't catch this — G5 only proves the route exists, not that a user can reach it).
+7. **SPEC §9 amendments honored** — every row of SPEC.md's `## 9. Creation-runner amendments` table (the C2 spec-review repairs) is reflected in the build. §9 outranks §1–8 where they conflict, so a build matching the original weak-model text but not its amendment is a MAJOR finding.
 
 Findings table (goes in the QA report):
 
@@ -97,6 +102,8 @@ Findings table (goes in the QA report):
 |---|---|---|---|---|
 
 Severities: **BLOCKER** (broken/unusable/data loss), **MAJOR** (spec violation or quality bar miss a reviewer would bounce), **MINOR** (worth fixing, wouldn't block), **NIT** (polish). Gate passes with zero BLOCKER and zero MAJOR; MINOR/NIT findings don't fail the gate but are carried into the review request's "Known limitations" section — never silently dropped.
+
+**`LIVING_UI.md` placeholder check (BLOCKER if non-empty)** — before G7 can pass, run `grep -n "<!-- Agent:" LIVING_UI.md`, quote the output. It must be empty. This is the same rule as LIVING_UI_GUIDE.md Phase 9 ("do not advance if `LIVING_UI.md` still has placeholder content") and CREATION_PIPELINE.md C4's exit condition ("`LIVING_UI.md` real") made mechanically checkable instead of self-attested — a prior run logged "LIVING_UI.md documentation updated" while the Overview/Requirements sections were still the unfilled template comments.
 
 ---
 
@@ -124,7 +131,7 @@ all gates green → write final QA report → capture thumbnail (§6) → G8 (§
 | `test_runner.py` itself | G5, G8 |
 | Docs / manifest / setup_local only | G8 |
 
-A QA-script bug (the harness, not the app) is not an app iteration — fix the script and re-run only the script; don't count it against the 5-iteration bound, but do log it.
+A QA-script bug (the harness, not the app) is not an app iteration — fix the script and re-run only the script; don't count it against the 5-iteration bound, but do log it. **If the bug traces to template-owned code (i.e. it's present in `_template/backend/test_runner.py`, not something you introduced), fixing your local copy is not the end of the fix — you must also append a `PROPOSAL:` line to [LESSONS.md](LESSONS.md) in the same iteration**, per README hard rule 4 (the runner may never edit `_template/` directly, so this is the only path the fix has back to it). This is mandatory, not optional: a prior run fixed this exact class of bug locally, never logged the PROPOSAL, and the identical bug silently resurfaced in the next app built from the stale template.
 
 Every iteration writes `runs/<run_id>/qa/qa-report-<n>.md` (§5) and one ITERATION_LOG line (`SELF_QA | iteration 2: G5 failed (PUT /api/deals 422), fixed Literal enum | next: rerun G5–G7`).
 

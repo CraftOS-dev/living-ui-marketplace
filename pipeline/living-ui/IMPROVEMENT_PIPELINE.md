@@ -1,6 +1,6 @@
 # Improvement Pipeline — human feedback to re-review
 
-The standing operating procedure for turning a human's issue list into a fixed, fully re-QA'd build. Entered from [CREATION_PIPELINE.md](CREATION_PIPELINE.md) stage C6 (reply with issues) or a fresh **IMPROVE `<slug>`** kickoff ([README.md](README.md) §2/§5).
+The standing operating procedure for turning a human's issue list into a fixed, fully re-QA'd build. Runner: **Claude Code** (the creation runner). Entered from [CREATION_PIPELINE.md](CREATION_PIPELINE.md) stage C6 (reply with issues) or a fresh **IMPROVE `<slug>`** kickoff ([README.md](README.md) §2/§5).
 
 Stages: **I1** parse feedback → **I2** clarify (if needed) → **I3** fix plan → **I4** implement → **I5** full re-QA → **I6** re-present. Loops with the human until `APPROVED`.
 
