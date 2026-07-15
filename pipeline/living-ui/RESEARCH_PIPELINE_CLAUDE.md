@@ -17,6 +17,7 @@ Read [README.md](README.md) and [LESSONS.md](LESSONS.md) first — this doc assu
 5. **Subagent budget: 4 parallel + at most 1 follow-up.**
 6. **No feature requires credentials or external services** absent from the requirement's stated constraints.
 7. **You own start → entry into `HANDOFF` only.** Never advance a run whose ITERATION_LOG already shows a creation-owned status (README §3.1 Owner column).
+8. **No thin tabs, exhaustive filters, fully-depth bonus features.** Don't give a screen its own tab if it'd render with only a line or two of content — fold it in or add depth. Filters should draw on every plausible facet in the data model (tags, flags, derived groupings), not just the 2–4 most obvious fields. Any feature added beyond the human's core ask (e.g. a team builder bolted onto a Pokedex clone) needs acceptance criteria as complete as a Must's, or it should be cut to `Won't (v1)`.
 
 ---
 

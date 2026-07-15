@@ -112,7 +112,7 @@ Then **follow [LIVING_UI_GUIDE.md](LIVING_UI_GUIDE.md) Phases 1–9 exactly**, w
 | Phase 9 — documentation | Unchanged — fill every `LIVING_UI.md` section, remove all placeholders/HTML comments. |
 | Phase 10 — marketplace publish | **Deferred to Stage C7.** Never publish before the human gate. |
 
-Log one ITERATION_LOG line per completed feature (tests green counts as complete; UI wired counts, not before).
+Log one ITERATION_LOG line per completed feature (tests green counts as complete; UI wired counts, not before). This stage is where run 1 went dark for 1h47m with zero log lines — apply the README §4 heartbeat rule (a line at least every 10 minutes even mid-feature) so a human checking in can tell the run is alive.
 
 **Pre-QA commit (mandatory before C5):** create the app branch and commit the pristine build **before** any `setup_local.py` run:
 
@@ -131,7 +131,7 @@ This is what makes `git checkout -- <slug>/` a *real* revert during QA and impro
 
 ## 5. Stage C5 — Self-QA
 
-Set `status: SELF_QA`. Execute [QA_GATES.md](QA_GATES.md) end-to-end (setup → G1–G7 → fix–retest loop per the impact matrix → thumbnail → **G8 restore to base import-ready state**).
+Set `status: SELF_QA`. Execute [QA_GATES.md](QA_GATES.md) end-to-end (setup → G1–G7 → fix–retest loop per the impact matrix → thumbnail → **G8 restore to base import-ready state**). Apply the README §4 heartbeat rule here too — a gate that takes a while (G6/G7 especially) still needs a log line at least every 10 minutes.
 
 - **Exit:** final `qa/qa-report-<n>.md` shows all gates PASS **including G8** (the folder imports into CraftBot as a fresh app); `thumbnail.png` captured; QA self-check (QA_GATES §8) done.
 - **Escape hatch:** loop bound or 2-strike hit → BLOCKED with the final QA report attached.
@@ -139,6 +139,8 @@ Set `status: SELF_QA`. Execute [QA_GATES.md](QA_GATES.md) end-to-end (setup → 
 ---
 
 ## 6. Stage C6 — Human review gate
+
+Before writing the review request, run the README §4 timestamp-format check against `ITERATION_LOG.md` — must return 0.
 
 Set `status: AWAITING_HUMAN_REVIEW`. Write `runs/<run_id>/REVIEW_REQUEST.md` from this template, post its content as the message to the human, and **end the turn** — the runner does nothing further until the human replies.
 
@@ -257,6 +259,7 @@ If the answer to all four is genuinely "nothing" — a clean, boring run — wri
 Before reporting done:
 
 - [ ] ITERATION_LOG: final status `DONE`, with `pr_url` and the round count stated in the closing line.
+- [ ] README §4 timestamp-format check re-run — still 0.
 - [ ] Placeholders intact **in the commit**: `git show HEAD:<slug>/config/manifest.json | grep "{{PORT}}"` succeeds.
 - [ ] No artifacts in the commit: `git show --stat HEAD` lists no node_modules/dist/db/logs/__pycache__ paths.
 - [ ] PR open, base = default branch, body complete.

@@ -173,6 +173,14 @@ runs/<slug>-<YYYYMMDD>/
 2026-07-08 14:40 | SELF_QA  | entered QA loop, iteration 1 | next: G1
 ```
 
+**Timestamp is `YYYY-MM-DD HH:MM` — date-only lines are non-compliant.** The human isn't watching the CLI's own output live, so the log's time-of-day is the only way to tell a run is progressing versus stalled. (Run 1, craftdex-20260715, logged 8 of its 10 lines date-only — undetectable from the log alone whether BUILDING took 10 minutes or 2 hours.) Mechanical check, run before C6 and again before final DONE — must return 0:
+```
+run_shell: { "command": "(Get-Content 'agent_file_system/workspace/pipeline/living-ui/runs/<run_id>/ITERATION_LOG.md' | Select-String -Pattern '^\d{4}-\d{2}-\d{2} \|').Count", "shell": "powershell", "cwd": "d:\\tempCraftBot\\CraftBot" }
+```
+Any non-zero count → go back and can't fix past entries, but log the current line correctly and don't let it recur.
+
+**Heartbeat rule** — BUILDING and SELF_QA are the longest, quietest stages; a run can go dark for over an hour between naturally-triggered lines (this is exactly what happened run 1). If more than 10 minutes elapses inside a stage with no event to log naturally, write a one-line heartbeat anyway: `<timestamp> | <STATUS> | heartbeat: <what's in progress right now> | next: <what's next>`.
+
 The header (written at R1) also carries the original ask verbatim — app name, slug, tags, and the full requirement text from NEW_APP_PROMPT.md — since there's no separate request file to fall back on.
 
 Rule: a fresh session must be able to reconstruct where the run stands, and what was originally asked for, from ITERATION_LOG alone. Write every log line with that reader in mind — state what is done, what is verified, and what comes next.

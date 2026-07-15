@@ -39,6 +39,7 @@ Read all of these now. Each one exists because a past run broke it and the run f
 7. **References inform structure, never identity.** Screenshots and competitor products dictate where things go and how they behave — never colors, fonts, logos, product names, or copy text. Visual identity is always CraftBot's design tokens. (Exception: colors that are the app's *user data* — e.g. tier-row colors in a tier-list app — belong in SPEC §3 as data.)
 8. **No feature may require credentials or external services** unless the request's `## Constraints` section explicitly says so.
 9. **Write files only inside `runs/<run_id>/`.** Nothing anywhere else.
+10. **Chunk large file writes — never one giant single-shot `write_file`.** A `write_file` action embeds its content inline as a JSON/Python-literal string; when that string runs long, the model's own response gets truncated mid-string and CraftBot's action parser fails with `Unable to parse action decision ... unterminated string` — this happened at the start of the writing phase in run craftdex-20260715. Any file likely to exceed ~150 lines (a verbatim research brief, SPEC.md, DESIGN_SPEC.md) must be written in sequential passes: an initial `write_file` with the first chunk, then `write_file` append (or `stream_edit`) calls for the rest.
 
 **FORBIDDEN — never do these:**
 
@@ -66,6 +67,9 @@ Lessons from past runs, restated as orders. (The creation runner appends here af
 4. Every assumption needs a concrete `Fallback:` — what the builder changes if the assumption is wrong. "User confusion" is a risk, not a fallback.
 5. Enum-like fields (statuses, stages, categories with fixed values) must list every value explicitly in SPEC §3 — they become `Literal[...]` types. Never spec a field named `metadata`.
 6. The unranked/uncategorized "pool" pattern (items not yet placed) is modeled as a **nullable foreign key**, not a separate entity — check `research/data-model.md` for your category's equivalent core mechanic and make sure SPEC §3 models it.
+7. **No thin tabs.** If a screen/section (SPEC §4 or DESIGN_SPEC §3) would render with only a line or two of content — e.g. an evolution line rendered as just clickable name buttons — either fold it into an adjacent tab/section or spec enough depth to justify its own screen (related media, richer state, secondary actions). A tab that's mostly whitespace is a finding waiting to happen at G7.
+8. **Filters must use the whole data model, not just the obvious fields.** Before capping the filter list, walk every field, tag, and boolean flag in SPEC §3 and ask whether it's a plausible filter/facet (categorical tags, rarity/status flags, derived groupings like "final evolution" or "starter"), not just the first 2–4 fields that come to mind.
+9. **A "bonus" feature beyond the core ask gets the same completeness bar as a Must.** If SPEC §4 adds a feature the human didn't ask for (e.g. a "Teams" builder bolted onto a Pokedex clone), its acceptance criteria must cover the feature's own natural sub-attributes (a team of Pokémon needs moves/ability/nature, not just species slots) — spec it fully or cut it to `Won't (v1)`, never half-deep.
 
 ---
 
@@ -294,14 +298,14 @@ Fail → fix DESIGN_SPEC.md and re-run. Maximum 2 revision loops, then BLOCKED.
    }
    ```
    The response must show `"status": "background"` and a `pid`. Note the pid.
-4. Use the `wait` action to wait **120 seconds**.
-5. Verify the launch (paste both outputs):
+4. **The `wait` action caps at 60 seconds — never request more in one call.** (Run craftdex-20260715 tried `wait: 120` here; the action rejected it outright with `"Maximum wait time is 60 seconds."`, which by itself wasted a chunk of the intended buffer.) Poll instead of one blind wait — check at **20s**, then again at **60s** if still unclear (don't burn the full budget when a dead launch is often detectable in seconds), chaining two ≤60s `wait` calls if you need more runway:
    ```json
-   run_shell: { "command": "tasklist /FI \"PID eq <pid>\" & powershell -Command \"Get-Content 'agent_file_system/workspace/pipeline/living-ui/runs/<run_id>/creation.log' -TotalCount 10\"", "shell": "cmd", "cwd": "d:\\tempCraftBot\\CraftBot" }
+   run_shell: { "command": "$p = Get-Process -Id <pid> -ErrorAction SilentlyContinue; $log = 'agent_file_system/workspace/pipeline/living-ui/runs/<run_id>/creation.log'; $bytes = if (Test-Path $log) { (Get-Item $log).Length } else { 0 }; $text = if ($bytes -gt 0) { Get-Content $log -Raw } else { '' }; $err = $text -match 'is not recognized|Invalid API key|not authenticated'; if ($p) { \"HEALTHY proc_running pid=<pid>\" } elseif ($bytes -gt 0 -and -not $err) { \"HEALTHY finished_fast log_bytes=$bytes\" } else { \"UNHEALTHY proc_found=$([bool]$p) log_bytes=$bytes error_signature=$err\" }", "shell": "powershell", "cwd": "d:\\tempCraftBot\\CraftBot" }
    ```
-   **Healthy** = the process is listed, OR creation.log already shows Claude output (a session that finished fast is also healthy if the log is non-empty and error-free).
-   **Failure signatures:** `'claude' is not recognized` (CLI missing), an empty log with no listed process (crash), `Invalid API key`/auth errors in the log. On failure: append a `BLOCKED` ITERATION_LOG line with `reason: research: HANDOFF launch failed — <first error line>` and the log evidence, and include the manual fallback in your final message.
-6. Post your final chat message, from this template, then **end the task** (hard-forbidden to keep polling or touching the run folder again):
+   This prints exactly one line starting `HEALTHY` or `UNHEALTHY` — that word, not your own reading of the raw output, is the pass/fail signal. **Run craftdex-20260715's actual failure mode**: the doc's old check chained `tasklist /FI "PID eq <pid>" & powershell -Command "..."`, which itself errored (`Invalid argument/option - 'eq'.`) before the model switched to `Get-Process -Id <pid> -ErrorAction SilentlyContinue` — which returned nothing at all (process gone, error suppressed) alongside an empty log, and the model read that *silence* as a pass and declared success. Both are UNHEALTHY by definition; `-ErrorAction SilentlyContinue` suppresses the error text, not the fact that nothing was found — never treat an empty/silent result as healthy. If healthy at the 20s check, stop polling and move to step 7.
+5. **If UNHEALTHY at the 20s check** (matches run craftdex-20260715): retry the launch **once**, same payload, before falling back. A verified-working launch mechanism failing outright twice in a row is what actually warrants the manual fallback, not a single flaky attempt. Re-poll the retry at 20s/60s the same way.
+6. If still `UNHEALTHY` after the retry: append a `BLOCKED` ITERATION_LOG line with `reason: research: HANDOFF launch failed — <first error line>` and the log evidence, and include the manual fallback in your final message.
+7. Post your final chat message, from this template, then **end the task** (hard-forbidden to keep polling or touching the run folder again):
    ```
    Living UI research complete for <app_name> (<run_id>).
    SPEC.md and DESIGN_SPEC.md passed all gates; handoff manifest all-PASS.
