@@ -361,9 +361,9 @@ export interface MonthlyData {
 }
 
 export interface CategoryBreakdown {
-  category: string
+  accountId: string
+  accountName: string
   amount: number
-  percentage: number
 }
 
 // ============================================================================

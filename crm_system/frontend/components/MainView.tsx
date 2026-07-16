@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import type { AppController } from '../AppController'
-import type { AppState } from '../types'
+import type { AppState, SearchResults } from '../types'
 
 import { Sidebar } from './Sidebar'
 import { TopBar } from './TopBar'
@@ -44,14 +44,27 @@ export function MainView({ controller }: MainViewProps) {
     controller.setState({ sidebarCollapsed: !state.sidebarCollapsed })
   }
 
+  const [searchResults, setSearchResults] = useState<SearchResults | null>(null)
+
   const handleSearch = (query: string) => {
     controller.setState({ searchQuery: query }, false)
+    if (!query.trim()) setSearchResults(null)
   }
 
-  const handleSearchSubmit = () => {
-    if (state.searchQuery.trim()) {
-      controller.globalSearch(state.searchQuery.trim())
+  const handleSearchSubmit = async () => {
+    const query = state.searchQuery.trim()
+    if (!query) return
+    try {
+      const results = await controller.globalSearch(query)
+      setSearchResults(results)
+    } catch {
+      // globalSearch already records the error in state.error
     }
+  }
+
+  const handleSearchResultClick = (view: 'contacts' | 'companies' | 'deals') => {
+    setSearchResults(null)
+    controller.navigateTo(view)
   }
 
 
@@ -127,6 +140,9 @@ export function MainView({ controller }: MainViewProps) {
           searchQuery={state.searchQuery}
           onSearch={handleSearch}
           onSearchSubmit={handleSearchSubmit}
+          searchResults={searchResults}
+          onResultClick={handleSearchResultClick}
+          onCloseResults={() => setSearchResults(null)}
         />
 
         <div

@@ -1,9 +1,14 @@
 import { useRef, useState, useEffect } from 'react'
+import { ZoomIn, ZoomOut, Maximize } from 'lucide-react'
 import { NodeCard, CARD_WIDTH, CARD_HEIGHT } from './NodeCard'
 import type { BrainstormNode } from '../types'
 
 const CANVAS_SIZE = 3000
 const INITIAL_OFFSET = { x: -800, y: -100 }
+const MIN_SCALE = 0.25
+const MAX_SCALE = 2
+const WHEEL_STEP = 1.1
+const BUTTON_STEP = 1.2
 
 interface Props {
   nodes: BrainstormNode[]
@@ -25,19 +30,27 @@ interface Edge {
   y2: number
 }
 
-function buildEdges(nodes: BrainstormNode[]): Edge[] {
+interface DragPreview {
+  id: number
+  x: number
+  y: number
+}
+
+function buildEdges(nodes: BrainstormNode[], dragPreview: DragPreview | null): Edge[] {
   const nodeMap = new Map(nodes.map(n => [n.id, n]))
   return nodes
     .filter(n => n.parentId !== null)
     .map(n => {
       const parent = nodeMap.get(n.parentId!)
       if (!parent) return null
+      const parentPos = dragPreview && dragPreview.id === parent.id ? dragPreview : parent
+      const childPos = dragPreview && dragPreview.id === n.id ? dragPreview : n
       return {
         id: `${parent.id}-${n.id}`,
-        x1: parent.x + CARD_WIDTH / 2,
-        y1: parent.y + CARD_HEIGHT,
-        x2: n.x + CARD_WIDTH / 2,
-        y2: n.y,
+        x1: parentPos.x + CARD_WIDTH / 2,
+        y1: parentPos.y + CARD_HEIGHT,
+        x2: childPos.x + CARD_WIDTH / 2,
+        y2: childPos.y,
       }
     })
     .filter(Boolean) as Edge[]
@@ -45,6 +58,8 @@ function buildEdges(nodes: BrainstormNode[]): Edge[] {
 
 export function GraphView({ nodes, activeSessionId, expandingNodeId, onExpand, onAnswer, onDelete, onAddChild, onEdit, onUpdatePosition }: Props) {
   const [offset, setOffset] = useState(INITIAL_OFFSET)
+  const [scale, setScale] = useState(1)
+  const [dragPreview, setDragPreview] = useState<DragPreview | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const panning = useRef(false)
   const panStart = useRef({ x: 0, y: 0, ox: 0, oy: 0 })
@@ -69,11 +84,44 @@ export function GraphView({ nodes, activeSessionId, expandingNodeId, onExpand, o
     return () => { window.removeEventListener('mousemove', onMove); window.removeEventListener('mouseup', onUp) }
   }, [])
 
-  // Re-center the viewport on the loaded session's nodes whenever the active
-  // session changes — otherwise nodes render relative to whatever pan offset
-  // was left over from the previous session (or the static initial offset,
-  // which only happens to cover the default root-node position).
+  // Zoom by `factor` about a focal point given in container-relative pixels,
+  // keeping the canvas point under the focal point fixed on screen. Uses the
+  // functional setState form (not a ref mirror) so rapid-fire wheel ticks —
+  // several dispatched before React re-renders — each chain off the true
+  // latest pending scale/offset instead of a stale snapshot.
+  function zoomAt(factor: number, focalX: number, focalY: number) {
+    setScale(s0 => {
+      const s1 = Math.min(MAX_SCALE, Math.max(MIN_SCALE, s0 * factor))
+      if (s1 !== s0) {
+        const ratio = s1 / s0
+        setOffset(o0 => ({
+          x: focalX - ratio * (focalX - o0.x),
+          y: focalY - ratio * (focalY - o0.y),
+        }))
+      }
+      return s1
+    })
+  }
+
+  // Mouse-wheel zoom centered on the cursor. Must be a native listener with
+  // { passive: false } — React's synthetic onWheel can't reliably
+  // preventDefault() since it's registered passive at the root.
   useEffect(() => {
+    const container = containerRef.current
+    if (!container) return
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault()
+      const rect = container.getBoundingClientRect()
+      const factor = e.deltaY < 0 ? WHEEL_STEP : 1 / WHEEL_STEP
+      zoomAt(factor, e.clientX - rect.left, e.clientY - rect.top)
+    }
+    container.addEventListener('wheel', onWheel, { passive: false })
+    return () => container.removeEventListener('wheel', onWheel)
+  }, [])
+
+  // Center the viewport on the loaded session's nodes and reset zoom.
+  // Shared by the session-change effect and the "reset & fit" button.
+  function centerView() {
     if (nodes.length === 0) return
     const container = containerRef.current
     const viewportW = container?.clientWidth || 1200
@@ -82,13 +130,22 @@ export function GraphView({ nodes, activeSessionId, expandingNodeId, onExpand, o
     const maxX = Math.max(...nodes.map(n => n.x)) + CARD_WIDTH
     const minY = Math.min(...nodes.map(n => n.y))
     const maxY = Math.max(...nodes.map(n => n.y)) + CARD_HEIGHT
+    setScale(1)
     setOffset({
       x: viewportW / 2 - (minX + maxX) / 2,
       y: viewportH / 2 - (minY + maxY) / 2,
     })
+  }
+
+  // Re-center the viewport on the loaded session's nodes whenever the active
+  // session changes — otherwise nodes render relative to whatever pan offset
+  // was left over from the previous session (or the static initial offset,
+  // which only happens to cover the default root-node position).
+  useEffect(() => {
+    centerView()
   }, [activeSessionId])
 
-  const edges = buildEdges(nodes)
+  const edges = buildEdges(nodes, dragPreview)
 
   return (
     <div
@@ -99,7 +156,12 @@ export function GraphView({ nodes, activeSessionId, expandingNodeId, onExpand, o
     >
       <div
         className="canvas-content"
-        style={{ transform: `translate(${offset.x}px, ${offset.y}px)`, width: CANVAS_SIZE, height: CANVAS_SIZE }}
+        style={{
+          transform: `translate(${offset.x}px, ${offset.y}px) scale(${scale})`,
+          transformOrigin: '0 0',
+          width: CANVAS_SIZE,
+          height: CANVAS_SIZE,
+        }}
       >
         {/* SVG edge layer */}
         <svg
@@ -131,13 +193,18 @@ export function GraphView({ nodes, activeSessionId, expandingNodeId, onExpand, o
           <NodeCard
             key={node.id}
             node={node}
+            scale={scale}
             isExpanding={expandingNodeId === node.id}
             onExpand={() => onExpand(node.id)}
             onAnswer={() => onAnswer(node.id)}
             onDelete={() => onDelete(node.id)}
             onAddChild={() => onAddChild(node.id)}
             onEdit={() => onEdit(node.id)}
-            onDragEnd={(x, y) => onUpdatePosition(node.id, x, y)}
+            onDragMove={(x, y) => setDragPreview({ id: node.id, x, y })}
+            onDragEnd={(x, y) => {
+              setDragPreview(null)
+              onUpdatePosition(node.id, x, y)
+            }}
           />
         ))}
 
@@ -146,6 +213,43 @@ export function GraphView({ nodes, activeSessionId, expandingNodeId, onExpand, o
             <p style={{ fontSize: 14 }}>Create a session to start brainstorming</p>
           </div>
         )}
+      </div>
+
+      {/* Zoom controls */}
+      <div
+        className="zoom-controls"
+        onMouseDown={e => e.stopPropagation()}
+        style={{
+          position: 'absolute', right: 16, bottom: 16, zIndex: 50,
+          display: 'flex', gap: 4, padding: 4,
+          background: 'var(--bg-secondary)', border: '1px solid var(--border-color, rgba(255,255,255,0.1))',
+          borderRadius: 8, boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+        }}
+      >
+        <button
+          className="zoom-btn"
+          title="Zoom out"
+          onClick={() => {
+            const c = containerRef.current
+            zoomAt(1 / BUTTON_STEP, (c?.clientWidth || 0) / 2, (c?.clientHeight || 0) / 2)
+          }}
+        >
+          <ZoomOut size={16} />
+        </button>
+        <span className="zoom-readout" title="Current zoom">{Math.round(scale * 100)}%</span>
+        <button
+          className="zoom-btn"
+          title="Zoom in"
+          onClick={() => {
+            const c = containerRef.current
+            zoomAt(BUTTON_STEP, (c?.clientWidth || 0) / 2, (c?.clientHeight || 0) / 2)
+          }}
+        >
+          <ZoomIn size={16} />
+        </button>
+        <button className="zoom-btn" title="Reset & fit" onClick={centerView}>
+          <Maximize size={16} />
+        </button>
       </div>
 
       <style>{`
@@ -162,6 +266,19 @@ export function GraphView({ nodes, activeSessionId, expandingNodeId, onExpand, o
           position: absolute;
           top: 0;
           left: 0;
+        }
+        .zoom-btn {
+          display: flex; align-items: center; justify-content: center;
+          width: 28px; height: 28px; border-radius: 6px;
+          background: var(--bg-tertiary); color: var(--text-secondary);
+          border: 1px solid var(--border-color, rgba(255,255,255,0.1)); cursor: pointer;
+          transition: all 0.15s;
+        }
+        .zoom-btn:hover { background: var(--color-primary, #FF4F18); color: #fff; }
+        .zoom-readout {
+          display: flex; align-items: center; justify-content: center;
+          min-width: 36px; padding: 0 4px; font-size: 11px; font-variant-numeric: tabular-nums;
+          color: var(--text-muted); user-select: none;
         }
       `}</style>
     </div>

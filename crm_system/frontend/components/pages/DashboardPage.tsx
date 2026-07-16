@@ -215,7 +215,8 @@ export function DashboardPage({ controller }: DashboardPageProps) {
     )
   }
 
-  const conversionStr = summary ? `${(summary.conversionRate * 100).toFixed(1)}%` : '0%'
+  // Backend already returns conversionRate as a 0-100 percentage (won / (won+lost) * 100)
+  const conversionStr = summary ? `${summary.conversionRate.toFixed(1)}%` : '0%'
 
   return (
     <div style={{ padding: 'var(--space-4)', display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>

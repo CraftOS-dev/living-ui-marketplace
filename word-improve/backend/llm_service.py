@@ -40,18 +40,18 @@ for _root in (_CRAFTBOT_ROOT_INSTALLED, _CRAFTBOT_ROOT_DEV):
         sys.path.append(str(_root))
 
 _llm_instance = None
-_llm_init_attempted = False
 
 
 def _get_llm():
     """Lazy-initialize the LLM interface using CraftBot's settings.
 
     Returns ``None`` when CraftBot is not importable or no API key is set.
+    Re-attempts initialization on every call until it succeeds once, so a
+    newly-added API key is picked up without restarting the backend process.
     """
-    global _llm_instance, _llm_init_attempted
-    if _llm_instance is not None or _llm_init_attempted:
+    global _llm_instance
+    if _llm_instance is not None:
         return _llm_instance
-    _llm_init_attempted = True
 
     try:
         from app.config import get_api_key, get_llm_provider, get_llm_model

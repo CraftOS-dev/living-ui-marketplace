@@ -155,8 +155,8 @@ export function SummaryView({ nodes, activeSessionId, controller }: Props) {
           background: var(--bg-secondary); flex-shrink: 0; flex-wrap: wrap;
         }
         .stat { display: flex; flex-direction: column; align-items: center; gap: 1px; }
-        .stat-num { font-size: 18px; font-weight: 700; color: var(--text-primary); line-height: 1; }
-        .stat-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+        .stat-num { font-size: 16px; font-weight: 600; color: var(--text-primary); line-height: 1; }
+        .stat-label { font-size: 9px; color: var(--text-muted); opacity: 0.7; text-transform: uppercase; letter-spacing: 0.03em; }
         .refresh-btn {
           display: flex; align-items: center; gap: 5px; margin-left: auto;
           background: var(--bg-tertiary); border: 1px solid var(--border-color, rgba(255,255,255,0.1));

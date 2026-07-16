@@ -2,8 +2,8 @@ import { useState, useRef } from 'react'
 import { Expand, MessageSquare, Trash2, Plus, Bot, User, Loader2 } from 'lucide-react'
 import type { BrainstormNode } from '../types'
 
-export const CARD_WIDTH = 220
-export const CARD_HEIGHT = 110
+export const CARD_WIDTH = 240
+export const CARD_HEIGHT = 130
 
 const TYPE_COLORS: Record<string, string> = {
   question: 'var(--color-info, #3b82f6)',
@@ -13,16 +13,18 @@ const TYPE_COLORS: Record<string, string> = {
 
 interface Props {
   node: BrainstormNode
+  scale: number
   isExpanding: boolean
   onExpand: () => void
   onAnswer: () => void
   onDelete: () => void
   onAddChild: () => void
   onEdit: () => void
+  onDragMove?: (x: number, y: number) => void
   onDragEnd: (x: number, y: number) => void
 }
 
-export function NodeCard({ node, isExpanding, onExpand, onAnswer, onDelete, onAddChild, onEdit, onDragEnd }: Props) {
+export function NodeCard({ node, scale, isExpanding, onExpand, onAnswer, onDelete, onAddChild, onEdit, onDragMove, onDragEnd }: Props) {
   const [pos, setPos] = useState({ x: node.x, y: node.y })
   const dragging = useRef(false)
   const dragStart = useRef({ mx: 0, my: 0, nx: 0, ny: 0 })
@@ -40,18 +42,23 @@ export function NodeCard({ node, isExpanding, onExpand, onAnswer, onDelete, onAd
     moved.current = false
     dragStart.current = { mx: e.clientX, my: e.clientY, nx: pos.x, ny: pos.y }
     const onMove = (ev: MouseEvent) => {
-      const dx = ev.clientX - dragStart.current.mx
-      const dy = ev.clientY - dragStart.current.my
+      // Drag deltas are raw screen pixels, but pos is in canvas coordinates —
+      // at zoom level `scale`, one screen pixel equals 1/scale canvas pixels.
+      const dx = (ev.clientX - dragStart.current.mx) / scale
+      const dy = (ev.clientY - dragStart.current.my) / scale
       if (Math.abs(dx) > 4 || Math.abs(dy) > 4) moved.current = true
-      setPos({ x: dragStart.current.nx + dx, y: dragStart.current.ny + dy })
+      const nx = dragStart.current.nx + dx
+      const ny = dragStart.current.ny + dy
+      setPos({ x: nx, y: ny })
+      if (moved.current) onDragMove?.(nx, ny)
     }
     const onUp = (ev: MouseEvent) => {
       dragging.current = false
       document.removeEventListener('mousemove', onMove)
       document.removeEventListener('mouseup', onUp)
       if (moved.current) {
-        const dx = ev.clientX - dragStart.current.mx
-        const dy = ev.clientY - dragStart.current.my
+        const dx = (ev.clientX - dragStart.current.mx) / scale
+        const dy = (ev.clientY - dragStart.current.my) / scale
         onDragEnd(dragStart.current.nx + dx, dragStart.current.ny + dy)
       } else {
         // click (not drag) — open editor
@@ -122,8 +129,8 @@ export function NodeCard({ node, isExpanding, onExpand, onAnswer, onDelete, onAd
         }
         .node-by { color: var(--text-muted); display: flex; align-items: center; margin-left: auto; }
         .node-content {
-          font-size: 12px; line-height: 1.4; color: var(--text-primary);
-          display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
+          font-size: 13.5px; line-height: 1.5; color: var(--text-primary);
+          display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical;
           overflow: hidden; margin: 0 0 8px;
         }
         .node-actions {

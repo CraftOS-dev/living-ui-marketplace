@@ -61,6 +61,12 @@ export interface NodeUpdateInput {
   y?: number
 }
 
+export interface ExploreStep {
+  action: 'expand' | 'answer'
+  targetNodeId: number
+  reason: string
+}
+
 export interface ExploreResult {
   status: string
   action: 'expand' | 'answer' | 'none'
@@ -69,4 +75,14 @@ export interface ExploreResult {
   newNodes?: BrainstormNode[]
   node?: BrainstormNode
   message?: string
+  strategy?: 'dfs' | 'bfs'
+  effort?: number
+  stepsRun?: number
+  steps?: ExploreStep[]
+}
+
+export interface ExploreOptions {
+  strategy: 'dfs' | 'bfs'
+  effort: number
+  startNodeId: number | null
 }
