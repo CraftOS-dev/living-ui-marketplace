@@ -137,7 +137,7 @@ export function MainView({ controller }: MainViewProps) {
       />
 
       <main className="main">
-        {!state.llmAvailable && (
+        {state.llmStatusChecked && !state.llmAvailable && (
           <Alert variant="warning" title="CraftBot LLM not configured">
             Variants are placeholder stubs. Add an LLM provider API key in CraftBot settings to get real rewrites.
           </Alert>

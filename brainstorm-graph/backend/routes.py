@@ -30,8 +30,8 @@ CANVAS_CENTER_X = 1500.0
 CANVAS_CENTER_Y = 400.0
 CHILD_Y_OFFSET = 220.0
 CHILD_X_SPACING = 280.0
-CARD_W = 240.0   # card width + horizontal padding for collision
-CARD_H = 140.0   # card height + vertical padding for collision
+CARD_W = 260.0   # card width + horizontal padding for collision
+CARD_H = 160.0   # card height + vertical padding for collision
 
 
 # ============================================================================
@@ -83,6 +83,12 @@ class NodeUpdate(BaseModel):
     nodeType: Optional[Literal["question", "answer", "idea"]] = None
     x: Optional[float] = None
     y: Optional[float] = None
+
+
+class ExploreRequest(BaseModel):
+    strategy: Literal["dfs", "bfs"] = "bfs"
+    effort: int = 1  # steps to run, clamped 1-6 in _run_explore
+    startNodeId: Optional[int] = None
 
 
 # ============================================================================
@@ -173,19 +179,23 @@ async def _run_expand(node: BrainstormNode, session: BrainstormSession, db: Sess
         f"Current node path in the graph:\n  {path}\n\n"
         f"Node to expand ({node.node_type}): \"{node.content}\"\n\n"
         f"Already in the graph (do NOT repeat any of these):\n{existing_text}\n\n"
-        f"Generate exactly 3 insightful, specific questions that:\n"
+        f"Generate BETWEEN 2 AND 5 insightful, specific questions that:\n"
         f"1. Drill deeper into \"{node.content}\" from DIFFERENT angles "
         f"(e.g. mechanisms, evidence, implications, trade-offs, real-world examples)\n"
         f"2. Are concrete enough to have definitive answers, not vague philosophical questions\n"
         f"3. Would be genuinely valuable for someone trying to deeply understand {session.topic}\n"
         f"4. Are NOT variations of questions already in the graph above\n\n"
-        f"Return ONLY a JSON array of 3 question strings. No markdown, no explanation.\n"
+        f"Choose the count yourself based on how many genuinely distinct, non-redundant angles "
+        f"this node supports — use fewer (2-3) for narrow or already well-covered topics, and "
+        f"more (4-5) for rich topics with many unexplored angles. Do not pad with weak or "
+        f"repetitive questions just to hit a higher count.\n\n"
+        f"Return ONLY a JSON array of 2 to 5 question strings. No markdown, no explanation.\n"
         f"Example format: [\"How does X specifically cause Y?\", \"What evidence supports Z?\", \"Why do experts disagree on W?\"]"
     )
     system = (
         "You are an expert brainstorming facilitator and research strategist. "
         "Your questions are specific, actionable, and drive deeper understanding. "
-        "Return ONLY a valid JSON array of exactly 3 question strings."
+        "Return ONLY a valid JSON array of 2 to 5 question strings."
     )
     try:
         raw = await integration.llm_complete(prompt, system)
@@ -193,7 +203,7 @@ async def _run_expand(node: BrainstormNode, session: BrainstormSession, db: Sess
         questions = json.loads(cleaned)
         if not isinstance(questions, list):
             questions = []
-        questions = [str(q).strip() for q in questions[:3] if str(q).strip()]
+        questions = [str(q).strip() for q in questions[:5] if str(q).strip()]
     except Exception as e:
         logger.warning("[expand] LLM failed: %s", e)
         questions = []
@@ -281,19 +291,17 @@ async def _run_answer(node: BrainstormNode, session: BrainstormSession, db: Sess
     return child.to_dict()
 
 
-async def _run_explore(session: BrainstormSession, db: Session) -> Dict[str, Any]:
+async def _pick_best_node(session: BrainstormSession, db: Session, all_nodes: List[BrainstormNode]) -> Optional[BrainstormNode]:
+    """LLM picks the single most valuable node in the whole graph to start
+    exploring from. Used to seed a traversal when the user didn't pick a
+    specific start node ("Auto" in the AI Explore modal)."""
     from services.integration_client import integration
-
-    _require_bridge()
-
-    all_nodes = db.query(BrainstormNode).filter(BrainstormNode.session_id == session.id).all()
-    if not all_nodes:
-        return {"action": "none", "message": "No nodes in session"}
 
     node_ids_with_children = {n.parent_id for n in all_nodes if n.parent_id is not None}
     leaf_nodes = [n for n in all_nodes if n.id not in node_ids_with_children]
     unanswered_questions = [n for n in leaf_nodes if n.node_type == "question"]
 
+    chosen_id = None
     if integration.available:
         node_summary = "\n".join(
             f"  id={n.id} depth={n.depth} type={n.node_type} "
@@ -303,44 +311,118 @@ async def _run_explore(session: BrainstormSession, db: Session) -> Dict[str, Any
         prompt = (
             f"Brainstorming session topic: \"{session.topic}\"\n\n"
             f"Current graph state:\n{node_summary}\n\n"
-            f"As the brainstorming strategist, choose the single most valuable next action:\n"
-            f"- 'expand': generate 3 sub-questions from a node (best for broad unexplored ideas)\n"
-            f"- 'answer': provide a direct answer to a question node (best for pivotal unanswered questions)\n\n"
+            f"As the brainstorming strategist, choose the single most valuable node to explore next.\n\n"
             f"Prioritize:\n"
             f"1. Unanswered questions on unexplored branches (is_leaf=yes, type=question)\n"
             f"2. Nodes that seem most central to understanding the topic\n"
             f"3. Balance between depth (go deeper on promising threads) and breadth (start new branches)\n\n"
-            f"Return ONLY JSON: {{\"nodeId\": <id>, \"action\": \"expand\" or \"answer\", "
-            f"\"reason\": \"one sentence explaining why this is the most valuable next step\"}}"
+            f"Return ONLY JSON: {{\"nodeId\": <id>, \"reason\": \"one sentence explaining why\"}}"
         )
         system = (
             "You are an expert research strategist driving agentic brainstorming. "
-            "Pick the action that will generate the most insight. Return ONLY valid JSON."
+            "Pick the node that will generate the most insight if explored next. Return ONLY valid JSON."
         )
         try:
             raw = await integration.llm_complete(prompt, system)
             cleaned = re.sub(r"```(?:json)?|```", "", raw or "").strip()
             decision = json.loads(cleaned)
             chosen_id = int(decision.get("nodeId", 0))
-            chosen_action = decision.get("action", "expand")
-            reason = decision.get("reason", "")
         except Exception as e:
-            logger.warning("[explore] LLM pick failed: %s — falling back", e)
-            target_node = unanswered_questions[0] if unanswered_questions else (leaf_nodes[0] if leaf_nodes else all_nodes[0])
-            chosen_id = target_node.id
-            chosen_action = "answer" if target_node.node_type == "question" else "expand"
-            reason = "Fallback: targeting most accessible unexplored node"
+            logger.warning("[explore] LLM node pick failed: %s — falling back", e)
 
-    target = db.query(BrainstormNode).filter(BrainstormNode.id == chosen_id).first()
+    target = next((n for n in all_nodes if n.id == chosen_id), None) if chosen_id else None
     if not target:
-        target = unanswered_questions[0] if unanswered_questions else (leaf_nodes[0] if leaf_nodes else all_nodes[0])
+        target = unanswered_questions[0] if unanswered_questions else (leaf_nodes[0] if leaf_nodes else all_nodes[0] if all_nodes else None)
+    return target
 
-    if chosen_action == "answer" and target.node_type == "question":
-        result_node = await _run_answer(target, session, db)
-        return {"action": "answer", "targetNodeId": target.id, "reason": reason, "node": result_node}
-    else:
-        new_nodes = await _run_expand(target, session, db)
-        return {"action": "expand", "targetNodeId": target.id, "reason": reason, "newNodes": new_nodes}
+
+async def _run_explore(
+    session: BrainstormSession,
+    db: Session,
+    strategy: str = "bfs",
+    effort: int = 1,
+    start_node_id: Optional[int] = None,
+) -> Dict[str, Any]:
+    """Agentic traversal loop: walks the graph in DFS or BFS order for up to
+    `effort` steps, deciding expand-vs-answer per node with a fast heuristic
+    (answer unanswered questions first, otherwise expand) so each step costs
+    exactly one LLM generation call. The starting node is either explicitly
+    chosen by the user or picked by the LLM as the single best node to begin
+    from — DFS/BFS then governs the order of every step after that."""
+    _require_bridge()
+
+    effort = max(1, min(6, effort))
+
+    empty_result = {
+        "status": "ok", "action": "none", "message": "No nodes in session",
+        "strategy": strategy, "effort": effort, "stepsRun": 0, "steps": [], "newNodes": [],
+    }
+
+    all_nodes = db.query(BrainstormNode).filter(BrainstormNode.session_id == session.id).all()
+    if not all_nodes:
+        return empty_result
+
+    start_node: Optional[BrainstormNode] = None
+    if start_node_id:
+        start_node = next((n for n in all_nodes if n.id == start_node_id), None)
+    if start_node is None:
+        start_node = await _pick_best_node(session, db, all_nodes)
+    if start_node is None:
+        return empty_result
+
+    frontier: List[BrainstormNode] = [start_node]
+    visited: set = set()
+    steps: List[Dict[str, Any]] = []
+    all_new_nodes: List[Dict[str, Any]] = []
+    last_answer_node: Optional[Dict[str, Any]] = None
+
+    for _ in range(effort):
+        if not frontier:
+            break
+        target = frontier.pop(0) if strategy == "bfs" else frontier.pop()
+        if target.id in visited:
+            continue
+        visited.add(target.id)
+
+        existing_children = db.query(BrainstormNode).filter(BrainstormNode.parent_id == target.id).all()
+        has_answer_child = any(c.node_type == "answer" for c in existing_children)
+
+        if target.node_type == "question" and not has_answer_child:
+            action = "answer"
+        else:
+            action = "expand"
+
+        if action == "answer":
+            result = await _run_answer(target, session, db)
+            steps.append({"action": "answer", "targetNodeId": target.id, "reason": "Answering an open question"})
+            last_answer_node = result
+            new_child_ids = [result["id"]] if result else []
+        else:
+            new_dicts = await _run_expand(target, session, db)
+            steps.append({"action": "expand", "targetNodeId": target.id, "reason": "Expanding into new sub-questions"})
+            all_new_nodes.extend(new_dicts)
+            new_child_ids = [d["id"] for d in new_dicts]
+
+        if new_child_ids:
+            new_children = db.query(BrainstormNode).filter(BrainstormNode.id.in_(new_child_ids)).all()
+            frontier.extend(new_children)
+
+    if not steps:
+        return {**empty_result, "message": "Nothing left to explore"}
+
+    last = steps[-1]
+    return {
+        "status": "ok",
+        "action": last["action"],
+        "targetNodeId": last["targetNodeId"],
+        "reason": last["reason"],
+        "node": last_answer_node if last["action"] == "answer" else None,
+        "newNodes": all_new_nodes,
+        "strategy": strategy,
+        "effort": effort,
+        "stepsRun": len(steps),
+        "steps": steps,
+    }
 
 
 async def _run_summary(session: BrainstormSession, db: Session) -> Dict[str, Any]:
@@ -714,9 +796,9 @@ async def answer_node(node_id: int, db: Session = Depends(get_db)) -> Dict[str, 
 
 
 @router.post("/sessions/{session_id}/explore")
-async def explore_session(session_id: int, db: Session = Depends(get_db)) -> Dict[str, Any]:
+async def explore_session(session_id: int, body: ExploreRequest = ExploreRequest(), db: Session = Depends(get_db)) -> Dict[str, Any]:
     session = db.query(BrainstormSession).filter(BrainstormSession.id == session_id).first()
     if not session:
         return {"status": "not_found"}
-    result = await _run_explore(session, db)
+    result = await _run_explore(session, db, strategy=body.strategy, effort=body.effort, start_node_id=body.startNodeId)
     return {"status": "ok", **result}

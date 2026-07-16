@@ -50,6 +50,7 @@ export class AppController {
     loading: true,
     error: null,
     llmAvailable: false,
+    llmStatusChecked: false,
     sessions: [],
     active: null,
     generating: false,
@@ -61,9 +62,18 @@ export class AppController {
   private listeners: Set<(state: AppState) => void> = new Set()
 
   async initialize(): Promise<void> {
+    const llmStatusPromise = http<{ llmAvailable: boolean }>('/api/llm-status').catch(() => null)
     try {
       const sessions = await http<SessionSummary[]>('/api/sessions')
-      this.set({ sessions, initialized: true, loading: false, error: null })
+      const llmStatus = await llmStatusPromise
+      this.set({
+        sessions,
+        initialized: true,
+        loading: false,
+        error: null,
+        llmStatusChecked: true,
+        ...(llmStatus ? { llmAvailable: llmStatus.llmAvailable } : {}),
+      })
       if (sessions.length > 0) {
         await this.loadSession(sessions[0].id)
       }
@@ -71,6 +81,7 @@ export class AppController {
       this.set({
         initialized: true,
         loading: false,
+        llmStatusChecked: true,
         error: err instanceof Error ? err.message : 'Failed to load sessions',
       })
     }

@@ -22,6 +22,7 @@ import React, {
   useContext,
 } from 'react'
 import { createPortal } from 'react-dom'
+import { X } from 'lucide-react'
 
 // =============================================================================
 // BUTTON
@@ -610,7 +611,7 @@ export function Alert({ variant, title, children, onClose }: AlertProps) {
           }}
           aria-label="Close alert"
         >
-          ×
+          <X size={16} />
         </button>
       )}
     </div>
@@ -790,7 +791,7 @@ export function Modal({ open, onClose, title, children, footer, size = 'md' }: M
               }}
               aria-label="Close modal"
             >
-              ×
+              <X size={18} />
             </button>
           </div>
         )}

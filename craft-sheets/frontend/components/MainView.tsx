@@ -6,10 +6,13 @@ import type { CellAlign, CellFormat, ColumnType, Sheet, SheetSummary } from '../
 import {
   addColumn,
   addRow,
+  autofill,
   deleteColumn,
   deleteRow,
   getCellFormat,
   getSelectionRefs,
+  insertColumn,
+  insertRow,
   makeRef,
   parseRef,
   pasteRange,
@@ -17,15 +20,21 @@ import {
   renameColumn,
   setCellRaw,
   setColumnType,
+  setColumnWidth,
+  setFreezePanes,
   setRangeFormat,
+  setRowHeight,
+  type CellRect,
 } from '../utils/grid'
-import { exportSheet, importFile } from '../utils/fileio'
+import { exportSheet, exportWorkbook, importWorkbook } from '../utils/fileio'
 import { Alert, Button, Modal } from './ui'
 import { Toolbar } from './Toolbar'
 import { FormulaBar } from './FormulaBar'
 import { Grid } from './Grid'
 import { SheetTabs } from './SheetTabs'
 import { ColumnMenu } from './ColumnMenu'
+import { RowMenu } from './RowMenu'
+import { FindReplace } from './FindReplace'
 
 interface MainViewProps {
   controller: AppController
@@ -38,10 +47,15 @@ export function MainView({ controller }: MainViewProps) {
   const [selectionEnd, setSelectionEnd] = useState<string | null>(null)
   const [ctrlSelectedRefs, setCtrlSelectedRefs] = useState<Set<string>>(new Set())
   const undoStack = useRef<Sheet[]>([])
+  const redoStack = useRef<Sheet[]>([])
+  const [undoAvailable, setUndoAvailable] = useState(false)
+  const [redoAvailable, setRedoAvailable] = useState(false)
   const [loading, setLoading] = useState(true)
   const [fatalError, setFatalError] = useState<string | null>(null)
   const [colMenu, setColMenu] = useState<{ index: number; anchor: { x: number; y: number } } | null>(null)
+  const [rowMenu, setRowMenu] = useState<{ index: number; anchor: { x: number; y: number } } | null>(null)
   const [confirmDelete, setConfirmDelete] = useState<SheetSummary | null>(null)
+  const [findOpen, setFindOpen] = useState(false)
 
   useAgentAware('MainView', {
     activeSheet: active?.name ?? null,
@@ -102,7 +116,11 @@ export function MainView({ controller }: MainViewProps) {
     async (next: Sheet) => {
       if (active) {
         undoStack.current = [...undoStack.current.slice(-49), active]
+        setUndoAvailable(true)
       }
+      // A fresh edit invalidates redo history.
+      redoStack.current = []
+      setRedoAvailable(false)
       setActive(next) // optimistic
       try {
         const saved = await controller.saveSheet(next)
@@ -166,8 +184,25 @@ export function MainView({ controller }: MainViewProps) {
     const prev = undoStack.current[undoStack.current.length - 1]
     if (!prev) return
     undoStack.current = undoStack.current.slice(0, -1)
+    setUndoAvailable(undoStack.current.length > 0)
+    if (active) {
+      redoStack.current = [...redoStack.current.slice(-49), active]
+      setRedoAvailable(true)
+    }
     applyWithoutUndo(prev)
-  }, [applyWithoutUndo])
+  }, [applyWithoutUndo, active])
+
+  const handleRedo = useCallback(() => {
+    const next = redoStack.current[redoStack.current.length - 1]
+    if (!next) return
+    redoStack.current = redoStack.current.slice(0, -1)
+    setRedoAvailable(redoStack.current.length > 0)
+    if (active) {
+      undoStack.current = [...undoStack.current.slice(-49), active]
+      setUndoAvailable(true)
+    }
+    applyWithoutUndo(next)
+  }, [applyWithoutUndo, active])
 
   const effectiveRefs = useMemo(() => {
     const rectRefs = selectionEnd ? getSelectionRefs(selectedRef, selectionEnd) : [selectedRef]
@@ -242,6 +277,20 @@ export function MainView({ controller }: MainViewProps) {
     const col = parseRef(selectedRef)?.col ?? 0
     applyAndSave(deleteColumn(active, col))
   }
+  const handleResizeColumn = (index: number, width: number) =>
+    active && applyAndSave(setColumnWidth(active, index, width))
+  const handleResizeRow = (row: number, height: number) =>
+    active && applyAndSave(setRowHeight(active, row, height))
+  const handleInsertRow = (index: number, side: 'above' | 'below') =>
+    active && applyAndSave(insertRow(active, side === 'above' ? index : index + 1))
+  const handleInsertColumn = (index: number, side: 'left' | 'right') =>
+    active && applyAndSave(insertColumn(active, side === 'left' ? index : index + 1))
+  const handleAutofill = (source: CellRect, target: CellRect) =>
+    active && applyAndSave(autofill(active, source, target))
+  const handleToggleFreezeRow = () =>
+    active && applyAndSave(setFreezePanes(active, active.frozenRows > 0 ? 0 : 1, active.frozenCols))
+  const handleToggleFreezeCol = () =>
+    active && applyAndSave(setFreezePanes(active, active.frozenRows, active.frozenCols > 0 ? 0 : 1))
 
   // --- sheet (tab) handlers -------------------------------------------------
   const refreshSheets = useCallback(async () => {
@@ -315,23 +364,36 @@ export function MainView({ controller }: MainViewProps) {
   // --- import / export ------------------------------------------------------
   const handleImport = async (file: File) => {
     try {
-      const input = await importFile(file)
-      const created = await controller.createSheet(input)
+      const inputs = await importWorkbook(file)
+      if (inputs.length === 0) throw new Error('empty workbook')
+      const created: Sheet[] = []
+      for (const input of inputs) {
+        created.push(await controller.createSheet(input))
+      }
       await refreshSheets()
-      setActive(created)
+      setActive(created[0])
       handleSelect('A1')
-      controller.rememberLastSheet(created.id)
-      toast.success(`Imported "${created.name}"`)
+      controller.rememberLastSheet(created[0].id)
+      toast.success(
+        created.length === 1
+          ? `Imported "${created[0].name}"`
+          : `Imported ${created.length} sheets from "${file.name}"`
+      )
     } catch (err) {
       console.error('[Craft Sheets] import failed', err)
       toast.error('Could not import that file')
     }
   }
 
-  const handleExport = (format: 'csv' | 'xlsx') => {
+  const handleExport = async (format: 'csv' | 'xlsx') => {
     if (!active) return
     try {
-      exportSheet(active, format)
+      if (format === 'csv') {
+        exportSheet(active, 'csv')
+        return
+      }
+      const fullSheets = await Promise.all(sheets.map((s) => controller.getSheet(s.id)))
+      exportWorkbook(fullSheets, 'xlsx')
     } catch {
       toast.error('Export failed')
     }
@@ -394,6 +456,15 @@ export function MainView({ controller }: MainViewProps) {
         onFontColor={fontColorCell}
         onImport={handleImport}
         onExport={handleExport}
+        onUndo={handleUndo}
+        onRedo={handleRedo}
+        undoAvailable={undoAvailable}
+        redoAvailable={redoAvailable}
+        onOpenFind={() => setFindOpen(true)}
+        frozenRows={active?.frozenRows ?? 0}
+        frozenCols={active?.frozenCols ?? 0}
+        onToggleFreezeRow={handleToggleFreezeRow}
+        onToggleFreezeCol={handleToggleFreezeCol}
       />
 
       <FormulaBar selectedRef={selectedRef} raw={selectedRaw} onCommit={(raw) => commitCell(selectedRef, raw)} />
@@ -409,13 +480,19 @@ export function MainView({ controller }: MainViewProps) {
           onCtrlSelect={handleCtrlSelect}
           onCommitCell={commitCell}
           onOpenColumnMenu={(index, anchor) => setColMenu({ index, anchor })}
+          onOpenRowMenu={(index, anchor) => setRowMenu({ index, anchor })}
+          onResizeColumn={handleResizeColumn}
+          onResizeRow={handleResizeRow}
           onPaste={handlePaste}
           onRichPaste={handleRichPaste}
           onToggleBold={toggleBold}
           onToggleItalic={toggleItalic}
           onToggleUnderline={toggleUnderline}
           onUndo={handleUndo}
+          onRedo={handleRedo}
           onClearSelection={handleClearSelection}
+          onAutofill={handleAutofill}
+          onOpenFind={() => setFindOpen(true)}
         />
       )}
 
@@ -439,8 +516,36 @@ export function MainView({ controller }: MainViewProps) {
           canDelete={active.columns.length > 1}
           onRename={handleRenameColumn}
           onRetype={handleRetypeColumn}
+          onInsertLeft={(index) => handleInsertColumn(index, 'left')}
+          onInsertRight={(index) => handleInsertColumn(index, 'right')}
           onDelete={handleDeleteColumnByIndex}
           onClose={() => setColMenu(null)}
+        />
+      )}
+
+      {rowMenu && active && (
+        <RowMenu
+          index={rowMenu.index}
+          anchor={rowMenu.anchor}
+          canDelete={active.numRows > 1}
+          onInsertAbove={(index) => handleInsertRow(index, 'above')}
+          onInsertBelow={(index) => handleInsertRow(index, 'below')}
+          onDelete={() => applyAndSave(deleteRow(active, rowMenu.index))}
+          onClose={() => setRowMenu(null)}
+        />
+      )}
+
+      {findOpen && active && (
+        <FindReplace
+          sheet={active}
+          onSelect={handleSelect}
+          onReplaceOne={(ref, raw) => commitCell(ref, raw)}
+          onReplaceAll={(replacements) => {
+            let next = active
+            for (const { ref, raw } of replacements) next = setCellRaw(next, ref, raw)
+            applyAndSave(next)
+          }}
+          onClose={() => setFindOpen(false)}
         />
       )}
 

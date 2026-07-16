@@ -6,7 +6,7 @@ REST API endpoints for the language learning app.
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Dict, Any, List, Optional
 from database import get_db
 from models import (
@@ -61,7 +61,7 @@ class WordCreate(BaseModel):
 class VocabGenerateRequest(BaseModel):
     category: str
     difficulty: str = "beginner"
-    count: int = 10
+    count: int = Field(10, ge=1, le=30)
 
 class ListCreate(BaseModel):
     name: str

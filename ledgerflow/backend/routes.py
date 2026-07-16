@@ -1296,16 +1296,15 @@ def account_ledger_report(account_id: str, db: Session = Depends(get_db)):
 @router.get("/dashboard/summary")
 def dashboard_summary(db: Session = Depends(get_db)):
     today = date.today()
-    month_start = today.replace(day=1)
 
-    # Cash balance (accounts 1000 + 1010)
+    # Cash balance (accounts 1000 + 1010) — all-time
     cash_balance = 0.0
     for code in ("1000", "1010"):
         acct = db.query(Account).filter(Account.code == code).first()
         if acct:
             cash_balance += _compute_account_balance(db, acct.id)
 
-    # Total income this month (revenue accounts)
+    # Total income (all-time, revenue accounts) — same scope as cashBalance
     total_income = 0.0
     revenue_accounts = db.query(Account).filter(Account.account_type == "revenue").all()
     for acct in revenue_accounts:
@@ -1313,12 +1312,10 @@ def dashboard_summary(db: Session = Depends(get_db)):
             func.coalesce(func.sum(JournalLine.credit), 0.0) - func.coalesce(func.sum(JournalLine.debit), 0.0)
         ).join(JournalEntry).filter(
             JournalLine.account_id == acct.id,
-            JournalEntry.entry_date >= month_start,
-            JournalEntry.entry_date <= today,
         ).scalar() or 0.0
         total_income += amt
 
-    # Total expenses this month
+    # Total expenses (all-time, expense accounts) — same scope as cashBalance
     total_expenses = 0.0
     expense_accounts = db.query(Account).filter(Account.account_type == "expense").all()
     for acct in expense_accounts:
@@ -1326,8 +1323,6 @@ def dashboard_summary(db: Session = Depends(get_db)):
             func.coalesce(func.sum(JournalLine.debit), 0.0) - func.coalesce(func.sum(JournalLine.credit), 0.0)
         ).join(JournalEntry).filter(
             JournalLine.account_id == acct.id,
-            JournalEntry.entry_date >= month_start,
-            JournalEntry.entry_date <= today,
         ).scalar() or 0.0
         total_expenses += amt
 
@@ -1463,50 +1458,32 @@ def dashboard_income_expense_chart(db: Session = Depends(get_db)):
 
 
 @router.get("/dashboard/expense-breakdown")
-def dashboard_expense_breakdown(db: Session = Depends(get_db)):
-    """Expenses by category this month."""
-    today = date.today()
-    month_start = today.replace(day=1)
+def dashboard_expense_breakdown(
+    from_date: Optional[str] = Query(None, alias="fromDate"),
+    to_date: Optional[str] = Query(None, alias="toDate"),
+    db: Session = Depends(get_db),
+):
+    """Expenses grouped by expense account (all-time by default, or bounded by fromDate/toDate)."""
+    fd = _parse_date(from_date) if from_date else None
+    td = _parse_date(to_date) if to_date else None
 
-    # Get expenses grouped by category
-    rows = (
-        db.query(
-            JournalEntry.category_id,
-            func.coalesce(func.sum(JournalLine.debit), 0.0).label("total_debit"),
-            func.coalesce(func.sum(JournalLine.credit), 0.0).label("total_credit"),
-        )
-        .join(JournalLine)
-        .join(Account, JournalLine.account_id == Account.id)
-        .filter(
-            Account.account_type == "expense",
-            JournalEntry.entry_date >= month_start,
-            JournalEntry.entry_date <= today,
-        )
-        .group_by(JournalEntry.category_id)
-        .all()
-    )
-
+    expense_accounts = db.query(Account).filter(Account.account_type == "expense").all()
     results = []
-    for row in rows:
-        amount = round(row.total_debit - row.total_credit, 2)
+    for acct in expense_accounts:
+        q = db.query(
+            func.coalesce(func.sum(JournalLine.debit), 0.0) - func.coalesce(func.sum(JournalLine.credit), 0.0)
+        ).join(JournalEntry).filter(JournalLine.account_id == acct.id)
+        if fd:
+            q = q.filter(JournalEntry.entry_date >= fd)
+        if td:
+            q = q.filter(JournalEntry.entry_date <= td)
+        amount = round(q.scalar() or 0.0, 2)
         if amount <= 0:
             continue
-
-        cat_name = "Uncategorized"
-        cat_color = None
-        cat_id = row.category_id
-
-        if cat_id:
-            cat = db.query(Category).filter(Category.id == cat_id).first()
-            if cat:
-                cat_name = cat.name
-                cat_color = cat.color
-
         results.append({
-            "categoryId": cat_id,
-            "categoryName": cat_name,
+            "accountId": acct.id,
+            "accountName": acct.name,
             "amount": amount,
-            "color": cat_color,
         })
 
     results.sort(key=lambda x: x["amount"], reverse=True)

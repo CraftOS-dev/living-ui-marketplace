@@ -41,10 +41,8 @@ export function AnalysisView({ controller }: AnalysisViewProps) {
           if (pollRef.current) clearInterval(pollRef.current)
           pollRef.current = null
           setRunning(false)
-          if (s.status === 'completed') {
-            const result = await controller.getAnalysis(id)
-            setAnalysis(result)
-          }
+          const result = await controller.getAnalysis(id)
+          setAnalysis(result)
         }
       }
     }, 2000)
