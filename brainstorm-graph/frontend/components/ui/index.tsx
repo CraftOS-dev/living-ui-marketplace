@@ -683,13 +683,14 @@ export interface ModalProps {
   title?: string
   children: ReactNode
   footer?: ReactNode
-  size?: 'sm' | 'md' | 'lg'
+  size?: 'sm' | 'md' | 'lg' | 'xl'
 }
 
 const modalSizes = {
   sm: 320,
   md: 420,
   lg: 560,
+  xl: 680,
 }
 
 export function Modal({ open, onClose, title, children, footer, size = 'md' }: ModalProps) {
@@ -777,21 +778,23 @@ export function Modal({ open, onClose, title, children, footer, size = 'md' }: M
             >
               {title}
             </h2>
-            <button
-              onClick={onClose}
-              style={{
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                color: 'var(--text-secondary)',
-                fontSize: '20px',
-                lineHeight: 1,
-                padding: 'var(--space-1)',
-              }}
-              aria-label="Close modal"
-            >
-              ×
-            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+              <button
+                onClick={onClose}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: 'var(--text-secondary)',
+                  fontSize: '20px',
+                  lineHeight: 1,
+                  padding: 'var(--space-1)',
+                }}
+                aria-label="Close modal"
+              >
+                ×
+              </button>
+            </div>
           </div>
         )}
         {/* Body */}

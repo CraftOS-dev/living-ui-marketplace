@@ -66,6 +66,8 @@ export class AppController {
       numRows: sheet.numRows,
       cells: sheet.cells,
       rowHeights: sheet.rowHeights,
+      frozenRows: sheet.frozenRows,
+      frozenCols: sheet.frozenCols,
     }
     return request<Sheet>(`/api/sheets/${sheet.id}`, {
       method: 'PUT',

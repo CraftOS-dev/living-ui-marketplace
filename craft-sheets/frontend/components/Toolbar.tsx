@@ -9,10 +9,15 @@ import {
   FilePlus2,
   Italic,
   PaintBucket,
+  PanelLeft,
+  PanelTop,
+  Redo2,
   Rows3,
+  Search,
   Trash2,
   Type,
   Underline,
+  Undo2,
   Upload,
 } from 'lucide-react'
 import { Button, Divider } from './ui'
@@ -34,6 +39,15 @@ interface ToolbarProps {
   onFontColor: (color: string | null) => void
   onImport: (file: File) => void
   onExport: (format: 'csv' | 'xlsx') => void
+  onUndo: () => void
+  onRedo: () => void
+  undoAvailable: boolean
+  redoAvailable: boolean
+  onOpenFind: () => void
+  frozenRows: number
+  frozenCols: number
+  onToggleFreezeRow: () => void
+  onToggleFreezeCol: () => void
 }
 
 function Group({ children }: { children: React.ReactNode }) {
@@ -78,6 +92,29 @@ export function Toolbar(props: ToolbarProps) {
       <Divider orientation="vertical" spacing="sm" />
 
       <Group>
+        <Button
+          size="sm"
+          variant="ghost"
+          title="Undo (Ctrl+Z)"
+          disabled={!props.undoAvailable}
+          onClick={props.onUndo}
+        >
+          <Undo2 size={14} />
+        </Button>
+        <Button
+          size="sm"
+          variant="ghost"
+          title="Redo (Ctrl+Shift+Z)"
+          disabled={!props.redoAvailable}
+          onClick={props.onRedo}
+        >
+          <Redo2 size={14} />
+        </Button>
+      </Group>
+
+      <Divider orientation="vertical" spacing="sm" />
+
+      <Group>
         <Button size="sm" variant="secondary" icon={<Rows3 size={14} />} onClick={props.onAddRow}>
           Row
         </Button>
@@ -101,6 +138,22 @@ export function Toolbar(props: ToolbarProps) {
           onClick={props.onDeleteColumn}
         >
           Col
+        </Button>
+        <Button
+          size="sm"
+          variant={props.frozenRows > 0 ? 'primary' : 'ghost'}
+          title="Freeze header row"
+          onClick={props.onToggleFreezeRow}
+        >
+          <PanelTop size={14} />
+        </Button>
+        <Button
+          size="sm"
+          variant={props.frozenCols > 0 ? 'primary' : 'ghost'}
+          title="Freeze first column"
+          onClick={props.onToggleFreezeCol}
+        >
+          <PanelLeft size={14} />
         </Button>
       </Group>
 
@@ -174,6 +227,14 @@ export function Toolbar(props: ToolbarProps) {
           customColors={customColors}
           onAddCustomColor={handleAddCustomColor}
         />
+      </Group>
+
+      <Divider orientation="vertical" spacing="sm" />
+
+      <Group>
+        <Button size="sm" variant="ghost" title="Find & replace (Ctrl+F)" icon={<Search size={14} />} onClick={props.onOpenFind}>
+          Find
+        </Button>
       </Group>
 
       <Divider orientation="vertical" spacing="sm" />

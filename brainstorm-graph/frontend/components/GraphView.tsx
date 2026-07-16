@@ -30,19 +30,27 @@ interface Edge {
   y2: number
 }
 
-function buildEdges(nodes: BrainstormNode[]): Edge[] {
+interface DragPreview {
+  id: number
+  x: number
+  y: number
+}
+
+function buildEdges(nodes: BrainstormNode[], dragPreview: DragPreview | null): Edge[] {
   const nodeMap = new Map(nodes.map(n => [n.id, n]))
   return nodes
     .filter(n => n.parentId !== null)
     .map(n => {
       const parent = nodeMap.get(n.parentId!)
       if (!parent) return null
+      const parentPos = dragPreview && dragPreview.id === parent.id ? dragPreview : parent
+      const childPos = dragPreview && dragPreview.id === n.id ? dragPreview : n
       return {
         id: `${parent.id}-${n.id}`,
-        x1: parent.x + CARD_WIDTH / 2,
-        y1: parent.y + CARD_HEIGHT,
-        x2: n.x + CARD_WIDTH / 2,
-        y2: n.y,
+        x1: parentPos.x + CARD_WIDTH / 2,
+        y1: parentPos.y + CARD_HEIGHT,
+        x2: childPos.x + CARD_WIDTH / 2,
+        y2: childPos.y,
       }
     })
     .filter(Boolean) as Edge[]
@@ -51,6 +59,7 @@ function buildEdges(nodes: BrainstormNode[]): Edge[] {
 export function GraphView({ nodes, activeSessionId, expandingNodeId, onExpand, onAnswer, onDelete, onAddChild, onEdit, onUpdatePosition }: Props) {
   const [offset, setOffset] = useState(INITIAL_OFFSET)
   const [scale, setScale] = useState(1)
+  const [dragPreview, setDragPreview] = useState<DragPreview | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const panning = useRef(false)
   const panStart = useRef({ x: 0, y: 0, ox: 0, oy: 0 })
@@ -136,7 +145,7 @@ export function GraphView({ nodes, activeSessionId, expandingNodeId, onExpand, o
     centerView()
   }, [activeSessionId])
 
-  const edges = buildEdges(nodes)
+  const edges = buildEdges(nodes, dragPreview)
 
   return (
     <div
@@ -191,7 +200,11 @@ export function GraphView({ nodes, activeSessionId, expandingNodeId, onExpand, o
             onDelete={() => onDelete(node.id)}
             onAddChild={() => onAddChild(node.id)}
             onEdit={() => onEdit(node.id)}
-            onDragEnd={(x, y) => onUpdatePosition(node.id, x, y)}
+            onDragMove={(x, y) => setDragPreview({ id: node.id, x, y })}
+            onDragEnd={(x, y) => {
+              setDragPreview(null)
+              onUpdatePosition(node.id, x, y)
+            }}
           />
         ))}
 
@@ -223,6 +236,7 @@ export function GraphView({ nodes, activeSessionId, expandingNodeId, onExpand, o
         >
           <ZoomOut size={16} />
         </button>
+        <span className="zoom-readout" title="Current zoom">{Math.round(scale * 100)}%</span>
         <button
           className="zoom-btn"
           title="Zoom in"
@@ -261,6 +275,11 @@ export function GraphView({ nodes, activeSessionId, expandingNodeId, onExpand, o
           transition: all 0.15s;
         }
         .zoom-btn:hover { background: var(--color-primary, #FF4F18); color: #fff; }
+        .zoom-readout {
+          display: flex; align-items: center; justify-content: center;
+          min-width: 36px; padding: 0 4px; font-size: 11px; font-variant-numeric: tabular-nums;
+          color: var(--text-muted); user-select: none;
+        }
       `}</style>
     </div>
   )

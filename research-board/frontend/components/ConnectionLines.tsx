@@ -1,13 +1,18 @@
+import { CARD_WIDTH, CARD_HEIGHT } from './ItemCard'
 import type { BoardItem, Connection } from '../types'
 
-const CARD_WIDTH = 180
-const CARD_HEIGHT = 160 // approximate card height
+interface ConnectDragPreview {
+  sourceId: number
+  x: number
+  y: number
+}
 
 interface ConnectionLinesProps {
   items: BoardItem[]
   connections: Connection[]
   canvasOffset: { x: number; y: number }
   onDeleteConnection: (id: number) => void
+  connectDrag?: ConnectDragPreview | null
 }
 
 function getItemCenter(item: BoardItem) {
@@ -17,8 +22,9 @@ function getItemCenter(item: BoardItem) {
   }
 }
 
-export function ConnectionLines({ items, connections, canvasOffset, onDeleteConnection }: ConnectionLinesProps) {
+export function ConnectionLines({ items, connections, canvasOffset, onDeleteConnection, connectDrag }: ConnectionLinesProps) {
   const itemMap = new Map(items.map(item => [item.id, item]))
+  const dragSource = connectDrag ? itemMap.get(connectDrag.sourceId) : null
 
   return (
     <svg
@@ -33,6 +39,18 @@ export function ConnectionLines({ items, connections, canvasOffset, onDeleteConn
         transform: `translate(${canvasOffset.x}px, ${canvasOffset.y}px)`,
       }}
     >
+      {dragSource && connectDrag && (
+        <line
+          x1={getItemCenter(dragSource).x}
+          y1={getItemCenter(dragSource).y}
+          x2={connectDrag.x}
+          y2={connectDrag.y}
+          stroke="#6366f1"
+          strokeWidth={2}
+          strokeDasharray="6 4"
+          strokeLinecap="round"
+        />
+      )}
       {connections.map(conn => {
         const source = itemMap.get(conn.sourceId)
         const target = itemMap.get(conn.targetId)

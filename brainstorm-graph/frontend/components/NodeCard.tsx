@@ -2,8 +2,8 @@ import { useState, useRef } from 'react'
 import { Expand, MessageSquare, Trash2, Plus, Bot, User, Loader2 } from 'lucide-react'
 import type { BrainstormNode } from '../types'
 
-export const CARD_WIDTH = 220
-export const CARD_HEIGHT = 110
+export const CARD_WIDTH = 240
+export const CARD_HEIGHT = 130
 
 const TYPE_COLORS: Record<string, string> = {
   question: 'var(--color-info, #3b82f6)',
@@ -20,10 +20,11 @@ interface Props {
   onDelete: () => void
   onAddChild: () => void
   onEdit: () => void
+  onDragMove?: (x: number, y: number) => void
   onDragEnd: (x: number, y: number) => void
 }
 
-export function NodeCard({ node, scale, isExpanding, onExpand, onAnswer, onDelete, onAddChild, onEdit, onDragEnd }: Props) {
+export function NodeCard({ node, scale, isExpanding, onExpand, onAnswer, onDelete, onAddChild, onEdit, onDragMove, onDragEnd }: Props) {
   const [pos, setPos] = useState({ x: node.x, y: node.y })
   const dragging = useRef(false)
   const dragStart = useRef({ mx: 0, my: 0, nx: 0, ny: 0 })
@@ -46,7 +47,10 @@ export function NodeCard({ node, scale, isExpanding, onExpand, onAnswer, onDelet
       const dx = (ev.clientX - dragStart.current.mx) / scale
       const dy = (ev.clientY - dragStart.current.my) / scale
       if (Math.abs(dx) > 4 || Math.abs(dy) > 4) moved.current = true
-      setPos({ x: dragStart.current.nx + dx, y: dragStart.current.ny + dy })
+      const nx = dragStart.current.nx + dx
+      const ny = dragStart.current.ny + dy
+      setPos({ x: nx, y: ny })
+      if (moved.current) onDragMove?.(nx, ny)
     }
     const onUp = (ev: MouseEvent) => {
       dragging.current = false
@@ -125,8 +129,8 @@ export function NodeCard({ node, scale, isExpanding, onExpand, onAnswer, onDelet
         }
         .node-by { color: var(--text-muted); display: flex; align-items: center; margin-left: auto; }
         .node-content {
-          font-size: 12px; line-height: 1.4; color: var(--text-primary);
-          display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
+          font-size: 13.5px; line-height: 1.5; color: var(--text-primary);
+          display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical;
           overflow: hidden; margin: 0 0 8px;
         }
         .node-actions {

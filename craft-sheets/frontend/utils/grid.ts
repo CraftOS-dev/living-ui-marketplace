@@ -11,6 +11,14 @@ export const MIN_COL_WIDTH = 64
 export const DEFAULT_ROW_HEIGHT = 28
 export const MIN_ROW_HEIGHT = 20
 
+/** A rectangular range of cells, by 0-based column/row bounds (inclusive). */
+export interface CellRect {
+  minCol: number
+  maxCol: number
+  minRow: number
+  maxRow: number
+}
+
 // --- A1 reference helpers ---------------------------------------------------
 
 export function colLetter(index: number): string {
@@ -161,6 +169,104 @@ export function setRowHeight(sheet: Sheet, rowIndex: number, height: number): Sh
   return { ...sheet, rowHeights }
 }
 
+export function setFreezePanes(sheet: Sheet, frozenRows: number, frozenCols: number): Sheet {
+  return {
+    ...sheet,
+    frozenRows: Math.max(0, Math.min(frozenRows, sheet.numRows)),
+    frozenCols: Math.max(0, Math.min(frozenCols, sheet.columns.length)),
+  }
+}
+
+/**
+ * Rewrite A1-style references inside a formula's raw text when a row/column
+ * at `atIndex` is removed (`delta = -1`) or inserted (`delta = +1`):
+ * - delete: a reference exactly at `atIndex` becomes `#REF!` (matches how real
+ *   spreadsheets mark a broken reference inline); references past it shift by
+ *   `delta`.
+ * - insert: nothing is destroyed, so every reference at-or-past `atIndex`
+ *   shifts by `delta`.
+ *
+ * Regex-based best-effort, not a full port of backend/formula.py's tokenizer —
+ * correctly handles refs and ranges (e.g. `SUM(A1:B5)`) since function names
+ * aren't immediately followed by digits, but isn't a complete parser.
+ */
+function shiftFormulaRefs(raw: string, kind: 'row' | 'col', atIndex: number, delta: -1 | 1): string {
+  if (!raw.startsWith('=')) return raw
+  return raw.replace(/([A-Za-z]+)(\d+)/g, (token, colLetters, rowDigits) => {
+    const pos = parseRef(`${colLetters}${rowDigits}`)
+    if (!pos) return token
+    const value = kind === 'row' ? pos.row : pos.col
+    if (delta < 0 && value === atIndex) return '#REF!'
+    const shifts = delta < 0 ? value > atIndex : value >= atIndex
+    if (shifts) {
+      return kind === 'row' ? makeRef(pos.col, pos.row + delta) : makeRef(pos.col + delta, pos.row)
+    }
+    return token
+  })
+}
+
+/** See {@link shiftFormulaRefs} — the deletion path (kept as its existing exported name/signature). */
+export function rewriteFormulaRefs(raw: string, kind: 'row' | 'col', deletedIndex: number): string {
+  return shiftFormulaRefs(raw, kind, deletedIndex, -1)
+}
+
+/** See {@link shiftFormulaRefs} — the insertion path. */
+export function shiftFormulaRefsForInsert(raw: string, kind: 'row' | 'col', atIndex: number): string {
+  return shiftFormulaRefs(raw, kind, atIndex, 1)
+}
+
+/**
+ * Shift every A1-style reference in a formula by a fixed (col, row) delta —
+ * "relative reference" adjustment, e.g. `=A1` filled one row down becomes
+ * `=A2`. Distinct from {@link shiftFormulaRefs}, which only shifts refs past
+ * a structural insert/delete boundary; this shifts every ref unconditionally.
+ */
+export function shiftFormulaByDelta(raw: string, colDelta: number, rowDelta: number): string {
+  if (!raw.startsWith('=') || (colDelta === 0 && rowDelta === 0)) return raw
+  return raw.replace(/([A-Za-z]+)(\d+)/g, (token, colLetters, rowDigits) => {
+    const pos = parseRef(`${colLetters}${rowDigits}`)
+    if (!pos) return token
+    const newCol = pos.col + colDelta
+    const newRow = pos.row + rowDelta
+    if (newCol < 0 || newRow < 0) return '#REF!'
+    return makeRef(newCol, newRow)
+  })
+}
+
+/** Insert a blank row at `atIndex` (0-based), shifting cells at/after it down by one. */
+export function insertRow(sheet: Sheet, atIndex: number): Sheet {
+  const cells: Record<string, Cell> = {}
+  for (const [ref, cell] of Object.entries(sheet.cells)) {
+    const pos = parseRef(ref)
+    if (!pos) continue
+    const newRow = pos.row >= atIndex ? pos.row + 1 : pos.row
+    const rewritten = cell.raw.startsWith('=') ? { ...cell, raw: shiftFormulaRefsForInsert(cell.raw, 'row', atIndex) } : cell
+    cells[makeRef(pos.col, newRow)] = rewritten
+  }
+  const rowHeights: Record<string, number> = {}
+  for (const [key, h] of Object.entries(sheet.rowHeights || {})) {
+    const idx = Number(key)
+    const newIdx = idx >= atIndex ? idx + 1 : idx
+    rowHeights[String(newIdx)] = h
+  }
+  return { ...sheet, cells, rowHeights, numRows: sheet.numRows + 1 }
+}
+
+/** Insert a blank column at `atIndex` (0-based), shifting columns/cells at/after it right by one. */
+export function insertColumn(sheet: Sheet, atIndex: number): Sheet {
+  const columns: Column[] = [...sheet.columns]
+  columns.splice(atIndex, 0, { name: colLetter(columns.length), type: 'text', width: DEFAULT_COL_WIDTH })
+  const cells: Record<string, Cell> = {}
+  for (const [ref, cell] of Object.entries(sheet.cells)) {
+    const pos = parseRef(ref)
+    if (!pos) continue
+    const newCol = pos.col >= atIndex ? pos.col + 1 : pos.col
+    const rewritten = cell.raw.startsWith('=') ? { ...cell, raw: shiftFormulaRefsForInsert(cell.raw, 'col', atIndex) } : cell
+    cells[makeRef(newCol, pos.row)] = rewritten
+  }
+  return { ...sheet, columns, cells }
+}
+
 /** Delete a row (0-based), shifting cells below it up by one. */
 export function deleteRow(sheet: Sheet, rowIndex: number): Sheet {
   if (sheet.numRows <= 1) return sheet
@@ -170,7 +276,8 @@ export function deleteRow(sheet: Sheet, rowIndex: number): Sheet {
     if (!pos) continue
     if (pos.row === rowIndex) continue // removed
     const newRow = pos.row > rowIndex ? pos.row - 1 : pos.row
-    cells[makeRef(pos.col, newRow)] = cell
+    const rewritten = cell.raw.startsWith('=') ? { ...cell, raw: rewriteFormulaRefs(cell.raw, 'row', rowIndex) } : cell
+    cells[makeRef(pos.col, newRow)] = rewritten
   }
   const rowHeights: Record<string, number> = {}
   for (const [key, h] of Object.entries(sheet.rowHeights || {})) {
@@ -209,6 +316,77 @@ export function setRangeFormat(sheet: Sheet, refs: string[], format: Partial<Cel
     next = setCellFormat(next, ref, format)
   }
   return next
+}
+
+// --- autofill / fill-drag -----------------------------------------------------
+
+/**
+ * Extend `source` into `target` (target must share source's top-left corner
+ * and extend further in exactly one direction — down or right, inferred from
+ * whichever dimension grew). Values:
+ * - a single-row/column numeric source continues its arithmetic step (a lone
+ *   cell steps by 1; two or more cells continue the step between them)
+ * - formulas get their references shifted relatively per target cell
+ * - anything else (text, mixed) repeats/tiles the source pattern cyclically
+ * Formatting is copied along with the value.
+ */
+export function autofill(sheet: Sheet, source: CellRect, target: CellRect): Sheet {
+  const cells = cloneCells(sheet.cells)
+  const srcCols = source.maxCol - source.minCol + 1
+  const srcRows = source.maxRow - source.minRow + 1
+  const direction: 'down' | 'right' = target.maxRow > source.maxRow ? 'down' : 'right'
+  const patternLen = direction === 'down' ? srcRows : srcCols
+
+  // Detect a linear numeric step across a single-row/column numeric source.
+  let numericStep: number | null = null
+  let numericBase: number | null = null
+  if ((direction === 'down' && srcCols === 1) || (direction === 'right' && srcRows === 1)) {
+    const vals: number[] = []
+    for (let i = 0; i < patternLen; i++) {
+      const ref = direction === 'down'
+        ? makeRef(source.minCol, source.minRow + i)
+        : makeRef(source.minCol + i, source.minRow)
+      const raw = cells[ref]?.raw ?? ''
+      const n = Number(raw)
+      if (raw.trim() === '' || Number.isNaN(n) || raw.startsWith('=')) { vals.length = 0; break }
+      vals.push(n)
+    }
+    if (vals.length === patternLen && patternLen >= 1) {
+      numericBase = vals[0]
+      numericStep = patternLen >= 2 ? vals[1] - vals[0] : 1
+    }
+  }
+
+  for (let r = target.minRow; r <= target.maxRow; r++) {
+    for (let c = target.minCol; c <= target.maxCol; c++) {
+      const inSource = r >= source.minRow && r <= source.maxRow && c >= source.minCol && c <= source.maxCol
+      if (inSource) continue
+
+      const distance = direction === 'down' ? r - source.minRow : c - source.minCol
+      const patternPos = distance % patternLen
+      const srcC = direction === 'down' ? source.minCol : source.minCol + patternPos
+      const srcR = direction === 'down' ? source.minRow + patternPos : source.minRow
+      const srcCell = cells[makeRef(srcC, srcR)]
+      const targetRef = makeRef(c, r)
+
+      if (numericStep !== null && numericBase !== null) {
+        const newVal = numericBase + numericStep * distance
+        cells[targetRef] = { raw: String(newVal), format: srcCell?.format ? { ...srcCell.format } : undefined }
+        continue
+      }
+
+      if (!srcCell || srcCell.raw === '') {
+        delete cells[targetRef]
+        continue
+      }
+
+      const newRaw = srcCell.raw.startsWith('=')
+        ? shiftFormulaByDelta(srcCell.raw, direction === 'right' ? c - srcC : 0, direction === 'down' ? r - srcR : 0)
+        : srcCell.raw
+      cells[targetRef] = { raw: newRaw, format: srcCell.format ? { ...srcCell.format } : undefined }
+    }
+  }
+  return { ...sheet, cells }
 }
 
 // --- paste from clipboard ----------------------------------------------------
@@ -302,7 +480,8 @@ export function deleteColumn(sheet: Sheet, colIndex: number): Sheet {
     if (!pos) continue
     if (pos.col === colIndex) continue // removed
     const newCol = pos.col > colIndex ? pos.col - 1 : pos.col
-    cells[makeRef(newCol, pos.row)] = cell
+    const rewritten = cell.raw.startsWith('=') ? { ...cell, raw: rewriteFormulaRefs(cell.raw, 'col', colIndex) } : cell
+    cells[makeRef(newCol, pos.row)] = rewritten
   }
   return { ...sheet, columns, cells }
 }

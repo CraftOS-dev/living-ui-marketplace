@@ -54,13 +54,18 @@ export function exportSheet(sheet: Sheet, format: 'csv' | 'xlsx'): void {
   XLSX.writeFile(wb, `${base}.${format}`, { bookType: format })
 }
 
-/** Parse a CSV/XLSX File into a SheetInput ready for POST /api/sheets. */
-export async function importFile(file: File): Promise<SheetInput> {
-  const buffer = await file.arrayBuffer()
-  const wb = XLSX.read(buffer, { type: 'array' })
-  const wsName = wb.SheetNames[0]
-  const ws = wb.Sheets[wsName]
+/** Export every given sheet as one multi-tab workbook. CSV has no multi-tab
+ * concept, so this is XLSX-only — CSV export stays single-sheet via {@link exportSheet}. */
+export function exportWorkbook(sheets: Sheet[], format: 'xlsx'): void {
+  const wb = XLSX.utils.book_new()
+  for (const sheet of sheets) {
+    XLSX.utils.book_append_sheet(wb, toWorksheet(sheet), safeName(sheet.name))
+  }
+  XLSX.writeFile(wb, `workbook.${format}`, { bookType: format })
+}
 
+/** Parse one SheetJS worksheet into a SheetInput ready for POST /api/sheets. */
+function worksheetToSheetInput(ws: XLSX.WorkSheet, name: string): SheetInput {
   const cells: Record<string, Cell> = {}
   let maxCol = 0
   let maxRow = 0
@@ -101,8 +106,21 @@ export async function importFile(file: File): Promise<SheetInput> {
     width: DEFAULT_COL_WIDTH,
   }))
 
-  // Strip the file extension for the sheet name.
-  const name = file.name.replace(/\.[^.]+$/, '') || wsName || 'Imported'
-
   return { name, columns, numRows, cells }
+}
+
+/**
+ * Parse a CSV/XLSX File into one SheetInput per worksheet in the workbook.
+ * CSV files always parse as a single-sheet workbook via SheetJS, so this
+ * naturally degrades to a 1-element array for CSV — no separate code path.
+ */
+export async function importWorkbook(file: File): Promise<SheetInput[]> {
+  const buffer = await file.arrayBuffer()
+  const wb = XLSX.read(buffer, { type: 'array' })
+  const baseName = file.name.replace(/\.[^.]+$/, '') || 'Imported'
+  const multiple = wb.SheetNames.length > 1
+
+  return wb.SheetNames.map((wsName, i) =>
+    worksheetToSheetInput(wb.Sheets[wsName], multiple ? (wsName || `${baseName} ${i + 1}`) : (baseName || wsName || 'Imported'))
+  )
 }
