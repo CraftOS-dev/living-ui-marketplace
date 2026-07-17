@@ -1,0 +1,120 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/**
+ * CRM System design tokens — shadcn/ui convention.
+ *
+ * Dark mode is the default (host sets data-theme="dark" before paint);
+ * light mode overrides live under [data-theme="light"]. The host owns the
+ * theme: it flips the data-theme attribute and may inject CSS vars — never
+ * add an in-app theme toggle.
+ *
+ * Neutral grayscale surfaces with a single accent (--primary). Stage/pill
+ * colors are data colors, generated per-option in code, not theme tokens.
+ */
+
+@layer base {
+  :root {
+    --background: 240 6% 5%;
+    --foreground: 0 0% 96%;
+    --card: 240 5% 7%;
+    --card-foreground: 0 0% 96%;
+    --popover: 240 5% 8%;
+    --popover-foreground: 0 0% 96%;
+    --primary: 14 100% 55%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 240 4% 13%;
+    --secondary-foreground: 0 0% 90%;
+    --muted: 240 4% 12%;
+    --muted-foreground: 240 4% 62%;
+    --accent: 240 4% 14%;
+    --accent-foreground: 0 0% 96%;
+    --destructive: 0 68% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 240 4% 16%;
+    --input: 240 4% 18%;
+    --ring: 14 100% 55%;
+    --radius: 0.5rem;
+    /* Chart palette validated (dataviz six checks) for dark & light surfaces */
+    --chart-1: 17 87% 47%;
+    --chart-2: 210 64% 50%;
+    --chart-3: 151 67% 37%;
+    --chart-4: 43 89% 35%;
+    --chart-5: 263 60% 60%;
+  }
+
+  [data-theme='light'] {
+    --background: 0 0% 100%;
+    --foreground: 240 6% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 6% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 6% 10%;
+    --primary: 14 100% 50%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 240 5% 96%;
+    --secondary-foreground: 240 6% 14%;
+    --muted: 240 5% 96%;
+    --muted-foreground: 240 4% 42%;
+    --accent: 240 5% 95%;
+    --accent-foreground: 240 6% 10%;
+    --destructive: 0 72% 48%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 240 6% 89%;
+    --input: 240 6% 85%;
+    --ring: 14 100% 50%;
+    --chart-1: 17 87% 47%;
+    --chart-2: 210 64% 50%;
+    --chart-3: 151 67% 37%;
+    --chart-4: 43 89% 35%;
+    --chart-5: 263 60% 60%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-size: 14px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Slim scrollbars that follow the theme */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.4);
+  }
+}
+
+@layer utilities {
+  /* Attio-style small bold ALL-CAPS metadata labels */
+  .label-caps {
+    @apply text-[11px] font-semibold uppercase tracking-wider text-muted-foreground;
+  }
+  /* Hide scrollbar but keep scrollability (chip strips, kanban) */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}

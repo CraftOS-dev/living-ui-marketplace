@@ -53,11 +53,11 @@
       "version": "1.0.0"
     },
 	{
-      "id": "crm_system",
+      "id": "crm-system",
       "name": "CRM System",
-      "description": "Comprehensive CRM system with contacts, companies, deals pipeline, AI-powered lead scoring, email generation, sales forecasting, SMTP email, campaigns, and full reporting",
-      "folder": "crm_system",
-      "tags": ["CRM", "productivity", "marketing", "business"],
+      "description": "Attio-class multi-user CRM: People, Companies, and Deals as linked records with custom attributes, saved table/kanban views with inline editing, drag-and-drop pipelines edited on the board, 3-panel record pages with activity timelines, tasks + My Work, Cmd+K palette, SMTP email, funnel/win-rate/velocity reports, and on-demand AI via CraftBot's LLM.",
+      "folder": "crm-system",
+      "tags": ["CRM", "sales", "pipeline", "productivity", "business"],
       "version": "1.0.0"
     },
     {
@@ -109,6 +109,14 @@
       "description": "Production newsletter platform like Loops or Beehiiv: subscribers with tags, drag-and-drop email builder, AI-generated copy via CraftBot's LLM, pre-built templates, scheduled sends through Gmail, plus open/click analytics and one-click unsubscribe.",
       "folder": "newsletter-tool",
       "tags": ["newsletter", "marketing", "email", "AI", "productivity"],
+      "version": "1.0.0"
+    },
+    {
+      "id": "craftos-command-center",
+      "name": "CraftOS Command Center",
+      "description": "Production-grade startup command center for AI-agent founders. Eleven domains (Mission Control, Strategy, People, Product, Growth, Ops, Money, Knowledge, Activity, Workflows, Settings). Multi-user IAM with admin/operator/viewer roles. CraftBot agents operate it via integrations to Gdrive, Notion, Discord, GitHub, and Stripe. Auto-syncs revenue, Discord pulse, GitHub builds, and Gdrive data-room in the background; triggers built-in workflows like daily digest, standup rollup, investor-update draft, and burn alerts.",
+      "folder": "craftos-command-center",
+      "tags": ["dashboard", "command-center", "startup", "ai-agents", "productivity"],
       "version": "1.0.0"
     }
   ]
