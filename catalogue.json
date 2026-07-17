@@ -112,11 +112,43 @@
       "version": "1.0.0"
     },
     {
-      "id": "craftos-command-center",
-      "name": "CraftOS Command Center",
-      "description": "Production-grade startup command center for AI-agent founders. Eleven domains (Mission Control, Strategy, People, Product, Growth, Ops, Money, Knowledge, Activity, Workflows, Settings). Multi-user IAM with admin/operator/viewer roles. CraftBot agents operate it via integrations to Gdrive, Notion, Discord, GitHub, and Stripe. Auto-syncs revenue, Discord pulse, GitHub builds, and Gdrive data-room in the background; triggers built-in workflows like daily digest, standup rollup, investor-update draft, and burn alerts.",
-      "folder": "craftos-command-center",
-      "tags": ["dashboard", "command-center", "startup", "ai-agents", "productivity"],
+      "id": "craft-sheets",
+      "name": "Craft Sheets",
+      "description": "A small Excel-style spreadsheet with a live formula engine (=SUM, =AVERAGE, cell & range refs), named sheets via bottom tabs, typed columns, cell formatting, and CSV/Excel import & export.",
+      "folder": "craft-sheets",
+      "tags": ["spreadsheet", "productivity", "data", "formulas", "excel"],
+      "version": "1.0.0"
+    },
+    {
+      "id": "markdown-tool",
+      "name": "Markdown Editor",
+      "description": "Three-panel markdown workspace: file browser, tabbed raw editor, and live GFM preview. Full file CRUD, resizable collapsible panels, and VSCode-style tabs.",
+      "folder": "markdown-tool",
+      "tags": ["markdown", "editor", "preview", "files", "workspace"],
+      "version": "1.0.0"
+    },
+    {
+      "id": "image-utility",
+      "name": "Image Utility",
+      "description": "Upload an image, crop it interactively, resize, compress, or convert to PNG/JPEG/WEBP, then download the edited file. All processing runs offline on the backend with Pillow.",
+      "folder": "image-utility",
+      "tags": ["image", "editing", "files", "productivity"],
+      "version": "1.0.0"
+    },
+    {
+      "id": "brainstorm-graph",
+      "name": "Brainstorm Graph",
+      "description": "Agentic brainstorming tool: give a topic and CraftBot spawns a growing graph of questions, answers, and ideas. Two views: Obsidian-style graph canvas and tree outline. CraftBot drives exploration autonomously.",
+      "folder": "brainstorm-graph",
+      "tags": ["brainstorming", "AI", "graph", "productivity"],
+      "version": "1.0.0"
+    },
+    {
+      "id": "social-media-manager",
+      "name": "Social Media Manager",
+      "description": "Compose, schedule, publish, and analyze posts across Twitter/X, LinkedIn, and YouTube — with an AI writing suite built in.",
+      "folder": "social-media-manager",
+      "tags": ["social-media", "AI", "productivity", "marketing"],
       "version": "1.0.0"
     }
   ]

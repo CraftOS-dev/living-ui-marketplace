@@ -2,7 +2,7 @@ import type { AppState, Board, BoardList, Card, Label, ChecklistItem, BoardStats
 import { ApiService } from './services/ApiService'
 import { stateCache } from './services/StatePersistence'
 
-const BACKEND_URL = ((window as any).__CRAFTBOT_BACKEND_URL__ || 'http://localhost:3113') + '/api'
+const BACKEND_URL = ((window as any).__CRAFTBOT_BACKEND_URL__ || 'http://localhost:{{BACKEND_PORT}}') + '/api'
 
 export class AppController {
   private state: AppState = {

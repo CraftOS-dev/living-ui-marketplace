@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Runtime SQLite + WAL
+*.db
+*.db-shm
+*.db-wal
+
+# Logs
+logs/
+backend/logs/
+
+# Env
+.env

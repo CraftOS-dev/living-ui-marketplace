@@ -7,7 +7,7 @@
  */
 
 // Backend URL is set during project creation via placeholder replacement
-const BACKEND_URL = (window as any).__CRAFTBOT_BACKEND_URL__ || 'http://localhost:3105'
+const BACKEND_URL = (window as any).__CRAFTBOT_BACKEND_URL__ || 'http://localhost:{{BACKEND_PORT}}'
 
 export interface ActionRequest {
   action: string

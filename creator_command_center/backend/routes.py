@@ -186,7 +186,7 @@ async def sync_youtube(db: Session = Depends(get_db)):
 
     # 1. Sync channels
     channel_result = await integration.request(
-        integration="google_workspace",
+        integration="google_youtube",
         method="GET",
         url="https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics&mine=true",
     )
@@ -223,11 +223,11 @@ async def sync_youtube(db: Session = Depends(get_db)):
                 db.add(channel)
         db.commit()
     else:
-        errors.append(f"Channel sync failed: {channel_result.get('data', 'Unknown error')}")
+        errors.append(f"Channel sync failed: {channel_result.get('error') or channel_result.get('data', 'Unknown error')}")
 
     # 2. Sync recent videos — first get video IDs from search
     search_result = await integration.request(
-        integration="google_workspace",
+        integration="google_youtube",
         method="GET",
         url="https://www.googleapis.com/youtube/v3/search?part=snippet&forMine=true&type=video&order=date&maxResults=20",
     )
@@ -240,7 +240,7 @@ async def sync_youtube(db: Session = Depends(get_db)):
         if video_ids:
             # Get detailed stats for each video
             stats_result = await integration.request(
-                integration="google_workspace",
+                integration="google_youtube",
                 method="GET",
                 url=f"https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics,contentDetails&id={','.join(video_ids)}",
             )
@@ -280,9 +280,9 @@ async def sync_youtube(db: Session = Depends(get_db)):
                         db.add(video)
                 db.commit()
             else:
-                errors.append(f"Video stats failed: {stats_result.get('data', 'Unknown error')}")
+                errors.append(f"Video stats failed: {stats_result.get('error') or stats_result.get('data', 'Unknown error')}")
     else:
-        errors.append(f"Video search failed: {search_result.get('data', 'Unknown error')}")
+        errors.append(f"Video search failed: {search_result.get('error') or search_result.get('data', 'Unknown error')}")
 
     channels = db.query(YouTubeChannel).all()
     videos = db.query(YouTubeVideo).order_by(YouTubeVideo.published_at.desc()).all()

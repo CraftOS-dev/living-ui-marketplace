@@ -74,6 +74,37 @@ class TestDashboardSummary:
         assert data["netIncome"] == 3800.00
         assert data["cashBalance"] == 3800.00
 
+    def test_summary_reflects_backdated_and_bank_transactions(self, client):
+        """KPIs are all-time totals: a transaction dated in a prior month, and
+        one posted through the Bank account (1010) instead of Cash (1000), must
+        both be reflected in totalIncome/totalExpenses/netIncome/cashBalance."""
+        accts = _seed_accounts(client)
+        bank = accts["1010"]
+        revenue = _find_account(accts, "4", "revenue")
+        expense = _find_account(accts, "5", "expense") or _find_account(accts, "6", "expense")
+
+        backdated = "2020-01-15"  # well outside the current month
+
+        client.post("/api/transactions/income", json={
+            "date": backdated,
+            "amount": 3000.00,
+            "depositAccountId": bank["id"],
+            "revenueAccountId": revenue["id"],
+        })
+        client.post("/api/transactions/expense", json={
+            "date": backdated,
+            "amount": 750.00,
+            "paymentAccountId": bank["id"],
+            "expenseAccountId": expense["id"],
+        })
+
+        resp = client.get("/api/dashboard/summary")
+        data = resp.json()
+        assert data["totalIncome"] == 3000.00
+        assert data["totalExpenses"] == 750.00
+        assert data["netIncome"] == 2250.00
+        assert data["cashBalance"] == 2250.00
+
     def test_summary_shows_ar_ap(self, client):
         """Summary should include accounts receivable and accounts payable."""
         accts = _seed_accounts(client)
@@ -251,3 +282,86 @@ class TestDashboardOverdue:
         else:
             # If void endpoint doesn't exist, skip
             pytest.skip("Void endpoint not implemented")
+
+
+# =============================================================================
+# Expense Breakdown
+# =============================================================================
+
+
+class TestExpenseBreakdown:
+    def test_empty(self, client):
+        """No expenses yet returns an empty list."""
+        resp = client.get("/api/dashboard/expense-breakdown")
+        assert resp.status_code == 200
+        assert resp.json() == []
+
+    def test_groups_by_account_not_category(self, client):
+        """Expenses against different accounts show up as distinct, correctly-labeled entries."""
+        accts = _seed_accounts(client)
+        cash = accts["1000"]
+        expense_accounts = _find_accounts_by_type(accts, "expense")
+        acct_a, acct_b = expense_accounts[0], expense_accounts[1]
+
+        client.post("/api/transactions/expense", json={
+            "date": "2024-01-15",
+            "amount": 100.0,
+            "paymentAccountId": cash["id"],
+            "expenseAccountId": acct_a["id"],
+        })
+        client.post("/api/transactions/expense", json={
+            "date": "2024-01-15",
+            "amount": 250.0,
+            "paymentAccountId": cash["id"],
+            "expenseAccountId": acct_b["id"],
+        })
+
+        resp = client.get("/api/dashboard/expense-breakdown")
+        data = resp.json()
+        assert len(data) == 2
+        assert all("accountId" in r and "accountName" in r for r in data)
+        by_name = {r["accountName"]: r["amount"] for r in data}
+        assert by_name[acct_a["name"]] == 100.0
+        assert by_name[acct_b["name"]] == 250.0
+
+    def test_all_time_scope_includes_backdated(self, client):
+        """A transaction dated well outside the current month still counts (all-time, not month-scoped)."""
+        accts = _seed_accounts(client)
+        cash = accts["1000"]
+        expense = _find_account(accts, "5", "expense") or _find_account(accts, "6", "expense")
+
+        client.post("/api/transactions/expense", json={
+            "date": "2020-01-15",
+            "amount": 42.0,
+            "paymentAccountId": cash["id"],
+            "expenseAccountId": expense["id"],
+        })
+
+        resp = client.get("/api/dashboard/expense-breakdown")
+        data = resp.json()
+        assert len(data) == 1
+        assert data[0]["amount"] == 42.0
+
+    def test_honors_from_to_date_query_params(self, client):
+        """fromDate/toDate filter which transactions are included."""
+        accts = _seed_accounts(client)
+        cash = accts["1000"]
+        expense = _find_account(accts, "5", "expense") or _find_account(accts, "6", "expense")
+
+        client.post("/api/transactions/expense", json={
+            "date": "2023-06-01",
+            "amount": 10.0,
+            "paymentAccountId": cash["id"],
+            "expenseAccountId": expense["id"],
+        })
+        client.post("/api/transactions/expense", json={
+            "date": "2024-01-15",
+            "amount": 20.0,
+            "paymentAccountId": cash["id"],
+            "expenseAccountId": expense["id"],
+        })
+
+        resp = client.get("/api/dashboard/expense-breakdown?fromDate=2024-01-01&toDate=2024-01-31")
+        data = resp.json()
+        assert len(data) == 1
+        assert data[0]["amount"] == 20.0

@@ -102,6 +102,7 @@ export interface AppState {
   loading: boolean
   error: string | null
   llmAvailable: boolean
+  llmStatusChecked: boolean
   sessions: SessionSummary[]
   active: SessionDetail | null
   generating: boolean

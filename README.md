@@ -2,12 +2,6 @@
 
 Pre-built Living UI applications for CraftBot. Browse and install instantly from the CraftBot browser interface.
 
-## Available Apps
-
-| App | Description | Tags |
-|-----|-------------|------|
-| **Research Board** | Organize research with notes, images, videos, YouTube links, and documents on a visual board. Features categories, search, and detail views. | research, media, productivity |
-
 ## How to Use
 
 1. Open CraftBot browser interface

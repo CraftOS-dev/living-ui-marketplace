@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import { Image, Film, Youtube, FileText, StickyNote, ChevronLeft, Upload, type LucideIcon } from 'lucide-react'
 import { Modal, Button, Input, Textarea } from './ui'
 import type { ItemType, CreateBoardItemRequest } from '../types'
 import type { AppController } from '../AppController'
@@ -11,12 +12,12 @@ interface AddItemModalProps {
   defaultType?: ItemType
 }
 
-const ITEM_TYPES: { type: ItemType; label: string; icon: string; description: string }[] = [
-  { type: 'image', label: 'Image', icon: '🖼️', description: 'Upload or link an image' },
-  { type: 'video', label: 'Video', icon: '🎬', description: 'Upload or link a video' },
-  { type: 'youtube', label: 'YouTube', icon: '📺', description: 'Embed a YouTube video' },
-  { type: 'doc', label: 'Document', icon: '📄', description: 'Upload or link a document' },
-  { type: 'note', label: 'Note', icon: '📝', description: 'Write a text note' },
+const ITEM_TYPES: { type: ItemType; label: string; icon: LucideIcon; description: string }[] = [
+  { type: 'image', label: 'Image', icon: Image, description: 'Upload or link an image' },
+  { type: 'video', label: 'Video', icon: Film, description: 'Upload or link a video' },
+  { type: 'youtube', label: 'YouTube', icon: Youtube, description: 'Embed a YouTube video' },
+  { type: 'doc', label: 'Document', icon: FileText, description: 'Upload or link a document' },
+  { type: 'note', label: 'Note', icon: StickyNote, description: 'Write a text note' },
 ]
 
 export function AddItemModal({ open, onClose, onAdd, controller, defaultType }: AddItemModalProps) {
@@ -109,52 +110,25 @@ export function AddItemModal({ open, onClose, onAdd, controller, defaultType }: 
     >
       {!selectedType ? (
         <div>
-          <p style={{ color: 'var(--text-secondary)', marginBottom: '16px', fontSize: '14px' }}>
-            Choose the type of item to add to your board:
-          </p>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-            {ITEM_TYPES.map(({ type, label, icon, description }) => (
+          <p className="add-item-intro">Choose the type of item to add to your board:</p>
+          <div className="type-tile-grid">
+            {ITEM_TYPES.map(({ type, label, icon: Icon, description }) => (
               <button
                 key={type}
+                className="type-tile"
                 onClick={() => setSelectedType(type)}
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  gap: '6px',
-                  padding: '16px 12px',
-                  background: 'var(--bg-secondary)',
-                  border: '1px solid var(--border-color)',
-                  borderRadius: 'var(--radius-md)',
-                  cursor: 'pointer',
-                  transition: 'all 0.15s',
-                  color: 'var(--text-primary)',
-                }}
-                onMouseEnter={e => (e.currentTarget.style.borderColor = '#6366f1')}
-                onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--border-color)')}
               >
-                <span style={{ fontSize: '28px' }}>{icon}</span>
-                <span style={{ fontWeight: 600, fontSize: '14px' }}>{label}</span>
-                <span style={{ fontSize: '11px', color: 'var(--text-secondary)', textAlign: 'center' }}>{description}</span>
+                <Icon size={28} />
+                <span className="type-tile-label">{label}</span>
+                <span className="type-tile-description">{description}</span>
               </button>
             ))}
           </div>
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <button
-            onClick={() => setSelectedType(null)}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: 'var(--text-secondary)',
-              cursor: 'pointer',
-              fontSize: '13px',
-              textAlign: 'left',
-              padding: 0,
-            }}
-          >
-            ← Change type
+        <div className="add-item-form">
+          <button className="back-link" onClick={() => setSelectedType(null)}>
+            <ChevronLeft size={14} /> Change type
           </button>
 
           <Input
@@ -191,27 +165,27 @@ export function AddItemModal({ open, onClose, onAdd, controller, defaultType }: 
           )}
 
           {needsFile && (
-            <div>
-              <label style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-primary)', display: 'block', marginBottom: '6px' }}>
-                Upload File (optional)
+            <div className="file-field">
+              <label className="file-field-label">Upload File (optional)</label>
+              <label className="file-dropzone">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept={
+                    selectedType === 'image' ? 'image/*' :
+                    selectedType === 'video' ? 'video/*' :
+                    '.pdf,.doc,.docx,.txt,.md'
+                  }
+                  onChange={e => setFile(e.target.files?.[0] || null)}
+                />
+                <Upload size={16} />
+                <span>{file ? file.name : 'Choose a file…'}</span>
               </label>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept={
-                  selectedType === 'image' ? 'image/*' :
-                  selectedType === 'video' ? 'video/*' :
-                  '.pdf,.doc,.docx,.txt,.md'
-                }
-                onChange={e => setFile(e.target.files?.[0] || null)}
-                style={{ fontSize: '13px', color: 'var(--text-primary)' }}
-              />
-              {file && <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '4px' }}>Selected: {file.name}</p>}
-              {errors.file && <p style={{ fontSize: '12px', color: 'var(--color-danger, #ef4444)', marginTop: '4px' }}>{errors.file}</p>}
+              {errors.file && <p className="file-field-error">{errors.file}</p>}
             </div>
           )}
 
-          <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '8px' }}>
+          <div className="form-actions">
             <Button variant="ghost" onClick={handleClose}>Cancel</Button>
             <Button
               variant="primary"
@@ -223,6 +197,113 @@ export function AddItemModal({ open, onClose, onAdd, controller, defaultType }: 
           </div>
         </div>
       )}
+
+      <style>{`
+        .add-item-intro {
+          color: var(--text-secondary);
+          margin: 0 0 var(--space-4);
+          font-size: var(--font-size-base);
+        }
+        .type-tile-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: var(--space-2);
+        }
+        .type-tile {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: var(--space-2);
+          padding: var(--space-4) var(--space-3);
+          background: var(--bg-secondary);
+          border: 1px solid var(--border-color);
+          border-radius: var(--radius-md);
+          cursor: pointer;
+          transition: border-color 0.15s, background 0.15s;
+          color: var(--text-primary);
+        }
+        .type-tile:hover {
+          border-color: #6366f1;
+          background: var(--bg-tertiary, rgba(99,102,241,0.08));
+        }
+        .type-tile-label {
+          font-weight: var(--font-weight-semibold);
+          font-size: var(--font-size-base);
+        }
+        .type-tile-description {
+          font-size: var(--font-size-xs);
+          color: var(--text-secondary);
+          text-align: center;
+        }
+        .add-item-form {
+          display: flex;
+          flex-direction: column;
+          gap: var(--space-4);
+        }
+        .back-link {
+          display: inline-flex;
+          align-items: center;
+          gap: var(--space-1);
+          align-self: flex-start;
+          background: none;
+          border: none;
+          color: var(--text-secondary);
+          cursor: pointer;
+          font-size: var(--font-size-sm);
+          padding: var(--space-1) 0;
+          transition: color 0.15s;
+        }
+        .back-link:hover {
+          color: var(--text-primary);
+        }
+        .file-field {
+          display: flex;
+          flex-direction: column;
+          gap: var(--space-1);
+        }
+        .file-field-label {
+          font-size: var(--font-size-sm);
+          font-weight: var(--font-weight-medium);
+          color: var(--text-primary);
+        }
+        .file-dropzone {
+          display: flex;
+          align-items: center;
+          gap: var(--space-2);
+          padding: var(--space-3);
+          background: var(--bg-primary);
+          border: 1px dashed var(--border-color);
+          border-radius: var(--radius-md);
+          color: var(--text-secondary);
+          font-size: var(--font-size-sm);
+          cursor: pointer;
+          transition: border-color 0.15s, color 0.15s;
+        }
+        .file-dropzone:hover {
+          border-color: #6366f1;
+          color: var(--text-primary);
+        }
+        .file-dropzone input[type="file"] {
+          position: absolute;
+          width: 1px;
+          height: 1px;
+          overflow: hidden;
+          clip: rect(0 0 0 0);
+        }
+        .file-field-error {
+          font-size: var(--font-size-xs);
+          color: var(--color-danger, #ef4444);
+          margin: 0;
+        }
+        .form-actions {
+          display: flex;
+          gap: var(--space-2);
+          justify-content: flex-end;
+          margin-top: var(--space-1);
+          padding-top: var(--space-3);
+          border-top: 1px solid var(--border-color);
+        }
+      `}</style>
     </Modal>
   )
 }

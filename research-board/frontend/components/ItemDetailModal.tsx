@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { FileText } from 'lucide-react'
 import { Modal, Button, Input, Textarea } from './ui'
 import { toast } from 'react-toastify'
 import type { BoardItem, UpdateBoardItemRequest } from '../types'
@@ -148,7 +149,7 @@ export function ItemDetailModal({ item, open, onClose, onUpdate, onDelete }: Ite
                 fontSize: '14px',
               }}
             >
-              📄 Open Document
+              <FileText size={16} /> Open Document
             </a>
           </div>
         )

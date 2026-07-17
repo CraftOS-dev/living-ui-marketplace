@@ -7,7 +7,7 @@
  */
 
 // Backend URL — uses dynamic hostname set in index.html
-const BACKEND_URL = (window as any).__CRAFTBOT_BACKEND_URL__ || 'http://localhost:3113'
+const BACKEND_URL = (window as any).__CRAFTBOT_BACKEND_URL__ || 'http://localhost:{{BACKEND_PORT}}'
 
 export interface ActionRequest {
   action: string
