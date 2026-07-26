@@ -1,0 +1,37 @@
+{
+  "opsVersion": 1,
+  "operations": [
+    {
+      "name": "health",
+      "description": "Liveness check (PocketBase built-in).",
+      "system": true,
+      "params": {},
+      "executor": { "type": "http", "method": "GET", "path": "/api/health" }
+    },
+    {
+      "name": "ops.list",
+      "description": "Return this operations manifest.",
+      "system": true,
+      "params": {},
+      "executor": { "type": "http", "method": "GET", "path": "/api/_ops" }
+    },
+    {
+      "name": "quotes",
+      "description": "Live quotes for comma-separated symbols (Yahoo Finance proxy). Per-symbol failures return {symbol, error} entries.",
+      "params": {
+        "symbols": { "type": "string", "required": true, "description": "Comma-separated ticker symbols, e.g. AAPL,MSFT" }
+      },
+      "executor": { "type": "http", "method": "GET", "path": "/api/ops/quotes" }
+    },
+    {
+      "name": "candles",
+      "description": "OHLCV candle series for one symbol (Yahoo Finance proxy). Bars with missing prices are dropped.",
+      "params": {
+        "symbol": { "type": "string", "required": true, "description": "Ticker symbol, e.g. AAPL" },
+        "range": { "type": "string", "required": false, "description": "1d|5d|1mo|3mo|6mo|1y|2y|5y (default 6mo)" },
+        "interval": { "type": "string", "required": false, "description": "1m|5m|15m|30m|60m|1d|1wk|1mo (default 1d)" }
+      },
+      "executor": { "type": "http", "method": "GET", "path": "/api/ops/candles" }
+    }
+  ]
+}

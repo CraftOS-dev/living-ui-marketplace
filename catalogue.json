@@ -50,7 +50,7 @@
       "description": "TradingView-like trading dashboard with interactive charts, technical indicators, and customizable widget layout.",
       "folder": "trading-view",
       "tags": ["finance", "stock"],
-      "version": "1.0.0"
+      "version": "2.0.0"
     },
 	{
       "id": "crm-system",
