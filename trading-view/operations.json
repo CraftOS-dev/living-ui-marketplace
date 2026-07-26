@@ -24,6 +24,22 @@
       "executor": { "type": "http", "method": "GET", "path": "/api/ops/quotes" }
     },
     {
+      "name": "search",
+      "description": "Symbol lookup against Yahoo's search API.",
+      "params": {
+        "q": { "type": "string", "required": true, "description": "Search text, e.g. company name or ticker." }
+      },
+      "executor": { "type": "http", "method": "GET", "path": "/api/ops/search" }
+    },
+    {
+      "name": "news",
+      "description": "Latest Yahoo Finance headlines for a symbol (or the general market when omitted).",
+      "params": {
+        "symbol": { "type": "string", "required": false, "description": "Ticker symbol, e.g. AAPL." }
+      },
+      "executor": { "type": "http", "method": "GET", "path": "/api/ops/news" }
+    },
+    {
       "name": "candles",
       "description": "OHLCV candle series for one symbol (Yahoo Finance proxy). Bars with missing prices are dropped.",
       "params": {

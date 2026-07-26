@@ -19,8 +19,14 @@ Feature checklist:
 - [x] Lists per board (create, delete when empty, ordered)
 - [x] Cards per list (create, edit title/description, delete)
 - [x] Drag-and-drop cards between lists
+- [x] Cross-card search (title + description) with match count
+- [x] Rename + delete board; rename list (click title); reorder lists (← →)
+- [x] Reorder cards within a list (drop onto a card to insert before it)
+- [x] Board stats bar (total cards, overdue count, checklist completion)
 - [x] Board-scoped labels (seeded palette, toggle per card, colored chips)
-- [x] Card priority (none/low/medium/high, badge on card)
+- [x] Card priority (none/low/medium/high/urgent, badge on card)
+- [x] Label manager (create, rename, recolor, delete with usage count) + filter board by label
+- [x] Priority breakdown in the stats bar
 - [x] Due dates (date picker, overdue shown in red)
 - [x] Checklists per card (add/toggle/remove, progress bar on card)
 - [x] Archive cards (hidden from board; bulk-purge via cards.clear-archived op)

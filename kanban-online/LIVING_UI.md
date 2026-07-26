@@ -1,107 +1,58 @@
-# Kanban Online
+# {{PROJECT_NAME}}
 
-A Trello-like Kanban board for organizing tasks with boards, lists, cards, labels, priorities, checklists, due dates, drag-and-drop, search/filter, and statistics. This is the multi-user online version with sign-up/login (auth integrated).
+> Per-project plan / context / index. The building agent keeps this current
+> (spec A3). Only agent-owned areas are listed under "Editable".
 
-## Overview
+## What this app does
 
-- **Project ID**: a1b2c3d4
-- **Frontend Port**: 3104
-- **Backend Port**: 3105
-- **Theme**: System (dark/light)
+{{PROJECT_DESCRIPTION}}
 
-## Data Model
+A multi-user Trello-like kanban board (sign-up/login via the kit's
+LoginGate; boards are a shared workspace for all signed-in users):
+multiple boards, each with ordered lists and cards. Cards carry labels, a priority, a due date, a checklist, and can be
+archived. Cards move between lists by drag-and-drop.
 
-### Backend Models (backend/models.py)
+## Requirements
 
-| Model | Purpose | Key Fields |
-|-------|---------|------------|
-| Board | A named collection of lists | id, name, created_at, updated_at |
-| BoardList | Vertical column on a board | id, board_id, title, position |
-| Card | Task/item within a list | id, list_id, title, description, priority, due_date, position, archived |
-| Label | Colored tag per board | id, board_id, name, color |
-| card_labels | Many-to-many Card-Label | card_id, label_id |
-| ChecklistItem | Subtask within a card | id, card_id, text, completed, position |
+Feature checklist:
 
-## API Endpoints
+- [x] Multiple boards (create, switch)
+- [x] Lists per board (create, delete when empty, ordered)
+- [x] Cards per list (create, edit title/description, delete)
+- [x] Drag-and-drop cards between lists
+- [x] Cross-card search (title + description) with match count
+- [x] Rename + delete board; rename list (click title); reorder lists (← →)
+- [x] Reorder cards within a list (drop onto a card to insert before it)
+- [x] Board stats bar (total cards, overdue count, checklist completion)
+- [x] Board-scoped labels (seeded palette, toggle per card, colored chips)
+- [x] Card priority (none/low/medium/high/urgent, badge on card)
+- [x] Label manager (create, rename, recolor, delete with usage count) + filter board by label
+- [x] Priority breakdown in the stats bar
+- [x] Due dates (date picker, overdue shown in red)
+- [x] Checklists per card (add/toggle/remove, progress bar on card)
+- [x] Archive cards (hidden from board; bulk-purge via cards.clear-archived op)
+- [x] Starter board seeded on first launch (My Board + To Do/In Progress/Done)
+- [x] Multi-user auth (LoginGate sign-up/login; collections require auth)
+- [x] Workspace members list, invite dialog (copy invite text), profile dialog (name + password change)
 
-### Custom Routes (backend/routes.py)
+## Entities
 
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | /boards | List all boards |
-| POST | /boards | Create board (auto-creates 3 lists) |
-| GET | /boards/{id} | Get board with lists, cards, labels |
-| PUT | /boards/{id} | Rename board |
-| DELETE | /boards/{id} | Delete board (cascades) |
-| POST | /boards/{id}/lists | Add list to board |
-| PUT | /lists/{id} | Rename list |
-| DELETE | /lists/{id} | Delete list (cascades) |
-| PUT | /lists/{id}/move | Reorder list |
-| POST | /lists/{id}/cards | Create card in list |
-| GET | /cards/{id} | Get card with labels + checklist |
-| PUT | /cards/{id} | Update card fields |
-| DELETE | /cards/{id} | Delete card |
-| PUT | /cards/{id}/move | Move card to list at position |
-| GET | /boards/{id}/labels | List labels |
-| POST | /boards/{id}/labels | Create label |
-| PUT | /labels/{id} | Update label |
-| DELETE | /labels/{id} | Delete label |
-| POST | /cards/{cid}/labels/{lid} | Assign label |
-| DELETE | /cards/{cid}/labels/{lid} | Remove label |
-| POST | /cards/{id}/checklist | Add checklist item |
-| PUT | /checklist/{id} | Update checklist item |
-| DELETE | /checklist/{id} | Delete checklist item |
-| PUT | /checklist/{id}/move | Reorder checklist item |
-| GET | /boards/{id}/search | Search/filter cards |
-| GET | /boards/{id}/stats | Board statistics |
+| Collection | Purpose | Notes |
+|------------|---------|-------|
+| boards     | Top-level boards | name |
+| lists      | Columns of a board | board (rel), title, position |
+| cards      | Cards in a list | list (rel), title, description, priority, due_date, position, archived, labels (rel multiple), checklist (json) |
+| labels     | Board-scoped label palette | board (rel), name, color |
 
-## Frontend Components
+## Operations
 
-| Component | Purpose |
-|-----------|---------|
-| MainView.tsx | Top-level layout, board state management |
-| Header.tsx | Board selector dropdown, search bar, sidebar toggle |
-| BoardView.tsx | Horizontal scrolling board with list columns |
-| ListColumn.tsx | Single list column with cards |
-| CardItem.tsx | Compact card with labels, priority, due date, checklist |
-| CardDetailModal.tsx | Full card editor modal |
-| Sidebar.tsx | Filters, label manager, statistics tabs |
+Declared in `operations.json`; discoverable at `GET /api/_ops`.
 
-## Key Files
+- `cards.clear-archived` (destructive) — delete all archived cards.
 
-| File | Purpose |
-|------|---------|
-| backend/models.py | 6 SQLAlchemy models for Kanban data |
-| backend/routes.py | 26 REST API endpoints |
-| frontend/types.ts | TypeScript interfaces |
-| frontend/AppController.ts | State management + API client |
-| frontend/components/MainView.tsx | Main UI orchestrator |
+## Ownership map
 
-## Features
-
-1. Board Management - Create, rename, delete, switch between boards
-2. List Management - Create, rename, delete, reorder lists within a board
-3. Card CRUD - Create, edit, delete, archive cards with full detail modal
-4. Drag & Drop - Move cards between lists via HTML5 drag-and-drop
-5. Labels - Create colored labels, assign/remove from cards
-6. Priorities - None/Low/Medium/High/Urgent with color-coded left border
-7. Due Dates - Date picker with overdue (red) and upcoming (yellow) badges
-8. Checklists - Subtasks with toggle, progress bar, completion tracking
-9. Search & Filter - Text search, filter by priority/label/due status
-10. Statistics - Card counts, priority breakdown, overdue count, checklist progress
-
-## State Flow
-
-```
-User Action -> Frontend Component -> AppController -> Backend API -> SQLite DB
-                                        |
-                                  Update UI State
-```
-
-## Testing
-
-```bash
-cd backend && python -m pytest tests/ -v --tb=short
-```
-
-36 tests covering boards, lists, cards, labels, checklists, search, and statistics.
+- Editable: `frontend/src/app/`, `pb/pb_migrations/`, `pb/pb_hooks/ops.pb.js`,
+  `operations.json` (non-system entries), this file.
+- System-managed (never edit): `frontend/src/kit/`, `frontend/src/main.tsx`,
+  `pb/pb_hooks/_system.pb.js`, `manifest.json`, build configs.

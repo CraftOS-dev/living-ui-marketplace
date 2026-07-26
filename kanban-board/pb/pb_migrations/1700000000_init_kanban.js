@@ -92,7 +92,7 @@ migrate(
           name: 'priority',
           type: 'select',
           maxSelect: 1,
-          values: ['none', 'low', 'medium', 'high'],
+          values: ['none', 'low', 'medium', 'high', 'urgent'],
         },
         { name: 'due_date', type: 'date' },
         { name: 'position', type: 'number' },

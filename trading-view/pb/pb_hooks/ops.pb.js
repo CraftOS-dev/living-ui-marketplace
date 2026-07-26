@@ -36,6 +36,31 @@ routerAdd('GET', '/api/ops/quotes', (e) => {
   return e.json(200, { quotes: quotes });
 });
 
+// search — symbol lookup against Yahoo's search API (add-to-watchlist flow).
+routerAdd('GET', '/api/ops/search', (e) => {
+  const { searchSymbols } = require(`${__hooks}/yahoo.js`);
+  const query = String(e.requestInfo().query.q || '').trim();
+  if (query === '') {
+    return e.json(400, { error: 'q query param required' });
+  }
+  try {
+    return e.json(200, { results: searchSymbols(query, 8) });
+  } catch (err) {
+    return e.json(502, { error: String(err && err.message ? err.message : err) });
+  }
+});
+
+// news — latest headlines for a symbol (or general market query).
+routerAdd('GET', '/api/ops/news', (e) => {
+  const { newsFor } = require(`${__hooks}/yahoo.js`);
+  const query = String(e.requestInfo().query.symbol || 'stock market').trim();
+  try {
+    return e.json(200, { news: newsFor(query, 10) });
+  } catch (err) {
+    return e.json(502, { error: String(err && err.message ? err.message : err) });
+  }
+});
+
 // candles — OHLCV series for one symbol. Bars with missing OHLC are
 // dropped (Yahoo serves the in-progress bar with nulls at times).
 routerAdd('GET', '/api/ops/candles', (e) => {
