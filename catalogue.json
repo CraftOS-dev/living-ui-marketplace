@@ -18,7 +18,7 @@
       "description": "Local single-user Kanban board with drag-and-drop, labels, priorities, checklists, and due dates (no auth)",
       "folder": "kanban-board",
       "tags": ["kanban", "project management", "productivity"],
-      "version": "1.0.0"
+      "version": "2.0.0"
     },
 	{
       "id": "kanban-online",
