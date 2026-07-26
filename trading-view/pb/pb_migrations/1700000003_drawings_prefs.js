@@ -42,7 +42,7 @@ migrate(
         { name: 'vwap', type: 'bool' },
         { name: 'macd', type: 'bool' },
         { name: 'show_news', type: 'bool' },
-        // Widget order on the symbol panel, e.g. ["details","chart","rsi","macd","news"]
+        // Dashboard grid: react-grid-layout Layouts {lg,md,sm} (V1 parity)
         { name: 'layout', type: 'json' },
         { name: 'updated', type: 'autodate', onCreate: true, onUpdate: true },
       ],
@@ -59,7 +59,29 @@ migrate(
     row.set('vwap', false);
     row.set('macd', false);
     row.set('show_news', true);
-    row.set('layout', ['details', 'chart', 'rsi', 'macd', 'news']);
+    row.set('layout', {
+      lg: [
+        { i: 'chart', x: 0, y: 0, w: 8, h: 12, minW: 4, minH: 6 },
+        { i: 'watchlist', x: 8, y: 0, w: 4, h: 8, minW: 3, minH: 4 },
+        { i: 'details', x: 8, y: 8, w: 4, h: 4, minW: 3, minH: 3 },
+        { i: 'news', x: 0, y: 12, w: 6, h: 6, minW: 3, minH: 3 },
+        { i: 'screener', x: 6, y: 12, w: 6, h: 6, minW: 4, minH: 4 },
+      ],
+      md: [
+        { i: 'chart', x: 0, y: 0, w: 6, h: 10, minW: 4, minH: 6 },
+        { i: 'watchlist', x: 6, y: 0, w: 4, h: 6, minW: 3, minH: 4 },
+        { i: 'details', x: 6, y: 6, w: 4, h: 4, minW: 3, minH: 3 },
+        { i: 'news', x: 0, y: 10, w: 5, h: 5, minW: 3, minH: 3 },
+        { i: 'screener', x: 5, y: 10, w: 5, h: 5, minW: 4, minH: 4 },
+      ],
+      sm: [
+        { i: 'chart', x: 0, y: 0, w: 4, h: 8, minW: 4, minH: 6 },
+        { i: 'watchlist', x: 0, y: 8, w: 4, h: 6, minW: 3, minH: 4 },
+        { i: 'details', x: 0, y: 14, w: 4, h: 4, minW: 3, minH: 3 },
+        { i: 'news', x: 0, y: 18, w: 4, h: 5, minW: 3, minH: 3 },
+        { i: 'screener', x: 0, y: 23, w: 4, h: 5, minW: 4, minH: 4 },
+      ],
+    });
     app.save(row);
   },
   (app) => {

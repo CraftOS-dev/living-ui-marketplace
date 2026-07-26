@@ -6,6 +6,10 @@
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { RecordModel } from 'pocketbase';
+import { Responsive, WidthProvider } from 'react-grid-layout';
+import type { Layout, Layouts } from 'react-grid-layout';
+import 'react-grid-layout/css/styles.css';
+import 'react-resizable/css/styles.css';
 import {
   Badge,
   Button,
@@ -88,14 +92,87 @@ interface Prefs extends RecordModel {
   layout: string[] | null;
 }
 
-const DEFAULT_LAYOUT = ['details', 'chart', 'rsi', 'macd', 'news'] as const;
-const WIDGET_LABEL: Record<string, string> = {
-  details: 'Details',
-  chart: 'Chart',
-  rsi: 'RSI',
-  macd: 'MACD',
-  news: 'News',
+const ResponsiveGridLayout = WidthProvider(Responsive);
+
+/** Default dashboard arrangement (mirrors the V1 layout exactly). */
+const DEFAULT_LAYOUTS: Layouts = {
+  lg: [
+    { i: 'chart', x: 0, y: 0, w: 8, h: 12, minW: 4, minH: 6 },
+    { i: 'watchlist', x: 8, y: 0, w: 4, h: 8, minW: 3, minH: 4 },
+    { i: 'details', x: 8, y: 8, w: 4, h: 4, minW: 3, minH: 3 },
+    { i: 'news', x: 0, y: 12, w: 6, h: 6, minW: 3, minH: 3 },
+    { i: 'screener', x: 6, y: 12, w: 6, h: 6, minW: 4, minH: 4 },
+  ],
+  md: [
+    { i: 'chart', x: 0, y: 0, w: 6, h: 10, minW: 4, minH: 6 },
+    { i: 'watchlist', x: 6, y: 0, w: 4, h: 6, minW: 3, minH: 4 },
+    { i: 'details', x: 6, y: 6, w: 4, h: 4, minW: 3, minH: 3 },
+    { i: 'news', x: 0, y: 10, w: 5, h: 5, minW: 3, minH: 3 },
+    { i: 'screener', x: 5, y: 10, w: 5, h: 5, minW: 4, minH: 4 },
+  ],
+  sm: [
+    { i: 'chart', x: 0, y: 0, w: 4, h: 8, minW: 4, minH: 6 },
+    { i: 'watchlist', x: 0, y: 8, w: 4, h: 6, minW: 3, minH: 4 },
+    { i: 'details', x: 0, y: 14, w: 4, h: 4, minW: 3, minH: 3 },
+    { i: 'news', x: 0, y: 18, w: 4, h: 5, minW: 3, minH: 3 },
+    { i: 'screener', x: 0, y: 23, w: 4, h: 5, minW: 4, minH: 4 },
+  ],
 };
+const ALL_WIDGETS = ['chart', 'watchlist', 'details', 'news', 'screener', 'alerts'] as const;
+type WidgetId = (typeof ALL_WIDGETS)[number];
+const WIDGET_LABEL: Record<string, string> = {
+  chart: 'Chart',
+  watchlist: 'Watchlist',
+  details: 'Details',
+  news: 'News',
+  screener: 'Screener',
+  alerts: 'Price alerts',
+};
+
+/** Panel chrome: 32px draggable title bar + scrollable body (V1 WidgetWrapper). */
+function WidgetWrapper({
+  title,
+  actions,
+  onClose,
+  children,
+}: {
+  title: string;
+  actions?: React.ReactNode;
+  onClose?: (() => void) | undefined;
+  children: React.ReactNode;
+}): React.JSX.Element {
+  return (
+    <div className="flex h-full flex-col overflow-hidden rounded-md border bg-[var(--lui-bg,transparent)]">
+      <div className="widget-drag flex h-8 min-h-8 cursor-move select-none items-center gap-2 border-b bg-black/5 px-2 dark:bg-white/5">
+        <span className="flex flex-col gap-[2px]" aria-hidden>
+          <span className="flex gap-[2px]">
+            <i className="h-[3px] w-[3px] rounded-full bg-current opacity-40" />
+            <i className="h-[3px] w-[3px] rounded-full bg-current opacity-40" />
+          </span>
+          <span className="flex gap-[2px]">
+            <i className="h-[3px] w-[3px] rounded-full bg-current opacity-40" />
+            <i className="h-[3px] w-[3px] rounded-full bg-current opacity-40" />
+          </span>
+        </span>
+        <span className="text-xs font-medium tracking-wide">{title}</span>
+        <span className="ml-auto flex items-center gap-1" onMouseDown={(e) => e.stopPropagation()}>
+          {actions}
+          {onClose !== undefined && (
+            <button
+              type="button"
+              title="Close widget"
+              className="px-1 text-xs opacity-50 hover:opacity-100"
+              onClick={onClose}
+            >
+              ✕
+            </button>
+          )}
+        </span>
+      </div>
+      <div className="min-h-0 flex-1 overflow-auto p-2">{children}</div>
+    </div>
+  );
+}
 
 const INDICES: { symbol: string; label: string }[] = [
   { symbol: '^GSPC', label: 'S&P 500' },
@@ -230,7 +307,9 @@ function rsi(values: number[], period = 14): (number | null)[] {
 }
 
 export function App(): React.JSX.Element {
-  const { records: watchlist } = useCollection<WatchItem>('watchlist', { sort: 'position' });
+  const { records: watchlist, loading: watchlistLoading } = useCollection<WatchItem>('watchlist', {
+    sort: 'position',
+  });
   const { records: alerts } = useCollection<Alert>('alerts', { sort: '-created' });
   const { records: prefsRows } = useCollection<Prefs>('prefs', {});
   const prefs = prefsRows[0];
@@ -240,18 +319,28 @@ export function App(): React.JSX.Element {
   const [screenerOpen, setScreenerOpen] = useState(false);
   const alertsRef = useRef(alerts);
   alertsRef.current = alerts;
+  // Quote fetches overlap (one fires before the watchlist loads, one after)
+  // and PocketBase serialises JS-hook requests, so an older/smaller request
+  // can resolve LAST. Only the newest response may write state.
+  const quotesSeq = useRef(0);
 
   const symbol = selected ?? watchlist[0]?.symbol ?? null;
 
   const refreshQuotes = useCallback(async (): Promise<void> => {
+    // Wait for the watchlist so we issue ONE request for every symbol
+    // instead of a wasted indices-only round trip first.
+    if (watchlistLoading) return;
     const symbols = [
       ...new Set([...watchlist.map((w) => w.symbol), ...INDICES.map((i) => i.symbol)]),
     ];
     if (symbols.length === 0) return;
+    const seq = quotesSeq.current + 1;
+    quotesSeq.current = seq;
     try {
       const res = await fetch(`/api/ops/quotes?symbols=${encodeURIComponent(symbols.join(','))}`);
       if (!res.ok) return;
       const data = (await res.json()) as { quotes: Quote[] };
+      if (seq !== quotesSeq.current) return; // superseded by a newer fetch
       const map = new Map(data.quotes.map((q) => [q.symbol, q]));
       setQuotes(map);
 
@@ -280,7 +369,7 @@ export function App(): React.JSX.Element {
     } catch {
       /* transient network failures: keep last quotes */
     }
-  }, [watchlist]);
+  }, [watchlist, watchlistLoading]);
 
   useEffect(() => {
     void refreshQuotes();
@@ -297,72 +386,160 @@ export function App(): React.JSX.Element {
     }
   };
 
+  // --- dashboard grid state (V1 parity: draggable/resizable widget grid) ---
+  const [layouts, setLayouts] = useState<Layouts>(DEFAULT_LAYOUTS);
+  const [hidden, setHidden] = useState<WidgetId[]>(['alerts']);
+  const [isMobile, setIsMobile] = useState(
+    typeof window !== 'undefined' && window.innerWidth < 768,
+  );
+  const [mobileTab, setMobileTab] = useState<WidgetId>('chart');
+  const layoutApplied = useRef(false);
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    const onResize = (): void => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+
+  // Adopt the saved layout once it arrives.
+  useEffect(() => {
+    if (prefs === undefined || layoutApplied.current) return;
+    layoutApplied.current = true;
+    const saved = prefs.layout as unknown;
+    if (saved !== null && typeof saved === 'object' && 'lg' in (saved as Record<string, unknown>)) {
+      const parsed = saved as Layouts;
+      setLayouts(parsed);
+      const present = new Set((parsed.lg ?? []).map((item) => item.i));
+      setHidden(ALL_WIDGETS.filter((id) => !present.has(id)));
+    }
+  }, [prefs]);
+
+  const persistLayouts = (next: Layouts): void => {
+    if (prefs === undefined) return;
+    if (saveTimer.current !== null) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(() => {
+      void getPbClient().call((pb) => pb.collection('prefs').update(prefs.id, { layout: next }));
+    }, 500);
+  };
+
+  const visible = ALL_WIDGETS.filter((id) => !hidden.includes(id));
+
+  const closeWidget = (id: WidgetId): void => {
+    const nextHidden = [...hidden, id];
+    setHidden(nextHidden);
+    const next: Layouts = Object.fromEntries(
+      Object.entries(layouts).map(([bp, items]) => [bp, (items as Layout[]).filter((l) => l.i !== id)]),
+    ) as Layouts;
+    setLayouts(next);
+    persistLayouts(next);
+  };
+
+  const addWidget = (id: WidgetId): void => {
+    setHidden(hidden.filter((h) => h !== id));
+    const next: Layouts = Object.fromEntries(
+      Object.entries(layouts).map(([bp, items]) => {
+        const list = items as Layout[];
+        const maxY = list.reduce((m, l) => Math.max(m, l.y + l.h), 0);
+        return [bp, [...list, { i: id, x: 0, y: maxY, w: bp === 'sm' ? 4 : 6, h: 6, minW: 3, minH: 3 }]];
+      }),
+    ) as Layouts;
+    setLayouts(next);
+    persistLayouts(next);
+  };
+
+  const widgetBody = (id: WidgetId): React.ReactNode => {
+    if (id === 'chart') {
+      return symbol === null ? (
+        <p className="text-sm opacity-60">Select a symbol.</p>
+      ) : (
+        <ChartPanel key={symbol} symbol={symbol} quote={quotes.get(symbol)} prefs={prefs} />
+      );
+    }
+    if (id === 'watchlist') {
+      return (
+        <WatchlistPanel
+          watchlist={watchlist}
+          quotes={quotes}
+          selected={symbol}
+          onSelect={setSelected}
+          onRemove={(item) => void removeSymbol(item)}
+        />
+      );
+    }
+    if (id === 'details') {
+      return <DetailsPanel symbol={symbol} quote={symbol === null ? undefined : quotes.get(symbol)} />;
+    }
+    if (id === 'news') {
+      return symbol === null ? (
+        <p className="text-sm opacity-60">Select a symbol.</p>
+      ) : (
+        <NewsPanel symbol={symbol} />
+      );
+    }
+    if (id === 'screener') {
+      return <ScreenerPanel watchlist={watchlist} quotes={quotes} onSelect={setSelected} />;
+    }
+    return <AlertsSection alerts={alerts} watchlist={watchlist} quotes={quotes} />;
+  };
+
   return (
     <div className="flex h-screen flex-col">
       <MarketStrip
         quotes={quotes}
         onOpenSearch={() => setSearchOpen(true)}
-        onOpenScreener={() => setScreenerOpen(true)}
+        hidden={hidden}
+        onAddWidget={addWidget}
       />
-      <div className="flex min-h-0 flex-1">
-        <aside className="flex w-72 shrink-0 flex-col overflow-y-auto border-r">
-          <div className="border-b">
-            {watchlist.map((item) => {
-              const quote = quotes.get(item.symbol);
-              const change = quote !== undefined ? changeOf(quote) : null;
-              const active = item.symbol === symbol;
-              return (
-                <div
-                  key={item.id}
-                  onClick={() => setSelected(item.symbol)}
-                  className={`group flex cursor-pointer items-center gap-2 border-b px-3 py-2 text-sm ${active ? 'bg-black/5 dark:bg-white/10' : ''}`}
-                >
-                  <div className="min-w-0 flex-1">
-                    <p className="font-medium">{item.symbol}</p>
-                    <p className="truncate text-xs opacity-60">{item.name}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="tabular-nums">
-                      {quote?.price !== undefined ? fmt(quote.price) : '…'}
-                    </p>
-                    {change !== null && (
-                      <p
-                        className={`text-xs tabular-nums ${change.abs >= 0 ? 'text-green-600' : 'text-red-500'}`}
-                      >
-                        {change.abs >= 0 ? '+' : ''}
-                        {change.pct.toFixed(2)}%
-                      </p>
-                    )}
-                    {quote?.error !== undefined && <p className="text-xs text-red-500">no data</p>}
-                  </div>
-                  <button
-                    type="button"
-                    className="opacity-0 transition-opacity group-hover:opacity-60 hover:!opacity-100"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      void removeSymbol(item);
-                    }}
-                  >
-                    ✕
-                  </button>
-                </div>
-              );
-            })}
-            {watchlist.length === 0 && (
-              <p className="p-4 text-sm opacity-60">Watchlist is empty — search to add symbols.</p>
-            )}
-          </div>
-          <AlertsSection alerts={alerts} watchlist={watchlist} quotes={quotes} />
-        </aside>
 
-        <main className="min-w-0 flex-1 overflow-y-auto p-4">
-          {symbol === null ? (
-            <p className="text-sm opacity-60">Select a symbol.</p>
-          ) : (
-            <ChartPanel key={symbol} symbol={symbol} quote={quotes.get(symbol)} prefs={prefs} />
-          )}
+      {isMobile ? (
+        <>
+          <main className="min-h-0 flex-1 overflow-auto p-2">
+            <WidgetWrapper title={WIDGET_LABEL[mobileTab] ?? ''}>{widgetBody(mobileTab)}</WidgetWrapper>
+          </main>
+          <nav className="flex shrink-0 border-t">
+            {(['chart', 'watchlist', 'news', 'screener'] as const).map((tab) => (
+              <button
+                key={tab}
+                type="button"
+                onClick={() => setMobileTab(tab)}
+                className={`flex-1 py-2 text-xs ${mobileTab === tab ? 'font-semibold' : 'opacity-60'}`}
+              >
+                {WIDGET_LABEL[tab]}
+              </button>
+            ))}
+          </nav>
+        </>
+      ) : (
+        <main className="min-h-0 flex-1 overflow-auto p-2">
+          <ResponsiveGridLayout
+            className="layout"
+            layouts={layouts}
+            breakpoints={{ lg: 1200, md: 900, sm: 0 }}
+            cols={{ lg: 12, md: 10, sm: 4 }}
+            rowHeight={30}
+            margin={[8, 8]}
+            draggableHandle=".widget-drag"
+            onLayoutChange={(_current: Layout[], all: Layouts) => {
+              setLayouts(all);
+              persistLayouts(all);
+            }}
+          >
+            {visible.map((id) => (
+              <div key={id}>
+                <WidgetWrapper
+                  title={
+                    id === 'chart' && symbol !== null ? `${WIDGET_LABEL[id]} · ${symbol}` : (WIDGET_LABEL[id] ?? '')
+                  }
+                  onClose={() => closeWidget(id)}
+                >
+                  {widgetBody(id)}
+                </WidgetWrapper>
+              </div>
+            ))}
+          </ResponsiveGridLayout>
         </main>
-      </div>
+      )}
 
       {searchOpen && (
         <SearchModal
@@ -371,31 +548,18 @@ export function App(): React.JSX.Element {
           onClose={() => setSearchOpen(false)}
         />
       )}
-      {screenerOpen && (
-        <ScreenerDialog
-          watchlist={watchlist}
-          quotes={quotes}
-          onSelect={(sym) => {
-            setSelected(sym);
-            setScreenerOpen(false);
-          }}
-          onClose={() => setScreenerOpen(false)}
-        />
-      )}
     </div>
   );
 }
 
-function ScreenerDialog({
+function ScreenerPanel({
   watchlist,
   quotes,
   onSelect,
-  onClose,
 }: {
   watchlist: WatchItem[];
   quotes: Map<string, Quote>;
   onSelect: (symbol: string) => void;
-  onClose: () => void;
 }): React.JSX.Element {
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
@@ -415,66 +579,167 @@ function ScreenerDialog({
       if (minChange !== '' && (change === null || Math.abs(change.pct) < Number(minChange))) {
         return false;
       }
-      if (minVolume !== '' && (quote.volume === null || quote.volume === undefined || quote.volume < Number(minVolume))) {
+      if (
+        minVolume !== '' &&
+        (quote.volume === null || quote.volume === undefined || quote.volume < Number(minVolume))
+      ) {
         return false;
       }
       return true;
     });
 
   return (
-    <Dialog
-      open
-      onOpenChange={(open) => {
-        if (!open) onClose();
-      }}
-      title="Screener"
-      description="Filter your watchlist by live quote data."
-      className="max-w-2xl"
-    >
-      <div className="flex flex-col gap-3">
-        <div className="flex flex-wrap items-center gap-2 text-sm">
-          <Input className="w-24" type="number" value={minPrice} placeholder="Min $" onChange={(e) => setMinPrice(e.target.value)} />
-          <Input className="w-24" type="number" value={maxPrice} placeholder="Max $" onChange={(e) => setMaxPrice(e.target.value)} />
-          <Input className="w-28" type="number" value={minChange} placeholder="Min |Δ%|" onChange={(e) => setMinChange(e.target.value)} />
-          <Input className="w-32" type="number" value={minVolume} placeholder="Min volume" onChange={(e) => setMinVolume(e.target.value)} />
-        </div>
-        <div className="flex max-h-72 flex-col gap-1 overflow-y-auto">
+    <div className="flex h-full flex-col gap-2">
+      <div className="flex flex-wrap items-center gap-1 text-sm">
+        <Input className="h-7 w-20" type="number" value={minPrice} placeholder="Min $" onChange={(e) => setMinPrice(e.target.value)} />
+        <Input className="h-7 w-20" type="number" value={maxPrice} placeholder="Max $" onChange={(e) => setMaxPrice(e.target.value)} />
+        <Input className="h-7 w-24" type="number" value={minChange} placeholder="Min |Δ%|" onChange={(e) => setMinChange(e.target.value)} />
+        <Input className="h-7 w-28" type="number" value={minVolume} placeholder="Min volume" onChange={(e) => setMinVolume(e.target.value)} />
+      </div>
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="text-left text-xs opacity-60">
+            <th className="py-1">Symbol</th>
+            <th>Last</th>
+            <th>Chg%</th>
+            <th className="text-right">Volume</th>
+          </tr>
+        </thead>
+        <tbody>
           {rows.map(({ item, quote, change }) => (
-            <button
+            <tr
               key={item.id}
-              type="button"
-              className="flex items-center gap-3 rounded-md border p-2 text-left text-sm hover:bg-black/5 dark:hover:bg-white/10"
+              className="cursor-pointer border-t hover:bg-black/5 dark:hover:bg-white/10"
               onClick={() => onSelect(item.symbol)}
             >
-              <span className="w-16 font-medium">{item.symbol}</span>
-              <span className="flex-1 truncate opacity-60">{item.name}</span>
-              <span className="tabular-nums">{fmt(quote?.price)}</span>
+              <td className="py-1 font-medium">{item.symbol}</td>
+              <td className="tabular-nums">{fmt(quote?.price)}</td>
+              <td
+                className={`tabular-nums ${change !== null && change.abs >= 0 ? 'text-green-600' : 'text-red-500'}`}
+              >
+                {change !== null ? `${change.abs >= 0 ? '+' : ''}${change.pct.toFixed(2)}%` : '—'}
+              </td>
+              <td className="text-right tabular-nums opacity-70">
+                {quote?.volume?.toLocaleString() ?? '—'}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      {rows.length === 0 && <p className="text-sm opacity-60">No matches.</p>}
+    </div>
+  );
+}
+
+function WatchlistPanel({
+  watchlist,
+  quotes,
+  selected,
+  onSelect,
+  onRemove,
+}: {
+  watchlist: WatchItem[];
+  quotes: Map<string, Quote>;
+  selected: string | null;
+  onSelect: (symbol: string) => void;
+  onRemove: (item: WatchItem) => void;
+}): React.JSX.Element {
+  return (
+    <div className="flex flex-col">
+      {watchlist.map((item) => {
+        const quote = quotes.get(item.symbol);
+        const change = quote !== undefined ? changeOf(quote) : null;
+        const active = item.symbol === selected;
+        return (
+          <div
+            key={item.id}
+            onClick={() => onSelect(item.symbol)}
+            className={`group flex cursor-pointer items-center gap-2 border-b px-1 py-1.5 text-sm last:border-0 ${active ? 'bg-black/5 dark:bg-white/10' : ''}`}
+          >
+            <div className="min-w-0 flex-1">
+              <p className="font-medium">{item.symbol}</p>
+              <p className="truncate text-xs opacity-60">{item.name}</p>
+            </div>
+            <div className="text-right">
+              <p className="tabular-nums">{quote?.price !== undefined ? fmt(quote.price) : '…'}</p>
               {change !== null && (
-                <span className={`w-16 text-right text-xs tabular-nums ${change.abs >= 0 ? 'text-green-600' : 'text-red-500'}`}>
+                <p className={`text-xs tabular-nums ${change.abs >= 0 ? 'text-green-600' : 'text-red-500'}`}>
                   {change.abs >= 0 ? '+' : ''}
                   {change.pct.toFixed(2)}%
-                </span>
+                </p>
               )}
-              <span className="w-24 text-right text-xs tabular-nums opacity-60">
-                {quote?.volume?.toLocaleString() ?? '—'}
-              </span>
+              {quote?.error !== undefined && <p className="text-xs text-red-500">no data</p>}
+            </div>
+            <button
+              type="button"
+              className="opacity-0 transition-opacity group-hover:opacity-60 hover:!opacity-100"
+              onClick={(e) => {
+                e.stopPropagation();
+                onRemove(item);
+              }}
+            >
+              ✕
             </button>
-          ))}
-          {rows.length === 0 && <p className="text-sm opacity-60">No matches.</p>}
-        </div>
+          </div>
+        );
+      })}
+      {watchlist.length === 0 && (
+        <p className="p-2 text-sm opacity-60">Watchlist is empty — search to add symbols.</p>
+      )}
+    </div>
+  );
+}
+
+function DetailsPanel({
+  symbol,
+  quote,
+}: {
+  symbol: string | null;
+  quote: Quote | undefined;
+}): React.JSX.Element {
+  if (symbol === null || quote === undefined) {
+    return <p className="text-sm opacity-60">Select a symbol.</p>;
+  }
+  const change = changeOf(quote);
+  const row = (label: string, value: React.ReactNode): React.JSX.Element => (
+    <div className="flex items-center justify-between border-b py-1 last:border-0">
+      <span className="text-xs opacity-60">{label}</span>
+      <span className="text-sm tabular-nums">{value}</span>
+    </div>
+  );
+  return (
+    <div className="flex flex-col">
+      <div className="mb-1 flex items-baseline gap-2">
+        <span className="text-lg font-semibold">{symbol}</span>
+        <span className="text-lg tabular-nums">{fmt(quote.price)}</span>
+        {change !== null && (
+          <Badge variant={change.abs >= 0 ? 'default' : 'destructive'}>
+            {change.abs >= 0 ? '+' : ''}
+            {change.pct.toFixed(2)}%
+          </Badge>
+        )}
       </div>
-    </Dialog>
+      {quote.name !== undefined && <p className="mb-1 text-xs opacity-60">{quote.name}</p>}
+      {row('Day range', `${fmt(quote.dayLow)} – ${fmt(quote.dayHigh)}`)}
+      {row('52-week', `${fmt(quote.fiftyTwoWeekLow)} – ${fmt(quote.fiftyTwoWeekHigh)}`)}
+      {row('Volume', quote.volume?.toLocaleString() ?? '—')}
+      {row('Prev close', fmt(quote.previousClose))}
+      {row('Exchange', quote.exchange !== undefined && quote.exchange !== '' ? quote.exchange : '—')}
+      {row('Currency', quote.currency ?? '—')}
+    </div>
   );
 }
 
 function MarketStrip({
   quotes,
   onOpenSearch,
-  onOpenScreener,
+  hidden,
+  onAddWidget,
 }: {
   quotes: Map<string, Quote>;
   onOpenSearch: () => void;
-  onOpenScreener: () => void;
+  hidden: WidgetId[];
+  onAddWidget: (id: WidgetId) => void;
 }): React.JSX.Element {
   return (
     <header className="flex items-center gap-4 border-b px-4 py-2">
@@ -499,10 +764,23 @@ function MarketStrip({
           );
         })}
       </div>
-      <span className="ml-auto flex gap-2">
-        <Button variant="outline" size="sm" onClick={onOpenScreener}>
-          📊 Screener
-        </Button>
+      <span className="ml-auto flex items-center gap-2">
+        {hidden.length > 0 && (
+          <select
+            className="rounded-md border bg-transparent px-2 py-1 text-sm"
+            value=""
+            onChange={(e) => {
+              if (e.target.value !== '') onAddWidget(e.target.value as WidgetId);
+            }}
+          >
+            <option value="">+ Add widget…</option>
+            {hidden.map((id) => (
+              <option key={id} value={id}>
+                {WIDGET_LABEL[id]}
+              </option>
+            ))}
+          </select>
+        )}
         <Button variant="outline" size="sm" onClick={onOpenSearch}>
           🔍 Search symbols
         </Button>
@@ -734,9 +1012,6 @@ function ChartPanel({
   const [showBb, setShowBb] = useState(false);
   const [showVwap, setShowVwap] = useState(false);
   const [showMacd, setShowMacd] = useState(false);
-  const [showNews, setShowNews] = useState(true);
-  const [layout, setLayout] = useState<string[]>([...DEFAULT_LAYOUT]);
-  const [arranging, setArranging] = useState(false);
   const prefsApplied = useRef(false);
 
   // Apply persisted layout preferences once, when they arrive.
@@ -751,8 +1026,6 @@ function ChartPanel({
     setShowBb(prefs.bb);
     setShowVwap(prefs.vwap);
     setShowMacd(prefs.macd);
-    setShowNews(prefs.show_news);
-    if (Array.isArray(prefs.layout) && prefs.layout.length > 0) setLayout(prefs.layout);
   }, [prefs]);
 
   const savePref = (
@@ -805,20 +1078,6 @@ function ChartPanel({
     setDrawMode('off');
   };
 
-  const moveWidget = (key: string, delta: number): void => {
-    const ordered = layout.filter((k) =>
-      DEFAULT_LAYOUT.includes(k as (typeof DEFAULT_LAYOUT)[number]),
-    );
-    const index = ordered.indexOf(key);
-    const target = index + delta;
-    if (index === -1 || target < 0 || target >= ordered.length) return;
-    const next = [...ordered];
-    const [item] = next.splice(index, 1);
-    next.splice(target, 0, item!);
-    setLayout(next);
-    savePref({ layout: next });
-  };
-
   const clearDrawings = async (): Promise<void> => {
     try {
       for (const drawing of drawings) {
@@ -861,21 +1120,6 @@ function ChartPanel({
 
   return (
     <div className="flex flex-col gap-3">
-      <header className="flex flex-wrap items-baseline gap-3">
-        <h2 className="text-2xl font-semibold">{symbol}</h2>
-        <span className="text-2xl tabular-nums">
-          {fmt(quote?.price)} {quote?.currency ?? ''}
-        </span>
-        {change !== null && (
-          <Badge variant={change.abs >= 0 ? 'default' : 'destructive'}>
-            {change.abs >= 0 ? '▲' : '▼'} {change.abs >= 0 ? '+' : ''}
-            {change.abs.toFixed(2)} ({change.pct.toFixed(2)}%)
-          </Badge>
-        )}
-        {quote?.name !== undefined && <span className="text-sm opacity-60">{quote.name}</span>}
-      </header>
-
-
       <div className="flex flex-wrap items-center gap-1">
         {RANGES.map((r) => (
           <Button
@@ -987,23 +1231,6 @@ function ChartPanel({
             Clear ({drawings.length})
           </Button>
         )}
-        <Button
-          size="sm"
-          variant={showNews ? 'default' : 'outline'}
-          onClick={() => {
-            setShowNews(!showNews);
-            savePref({ show_news: !showNews });
-          }}
-        >
-          News
-        </Button>
-        <Button
-          size="sm"
-          variant={arranging ? 'default' : 'outline'}
-          onClick={() => setArranging(!arranging)}
-        >
-          ⇅ Arrange
-        </Button>
       </div>
       {drawMode !== 'off' && (
         <p className="text-xs opacity-70">
@@ -1024,94 +1251,31 @@ function ChartPanel({
         )}
       </div>
 
-      {/* Widgets render in the user's saved order (V1's dashboard layout). */}
-      {layout
-        .filter((key) => DEFAULT_LAYOUT.includes(key as (typeof DEFAULT_LAYOUT)[number]))
-        .map((key, index, ordered) => {
-          const controls = arranging ? (
-            <span className="flex items-center gap-1 text-xs opacity-60">
-              <span className="uppercase tracking-wide">{WIDGET_LABEL[key]}</span>
-              <button
-                type="button"
-                className="px-1 hover:opacity-100"
-                onClick={() => moveWidget(key, -1)}
-                disabled={index === 0}
-              >
-                ↑
-              </button>
-              <button
-                type="button"
-                className="px-1 hover:opacity-100"
-                onClick={() => moveWidget(key, 1)}
-                disabled={index === ordered.length - 1}
-              >
-                ↓
-              </button>
-            </span>
-          ) : null;
-
-          let body: React.ReactNode = null;
-          if (key === 'details') {
-            body =
-              quote !== undefined && quote.error === undefined ? (
-                <div className="flex flex-wrap gap-x-6 gap-y-1 text-xs opacity-70">
-                  <span>
-                    Day <span className="tabular-nums">{fmt(quote.dayLow)} – {fmt(quote.dayHigh)}</span>
-                  </span>
-                  <span>
-                    52w{' '}
-                    <span className="tabular-nums">
-                      {fmt(quote.fiftyTwoWeekLow)} – {fmt(quote.fiftyTwoWeekHigh)}
-                    </span>
-                  </span>
-                  <span>
-                    Vol <span className="tabular-nums">{quote.volume?.toLocaleString() ?? '—'}</span>
-                  </span>
-                  {quote.exchange !== undefined && quote.exchange !== '' && (
-                    <span>{quote.exchange}</span>
-                  )}
-                </div>
-              ) : null;
-          } else if (key === 'chart') {
-            body =
-              error !== null ? (
-                <p className="text-sm text-red-500">{error}</p>
-              ) : candles === null ? (
-                <p className="text-sm opacity-60">Loading candles…</p>
-              ) : candles.length === 0 ? (
-                <p className="text-sm opacity-60">No data for this range.</p>
-              ) : (
-                <CandleChart
-                  candles={candles}
-                  showSma20={showSma20}
-                  showSma50={showSma50}
-                  showEma20={showEma20}
-                  showBb={showBb}
-                  showVwap={showVwap}
-                  drawings={drawings}
-                  pendingPoint={pendingPoint}
-                  drawing={drawMode !== 'off'}
-                  onChartClick={onChartClick}
-                  onHover={setHovered}
-                />
-              );
-          } else if (key === 'rsi') {
-            body = showRsi && candles !== null && candles.length > 0 ? <RsiChart candles={candles} /> : null;
-          } else if (key === 'macd') {
-            body =
-              showMacd && candles !== null && candles.length > 0 ? <MacdChart candles={candles} /> : null;
-          } else if (key === 'news') {
-            body = showNews ? <NewsPanel symbol={symbol} /> : null;
-          }
-
-          if (body === null && controls === null) return null;
-          return (
-            <section key={key} className={arranging ? 'rounded-md border border-dashed p-2' : ''}>
-              {controls}
-              {body}
-            </section>
-          );
-        })}
+      {error !== null ? (
+        <p className="text-sm text-red-500">{error}</p>
+      ) : candles === null ? (
+        <p className="text-sm opacity-60">Loading candles…</p>
+      ) : candles.length === 0 ? (
+        <p className="text-sm opacity-60">No data for this range.</p>
+      ) : (
+        <>
+          <CandleChart
+            candles={candles}
+            showSma20={showSma20}
+            showSma50={showSma50}
+            showEma20={showEma20}
+            showBb={showBb}
+            showVwap={showVwap}
+            drawings={drawings}
+            pendingPoint={pendingPoint}
+            drawing={drawMode !== 'off'}
+            onChartClick={onChartClick}
+            onHover={setHovered}
+          />
+          {showRsi && <RsiChart candles={candles} />}
+          {showMacd && <MacdChart candles={candles} />}
+        </>
+      )}
     </div>
   );
 }
