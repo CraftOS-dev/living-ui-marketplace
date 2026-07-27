@@ -8,12 +8,14 @@
  *   import { Button, Card, Input, Alert } from './components/ui'
  */
 
-import React, {
+import type {
   ButtonHTMLAttributes,
   InputHTMLAttributes,
   TextareaHTMLAttributes,
   SelectHTMLAttributes,
   ReactNode,
+} from 'react'
+import React, {
   forwardRef,
   useState,
   useEffect,
@@ -680,10 +682,10 @@ export function Badge({ children, variant = 'default', size = 'md', dot }: Badge
 export interface ModalProps {
   open: boolean
   onClose: () => void
-  title?: string
+  title?: string | undefined
   children: ReactNode
-  footer?: ReactNode
-  size?: 'sm' | 'md' | 'lg' | 'xl'
+  footer?: ReactNode | undefined
+  size?: 'sm' | 'md' | 'lg' | 'xl' | undefined
 }
 
 const modalSizes = {
