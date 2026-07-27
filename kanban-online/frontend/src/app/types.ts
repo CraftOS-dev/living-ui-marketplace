@@ -68,8 +68,8 @@ export interface AppState {
 }
 
 export interface SearchParams {
-  q?: string
-  priority?: Priority
-  label_id?: number
-  due_status?: 'overdue' | 'upcoming' | 'no_date'
+  q?: string | undefined
+  priority?: Priority | undefined
+  label_id?: number | undefined
+  due_status?: 'overdue' | 'upcoming' | 'no_date' | undefined
 }
