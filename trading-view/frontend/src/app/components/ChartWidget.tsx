@@ -66,16 +66,10 @@ const toolbarStyles = {
 
 function computeHeikinAshi(candles: Candle[]): Candle[] {
   const result: Candle[] = []
-  for (let i = 0; i < candles.length; i++) {
-    const c = candles[i]
+  for (const c of candles) {
     const haClose = (c.openPrice + c.high + c.low + c.closePrice) / 4
-    let haOpen: number
-    if (i === 0) {
-      haOpen = (c.openPrice + c.closePrice) / 2
-    } else {
-      const prev = result[i - 1]
-      haOpen = (prev.openPrice + prev.closePrice) / 2
-    }
+    const prev = result[result.length - 1]
+    const haOpen = prev ? (prev.openPrice + prev.closePrice) / 2 : (c.openPrice + c.closePrice) / 2
     const haHigh = Math.max(c.high, haOpen, haClose)
     const haLow = Math.min(c.low, haOpen, haClose)
     result.push({ ...c, openPrice: haOpen, closePrice: haClose, high: haHigh, low: haLow })
@@ -351,7 +345,9 @@ export function ChartWidget({ config, onConfigChange }: ChartWidgetProps) {
       if (logicalRange.from < 20) {
         const candles = getSortedCandles()
         if (candles.length === 0) return
-        const oldestTimestamp = candles[0].timestamp
+        const oldest = candles[0]
+        if (!oldest) return
+        const oldestTimestamp = oldest.timestamp
         setIsLoadingOlder(true)
         fetchCandles({ before: oldestTimestamp, limit: 500 })
           .then((addedNew) => {
