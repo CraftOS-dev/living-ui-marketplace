@@ -25,7 +25,7 @@ export function Header({
   const [editName, setEditName] = useState('')
   const [searchText, setSearchText] = useState(searchParams.q || '')
   const dropdownRef = useRef<HTMLDivElement>(null)
-  const searchTimerRef = useRef<ReturnType<typeof setTimeout>>()
+  const searchTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {

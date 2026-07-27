@@ -64,7 +64,7 @@ export function MainView({ controller }: MainViewProps) {
     const init = async () => {
       const allBoards = await loadBoards()
       if (allBoards.length > 0) {
-        await loadBoard(allBoards[0].id)
+        await loadBoard(allBoards[0]!.id)
       } else {
         try {
           const newBoard = await controller.createBoard('My Board')
@@ -98,7 +98,7 @@ export function MainView({ controller }: MainViewProps) {
       await controller.deleteBoard(boardId)
       const allBoards = await loadBoards()
       if (allBoards.length > 0) {
-        await loadBoard(allBoards[0].id)
+        await loadBoard(allBoards[0]!.id)
       } else {
         setCurrentBoard(null)
       }

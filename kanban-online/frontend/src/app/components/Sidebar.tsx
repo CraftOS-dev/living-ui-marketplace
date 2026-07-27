@@ -27,7 +27,7 @@ interface SidebarProps {
 
 export function Sidebar({ controller, board, stats, searchParams, onSearch, onRefresh, onClose }: SidebarProps) {
   const [newLabelName, setNewLabelName] = useState('')
-  const [newLabelColor, setNewLabelColor] = useState(LABEL_COLORS[0])
+  const [newLabelColor, setNewLabelColor] = useState<string>(LABEL_COLORS[0]!)
   const [activeTab, setActiveTab] = useState<'filters' | 'labels' | 'stats' | 'members'>('filters')
   const [showInvite, setShowInvite] = useState(false)
 
