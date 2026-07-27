@@ -13,7 +13,7 @@ export function toIso(d: Date): string {
 
 export function fromIso(iso: string): Date {
   const [y, m, d] = iso.split('-').map(Number)
-  return new Date(y, m - 1, d)
+  return new Date(y ?? 1970, (m ?? 1) - 1, d ?? 1)
 }
 
 export function addDays(iso: string, days: number): string {
@@ -23,7 +23,7 @@ export function addDays(iso: string, days: number): string {
 }
 
 export function isoWeekdayShort(iso: string): string {
-  return ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][fromIso(iso).getDay()]
+  return ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][fromIso(iso).getDay()]!
 }
 
 export function formatLong(iso: string): string {

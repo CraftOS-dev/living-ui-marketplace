@@ -52,7 +52,7 @@ export function HabitDetailPanel({ habit, controller, onClose, onEdit }: HabitDe
         setLoadingMap(false)
         // Default the active cell to today.
         const today = map.cells[map.cells.length - 1]
-        setActiveCell(today)
+        setActiveCell(today ?? null)
         setNoteDraft(today?.note || '')
         setValueDraft(String(today?.value ?? 0))
       })

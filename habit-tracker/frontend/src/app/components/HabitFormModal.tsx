@@ -249,7 +249,7 @@ function initialForm(habit: Habit | null): FormState {
     type: 'binary',
     target: '',
     unit: '',
-    color: HABIT_COLORS[5],
+    color: HABIT_COLORS[5]!,
     icon: 'CheckCircle2',
     category_id: null,
   }

@@ -11,7 +11,7 @@ interface TopBarProps {
   onCategoryFilter: (id: number | null) => void
   onAddHabit: () => void
   onManageCategories: () => void
-  searchInputRef?: React.RefObject<HTMLInputElement>
+  searchInputRef?: React.RefObject<HTMLInputElement | null>
 }
 
 /**

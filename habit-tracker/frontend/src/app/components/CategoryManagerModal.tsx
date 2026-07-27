@@ -20,7 +20,7 @@ export function CategoryManagerModal({
   controller,
 }: CategoryManagerModalProps) {
   const [name, setName] = useState('')
-  const [color, setColor] = useState(HABIT_COLORS[6])
+  const [color, setColor] = useState<string>(HABIT_COLORS[6]!)
   const [editingId, setEditingId] = useState<number | null>(null)
   const [editName, setEditName] = useState('')
   const [editColor, setEditColor] = useState('')

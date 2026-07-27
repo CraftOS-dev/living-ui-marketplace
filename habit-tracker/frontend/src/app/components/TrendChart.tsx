@@ -62,11 +62,11 @@ export function TrendChart({ points, color, height = 56 }: TrendChartProps) {
           color: 'var(--text-muted)',
         }}
       >
-        <span>{points[0].date}</span>
+        <span>{points[0]?.date}</span>
         <span>
           {completed} / {points.length} days
         </span>
-        <span>{points[points.length - 1].date}</span>
+        <span>{points[points.length - 1]?.date}</span>
       </div>
     </div>
   )

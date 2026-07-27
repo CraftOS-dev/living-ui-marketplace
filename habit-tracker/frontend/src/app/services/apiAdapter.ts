@@ -157,7 +157,7 @@ function todayIso(): string {
 
 function ord(iso: string): number {
   const [y, m, d] = iso.split('-').map(Number)
-  return Math.floor(Date.UTC(y, (m || 1) - 1, d || 1) / MS_PER_DAY)
+  return Math.floor(Date.UTC(y ?? 1970, (m ?? 1) - 1, d ?? 1) / MS_PER_DAY)
 }
 
 function isoFromOrd(n: number): string {
@@ -313,7 +313,7 @@ function bestStreak(rec: PbRecord, norms: Norm[]): number {
   let best = 1
   let run = 1
   for (let i = 1; i < ords.length; i += 1) {
-    if (ords[i] - ords[i - 1] === 1) {
+    if (ords[i]! - ords[i - 1]! === 1) {
       run += 1
       if (run > best) best = run
     } else {
@@ -628,8 +628,8 @@ async function handleEntryUpsert(id: string, init?: RequestInit): Promise<Respon
     const patch: Record<string, unknown> = {}
     if (body.value != null) patch.value = Number(body.value)
     if (body.note != null) patch.note = String(body.note)
-    saved = await pbPatch('entries', String(existing[0].id), patch)
-    if (!saved) saved = existing[0]
+    saved = await pbPatch('entries', String(existing[0]!.id), patch)
+    if (!saved) saved = existing[0]!
   }
   if (!saved) return json({ detail: 'failed to save entry' }, 500)
   return json(toEntry(saved, rec))
@@ -639,7 +639,7 @@ async function handleEntryDelete(id: string, query: URLSearchParams): Promise<Re
   const day = (query.get('date') ?? '').trim() || todayIso()
   const existing = await pbList('entries', filterQuery(`habit = "${id}" && day = "${day}"`))
   if (existing.length === 0) return json({ status: 'not_found', date: day })
-  await pbDelete('entries', String(existing[0].id))
+  await pbDelete('entries', String(existing[0]!.id))
   return json({ status: 'deleted', date: day })
 }
 

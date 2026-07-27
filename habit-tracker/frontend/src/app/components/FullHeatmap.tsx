@@ -45,7 +45,7 @@ export function FullHeatmap({
     const compute = (width: number) => setLayout(fitLayout(width, weeks.length, maxCell))
     compute(el.getBoundingClientRect().width)
     if (typeof ResizeObserver === 'undefined') return
-    const ro = new ResizeObserver((entries) => compute(entries[0].contentRect.width))
+    const ro = new ResizeObserver((entries) => compute(entries[0]!.contentRect.width))
     ro.observe(el)
     return () => ro.disconnect()
   }, [weeks.length, maxCell])
@@ -261,7 +261,7 @@ function fitLayout(width: number, weeks: number, maxCell: number): Layout {
 function groupIntoWeeks(cells: HeatmapCell[]): (HeatmapCell | null)[][] {
   if (cells.length === 0) return []
 
-  const firstDate = fromIso(cells[0].date)
+  const firstDate = fromIso(cells[0]!.date)
   const firstDow = firstDate.getDay()
   const dowToRow = (dow: number) => (dow + 6) % 7
 
@@ -297,7 +297,7 @@ function buildMonthLabels(weeks: (HeatmapCell | null)[][]): string[] {
     }
     const month = fromIso(firstCell.date).getMonth()
     if (month !== prevMonth) {
-      labels.push(['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][month])
+      labels.push(['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][month]!)
       prevMonth = month
     } else {
       labels.push('')
