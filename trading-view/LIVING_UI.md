@@ -1,119 +1,119 @@
 # Trading View
 
-A TradingView-style trading dashboard powered entirely by **real market data**. Interactive `lightweight-charts` candlestick charts with lazy-loading historical data, technical indicators (SMA/EMA/RSI/MACD/BB/VWAP), real-time prices via Yahoo Finance, real news headlines, watchlist, screener, price alerts, and a draggable widget layout.
+A TradingView-style trading dashboard powered entirely by **real market data**. Interactive `lightweight-charts` candlestick charts, technical indicators (SMA/EMA/RSI/MACD/BB/VWAP), prices and news from Yahoo Finance, watchlist, screener, price alerts, chart drawings, and a draggable `react-grid-layout` widget canvas.
 
-No fake/synthetic data anywhere — all stocks, prices, candles, sectors, and news come from live data sources.
+No fake/synthetic data anywhere — all quotes, candles, and news come from live sources.
 
 ## Overview
 
-- **Project ID**: 7c3a8e2f
-- **Frontend Port**: 3104
-- **Backend Port**: 3105
-- **Theme**: System (dark/light)
-- **Auth**: None (single-user, local)
+- **Platform**: Living UI V2 (PocketBase)
+- **Port**: single port — PocketBase serves both the built frontend and the API
+- **Theme**: System (dark/light), synced from the CraftBot shell via the kit's `ThemeBridge`
+- **Auth**: None (`authMode: "none"`, `AUTH_MODE = 'none'` in `frontend/src/config.gen.ts`) — collection rules are open (`''`) and the app binds loopback
+
+## Layout
+
+```
+manifest.json          livingUIVersion 2, pbVersion, and the install/build/start pipeline
+operations.json        agent-discoverable verbs (served at GET /api/_ops)
+pb/pb_migrations/      collection schema + seed data (JS migrations)
+pb/pb_hooks/           ops.pb.js (market-data routes) + yahoo.js (fetch helpers)
+                       _system.pb.js and _craftbot_bridge.js are system files
+pb/pb_public/          Vite build output — generated, never edited by hand
+frontend/src/kit/      vendored Living UI kit (system-managed, never edited by agents)
+frontend/src/app/      the app itself — this is what you change
+```
 
 ## Data sources
 
-| Layer | Source | Notes |
-|---|---|---|
-| Symbol universe (~10k US-listed stocks) | [NASDAQ Trader](https://www.nasdaqtrader.com/dynamic/SymDir/) — `nasdaqlisted.txt` + `otherlisted.txt` | Free, no auth, refreshed daily by NASDAQ |
-| Real-time prices (15-min delayed) | Yahoo Finance via `yfinance.Ticker.fast_info` | Free, no auth |
-| Historical OHLCV candles | Yahoo Finance via `yfinance.Ticker.history` | 5y daily / 60d hourly / 7d 5-min initial; older data fetched on chart scroll |
-| News headlines + URLs + timestamps | Yahoo Finance via `yfinance.Ticker.news` | Real headlines, real publishers, real links |
-| Sectors / market cap | Yahoo Finance via `yfinance.Ticker.info` | Lazy-loaded per symbol on first interaction |
+Market data is **not** stored in a symbol table — the PocketBase hooks in `pb/pb_hooks/yahoo.js` proxy `https://query1.finance.yahoo.com` on demand via `$http.send`, and only user-owned state (watchlist, alerts, drawings, prefs) is persisted.
 
-## Loading strategy
+| Data | Source |
+|---|---|
+| Quotes | Yahoo Finance quote API, per comma-separated symbol list |
+| Candles (OHLCV) | Yahoo Finance chart API, by `range` + `interval` |
+| Symbol search | Yahoo Finance search API |
+| News headlines | Yahoo Finance news API |
 
-- On first launch, `seed_stocks` downloads the full ~10k symbol universe from NASDAQ Trader (one HTTP call, takes a few seconds, all symbols become searchable).
-- A small `WARMUP_TICKERS` list (AAPL, MSFT, GOOGL, … ~30 large-cap tickers) gets prices and sectors fetched immediately so the dashboard has data to show on first paint.
-- Every other symbol gets its price, sector, and candles **lazily**: the moment a user opens it (chart, watchlist add, alert), Yahoo Finance is called for that symbol only.
-- The chart widget supports infinite-scroll left: when the user drags past the loaded data window, the backend pulls the next 365-day window from Yahoo and persists it. The frontend shows "Loading older candles…" while fetching and "Earliest data reached" when Yahoo has no more.
-- Polled real-time prices only update for *active* stocks (those with a `StockPrice` row), which avoids hammering Yahoo with 10k requests every 30 seconds.
+A hosted deployment behind an egress allowlist must permit `finance.yahoo.com`, or every panel renders empty.
 
 ## Data Model
 
-| Model | Purpose | Key Fields |
+PocketBase collections:
+
+| Collection | Migration | Fields |
 |---|---|---|
-| `Stock` | One row per US-listed symbol from NASDAQ Trader | id, symbol, name, sector, market_cap, exchange |
-| `StockPrice` | Current price snapshot per active stock | stock_id, price, open_price, high, low, prev_close, volume, change, change_pct |
-| `Candle` | OHLCV candle for a stock + timeframe | stock_id, timeframe, timestamp, open_price, high, low, close_price, volume |
-| `Watchlist` | User's watched stocks | stock_id, sort_order |
-| `PriceAlert` | Above/below price triggers | stock_id, target_price, condition, active, triggered, triggered_at |
-| `Drawing` | Chart annotations (trendlines, etc.) | stock_id, timeframe, tool_type, drawing_data, color |
-| `WidgetLayout` | Saved react-grid-layout configuration | layout_data, chart_config |
-| `MarketNews` | Cached Yahoo Finance news (5-min TTL) | stock_symbol, headline, summary, source, url, published_at |
-| `SimulationState` | Throttle metadata for price ticking | last_tick_time, tick_count |
+| `watchlist` | `1700000000_init_watchlist.js` | `symbol`, `name`, `position`, `created`, `updated` |
+| `alerts` | `1700000002_alerts.js` | `symbol`, `condition` (`above`\|`below`), `price`, `triggered`, `triggered_at`, `created`, `updated` |
+| `drawings` | `1700000003_drawings_prefs.js` | `symbol`, `type` (`trendline`\|`hline`), `points` (json), `color`, `created` |
+| `prefs` | `1700000003_drawings_prefs.js` | `range`, `sma20`, `sma50`, `ema20`, `bb`, `vwap`, `rsi`, `macd`, `show_news`, `layout` (json), `updated` |
 
-## API Endpoints
+`1700000001_seed_watchlist.js` seeds a starter watchlist so the dashboard is not empty on first open.
 
-| Method | Path | Description |
-|---|---|---|
-| POST | `/api/stocks/seed` | Download symbol universe + warm up popular tickers (idempotent). Pass `?sync=true` for synchronous warmup candle fetch. |
-| GET | `/api/stocks` | Paginated stock list. `?limit=N&offset=N&only_priced=true` |
-| GET | `/api/stocks/search?q=…&limit=N` | Symbol/name search (exact → prefix → substring). |
-| GET | `/api/stocks/prices` | Real-time price map for active stocks. |
-| GET | `/api/stocks/{symbol}/price` | Single stock price (lazy-fetches from Yahoo on first call). |
-| GET | `/api/stocks/{symbol}/candles` | OHLCV candles. `?timeframe=&limit=&since=&before=` — `before` triggers older-data fetch from Yahoo. |
-| GET | `/api/stocks/{symbol}/indicators?type=SMA\|EMA\|RSI\|MACD\|BB\|VWAP` | Indicator data computed from candles. |
-| GET, POST, PUT, DELETE | `/api/stocks/{symbol}/drawings`, `/api/drawings/{id}` | Chart drawings CRUD. |
-| GET, POST | `/api/watchlist`, `/api/watchlist/reorder`, `/api/watchlist/{id}` | Watchlist CRUD. **Returns 404 if symbol unknown — no silent fallback.** |
-| GET | `/api/screener` | Filter/sort priced stocks. |
-| GET, POST, DELETE | `/api/alerts`, `/api/alerts/{id}`, `/api/alerts/triggered` | Price alerts. **Returns 404 if symbol unknown.** |
-| GET, PUT | `/api/layout` | Save/load widget layout. |
-| GET | `/api/news?symbol=…` | Real Yahoo Finance news (5-min DB cache). |
-| GET, PUT | `/api/settings` | User settings — validated by `SettingsUpdate` Pydantic schema. |
+## API
 
-Plus framework routes: `/api/state` (GET/PUT/POST/DELETE), `/api/action`, `/api/ui-snapshot`, `/api/ui-screenshot`, `/api/logs`.
+CRUD for the four collections is PocketBase's REST API — `GET/POST/PATCH/DELETE /api/collections/{collection}/records` — used from the frontend through the kit's PocketBase client (`kit/pb/client.ts`, `useCollection` / `useRecord`).
+
+Market data comes from custom routes in `pb/pb_hooks/ops.pb.js`, each mirrored in `operations.json`:
+
+| Method | Path | Params | Description |
+|---|---|---|---|
+| GET | `/api/ops/quotes` | `symbols` (required, comma-separated) | Live quotes; per-symbol failures come back as `{symbol, error}` entries |
+| GET | `/api/ops/search` | `q` (required) | Symbol lookup |
+| GET | `/api/ops/news` | `symbol` (optional) | Headlines for a symbol, or the general market |
+| GET | `/api/ops/candles` | `symbol` (required), `range`, `interval` | OHLCV series; bars with missing prices are dropped |
+
+System routes from `pb/pb_hooks/_system.pb.js`: `GET /api/health` (PocketBase built-in), `GET /api/_ops` (operations manifest), `POST /api/_console` (frontend console relay).
+
+Two hook gotchas worth keeping in mind when editing:
+
+- `routerAdd` handlers run in **isolated** contexts, so shared helpers must be `require`d inside each handler — that is why `yahoo.js` exists as a separate module.
+- Read a request body with `e.requestInfo().body`; `e.request.body` is a Go stream and reads as empty.
 
 ## Frontend Components
 
+Under `frontend/src/app/components/`:
+
 | Component | Purpose |
 |---|---|
-| `App.tsx` | Root, mounts AppController + UICapture |
-| `AppController.ts` | State management; auto-seeds the universe once per session in `initialize()` |
-| `MainView.tsx` | Top-level layout, mobile responsive switching |
-| `TopBar.tsx` | Search button (Ctrl+K), save/reset layout |
-| `DashboardLayout.tsx` | react-grid-layout wrapper |
-| `ChartWidget.tsx` | Interactive chart with lazy-load on left scroll, loading overlays, 6 chart types × 8 timeframes × 6 indicators |
-| `WatchlistPanel.tsx` | Live-polled watchlist (3s interval) |
-| `StockDetailsPanel.tsx` | Selected stock fundamentals |
-| `NewsPanel.tsx` | Real Yahoo Finance news feed |
-| `ScreenerPanel.tsx` | Filter/sort UI |
-| `AlertsPanel.tsx` | Active alerts CRUD |
-| `MarketOverviewPanel.tsx` | Index ETFs (SPY/QQQ/DIA) |
-| `SearchModal.tsx` | Ctrl+K modal — searches the full ~10k symbol universe via `/api/stocks/search` |
-| `MobileNavBar.tsx` | Bottom tab nav for `<768px` |
-| `WidgetWrapper.tsx` | Drag handle + close UI |
-| `ui/` | Preset UI components (Button, Modal, Input, etc.) |
+| MainView.tsx | Top-level layout, mobile responsive switching |
+| TopBar.tsx | Search button (Ctrl+K), save/reset layout |
+| DashboardLayout.tsx | `react-grid-layout` wrapper; the layout persists to `prefs.layout` |
+| ChartWidget.tsx | Interactive chart — chart types × timeframes × indicators |
+| WatchlistPanel.tsx | Polled watchlist |
+| StockDetailsPanel.tsx | Selected stock detail |
+| NewsPanel.tsx | Yahoo Finance news feed |
+| ScreenerPanel.tsx | Filter/sort UI |
+| AlertsPanel.tsx | Price alerts CRUD |
+| MarketOverviewPanel.tsx | Index ETFs (SPY/QQQ/DIA) |
+| SearchModal.tsx | Ctrl+K symbol search via `/api/ops/search` |
+| MobileNavBar.tsx | Bottom tab nav for `<768px` |
+| WidgetWrapper.tsx | Drag handle + close UI |
+| ui/ | App-local presentational components |
 
-## Polling cadence
+`frontend/src/app/AppController.ts` holds dashboard state and the polling loops; `frontend/src/app/services/apiAdapter.ts` wraps the `/api/ops/*` calls.
 
-- **Prices**: every 3 seconds in `AppController.startPolling()` (server throttles real Yahoo fetch to once per 30 seconds; in between, returns cached prices).
-- **Triggered alerts**: every 5 seconds.
-- **News**: fetched on view mount + manual refresh; backend caches each query for 5 minutes.
+## State Flow
 
-## Key files
-
-| File | Purpose |
-|---|---|
-| `backend/simulation.py` | Symbol-universe download, yfinance wrappers, candle fetch (initial + lazy older), real news fetch, indicator math |
-| `backend/routes.py` | All HTTP endpoints |
-| `backend/models.py` | SQLAlchemy models |
-| `frontend/AppController.ts` | API client + state + polling |
-| `frontend/components/ChartWidget.tsx` | Chart with lazy-loading on horizontal scroll |
-| `frontend/components/SearchModal.tsx` | Symbol search across the full universe |
-
-## Testing
-
-```bash
-cd backend && py -m pytest tests/ -v --tb=short
+```
+User action → component → AppController ─┬→ PocketBase SDK → collections (watchlist/alerts/drawings/prefs)
+                                         └→ /api/ops/* → yahoo.js → Yahoo Finance
 ```
 
-42 unit tests, all passing. Tests use a manually-seeded fixture universe (no network). The real `/api/stocks/seed` endpoint, which calls NASDAQ Trader and Yahoo Finance, is exercised in the external smoke-test suite.
+## Local Development
+
+```bash
+npm install --prefix frontend
+npm run build --prefix frontend      # emits into pb/pb_public
+pocketbase serve --http=127.0.0.1:8090 \
+  --dir pb/pb_data --hooksDir pb/pb_hooks \
+  --migrationsDir pb/pb_migrations --publicDir pb/pb_public
+```
+
+`npm run typecheck --prefix frontend` runs `tsc` alone; the build runs it first and fails on any type error.
 
 ## Notes
 
-- **No hardcoded stock list, no synthetic news, no placeholder OHLCV.** All data flows from public sources.
-- yfinance is rate-limited but free; no API key required. If Yahoo is unreachable on first launch, the universe download fails gracefully and the UI will show the empty-state — re-running `/api/stocks/seed` recovers.
-- Some symbols use share-class separator differences across data sources (NASDAQ uses `BRK.B`, Yahoo uses `BRK-B`). The backend normalises automatically.
-- yfinance API limits: hourly history ~700 days, 5-min history ~60 days. The lazy-load logic respects these caps.
+- No hardcoded stock list, no synthetic news, no placeholder OHLCV.
+- Yahoo's endpoints need no API key but are rate-limited; if a call fails the panel shows its empty state rather than fabricating data.
+- Yahoo's history limits apply (hourly ≈ 730 days, 5-minute ≈ 60 days), so very long ranges only make sense at daily+ intervals.
