@@ -82,7 +82,7 @@
     {
       "id": "habit-tracker",
       "name": "Habit Tracker",
-      "description": "Compact, customizable habit tracker with streaks, GitHub-style heatmap, and per-habit analytics. Track binary, count, duration, and avoidance habits in a Notion-monochrome layout.",
+      "description": "Compact, customizable habit tracker with streaks, GitHub-style heatmap, and per-habit analytics. Track yes/no and quantity habits by category in a Notion-monochrome layout.",
       "folder": "habit-tracker",
       "tags": ["productivity", "improvement", "lifestyle"],
       "version": "1.0.0"
