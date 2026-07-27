@@ -183,7 +183,7 @@ function Spinner({ size = 16 }: SpinnerProps) {
 
 export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string
-  error?: string
+  error?: string | undefined
   hint?: string
 }
 
@@ -253,7 +253,7 @@ Input.displayName = 'Input'
 
 export interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
   label?: string
-  error?: string
+  error?: string | undefined
   hint?: string
 }
 
@@ -319,7 +319,7 @@ export interface SelectOption {
 
 export interface SelectProps extends Omit<SelectHTMLAttributes<HTMLSelectElement>, 'children'> {
   label?: string
-  error?: string
+  error?: string | undefined
   hint?: string
   options: SelectOption[]
   placeholder?: string

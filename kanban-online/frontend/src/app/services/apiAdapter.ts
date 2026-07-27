@@ -461,7 +461,7 @@ async function handleListUpdate(listId: string, init?: RequestInit): Promise<Res
         .filter((l) => String(l.id) !== String(listId))
       const insertAt = Math.min(Math.max(pos, 0), siblings.length)
       siblings.splice(insertAt, 0, { ...list, id: listId })
-      for (let i = 0; i < siblings.length; i++) await pbPatch('lists', String(siblings[i].id), { position: i })
+      for (let i = 0; i < siblings.length; i++) await pbPatch('lists', String(siblings[i]!.id), { position: i })
     }
   }
   const fresh = (await pbGet('lists', listId)) ?? list
@@ -542,11 +542,11 @@ async function handleCardMove(cardId: string, init?: RequestInit): Promise<Respo
     .filter((c) => String(c.id) !== String(cardId))
   const insertAt = Math.min(Math.max(position, 0), targetCards.length)
   targetCards.splice(insertAt, 0, { ...card, id: cardId })
-  for (let i = 0; i < targetCards.length; i++) await pbPatch('cards', String(targetCards[i].id), { position: i })
+  for (let i = 0; i < targetCards.length; i++) await pbPatch('cards', String(targetCards[i]!.id), { position: i })
 
   if (oldListId && oldListId !== targetListId) {
     const oldCards = await pbList('cards', `perPage=200&sort=position&filter=${enc(`list='${oldListId}'`)}`)
-    for (let i = 0; i < oldCards.length; i++) await pbPatch('cards', String(oldCards[i].id), { position: i })
+    for (let i = 0; i < oldCards.length; i++) await pbPatch('cards', String(oldCards[i]!.id), { position: i })
   }
 
   const updated = (await pbGet('cards', cardId)) ?? card
@@ -641,7 +641,7 @@ async function handleChecklistCreate(init?: RequestInit): Promise<Response> {
   arr.push({ id: uid, text: String(body.text ?? ''), done: false })
   await pbPatch('cards', cardId, { checklist: arr })
   const idx = arr.length - 1
-  return json(toChecklistItem(cardId, arr[idx], idx, card.created ? String(card.created) : CREATED_AT))
+  return json(toChecklistItem(cardId, arr[idx]!, idx, card.created ? String(card.created) : CREATED_AT))
 }
 
 async function handleChecklistUpdate(token: string, init?: RequestInit): Promise<Response> {
@@ -658,13 +658,15 @@ async function handleChecklistUpdate(token: string, init?: RequestInit): Promise
     const pos = Number.parseInt(String(body.position), 10)
     if (!Number.isNaN(pos)) {
       const [it] = arr.splice(idx, 1)
-      const insertAt = Math.min(Math.max(pos, 0), arr.length)
-      arr.splice(insertAt, 0, it)
-      idx = insertAt
+      if (it) {
+        const insertAt = Math.min(Math.max(pos, 0), arr.length)
+        arr.splice(insertAt, 0, it)
+        idx = insertAt
+      }
     }
   }
   await pbPatch('cards', cardId, { checklist: arr })
-  return json(toChecklistItem(cardId, arr[idx], idx, card.created ? String(card.created) : CREATED_AT))
+  return json(toChecklistItem(cardId, arr[idx]!, idx, card.created ? String(card.created) : CREATED_AT))
 }
 
 async function handleChecklistDelete(token: string): Promise<Response> {
@@ -767,7 +769,7 @@ async function handleStats(init?: RequestInit): Promise<Response> {
   const priorityCounts: Record<string, number> = { none: 0, low: 0, medium: 0, high: 0, urgent: 0 }
   for (const c of cardRows) {
     const p = String(c.priority || 'none')
-    if (p in priorityCounts) priorityCounts[p] += 1
+    if (p in priorityCounts) priorityCounts[p] = (priorityCounts[p] ?? 0) + 1
   }
 
   const now = Date.now()

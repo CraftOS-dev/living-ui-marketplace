@@ -8,12 +8,14 @@
  *   import { Button, Card, Input, Alert } from './components/ui'
  */
 
-import React, {
+import type {
   ButtonHTMLAttributes,
   InputHTMLAttributes,
   TextareaHTMLAttributes,
   SelectHTMLAttributes,
   ReactNode,
+} from 'react'
+import React, {
   forwardRef,
   useState,
   useEffect,

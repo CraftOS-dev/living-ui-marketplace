@@ -5,7 +5,7 @@
  * Copy this file into your project's frontend/components/auth/ directory.
  */
 
-import { ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import { Card, Input, Alert } from '../ui'
 
 // ── Centered card layout for auth pages ────────────────────────
