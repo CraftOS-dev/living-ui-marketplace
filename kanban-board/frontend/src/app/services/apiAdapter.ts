@@ -149,7 +149,8 @@ async function pbDelete(collection: string, id: string): Promise<void> {
 async function renumber(collection: string, parentField: string, parentId: string): Promise<void> {
   const items = await pbList(collection, `filter=${enc(`${parentField}='${parentId}'`)}&sort=position&perPage=500`)
   for (let i = 0; i < items.length; i++) {
-    if (Number(items[i].position) !== i) await pbPatch(collection, String(items[i].id), { position: i })
+    const it = items[i]!
+    if (Number(it.position) !== i) await pbPatch(collection, String(it.id), { position: i })
   }
 }
 
@@ -165,7 +166,7 @@ async function reorder(
   const insertAt = Math.min(Math.max(0, pos), ordered.length)
   ordered.splice(insertAt, 0, { id: movingId } as PbRecord)
   for (let i = 0; i < ordered.length; i++) {
-    await pbPatch(collection, String(ordered[i].id), { position: i })
+    await pbPatch(collection, String(ordered[i]!.id), { position: i })
   }
 }
 
@@ -504,20 +505,23 @@ async function handleChecklistUpdate(itemId: string, init?: RequestInit): Promis
   const list = checklistOf(card)
   if (index < 0 || index >= list.length) return json({ detail: 'Checklist item not found' }, 404)
 
-  if ('text' in body && body.text != null) list[index].text = String(body.text)
-  if ('completed' in body && body.completed != null) list[index].done = coerceBool(body.completed)
+  const item = list[index]!
+  if ('text' in body && body.text != null) item.text = String(body.text)
+  if ('completed' in body && body.completed != null) item.done = coerceBool(body.completed)
 
   let finalIndex = index
   if ('position' in body && body.position != null) {
     const pos = parseInt(String(body.position), 10)
     if (!Number.isNaN(pos)) {
       const [moved] = list.splice(index, 1)
-      finalIndex = Math.min(Math.max(0, pos), list.length)
-      list.splice(finalIndex, 0, moved)
+      if (moved) {
+        finalIndex = Math.min(Math.max(0, pos), list.length)
+        list.splice(finalIndex, 0, moved)
+      }
     }
   }
   await pbPatch('cards', cardId, { checklist: list })
-  const it = list[finalIndex]
+  const it = list[finalIndex]!
   return json({
     id: `${cardId}_${finalIndex}`,
     cardId,
@@ -616,7 +620,7 @@ async function handleStats(init?: RequestInit): Promise<Response> {
 
   for (const c of cardRows) {
     const p = String(c.priority || 'none')
-    if (p in cardsByPriority) cardsByPriority[p] += 1
+    if (p in cardsByPriority) cardsByPriority[p] = (cardsByPriority[p] ?? 0) + 1
     const due = toIso(c.due_date)
     if (due && Date.parse(due) < now) overdueCount += 1
     const cl = checklistOf(c)
