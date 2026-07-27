@@ -216,6 +216,9 @@ function toStock(symbol: string, quote: Quote | null, sectorHint?: string): Reco
   }
 }
 
+// Fields the screener's filter/sort actually reads off a `toStockPrice()` result.
+type ScreenerPriceFields = { price: number; volume: number; changePct: number }
+
 function toStockPrice(symbol: string, quote: Quote): Record<string, unknown> {
   const price = quote.price
   const prev = quote.previousClose != null ? quote.previousClose : price
@@ -560,7 +563,7 @@ async function handleScreener(query: URLSearchParams): Promise<Response> {
     .filter((s): s is Record<string, unknown> => s !== null)
 
   rows = rows.filter((s) => {
-    const p = s.price as Record<string, number>
+    const p = s.price as ScreenerPriceFields
     if (minPrice != null && p.price < minPrice) return false
     if (maxPrice != null && p.price > maxPrice) return false
     if (minVol != null && p.volume < minVol) return false
@@ -573,8 +576,8 @@ async function handleScreener(query: URLSearchParams): Promise<Response> {
 
   const dir = sortDir === 'desc' ? -1 : 1
   rows.sort((a, b) => {
-    const pa = a.price as Record<string, number>
-    const pb = b.price as Record<string, number>
+    const pa = a.price as ScreenerPriceFields
+    const pb = b.price as ScreenerPriceFields
     let av: number | string
     let bv: number | string
     switch (sort) {
