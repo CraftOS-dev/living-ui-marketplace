@@ -65,7 +65,8 @@ export function SearchModal({ controller: _controller, isOpen, onClose, onSelect
       e.preventDefault()
       setHoveredIdx((prev) => Math.max(prev - 1, 0))
     } else if (e.key === 'Enter' && hoveredIdx >= 0 && hoveredIdx < results.length) {
-      handleSelect(results[hoveredIdx].symbol)
+      const selected = results[hoveredIdx]
+      if (selected) handleSelect(selected.symbol)
     }
   }
 

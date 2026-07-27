@@ -40,7 +40,7 @@ const DEFAULT_LAYOUT: LayoutData = {
   ],
 }
 
-const DEFAULT_CHART_CONFIG: Record<string, ChartConfig> = {
+const DEFAULT_CHART_CONFIG: { 'chart-1': ChartConfig } = {
   'chart-1': {
     symbol: 'AAPL',
     timeframe: '1D',
