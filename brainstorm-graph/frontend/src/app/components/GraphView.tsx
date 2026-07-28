@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from 'react'
+import { useRef, useState, useEffect, useCallback } from 'react'
 import { ZoomIn, ZoomOut, Maximize } from 'lucide-react'
 import { NodeCard, CARD_WIDTH, CARD_HEIGHT } from './NodeCard'
 import type { BrainstormNode } from '../types'
@@ -36,7 +36,7 @@ interface DragPreview {
   y: number
 }
 
-function buildEdges(nodes: BrainstormNode[], dragPreview: DragPreview | null): Edge[] {
+function buildEdges(nodes: BrainstormNode[], dragPreview: DragPreview | null, heights: Record<number, number>): Edge[] {
   const nodeMap = new Map(nodes.map(n => [n.id, n]))
   return nodes
     .filter(n => n.parentId !== null)
@@ -45,10 +45,15 @@ function buildEdges(nodes: BrainstormNode[], dragPreview: DragPreview | null): E
       if (!parent) return null
       const parentPos = dragPreview && dragPreview.id === parent.id ? dragPreview : parent
       const childPos = dragPreview && dragPreview.id === n.id ? dragPreview : n
+      // Cards auto-size to content, so anchor to the parent's real measured
+      // height rather than the fixed CARD_HEIGHT (which only matches the
+      // tallest possible card) — otherwise short cards leave the line
+      // dangling below their actual bottom edge.
+      const parentHeight = heights[parent.id] ?? CARD_HEIGHT
       return {
         id: `${parent.id}-${n.id}`,
         x1: parentPos.x + CARD_WIDTH / 2,
-        y1: parentPos.y + CARD_HEIGHT,
+        y1: parentPos.y + parentHeight,
         x2: childPos.x + CARD_WIDTH / 2,
         y2: childPos.y,
       }
@@ -60,9 +65,14 @@ export function GraphView({ nodes, activeSessionId, expandingNodeId, onExpand, o
   const [offset, setOffset] = useState(INITIAL_OFFSET)
   const [scale, setScale] = useState(1)
   const [dragPreview, setDragPreview] = useState<DragPreview | null>(null)
+  const [heights, setHeights] = useState<Record<number, number>>({})
   const containerRef = useRef<HTMLDivElement>(null)
   const panning = useRef(false)
   const panStart = useRef({ x: 0, y: 0, ox: 0, oy: 0 })
+
+  const handleHeightChange = useCallback((id: number, height: number) => {
+    setHeights(prev => (prev[id] === height ? prev : { ...prev, [id]: height }))
+  }, [])
 
   function handleCanvasMouseDown(e: React.MouseEvent) {
     if ((e.target as HTMLElement).closest('.node-card')) return
@@ -145,7 +155,7 @@ export function GraphView({ nodes, activeSessionId, expandingNodeId, onExpand, o
     centerView()
   }, [activeSessionId])
 
-  const edges = buildEdges(nodes, dragPreview)
+  const edges = buildEdges(nodes, dragPreview, heights)
 
   return (
     <div
@@ -205,6 +215,7 @@ export function GraphView({ nodes, activeSessionId, expandingNodeId, onExpand, o
               setDragPreview(null)
               onUpdatePosition(node.id, x, y)
             }}
+            onHeightChange={(h) => handleHeightChange(node.id, h)}
           />
         ))}
 

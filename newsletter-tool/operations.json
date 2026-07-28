@@ -35,6 +35,12 @@
       "executor": { "type": "http", "method": "POST", "path": "/api/ops/ai/draft" }
     },
     {
+      "name": "integrations.status",
+      "description": "Whether the CraftBot LLM bridge is configured (used to show an honest AI-writer connected/disconnected state).",
+      "params": {},
+      "executor": { "type": "http", "method": "GET", "path": "/api/ops/integrations/status" }
+    },
+    {
       "name": "subscribers.export",
       "description": "Export the subscribed audience as CSV text (email, name, tags).",
       "params": {},

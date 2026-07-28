@@ -585,7 +585,7 @@ async function handleNodeExpand(synthNodeId: string): Promise<Response> {
 
   const before = await sessionNodeIdSet(pbSessionId)
   const { ok } = await pbOp('/api/ops/nodes/suggest', { node_id: pbNodeId })
-  if (!ok) return json({ status: 'ok', nodeId: sid, newNodes: [] })
+  if (!ok) return json({ detail: 'AI is unavailable (app not running inside CraftBot)' }, 503)
 
   const resolved = await resolveNodes(pbSessionId)
   const fresh = resolved.filter((r) => !before.has(r.pb) && r.parentPb === pbNodeId)
@@ -611,7 +611,7 @@ async function handleNodeAnswer(synthNodeId: string): Promise<Response> {
 
   const before = await sessionNodeIdSet(pbSessionId)
   const { ok } = await pbOp('/api/ops/nodes/answer', { node_id: pbNodeId })
-  if (!ok) return json({ status: 'ok', nodeId: sid, node: null })
+  if (!ok) return json({ detail: 'AI is unavailable (app not running inside CraftBot)' }, 503)
 
   const resolved = await resolveNodes(pbSessionId)
   const fresh = resolved.filter((r) => !before.has(r.pb) && r.parentPb === pbNodeId)
@@ -635,7 +635,7 @@ async function handleSessionExplore(synthSessionId: string, init?: RequestInit):
 
   const before = await sessionNodeIdSet(pbSessionId)
   const { ok } = await pbOp('/api/ops/sessions/explore', { session_id: pbSessionId })
-  if (!ok) return json(emptyResult)
+  if (!ok) return json({ detail: 'AI is unavailable (app not running inside CraftBot)' }, 503)
 
   const resolved = await resolveNodes(pbSessionId)
   const fresh = resolved.filter((r) => !before.has(r.pb))
