@@ -1,0 +1,59 @@
+{
+  "opsVersion": 1,
+  "operations": [
+    {
+      "name": "health",
+      "description": "Liveness check (PocketBase built-in).",
+      "system": true,
+      "params": {},
+      "executor": { "type": "http", "method": "GET", "path": "/api/health" }
+    },
+    {
+      "name": "ops.list",
+      "description": "Return this operations manifest.",
+      "system": true,
+      "params": {},
+      "executor": { "type": "http", "method": "GET", "path": "/api/_ops" }
+    },
+    {
+      "name": "sessions.summarize",
+      "description": "AI summary of a brainstorm session (CraftBot LLM bridge; 503 outside CraftBot).",
+      "params": {
+        "session_id": { "type": "string", "required": true, "description": "The session record id." }
+      },
+      "executor": { "type": "http", "method": "POST", "path": "/api/ops/sessions/summarize" }
+    },
+    {
+      "name": "nodes.suggest",
+      "description": "Create 3 AI-suggested child ideas under a node (CraftBot LLM bridge; 503 outside CraftBot).",
+      "params": {
+        "node_id": { "type": "string", "required": true, "description": "The parent node record id." }
+      },
+      "executor": { "type": "http", "method": "POST", "path": "/api/ops/nodes/suggest" }
+    },
+    {
+      "name": "nodes.answer",
+      "description": "AI answers a question node and attaches the answer as an insight child (CraftBot LLM bridge; 503 outside CraftBot).",
+      "params": {
+        "node_id": { "type": "string", "required": true, "description": "The question node record id." }
+      },
+      "executor": { "type": "http", "method": "POST", "path": "/api/ops/nodes/answer" }
+    },
+    {
+      "name": "sessions.explore",
+      "description": "AI proposes 4 new angles for a session and adds them as nodes (CraftBot LLM bridge; 503 outside CraftBot).",
+      "params": {
+        "session_id": { "type": "string", "required": true, "description": "The session record id." }
+      },
+      "executor": { "type": "http", "method": "POST", "path": "/api/ops/sessions/explore" }
+    },
+    {
+      "name": "sessions.outline",
+      "description": "Return a brainstorm session's full node tree as an indented text outline.",
+      "params": {
+        "session_id": { "type": "string", "required": true, "description": "The session record id." }
+      },
+      "executor": { "type": "http", "method": "GET", "path": "/api/ops/sessions/outline" }
+    }
+  ]
+}
