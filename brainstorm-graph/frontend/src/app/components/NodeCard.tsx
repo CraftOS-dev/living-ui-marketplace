@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Expand, MessageSquare, Trash2, Plus, Bot, User, Loader2 } from 'lucide-react'
 import type { BrainstormNode } from '../types'
 
@@ -22,13 +22,32 @@ interface Props {
   onEdit: () => void
   onDragMove?: (x: number, y: number) => void
   onDragEnd: (x: number, y: number) => void
+  onHeightChange?: (height: number) => void
 }
 
-export function NodeCard({ node, scale, isExpanding, onExpand, onAnswer, onDelete, onAddChild, onEdit, onDragMove, onDragEnd }: Props) {
+export function NodeCard({ node, scale, isExpanding, onExpand, onAnswer, onDelete, onAddChild, onEdit, onDragMove, onDragEnd, onHeightChange }: Props) {
   const [pos, setPos] = useState({ x: node.x, y: node.y })
+  const cardRef = useRef<HTMLDivElement>(null)
   const dragging = useRef(false)
   const dragStart = useRef({ mx: 0, my: 0, nx: 0, ny: 0 })
   const moved = useRef(false)
+
+  // Cards auto-size to content, so report the real rendered height (in
+  // unscaled canvas units — offsetHeight ignores the ancestor CSS transform
+  // zoom) for the parent to anchor connector lines to the true card bottom
+  // instead of a guessed constant. onHeightChangeRef keeps the effect from
+  // re-running (and re-creating the observer) on every parent re-render.
+  const onHeightChangeRef = useRef(onHeightChange)
+  onHeightChangeRef.current = onHeightChange
+  useEffect(() => {
+    const el = cardRef.current
+    if (!el) return
+    const report = () => onHeightChangeRef.current?.(el.offsetHeight)
+    report()
+    const observer = new ResizeObserver(report)
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
 
   // Sync position when node prop changes (e.g. after server update)
   if (!dragging.current && (pos.x !== node.x || pos.y !== node.y)) {
@@ -74,6 +93,7 @@ export function NodeCard({ node, scale, isExpanding, onExpand, onAnswer, onDelet
 
   return (
     <div
+      ref={cardRef}
       className="node-card"
       style={{ left: pos.x, top: pos.y, '--node-color': color } as React.CSSProperties}
       onMouseDown={handleMouseDown}

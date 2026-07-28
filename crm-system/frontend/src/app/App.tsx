@@ -87,7 +87,7 @@ export function App(): React.JSX.Element {
 
   return (
     <TooltipProvider delayDuration={300}>
-      <div className="h-full">
+      <div className="h-screen">
         <AuthProvider>
           <AuthGate />
         </AuthProvider>
