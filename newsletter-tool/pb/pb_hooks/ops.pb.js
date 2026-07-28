@@ -79,3 +79,11 @@ routerAdd('POST', '/api/ops/ai/draft', (e) => {
   }
   return e.json(200, { subject: subject, body: draft });
 });
+
+// integrations.status — whether the CraftBot LLM bridge is configured, so
+// the frontend can show an honest "AI writer" connected/disconnected state
+// instead of guessing (the browser itself has no way to see these env vars).
+routerAdd('GET', '/api/ops/integrations/status', (e) => {
+  const configured = !!($os.getenv('CRAFTBOT_BRIDGE_URL') && $os.getenv('CRAFTBOT_BRIDGE_TOKEN'));
+  return e.json(200, { llm: { connected: configured } });
+});
