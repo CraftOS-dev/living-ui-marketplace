@@ -1,0 +1,55 @@
+{
+  "opsVersion": 1,
+  "operations": [
+    {
+      "name": "health",
+      "description": "Liveness check (PocketBase built-in).",
+      "system": true,
+      "params": {},
+      "executor": { "type": "http", "method": "GET", "path": "/api/health" }
+    },
+    {
+      "name": "ops.list",
+      "description": "Return this operations manifest.",
+      "system": true,
+      "params": {},
+      "executor": { "type": "http", "method": "GET", "path": "/api/_ops" }
+    },
+    {
+      "name": "emails.send",
+      "description": "Send an email via the CraftBot Gmail integration (falls back to logging locally when unavailable). Always records an emails row.",
+      "destructive": true,
+      "params": {
+        "to": { "type": "string", "required": true, "description": "Recipient email." },
+        "subject": { "type": "string", "required": true, "description": "Email subject." },
+        "body": { "type": "string", "required": false, "description": "Plain-text body." },
+        "person_id": { "type": "string", "required": false, "description": "Optional person record to attach the email to." }
+      },
+      "executor": { "type": "http", "method": "POST", "path": "/api/ops/emails/send" }
+    },
+    {
+      "name": "ai.chat",
+      "description": "One CRM assistant chat turn via the CraftBot LLM bridge (client keeps history; 503 outside CraftBot).",
+      "params": {
+        "message": { "type": "string", "required": true, "description": "The user message." },
+        "history": { "type": "string", "required": false, "description": "Optional prior turns as [{role, content}]." }
+      },
+      "executor": { "type": "http", "method": "POST", "path": "/api/ops/ai/chat" }
+    },
+    {
+      "name": "records.summarize",
+      "description": "AI summary of a person/company/deal with its notes, tasks and activity (CraftBot LLM bridge; 503 outside CraftBot).",
+      "params": {
+        "kind": { "type": "string", "required": true, "description": "people | companies | deals" },
+        "id": { "type": "string", "required": true, "description": "The record id." }
+      },
+      "executor": { "type": "http", "method": "POST", "path": "/api/ops/records/summarize" }
+    },
+    {
+      "name": "pipeline.summary",
+      "description": "Deal count and total value per pipeline stage.",
+      "params": {},
+      "executor": { "type": "http", "method": "GET", "path": "/api/ops/pipeline/summary" }
+    }
+  ]
+}
