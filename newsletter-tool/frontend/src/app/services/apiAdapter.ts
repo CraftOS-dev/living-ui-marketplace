@@ -934,9 +934,12 @@ async function handleRotateSubscribeKey(): Promise<Response> {
   return json(toIdentity(await getSettingsRecord()))
 }
 
-function handleIntegrations(): Response {
-  // No reliable client-side probe; the AIPanel only uses this to show a hint.
-  return json({ llm: { connected: false }, gmail: { bridge: false, connected: false } })
+async function handleIntegrations(): Promise<Response> {
+  // The browser can't see CRAFTBOT_BRIDGE_URL/TOKEN itself, but the
+  // PocketBase hook runs server-side and can check them directly.
+  const { ok, body } = await opGet('/api/ops/integrations/status')
+  const llmConnected = ok && !!(body.llm as Dict | undefined)?.connected
+  return json({ llm: { connected: llmConnected }, gmail: { bridge: false, connected: false } })
 }
 
 // ===========================================================================
