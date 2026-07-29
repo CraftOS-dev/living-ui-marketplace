@@ -28,8 +28,8 @@ const CHART = {
   c3: 'hsl(var(--chart-3))',
   c4: 'hsl(var(--chart-4))',
   c5: 'hsl(var(--chart-5))',
-  grid: 'hsl(var(--border))',
-  ink: 'hsl(var(--muted-foreground))',
+  grid: 'var(--border)',
+  ink: 'var(--muted-foreground)',
 }
 
 // Fixed categorical order — validated palette (dataviz skill)
@@ -255,7 +255,7 @@ export function Reports() {
                   <CartesianGrid stroke={CHART.grid} strokeDasharray="0" vertical={false} />
                   <XAxis dataKey="label" tick={{ fill: CHART.ink, fontSize: 11 }} axisLine={{ stroke: CHART.grid }} tickLine={false} />
                   <YAxis tickFormatter={(value: number) => formatCompactCurrency(value)} tick={{ fill: CHART.ink, fontSize: 11 }} axisLine={false} tickLine={false} width={48} />
-                  <Tooltip content={<ChartTooltip />} cursor={{ fill: 'hsl(var(--accent))' }} />
+                  <Tooltip content={<ChartTooltip />} cursor={{ fill: 'var(--accent)' }} />
                   <Bar dataKey="wonValue" name="Won value" fill={CHART.c2} radius={[4, 4, 0, 0]} maxBarSize={36} />
                 </BarChart>
               </ResponsiveContainer>
@@ -303,7 +303,7 @@ export function Reports() {
                     <CartesianGrid stroke={CHART.grid} vertical={false} />
                     <XAxis dataKey="label" tick={{ fill: CHART.ink, fontSize: 11 }} axisLine={{ stroke: CHART.grid }} tickLine={false} />
                     <YAxis allowDecimals={false} tick={{ fill: CHART.ink, fontSize: 11 }} axisLine={false} tickLine={false} width={32} />
-                    <Tooltip content={<ChartTooltip />} cursor={{ fill: 'hsl(var(--accent))' }} />
+                    <Tooltip content={<ChartTooltip />} cursor={{ fill: 'var(--accent)' }} />
                     {VOLUME_SERIES.map((series, index) => (
                       <Bar
                         key={series.key}
@@ -311,7 +311,7 @@ export function Reports() {
                         name={series.label}
                         stackId="volume"
                         fill={series.color}
-                        stroke="hsl(var(--card))"
+                        stroke="var(--card)"
                         strokeWidth={1}
                         radius={index === VOLUME_SERIES.length - 1 ? [4, 4, 0, 0] : [0, 0, 0, 0]}
                         maxBarSize={40}

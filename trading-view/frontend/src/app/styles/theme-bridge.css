@@ -1,0 +1,34 @@
+/**
+ * Bridges this app's legacy design-system variable names (--bg-primary,
+ * --color-primary, etc., read throughout components/*) onto the kit's
+ * --lui-* tokens (set on <html> by kit/theme/bridge.ts's ThemeBridge via
+ * data-style/data-theme). Generic by design — any theme added to
+ * living-ui-v2/kit/src/theme/tokens.css works here automatically, no
+ * per-theme cases needed.
+ */
+:root {
+  --bg-primary: var(--lui-bg);
+  --bg-secondary: var(--lui-surface);
+  --bg-tertiary: color-mix(in srgb, var(--lui-surface) 50%, var(--lui-bg) 50%);
+  --text-primary: var(--lui-text);
+  --text-secondary: color-mix(in srgb, var(--lui-text) 65%, var(--lui-bg) 35%);
+  --text-muted: color-mix(in srgb, var(--lui-text) 40%, var(--lui-bg) 60%);
+  --border-primary: var(--lui-border);
+  --border-secondary: color-mix(in srgb, var(--lui-border) 60%, var(--lui-bg) 40%);
+  --color-primary: var(--lui-accent);
+  --color-primary-hover: color-mix(in srgb, var(--lui-accent) 82%, black 18%);
+  --color-primary-light: color-mix(in srgb, var(--lui-accent) 15%, transparent);
+  --color-primary-subtle: color-mix(in srgb, var(--lui-accent) 8%, transparent);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.6);
+  --overlay-color: rgba(0, 0, 0, 0.6);
+}
+
+:root[data-theme='light'] {
+  --color-primary-hover: color-mix(in srgb, var(--lui-accent) 82%, white 18%);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.12);
+  --overlay-color: rgba(0, 0, 0, 0.4);
+}

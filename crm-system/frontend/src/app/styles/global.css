@@ -9,35 +9,42 @@
  * `border-border` generate exactly as before, and keeps every original var and
  * base/utility rule verbatim. Look is unchanged.
  *
- * Dark mode is the default (host sets data-theme="dark" before paint);
- * light mode overrides live under [data-theme="light"].
+ * Theme colors (--background, --card, --primary, --border, etc.) are bridged
+ * onto the kit's --lui-* tokens (set on <html> by kit/theme/bridge.ts's
+ * ThemeBridge via data-style/data-theme) so this app follows the full Living UI
+ * theme catalog instead of one fixed palette. --lui-* are plain color values
+ * (hex/rgba), not HSL triplets, so these vars hold plain colors too — every
+ * `hsl(var(--x))` consumer (this file's @theme inline, plus
+ * components/pages/Reports.tsx's chart colors) was updated to `var(--x)`
+ * accordingly. --destructive and --chart-* stay static (semantic red /
+ * validated dataviz palette — not theme-driven).
  */
 @import 'tailwindcss';
 @import 'tw-animate-css';
 
 @custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
 
-/* Map the shadcn HSL tokens onto Tailwind v4 theme keys (was tailwind.config). */
+/* Map the shadcn tokens onto Tailwind v4 theme keys (was tailwind.config). */
 @theme inline {
-  --color-background: hsl(var(--background));
-  --color-foreground: hsl(var(--foreground));
-  --color-card: hsl(var(--card));
-  --color-card-foreground: hsl(var(--card-foreground));
-  --color-popover: hsl(var(--popover));
-  --color-popover-foreground: hsl(var(--popover-foreground));
-  --color-primary: hsl(var(--primary));
-  --color-primary-foreground: hsl(var(--primary-foreground));
-  --color-secondary: hsl(var(--secondary));
-  --color-secondary-foreground: hsl(var(--secondary-foreground));
-  --color-muted: hsl(var(--muted));
-  --color-muted-foreground: hsl(var(--muted-foreground));
-  --color-accent: hsl(var(--accent));
-  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
   --color-destructive: hsl(var(--destructive));
   --color-destructive-foreground: hsl(var(--destructive-foreground));
-  --color-border: hsl(var(--border));
-  --color-input: hsl(var(--input));
-  --color-ring: hsl(var(--ring));
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
   --color-chart-1: hsl(var(--chart-1));
   --color-chart-2: hsl(var(--chart-2));
   --color-chart-3: hsl(var(--chart-3));
@@ -51,26 +58,26 @@
 
 @layer base {
   :root {
-    --background: 240 6% 5%;
-    --foreground: 0 0% 96%;
-    --card: 240 5% 7%;
-    --card-foreground: 0 0% 96%;
-    --popover: 240 5% 8%;
-    --popover-foreground: 0 0% 96%;
-    --primary: 14 100% 55%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 240 4% 13%;
-    --secondary-foreground: 0 0% 90%;
-    --muted: 240 4% 12%;
-    --muted-foreground: 240 4% 62%;
-    --accent: 240 4% 14%;
-    --accent-foreground: 0 0% 96%;
+    --background: var(--lui-bg);
+    --foreground: var(--lui-text);
+    --card: var(--lui-surface);
+    --card-foreground: var(--lui-text);
+    --popover: var(--lui-surface);
+    --popover-foreground: var(--lui-text);
+    --primary: var(--lui-accent);
+    --primary-foreground: var(--lui-accent-contrast);
+    --secondary: color-mix(in srgb, var(--lui-surface) 70%, var(--lui-bg) 30%);
+    --secondary-foreground: var(--lui-text);
+    --muted: color-mix(in srgb, var(--lui-surface) 60%, var(--lui-bg) 40%);
+    --muted-foreground: var(--lui-muted);
+    --accent: color-mix(in srgb, var(--lui-surface) 80%, var(--lui-accent) 20%);
+    --accent-foreground: var(--lui-text);
     --destructive: 0 68% 50%;
     --destructive-foreground: 0 0% 100%;
-    --border: 240 4% 16%;
-    --input: 240 4% 18%;
-    --ring: 14 100% 55%;
-    --radius: 0.5rem;
+    --border: var(--lui-border);
+    --input: var(--lui-border);
+    --ring: var(--lui-accent);
+    --radius: var(--lui-radius);
     /* Chart palette validated (dataviz six checks) for dark & light surfaces */
     --chart-1: 17 87% 47%;
     --chart-2: 210 64% 50%;
@@ -80,30 +87,8 @@
   }
 
   [data-theme='light'] {
-    --background: 0 0% 100%;
-    --foreground: 240 6% 10%;
-    --card: 0 0% 100%;
-    --card-foreground: 240 6% 10%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 240 6% 10%;
-    --primary: 14 100% 50%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 240 5% 96%;
-    --secondary-foreground: 240 6% 14%;
-    --muted: 240 5% 96%;
-    --muted-foreground: 240 4% 42%;
-    --accent: 240 5% 95%;
-    --accent-foreground: 240 6% 10%;
     --destructive: 0 72% 48%;
     --destructive-foreground: 0 0% 100%;
-    --border: 240 6% 89%;
-    --input: 240 6% 85%;
-    --ring: 14 100% 50%;
-    --chart-1: 17 87% 47%;
-    --chart-2: 210 64% 50%;
-    --chart-3: 151 67% 37%;
-    --chart-4: 43 89% 35%;
-    --chart-5: 263 60% 60%;
   }
 
   * {
@@ -131,11 +116,11 @@
     background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    background: hsl(var(--border));
+    background: var(--border);
     border-radius: 4px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: hsl(var(--muted-foreground) / 0.4);
+    background: color-mix(in srgb, var(--muted-foreground) 40%, transparent);
   }
 }
 
