@@ -32,6 +32,20 @@ const CHART = {
   ink: 'var(--muted-foreground)',
 }
 
+// Recharts bakes its `radius` prop directly into the bar's SVG path, so no
+// CSS rule can flatten it for the brutalist style — watch data-style instead.
+function useSharpCorners(): boolean {
+  const [sharp, setSharp] = useState(() => document.documentElement.getAttribute('data-style') === 'brutalist')
+  useEffect(() => {
+    const root = document.documentElement
+    const update = () => setSharp(root.getAttribute('data-style') === 'brutalist')
+    const observer = new MutationObserver(update)
+    observer.observe(root, { attributes: true, attributeFilter: ['data-style'] })
+    return () => observer.disconnect()
+  }, [])
+  return sharp
+}
+
 // Fixed categorical order — validated palette (dataviz skill)
 const VOLUME_SERIES: { key: 'emails' | 'notes' | 'tasks' | 'meetings' | 'changes'; label: string; color: string }[] = [
   { key: 'emails', label: 'Emails', color: CHART.c2 },
@@ -68,6 +82,7 @@ export function Reports() {
   const [velocity, setVelocity] = useState<VelocityReport | null>(null)
   const [volume, setVolume] = useState<ActivityVolumeReport | null>(null)
   const [loading, setLoading] = useState(true)
+  const sharpCorners = useSharpCorners()
 
   const load = useCallback(() => {
     setLoading(true)
@@ -256,7 +271,7 @@ export function Reports() {
                   <XAxis dataKey="label" tick={{ fill: CHART.ink, fontSize: 11 }} axisLine={{ stroke: CHART.grid }} tickLine={false} />
                   <YAxis tickFormatter={(value: number) => formatCompactCurrency(value)} tick={{ fill: CHART.ink, fontSize: 11 }} axisLine={false} tickLine={false} width={48} />
                   <Tooltip content={<ChartTooltip />} cursor={{ fill: 'var(--accent)' }} />
-                  <Bar dataKey="wonValue" name="Won value" fill={CHART.c2} radius={[4, 4, 0, 0]} maxBarSize={36} />
+                  <Bar dataKey="wonValue" name="Won value" fill={CHART.c2} radius={sharpCorners ? [0, 0, 0, 0] : [4, 4, 0, 0]} maxBarSize={36} />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
@@ -313,7 +328,7 @@ export function Reports() {
                         fill={series.color}
                         stroke="var(--card)"
                         strokeWidth={1}
-                        radius={index === VOLUME_SERIES.length - 1 ? [4, 4, 0, 0] : [0, 0, 0, 0]}
+                        radius={!sharpCorners && index === VOLUME_SERIES.length - 1 ? [4, 4, 0, 0] : [0, 0, 0, 0]}
                         maxBarSize={40}
                       />
                     ))}

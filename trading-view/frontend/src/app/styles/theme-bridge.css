@@ -43,3 +43,18 @@
   --radius-xl: 0;
   --radius-full: 0;
 }
+
+/* The variables above only flatten code that reads them. Plenty of
+   components hardcode border-radius (px/%/999) or use static Tailwind
+   rounded-* classes (rounded-full has no CSS var backing in Tailwind v4 at
+   all), and react-toastify ships its own rounded corners. Force every
+   element flat as a blanket guarantee instead of chasing each one. */
+:root[data-style='brutalist'] *,
+:root[data-style='brutalist'] *::before,
+:root[data-style='brutalist'] *::after {
+  border-radius: 0 !important;
+}
+:root[data-style='brutalist'] rect {
+  rx: 0;
+  ry: 0;
+}

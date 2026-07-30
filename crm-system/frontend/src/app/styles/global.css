@@ -122,6 +122,21 @@
   ::-webkit-scrollbar-thumb:hover {
     background: color-mix(in srgb, var(--muted-foreground) 40%, transparent);
   }
+
+  /* --radius already zeroes for brutalist via --lui-radius, but --radius-xl's
+     `+ 4px` offset survives a zero base, and plenty of components hardcode
+     border-radius (px/%/999) or use static Tailwind rounded-* classes
+     (rounded-full has no CSS var backing in Tailwind v4 at all). Force every
+     element flat as a blanket guarantee instead of chasing each one. */
+  :root[data-style='brutalist'] *,
+  :root[data-style='brutalist'] *::before,
+  :root[data-style='brutalist'] *::after {
+    border-radius: 0 !important;
+  }
+  :root[data-style='brutalist'] rect {
+    rx: 0;
+    ry: 0;
+  }
 }
 
 @layer utilities {
