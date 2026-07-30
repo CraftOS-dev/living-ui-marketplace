@@ -32,3 +32,14 @@
   --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.12);
   --overlay-color: rgba(0, 0, 0, 0.4);
 }
+
+/* Brutalist is hard-edged by design (kit tokens.css already sets
+   --lui-radius: 0 for it) — flatten every corner, including fully-round
+   elements like the scrollbar thumb and avatar/badge pills. */
+:root[data-style='brutalist'] {
+  --radius-sm: 0;
+  --radius-md: 0;
+  --radius-lg: 0;
+  --radius-xl: 0;
+  --radius-full: 0;
+}
