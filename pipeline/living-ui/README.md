@@ -313,6 +313,8 @@ The kickoff prompt sets the mode on its `Mode:` line.
 
 **Guide/pipeline contradiction** — if these docs and [agent-guide.md](../../../../living-ui-v2/docs/agent-guide.md) genuinely conflict: the guide wins for build mechanics, this pipeline wins for process/state; record the conflict as a `PROPOSAL:` in LESSONS.md.
 
+**A research run that claims completion isn't necessarily one.** A run (`pokedex-web-app-20260803`) once declared "FULLY COMPLETED, ALL GATES PASSED" in a self-authored summary file while `ITERATION_LOG.md` held exactly one line and none of RESEARCH_PIPELINE.md's required `SPEC.md`/`DESIGN_SPEC.md`/lane files existed. Before trusting a "research complete" message: check `ITERATION_LOG.md` actually reached `HANDOFF`, and check the files that exist match RESEARCH_PIPELINE.md's named set (§0.2 of that doc) — not a plausible-sounding but different set of documents. If either check fails, the handoff didn't happen regardless of what the message says; treat it like any stuck `HANDOFF` (§5) and re-kick or resume manually.
+
 ---
 
 ## 9. Token budget
