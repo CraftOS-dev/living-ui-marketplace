@@ -51,6 +51,11 @@ async def init_db():
             conn.exec_driver_sql("ALTER TABLE sheets ADD COLUMN row_heights JSON DEFAULT '{}'")
             conn.commit()
             logger.info("[Database] Migrated sheets table: added row_heights column")
+        if cols and "frozen_rows" not in cols:
+            conn.exec_driver_sql("ALTER TABLE sheets ADD COLUMN frozen_rows INTEGER DEFAULT 0")
+            conn.exec_driver_sql("ALTER TABLE sheets ADD COLUMN frozen_cols INTEGER DEFAULT 0")
+            conn.commit()
+            logger.info("[Database] Migrated sheets table: added frozen_rows/frozen_cols columns")
 
     # Ensure default app state exists
     from models import AppState

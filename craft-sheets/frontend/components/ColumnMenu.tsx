@@ -10,6 +10,8 @@ interface ColumnMenuProps {
   canDelete: boolean
   onRename: (index: number, name: string) => void
   onRetype: (index: number, type: ColumnType) => void
+  onInsertLeft: (index: number) => void
+  onInsertRight: (index: number) => void
   onDelete: (index: number) => void
   onClose: () => void
 }
@@ -29,6 +31,8 @@ export function ColumnMenu({
   canDelete,
   onRename,
   onRetype,
+  onInsertLeft,
+  onInsertRight,
   onDelete,
   onClose,
 }: ColumnMenuProps) {
@@ -95,6 +99,14 @@ export function ColumnMenu({
         options={TYPE_OPTIONS}
         onChange={(e) => onRetype(index, e.target.value as ColumnType)}
       />
+      <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
+        <Button variant="secondary" size="sm" fullWidth onClick={() => { onInsertLeft(index); onClose() }}>
+          Insert left
+        </Button>
+        <Button variant="secondary" size="sm" fullWidth onClick={() => { onInsertRight(index); onClose() }}>
+          Insert right
+        </Button>
+      </div>
       <Button
         variant="danger"
         size="sm"

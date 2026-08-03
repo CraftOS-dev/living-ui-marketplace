@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { toast } from 'react-toastify'
+import { ClipboardList, Image, Film, Youtube, FileText, StickyNote, type LucideIcon } from 'lucide-react'
 import { Button, EmptyState, Input } from './ui'
-import { ItemCard } from './ItemCard'
+import { ItemCard, CARD_WIDTH, CARD_HEIGHT } from './ItemCard'
 import { AddItemModal } from './AddItemModal'
 import { ItemDetailModal } from './ItemDetailModal'
 import { ConnectionLines } from './ConnectionLines'
@@ -13,12 +14,12 @@ interface MainViewProps {
   controller: AppController
 }
 
-const ITEM_TYPES: { type: ItemType; label: string; icon: string; color: string }[] = [
-  { type: 'image', label: 'Image', icon: '🖼️', color: '#6366f1' },
-  { type: 'video', label: 'Video', icon: '🎬', color: '#8b5cf6' },
-  { type: 'youtube', label: 'YouTube', icon: '📺', color: '#ef4444' },
-  { type: 'doc', label: 'Document', icon: '📄', color: '#06b6d4' },
-  { type: 'note', label: 'Note', icon: '📝', color: '#f59e0b' },
+const ITEM_TYPES: { type: ItemType; label: string; icon: LucideIcon; color: string }[] = [
+  { type: 'image', label: 'Image', icon: Image, color: '#6366f1' },
+  { type: 'video', label: 'Video', icon: Film, color: '#8b5cf6' },
+  { type: 'youtube', label: 'YouTube', icon: Youtube, color: '#ef4444' },
+  { type: 'doc', label: 'Document', icon: FileText, color: '#06b6d4' },
+  { type: 'note', label: 'Note', icon: StickyNote, color: '#f59e0b' },
 ]
 
 export function MainView({ controller }: MainViewProps) {
@@ -37,8 +38,8 @@ export function MainView({ controller }: MainViewProps) {
   const [searchQuery, setSearchQuery] = useState('')
   const [filterType, setFilterType] = useState<ItemType | ''>('')
   const [connections, setConnections] = useState<Connection[]>([])
-  const [connectMode, setConnectMode] = useState(false)
-  const [connectSource, setConnectSource] = useState<BoardItem | null>(null)
+  const [connectDrag, setConnectDrag] = useState<{ sourceId: number; x: number; y: number } | null>(null)
+  const [connectHoverTargetId, setConnectHoverTargetId] = useState<number | null>(null)
 
   const loadItems = useCallback(async () => {
     try {
@@ -98,46 +99,69 @@ export function MainView({ controller }: MainViewProps) {
   }
 
   const handleDragEnd = async (id: number, x: number, y: number) => {
-    // Adjust for canvas offset
-    const adjustedX = x - canvasOffset.x
-    const adjustedY = y - canvasOffset.y
-    setItems(prev => prev.map(item => item.id === id ? { ...item, x: adjustedX, y: adjustedY } : item))
+    // x/y are already canvas-local (offset-independent) — they come from the
+    // same coordinate math as item.x/item.y, so no further adjustment needed.
+    setItems(prev => prev.map(item => item.id === id ? { ...item, x, y } : item))
     try {
-      await controller.updateItem(id, { x: adjustedX, y: adjustedY })
+      await controller.updateItem(id, { x, y })
     } catch (err) {
       // Silently fail position updates
       console.error('Failed to save position:', err)
     }
   }
 
-  const handleItemClick = async (item: BoardItem) => {
-    if (connectMode) {
-      if (!connectSource) {
-        // First click - set source
-        setConnectSource(item)
-        toast.info(`Source selected: "${item.title}" - now click the target item`)
-      } else if (connectSource.id === item.id) {
-        // Clicked same item - cancel
-        setConnectSource(null)
-        toast.info('Connection cancelled')
-      } else {
-        // Second click - create connection
-        try {
-          const conn = await controller.createConnection(connectSource.id, item.id)
-          setConnections(prev => {
-            if (prev.find(c => c.id === conn.id)) return prev
-            return [...prev, conn]
-          })
-          toast.success('Connection created!')
-        } catch (err) {
-          toast.error('Failed to create connection')
-        }
-        setConnectSource(null)
-      }
-      return
-    }
+  const handleItemClick = (item: BoardItem) => {
     setSelectedItem(item)
     setDetailModalOpen(true)
+  }
+
+  // Drag-to-connect: mousedown on a card's connector handle starts this, tracking
+  // the live cursor in canvas-local coordinates and hit-testing against every
+  // other item so the hovered target can be highlighted and snapped onto.
+  const handleConnectorMouseDown = (sourceId: number, e: React.MouseEvent) => {
+    e.preventDefault()
+    const rect = canvasRef.current?.getBoundingClientRect()
+    if (!rect) return
+    const toCanvasLocal = (clientX: number, clientY: number) => ({
+      x: clientX - rect.left - canvasOffset.x,
+      y: clientY - rect.top - canvasOffset.y,
+    })
+    const hitTest = (pos: { x: number; y: number }) =>
+      items.find(it =>
+        it.id !== sourceId &&
+        pos.x >= it.x && pos.x <= it.x + CARD_WIDTH &&
+        pos.y >= it.y && pos.y <= it.y + CARD_HEIGHT
+      )
+
+    const start = toCanvasLocal(e.clientX, e.clientY)
+    setConnectDrag({ sourceId, x: start.x, y: start.y })
+
+    const onMove = (ev: MouseEvent) => {
+      const pos = toCanvasLocal(ev.clientX, ev.clientY)
+      setConnectDrag({ sourceId, x: pos.x, y: pos.y })
+      const target = hitTest(pos)
+      setConnectHoverTargetId(target ? target.id : null)
+    }
+
+    const onUp = (ev: MouseEvent) => {
+      document.removeEventListener('mousemove', onMove)
+      document.removeEventListener('mouseup', onUp)
+      const pos = toCanvasLocal(ev.clientX, ev.clientY)
+      const target = hitTest(pos)
+      setConnectDrag(null)
+      setConnectHoverTargetId(null)
+      if (target) {
+        controller.createConnection(sourceId, target.id)
+          .then(conn => {
+            setConnections(prev => prev.find(c => c.id === conn.id) ? prev : [...prev, conn])
+            toast.success('Connection created!')
+          })
+          .catch(() => toast.error('Failed to create connection'))
+      }
+    }
+
+    document.addEventListener('mousemove', onMove)
+    document.addEventListener('mouseup', onUp)
   }
 
   const handleDeleteConnection = async (id: number) => {
@@ -198,21 +222,21 @@ export function MainView({ controller }: MainViewProps) {
       {/* Sidebar */}
       <aside className="board-sidebar">
         <div className="sidebar-header">
-          <h1 className="sidebar-title">📋 {{APP_TITLE}}</h1>
+          <h1 className="sidebar-title"><ClipboardList size={16} /> {{APP_TITLE}}</h1>
           <p className="sidebar-subtitle">Organize & Plan</p>
         </div>
 
         <div className="sidebar-section">
           <p className="sidebar-section-label">ADD ITEM</p>
           <div className="sidebar-add-buttons">
-            {ITEM_TYPES.map(({ type, label, icon, color }) => (
+            {ITEM_TYPES.map(({ type, label, icon: Icon, color }) => (
               <button
                 key={type}
                 className="sidebar-add-btn"
                 onClick={() => handleAddButtonClick(type)}
                 title={`Add ${label}`}
               >
-                <span className="sidebar-btn-icon">{icon}</span>
+                <span className="sidebar-btn-icon"><Icon size={16} /></span>
                 <span className="sidebar-btn-label">{label}</span>
                 {itemCounts[type] > 0 && (
                   <span className="sidebar-btn-count" style={{ background: color }}>
@@ -231,27 +255,11 @@ export function MainView({ controller }: MainViewProps) {
               <span className="stat-value">{items.length}</span>
               <span className="stat-label">Total Items</span>
             </div>
+            <div className="stat-item">
+              <span className="stat-value">{connections.length}</span>
+              <span className="stat-label">Connections</span>
+            </div>
           </div>
-        </div>
-
-        <div className="sidebar-section">
-          <p className="sidebar-section-label">CONNECTIONS</p>
-          <button
-            className={`sidebar-add-btn ${connectMode ? 'connect-mode-active' : ''}`}
-            onClick={() => { setConnectMode(!connectMode); setConnectSource(null) }}
-            style={connectMode ? { background: 'rgba(239,68,68,0.15)', borderColor: '#ef4444', color: '#ef4444' } : {}}
-          >
-            <span className="sidebar-btn-icon">🔗</span>
-            <span className="sidebar-btn-label">{connectMode ? 'Exit Connect' : 'Connect Items'}</span>
-            {connections.length > 0 && (
-              <span className="sidebar-btn-count" style={{ background: '#ef4444' }}>{connections.length}</span>
-            )}
-          </button>
-          {connectMode && (
-            <p style={{ fontSize: '11px', color: '#ef4444', margin: '6px 0 0', lineHeight: 1.4 }}>
-              {connectSource ? `Click target for "${connectSource.title}"` : 'Click source item'}
-            </p>
-          )}
         </div>
 
         <div className="sidebar-footer">
@@ -284,7 +292,7 @@ export function MainView({ controller }: MainViewProps) {
             >
               All ({items.length})
             </button>
-            {ITEM_TYPES.map(({ type, label, icon, color }) => (
+            {ITEM_TYPES.map(({ type, label, icon: Icon, color }) => (
               itemCounts[type] > 0 && (
                 <button
                   key={type}
@@ -292,7 +300,7 @@ export function MainView({ controller }: MainViewProps) {
                   onClick={() => setFilterType(filterType === type ? '' : type)}
                   style={filterType === type ? { borderColor: color, color: color } : {}}
                 >
-                  {icon} {label} ({itemCounts[type]})
+                  <Icon size={12} /> {label} ({itemCounts[type]})
                 </button>
               )
             ))}
@@ -329,6 +337,7 @@ export function MainView({ controller }: MainViewProps) {
               connections={connections}
               canvasOffset={canvasOffset}
               onDeleteConnection={handleDeleteConnection}
+              connectDrag={connectDrag}
             />
             <div
               className="canvas-content"
@@ -337,20 +346,15 @@ export function MainView({ controller }: MainViewProps) {
               }}
             >
               {filteredItems.map(item => (
-                <div
+                <ItemCard
                   key={item.id}
-                  style={{
-                    outline: connectMode && connectSource?.id === item.id ? '2px solid #ef4444' : 'none',
-                    borderRadius: 'var(--radius-md)',
-                  }}
-                >
-                  <ItemCard
-                    item={item}
-                    onClick={() => handleItemClick(item)}
-                    onDrag={handleDrag}
-                    onDragEnd={handleDragEnd}
-                  />
-                </div>
+                  item={item}
+                  onClick={() => handleItemClick(item)}
+                  onDrag={handleDrag}
+                  onDragEnd={handleDragEnd}
+                  onConnectorMouseDown={handleConnectorMouseDown}
+                  isConnectHoverTarget={connectHoverTargetId === item.id}
+                />
               ))}
             </div>
           </div>
@@ -401,6 +405,9 @@ export function MainView({ controller }: MainViewProps) {
         }
 
         .sidebar-title {
+          display: flex;
+          align-items: center;
+          gap: 6px;
           font-size: 15px;
           font-weight: 700;
           color: var(--text-primary);
@@ -457,9 +464,11 @@ export function MainView({ controller }: MainViewProps) {
         }
 
         .sidebar-btn-icon {
-          font-size: 16px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
           width: 20px;
-          text-align: center;
+          flex-shrink: 0;
         }
 
         .sidebar-btn-label {
@@ -530,6 +539,9 @@ export function MainView({ controller }: MainViewProps) {
         }
 
         .filter-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
           padding: 4px 12px;
           font-size: 12px;
           font-weight: 500;

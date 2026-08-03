@@ -35,6 +35,9 @@ export interface Sheet {
   /** Sparse map of row index (as string) -> px height. Missing = default height. */
   rowHeights: Record<string, number>
   cells: Record<string, Cell>
+  /** Number of leading rows/columns pinned while scrolling (0 = none). */
+  frozenRows: number
+  frozenCols: number
   position: number
   createdAt?: string
   updatedAt?: string
