@@ -1,6 +1,6 @@
 # RESEARCH PIPELINE — run by CraftBot (stages R1–R8)
 
-This document is **complete and self-contained**. Do not read README.md, LIVING_UI_GUIDE.md, QA_GATES.md, or CREATION_PIPELINE.md — everything you need is in this file. Follow the stages **in order, one at a time**. Do not skip a stage. Do not start a stage before the previous stage's EXIT GATE passed.
+This document is **complete and self-contained**. Do not read README.md, QA_GATES.md, or CREATION_PIPELINE.md — everything you need is in this file. Follow the stages **in order, one at a time**. Do not skip a stage. Do not start a stage before the previous stage's EXIT GATE passed.
 
 **Paths.** Two forms, used for different tools:
 
@@ -13,16 +13,31 @@ They are the same folder: `/workspace/` = `agent_file_system\workspace\` inside 
 
 ## 0. Why you are doing this
 
-You are **stage 1 of 2** in building a **Living UI** — a small full-stack web app (FastAPI backend + React frontend) that gets published to the CraftBot marketplace. You do the research and write the specs. A second agent (**the creation runner**, a Claude Code session) does the coding. Your final stage launches it automatically.
+You are **stage 1 of 2** in building a **Living UI** — a small local web app that gets built, tested, and handed to the user. You do the research and write the specs. A second agent (**the creation runner**, a Claude Code session) does the coding. Your final stage launches it automatically.
 
 Your output — `SPEC.md`, `DESIGN_SPEC.md`, the `research/` files, and the `reference-shots/` screenshots — is **everything the builder gets** besides the human's original 1–10 sentence request. Anything you leave vague, the builder has to guess. Anything you get wrong, the builder builds wrong. The human is asleep during all of this: nobody will answer questions, so your specs must be complete.
 
-**Gold standard.** Before writing SPEC.md (stage R5) and DESIGN_SPEC.md (stage R7) you will read these two files in full and match their depth:
+### 0.1 What a Living UI actually is — read this before you spec anything
+
+Every claim in your SPEC must be buildable on **this** platform. Getting this wrong is the most expensive mistake available to you, because the builder discovers it hours later and has to rewrite your spec.
+
+- **One process.** A Living UI is a single **PocketBase** server that holds the database, the API, auth, realtime updates, and custom verbs, and also serves the React frontend. There is no Python, no FastAPI, no SQLAlchemy, no separate backend. Never spec "fully client-side", "localStorage persistence", or "no backend" — persistence is always PocketBase **collections**.
+- **Data lives in collections.** A collection is a table with typed fields. The field types you may use: `text`, `editor` (rich text), `number`, `bool`, `date`, `select` (a fixed value list), `relation` (a link to another collection), `file`, `json`. Every record automatically gets `id`, `created`, `updated`.
+- **The frontend is built from a fixed component kit.** The builder composes screens from the preset components listed in §5.7. It cannot install a UI framework or hand-roll a design system, and it cannot change colors or fonts — those come from CraftBot's design tokens.
+- **The app runs on the user's own machine (localhost).** Nothing on the internet can reach into it. **Never spec inbound webhooks, callback URLs, or "connect this app to your GitHub account" install flows.**
+- **Never spec credentials.** No OAuth flows, no personal access tokens, no "enter your API key" screens. CraftBot already holds the user's connected accounts (Gmail, Slack, Discord, Notion, GitHub, …) and the app reaches them through a built-in **zero-key bridge** the app's own backend routes can call. The bridge also offers in-app AI (summarize / classify / generate text).
+- **External data is PULLED, never pushed.** If the app shows data from an outside service, spec it as: a bridge pull when the page loads or the user hits refresh, plus a **scheduled operation** ("every 15m" / "daily 08:00") that syncs in the background. "Real-time" for external data means periodic refresh — write that.
+- **Realtime is only for the app's own records.** Lists update instantly when the app's own data changes. That is free and automatic; don't spec polling.
+- **Never depend on a browser permission prompt.** Location, notifications, and camera prompts are unreliable in the embedded tab. Location comes from a keyless backend lookup or a user-entered setting. Public data (weather, news, prices) is fetched by the backend from keyless public APIs and cached, degrading gracefully offline.
+
+**Gold standard.** Before writing SPEC.md (stage R5) and DESIGN_SPEC.md (stage R7) you will read these two files in full and match their **depth**:
 
 - `/workspace/pipeline/living-ui/runs/tierlist-20260709/SPEC.md`
 - `/workspace/pipeline/living-ui/runs/tierlist-20260709/DESIGN_SPEC.md`
 
 A previous run in the same product category produced specs half that depth. That run's app was rejected. Shallow specs fail this pipeline.
+
+> **Caveat on the gold files:** they were written for the platform's older version and use its vocabulary (FastAPI, SQLAlchemy models, `Literal[...]` types, separate backend/frontend ports). **Copy their depth and precision, never their platform words.** Yours uses PocketBase collections and the field types listed above.
 
 ---
 
@@ -31,25 +46,25 @@ A previous run in the same product category produced specs half that depth. That
 Read all of these now. Each one exists because a past run broke it and the run failed.
 
 1. **`runs/<run_id>/ITERATION_LOG.md` is the only state store.** There is no separate request or queue file — every status change is a line appended to that file, immediately, the moment it happens.
-2. **You own exactly three statuses: `RESEARCHING`, `SPEC_READY`, `HANDOFF`.** Never write any other status except `BLOCKED`. Statuses `BUILDING`, `SELF_QA`, `AWAITING_HUMAN_REVIEW`, `IMPROVING`, `PUBLISHING`, `DONE` belong to the creation runner — once you've logged `HANDOFF` and launched it, don't touch that run's folder again.
+2. **You own exactly three statuses: `RESEARCHING`, `SPEC_READY`, `HANDOFF`.** Never write any other status except `BLOCKED`. Statuses `BUILDING`, `SELF_QA`, `AWAITING_HUMAN_REVIEW`, `IMPROVING`, `PACKAGING`, `DONE` belong to the creation runner — once you've logged `HANDOFF` and launched it, don't touch that run's folder again.
 3. **Every gate is mechanical.** A gate passes when the command's printed output meets the stated pass condition — nothing else counts. You must paste the command output into ITERATION_LOG. **You may not explain a red result into a green one.** The words "expected", "artifact", "noise", "effectively", "should be fine" are banned in gate log lines. A past run logged a failing check as "expected test runner fuzzing artifacts" while the output said `"status": "fail"` — that run failed human review. If the output does not literally show the pass condition, the gate is red: fix the artifact and re-run the gate.
 4. **Every SPEC claim must trace to a source**: the request body, a human-pinned reference, a file in `runs/<run_id>/research/`, or a named Safe Assumption (§5.6). Claims with no source get cut.
 5. **The request text beats research.** If the human asked for something unusual, research informs *how*, never *whether*.
-6. **Scope caps: at most 6 entities, at most 8 Must features.** Overflow goes under `Won't (v1)` with a one-line note.
+6. **Scope caps: at most 6 collections, at most 8 Must features.** Overflow goes under `Won't (v1)` with a one-line note.
 7. **References inform structure, never identity.** Screenshots and competitor products dictate where things go and how they behave — never colors, fonts, logos, product names, or copy text. Visual identity is always CraftBot's design tokens. (Exception: colors that are the app's *user data* — e.g. tier-row colors in a tier-list app — belong in SPEC §3 as data.)
-8. **No feature may require credentials or external services** unless the request's `## Constraints` section explicitly says so.
+8. **No feature may require credentials, an inbound webhook, or a browser permission** (§0.1). Connected services are reached only through the zero-key bridge, and only services the requirement paragraph actually mentions.
 9. **Write files only inside `runs/<run_id>/`.** Nothing anywhere else.
-10. **Chunk large file writes — never one giant single-shot `write_file`.** A `write_file` action embeds its content inline as a JSON/Python-literal string; when that string runs long, the model's own response gets truncated mid-string and CraftBot's action parser fails with `Unable to parse action decision ... unterminated string` — this happened at the start of the writing phase in run craftdex-20260715. Any file likely to exceed ~150 lines (a verbatim research brief, SPEC.md, DESIGN_SPEC.md) must be written in sequential passes: an initial `write_file` with the first chunk, then `write_file` append (or `stream_edit`) calls for the rest.
+10. **Chunk large file writes — never one giant single-shot `write_file`.** A `write_file` action embeds its content inline as a string; when that string runs long, the model's own response gets truncated mid-string and CraftBot's action parser fails with `Unable to parse action decision ... unterminated string` — this happened at the start of the writing phase in run craftdex-20260715. Any file likely to exceed ~150 lines (a verbatim research brief, SPEC.md, DESIGN_SPEC.md) must be written in sequential passes: an initial `write_file` with the first chunk, then `write_file` append (or `stream_edit`) calls for the rest.
 
 **FORBIDDEN — never do these:**
 
 | Forbidden | Why (the failure it caused) |
 |---|---|
-| Calling the `living_ui_scaffold` action, or any app-scaffolding/build action | You are not building. A past run scaffolded mid-pipeline and broke every downstream assumption. Building is the creation runner's job. |
+| Calling the `living_ui_scaffold` action, or any app-scaffolding/build action | You are not building. It also registers a project in CraftBot's own list and dispatches a build to a *separate* session, which races the creation runner and puts the app outside the run folder. A past run did this and broke every downstream assumption. |
 | Skipping screenshot capture without writing `research/capture-fallback.md` (stage R6) | Run tiermaker-20260713 wrote "(no visual shots captured, text derived)" without attempting the fallback ladder. Its DESIGN_SPEC was shallow and the run was rejected. |
 | Summarizing, shortening, or paraphrasing a subagent's research brief before writing it to `research/` | Thin research files starve the SPEC. Write the returned brief **verbatim**. |
 | Marking a gate passed without pasting the command output | See hard rule 3. |
-| Editing files under `_template/`, any app folder, `LIVING_UI_GUIDE.md`, or any pipeline doc | Ground truth is read-only. |
+| Editing anything under `living-ui-v2/`, any app folder, or any pipeline doc | Ground truth is read-only. |
 | Polling, waiting on, or touching the run folder after stage R8's launch verification | After handoff the creation runner owns it. Two writers on the same ITERATION_LOG corrupts state. |
 | Asking the human a question | The human is asleep. Use a Safe Assumption (§5.6) and record it, or go BLOCKED (§6) if truly stuck. |
 
@@ -63,13 +78,16 @@ Lessons from past runs, restated as orders. (The creation runner appends here af
 
 1. Acceptance criteria must name a user action AND an observable result. "No blank canvas state" is not a criterion; "A new list opens with exactly 5 tiers labeled S, A, B, C, D, all empty" is.
 2. At least 3 acceptance criteria in the SPEC must verify persistence by saying what survives a page **reload**.
-3. Living UI apps have a FastAPI backend with a database. Never spec "fully client-side", "localStorage persistence", or "no backend" — a past SPEC did, contradicting the platform, and the builder had to rewrite it.
+3. Persistence is always PocketBase collections. Never spec "fully client-side", "localStorage persistence", or "no backend" — a past SPEC did, contradicting the platform, and the builder had to rewrite it.
 4. Every assumption needs a concrete `Fallback:` — what the builder changes if the assumption is wrong. "User confusion" is a risk, not a fallback.
-5. Enum-like fields (statuses, stages, categories with fixed values) must list every value explicitly in SPEC §3 — they become `Literal[...]` types. Never spec a field named `metadata`.
-6. The unranked/uncategorized "pool" pattern (items not yet placed) is modeled as a **nullable foreign key**, not a separate entity — check `research/data-model.md` for your category's equivalent core mechanic and make sure SPEC §3 models it.
-7. **No thin tabs.** If a screen/section (SPEC §4 or DESIGN_SPEC §3) would render with only a line or two of content — e.g. an evolution line rendered as just clickable name buttons — either fold it into an adjacent tab/section or spec enough depth to justify its own screen (related media, richer state, secondary actions). A tab that's mostly whitespace is a finding waiting to happen at G7.
+5. Enum-like fields (statuses, stages, categories with fixed values) are `select` fields and must list **every** value explicitly in SPEC §3. Never spec a field named `metadata`.
+6. The unranked/uncategorized "pool" pattern (items not yet placed) is modeled as an **optional `relation` field left empty**, not as a separate collection — check `research/data-model.md` for your category's equivalent core mechanic and make sure SPEC §3 models it.
+7. **No thin tabs.** If a screen/section (SPEC §4 or DESIGN_SPEC §3) would render with only a line or two of content — e.g. an evolution line rendered as just clickable name buttons — either fold it into an adjacent tab/section or spec enough depth to justify its own screen (related media, richer state, secondary actions). A tab that's mostly whitespace is a finding waiting to happen at review.
 8. **Filters must use the whole data model, not just the obvious fields.** Before capping the filter list, walk every field, tag, and boolean flag in SPEC §3 and ask whether it's a plausible filter/facet (categorical tags, rarity/status flags, derived groupings like "final evolution" or "starter"), not just the first 2–4 fields that come to mind.
 9. **A "bonus" feature beyond the core ask gets the same completeness bar as a Must.** If SPEC §4 adds a feature the human didn't ask for (e.g. a "Teams" builder bolted onto a Pokedex clone), its acceptance criteria must cover the feature's own natural sub-attributes (a team of Pokémon needs moves/ability/nature, not just species slots) — spec it fully or cut it to `Won't (v1)`, never half-deep.
+10. **Every collection needs a stated INGRESS** — how records actually get in. One of: a user form in the UI, a bridge pull from a named connected service (on load/refresh, plus a scheduled sync), a file import, or computed from other collections. An app whose whole purpose is showing outside data, with no ingress specified, is unbuildable — the builder has nothing to implement.
+11. **Never spec a feature that would require changing the platform.** The kit's components, the app shell, the theme, and the project manifest are locked and hash-checked; the builder physically cannot edit them. If the only way to get an effect is "modify the kit", spec the closest thing composable from §5.7's components instead, or cut it.
+12. **Auth mode is decided at scaffold time and shapes every collection rule.** If the request implies per-user data, accounts, or sharing, say so explicitly in SPEC §8 so the builder scaffolds `multi-user`. Otherwise state single-user/`none`. Switching later means rewriting every migration.
 
 ---
 
@@ -79,10 +97,11 @@ There's no queue folder. The human pastes a filled-in [NEW_APP_PROMPT.md](NEW_AP
 
 | Field | Notes |
 |---|---|
-| `app_name` (display name) | for the catalogue entry and manifest |
-| `slug` | kebab-case; app folder name **and** catalogue id; combine with today's date for `run_id` |
-| `tags` | 3–5, for the catalogue |
-| the `REQUIREMENT` paragraph | what to build — references/products the human likes and any hard constraints (auth, integrations, non-goals) are written directly into this paragraph now, not separate fields. Anything that reads like a pinned preference outranks whatever your own research finds; anything that reads like a hard constraint is read literally — only integrations mentioned there are allowed |
+| `app_name` (display name) | the app's real name, used at scaffold time |
+| `slug` | kebab-case; combine with today's date for `run_id` |
+| `tags` | 3–5, descriptive |
+| `auth_mode` | `none` (single user, the default) or `multi-user` (accounts). Carry it into SPEC §8 verbatim — the builder passes it to the scaffolder and every collection rule depends on it |
+| the `REQUIREMENT` paragraph | what to build — references/products the human likes and any hard constraints (auth, integrations, non-goals) are written directly into this paragraph, not separate fields. Anything that reads like a pinned preference outranks whatever your own research finds; anything that reads like a hard constraint is read literally — only connected services mentioned there are allowed |
 
 Before you do anything else: check whether a run is already in flight — see R1 step 1. If one is, resume it instead of starting the pasted request.
 
@@ -107,12 +126,12 @@ When a gate output is multi-line, paste it in a fenced block directly under the 
 **Entry:** you were kicked off in Mode RESEARCH with a filled-in NEW_APP_PROMPT.md message.
 
 1. Check for an in-flight run first: `list_folder` on `/workspace/pipeline/living-ui/runs/`, then read the `ITERATION_LOG.md` of any folder that isn't obviously finished. If one has a last-logged status of `RESEARCHING` or `SPEC_READY`, **resume that run instead** — read its log bottom-up, verify the last logged claim against the actual files, continue from the first stage whose EXIT GATE output is not in the log. Otherwise, proceed with the pasted request below.
-2. Read the pasted kickoff message for `app_name`, `slug`, `tags`, and the `REQUIREMENT` paragraph. If any is missing or the slug isn't kebab-case, go BLOCKED (§6) rather than guess.
-3. Verify the creation runner is launchable NOW (so a broken handoff fails at minute 1, not hour 6). Run:
+2. Read the pasted kickoff message for `app_name`, `slug`, `tags`, `auth_mode`, and the `REQUIREMENT` paragraph. If any is missing or the slug isn't kebab-case, go BLOCKED (§6) rather than guess. (If `auth_mode` alone is missing, default it to `none` and record that as a Safe Assumption — don't block on it.)
+3. Verify the creation runner is launchable NOW, and that its toolchain exists (so a broken handoff fails at minute 1, not hour 6). Run:
    ```json
-   run_shell: { "command": "where claude", "shell": "cmd", "cwd": "d:\\tempCraftBot\\CraftBot" }
+   run_shell: { "command": "where claude & node --version", "shell": "cmd", "cwd": "d:\\tempCraftBot\\CraftBot" }
    ```
-   **If the output is empty or an error**: this run can't be started — tell the human `claude` CLI isn't on PATH (install standalone Claude Code CLI) and stop. Nothing has been created yet, so there's no run to mark BLOCKED.
+   **If no claude path prints, or the Node version is below v24**: this run can't be started — tell the human which one is missing (standalone Claude Code CLI on PATH; Node.js ≥ 24) and stop. Nothing has been created yet, so there's no run to mark BLOCKED.
 4. Compute `run_id: <slug>-<YYYYMMDD>` using today's date. Create the run folder skeleton:
    ```json
    run_shell: { "command": "mkdir agent_file_system\\workspace\\pipeline\\living-ui\\runs\\<run_id>\\research agent_file_system\\workspace\\pipeline\\living-ui\\runs\\<run_id>\\reference-shots", "shell": "cmd", "cwd": "d:\\tempCraftBot\\CraftBot" }
@@ -123,19 +142,19 @@ When a gate output is multi-line, paste it in a fenced block directly under the 
    Started: <timestamp> by craftbot-research
    Pipeline: RESEARCH (R1–R8)
 
-   App: <app_name>   Slug: <slug>   Tags: <tags>
+   App: <app_name>   Slug: <slug>   Tags: <tags>   Auth mode: <none|multi-user>
    Requirement (verbatim):
    <the full REQUIREMENT paragraph from the kickoff message>
    ---
-   <timestamp> | RESEARCHING | started, run folder created, claude CLI found at <path from step 3> | next: R2 decompose
+   <timestamp> | RESEARCHING | started, run folder created, claude CLI at <path>, node <version> | next: R2 decompose
    ```
 6. Create the R1–R8 todo list with `task_update_todos`.
 
-**EXIT GATE** (paste all three outputs):
+**EXIT GATE** (paste all outputs):
 ```json
-run_shell: { "command": "where claude & dir /b agent_file_system\\workspace\\pipeline\\living-ui\\runs\\<run_id> & findstr /c:\"RESEARCHING\" agent_file_system\\workspace\\pipeline\\living-ui\\runs\\<run_id>\\ITERATION_LOG.md", "shell": "cmd", "cwd": "d:\\tempCraftBot\\CraftBot" }
+run_shell: { "command": "where claude & node --version & dir /b agent_file_system\\workspace\\pipeline\\living-ui\\runs\\<run_id> & findstr /c:\"RESEARCHING\" agent_file_system\\workspace\\pipeline\\living-ui\\runs\\<run_id>\\ITERATION_LOG.md", "shell": "cmd", "cwd": "d:\\tempCraftBot\\CraftBot" }
 ```
-**Pass:** a claude path is printed, `research` and `reference-shots` are listed, and a `RESEARCHING` line is printed. Anything missing → fix it, re-run the gate.
+**Pass:** a claude path is printed, the node version is v24 or higher, `research` and `reference-shots` are listed, and a `RESEARCHING` line is printed. Anything missing → fix it, re-run the gate.
 
 ---
 
@@ -152,7 +171,7 @@ run_shell: { "command": "where claude & dir /b agent_file_system\\workspace\\pip
 
    ## Constraints
    <every hard constraint you can find in the requirement paragraph — auth needs,
-   named integrations, explicit non-goals ("no email sending") — pulled out as a
+   named connected services, explicit non-goals ("no email sending") — pulled out as a
    bullet list, one per line; or "none stated">
 
    ## Pinned references
@@ -189,13 +208,14 @@ run_shell: { "command": "for %f in (features competitors ux-patterns data-model)
 ### R4 — Merge findings & questionnaire self-interview
 
 1. Read all four `research/*.md` files.
-2. Build one candidate feature/entity set. Resolve every conflict by this precedence, highest first:
+2. Build one candidate feature/collection set. Resolve every conflict by this precedence, highest first:
    ```
    request body > pinned references > research consensus (2+ lanes agree) > single-lane finding > Safe Assumption
    ```
 3. Apply the scope caps (hard rule 6). Rank Must candidates by: core to the category (features lane) → needed by another Must → effort. Cut from the bottom into `Should`, then `Won't (v1)`.
-4. If the lanes genuinely disagree on something build-critical (e.g. the core entity model), you may spawn **one** follow-up subagent with a narrow question. One for the whole run. Log it.
-5. Answer the questionnaire (§5.5) — all 6 categories, in writing, to `/workspace/pipeline/living-ui/runs/<run_id>/research/questionnaire.md` using the §5.5 template. Rules:
+4. **Filter every candidate through §0.1.** Anything that needs a login to a third-party service, an inbound webhook, an API key, or a browser permission is either re-expressed as a bridge pull + scheduled sync, or cut to `Won't (v1)`. Do this now, not in the SPEC — it changes which features make the cut.
+5. If the lanes genuinely disagree on something build-critical (e.g. the core data model), you may spawn **one** follow-up subagent with a narrow question. One for the whole run. Log it.
+6. Answer the questionnaire (§5.5) — all 6 categories, in writing, to `/workspace/pipeline/living-ui/runs/<run_id>/research/questionnaire.md` using the §5.5 template. Rules:
    - Every answer is a concrete choice ("kanban columns with a modal detail view"). The strings `TBD`, `either works`, and `maybe` are banned.
    - Every vague phrase from decomposition.md gets an explicit expansion (§5.6 has the standard expansions).
    - Every gap research didn't cover gets a Safe Assumption from §5.6, recorded with `source: safe-assumption`.
@@ -217,21 +237,24 @@ run_shell: { "command": "findstr /c:\"## Category\" agent_file_system\\workspace
 
    The difference: the gold criteria name a **user action and an observable result**, cover **edge cases** (wrong file type, oversized file, partial batch), and check **persistence across reload**. Write yours like the gold ones.
 
-   One place NOT to copy the gold file: its assumptions table has a "Risk if wrong" column. **Your** table uses the newer template (§5.2) — the last column is `Fallback` and every cell in it starts with the literal text `Fallback:` (the gate counts that string).
+   Two places NOT to copy the gold file:
+   - Its assumptions table has a "Risk if wrong" column. **Yours** uses the newer template (§5.2) — the last column is `Fallback` and every cell in it starts with the literal text `Fallback:` (the gate counts that string).
+   - Its data model uses the old platform's words (SQLAlchemy models, `Literal[...]`, separate ports). **Yours** uses PocketBase collections and the field types in §0.1, and every row's last cell starts with the literal text `Ingress:` (the gate counts that too).
 
 2. Fill the SPEC template (§5.2) and write it to `/workspace/pipeline/living-ui/runs/<run_id>/SPEC.md`. Section-by-section requirements:
-   - **§3 Entities:** every field with a type; every enum's values listed; relationships explicit; the category's core mechanic modeled (Standing correction 6). At most 6 entities. Persistence is a FastAPI backend + database — never localStorage (Standing correction 3).
+   - **§3 Collections:** at most 6. Every field with a PocketBase type from §0.1; every `select` field's values listed; relations explicit; the category's core mechanic modeled (Standing correction 6); every row's `Ingress:` cell states how records get in (Standing correction 10). Never a field named `metadata`.
    - **§4 Musts:** 4–8 features, each with 3–4 acceptance criteria written like the GOLD examples. At least 3 criteria across the SPEC must include the word "reload" or "persist".
    - **§6 Assumptions:** at least 6 rows. Every row's last cell starts with `Fallback:` followed by the concrete change the builder makes if the assumption is wrong.
+   - **§8 Build notes:** state the auth mode verbatim from the log header, the custom operations worth declaring, any bridge usage and its scheduled sync, and anything else that changes the builder's default path.
    - Every claim traceable (hard rule 4); the source column/parenthetical says which.
 
 3. Append the ITERATION_LOG line with status `SPEC_READY`.
 
 **EXIT GATE** (paste output):
 ```json
-run_shell: { "command": "$f='agent_file_system/workspace/pipeline/living-ui/runs/<run_id>/SPEC.md'; $t=Get-Content $f; \"LINES=$($t.Count)\"; \"SECTIONS=$(($t | Select-String -Pattern '^## [1-8]\\.').Count)\"; \"CRITERIA=$(($t | Select-String -SimpleMatch '- [ ]').Count)\"; \"RELOAD=$(($t | Select-String -Pattern 'reload|persist').Count)\"; \"FALLBACKS=$(($t | Select-String -SimpleMatch 'Fallback:').Count)\"; \"BANNED=$(($t | Select-String -Pattern 'TBD|either works|localStorage').Count)\"", "shell": "powershell", "cwd": "d:\\tempCraftBot\\CraftBot" }
+run_shell: { "command": "$f='agent_file_system/workspace/pipeline/living-ui/runs/<run_id>/SPEC.md'; $t=Get-Content $f; \"LINES=$($t.Count)\"; \"SECTIONS=$(($t | Select-String -Pattern '^## [1-8]\\.').Count)\"; \"CRITERIA=$(($t | Select-String -SimpleMatch '- [ ]').Count)\"; \"RELOAD=$(($t | Select-String -Pattern 'reload|persist').Count)\"; \"FALLBACKS=$(($t | Select-String -SimpleMatch 'Fallback:').Count)\"; \"INGRESS=$(($t | Select-String -SimpleMatch 'Ingress:').Count)\"; \"BANNED=$(($t | Select-String -Pattern 'TBD|either works|localStorage|FastAPI|SQLAlchemy').Count)\"", "shell": "powershell", "cwd": "d:\\tempCraftBot\\CraftBot" }
 ```
-**Pass, all six:** `LINES` ≥ 110 · `SECTIONS` = 8 · `CRITERIA` ≥ 18 · `RELOAD` ≥ 3 · `FALLBACKS` ≥ 6 · `BANNED` = 0.
+**Pass, all seven:** `LINES` ≥ 110 · `SECTIONS` = 8 · `CRITERIA` ≥ 18 · `RELOAD` ≥ 3 · `FALLBACKS` ≥ 6 · `INGRESS` ≥ 2 · `BANNED` = 0.
 Fail → revise the SPEC (not the numbers' meaning) and re-run. **Maximum 2 revision loops**, then BLOCKED with the gate output pasted.
 
 ---
@@ -268,7 +291,7 @@ run_shell: { "command": "dir /b agent_file_system\\workspace\\pipeline\\living-u
 3. Fill the template (§5.3) and write it to `/workspace/pipeline/living-ui/runs/<run_id>/DESIGN_SPEC.md`:
    - **§3 Layout per screen:** one ASCII wireframe per screen (box-drawing with `+--` borders) plus information hierarchy (what the eye hits first/second/third) plus responsive behavior at 768px and 360px.
    - **§2/§3 must cover every SPEC Must:** each M-number appears next to the screen that hosts it.
-   - **§6 Component mapping:** every observed UI pattern → a CraftBot preset component name, or "compose from Card/primitives", or "dropped — <why>".
+   - **§6 Component mapping:** every observed UI pattern → a component name **from the list in §5.7**, or "compose from Card + primitives", or "dropped — <why>". Do not invent component names; if the pattern isn't in §5.7, it gets composed or dropped.
 4. Append the ITERATION_LOG line (status stays `SPEC_READY`).
 
 **EXIT GATE** (paste output):
@@ -288,29 +311,30 @@ Fail → fix DESIGN_SPEC.md and re-run. Maximum 2 revision loops, then BLOCKED.
    ```
    **Every line must say PASS.** Any FAIL → go back to the stage that owns that artifact, fix it, re-run this manifest.
 2. Append the ITERATION_LOG line: `... | HANDOFF | manifest all-PASS, launching creation runner | next: creation pipeline C1`.
-3. Launch the creation runner. Use this payload **exactly** — replace only `<run_id>`:
+3. Launch the creation runner **pinned to Sonnet 5** — the creation pipeline's judgment calls (spec review, adversarial QA, BLOCKED escalations) need a strong model, and a headless `claude -p` launch has no prior session to inherit a model choice from, so it must be pinned explicitly on the command line or it falls back to whatever the CLI's own default is. Use this payload **exactly** — replace only `<run_id>`:
    ```json
    run_shell: {
-     "command": "claude -p \"You are the Living UI CREATION pipeline runner. Read agent_file_system/workspace/pipeline/living-ui/README.md and CREATION_PIPELINE.md in the CraftBot repo and follow them exactly. Mode: CREATE — resume any in-flight creation run first; otherwise find the run under runs/ whose ITERATION_LOG last status is HANDOFF (this one: <run_id>), validate the handoff bundle, and take it to AWAITING_HUMAN_REVIEW. If nothing is in flight or HANDOFF, report that and stop.\" --dangerously-skip-permissions > agent_file_system\\workspace\\pipeline\\living-ui\\runs\\<run_id>\\creation.log 2>&1",
+     "command": "claude -p \"You are the Living UI CREATION pipeline runner. Read agent_file_system/workspace/pipeline/living-ui/README.md and CREATION_PIPELINE.md in the CraftBot repo and follow them exactly. Mode: CREATE — resume any in-flight creation run first; otherwise find the run under runs/ whose ITERATION_LOG last status is HANDOFF (this one: <run_id>), validate the handoff bundle, and take it to AWAITING_HUMAN_REVIEW. If nothing is in flight or HANDOFF, report that and stop.\" --model claude-sonnet-5 --dangerously-skip-permissions > agent_file_system\\workspace\\pipeline\\living-ui\\runs\\<run_id>\\creation.log 2>&1",
      "shell": "cmd",
      "cwd": "d:\\tempCraftBot\\CraftBot",
      "background": true
    }
    ```
    The response must show `"status": "background"` and a `pid`. Note the pid.
-4. **The `wait` action caps at 60 seconds — never request more in one call.** (Run craftdex-20260715 tried `wait: 120` here; the action rejected it outright with `"Maximum wait time is 60 seconds."`, which by itself wasted a chunk of the intended buffer.) Poll instead of one blind wait — check at **20s**, then again at **60s** if still unclear (don't burn the full budget when a dead launch is often detectable in seconds), chaining two ≤60s `wait` calls if you need more runway:
+4. **The `wait` action caps at 60 seconds — never request more in one call.** (Run craftdex-20260715 tried `wait: 120` here; the action rejected it outright with `"Maximum wait time is 60 seconds."`, which by itself wasted a chunk of the intended buffer.) Poll instead of one blind wait — check at **20s**, then again at **60s** if still unclear, chaining two ≤60s `wait` calls if you need more runway:
    ```json
    run_shell: { "command": "$p = Get-Process -Id <pid> -ErrorAction SilentlyContinue; $log = 'agent_file_system/workspace/pipeline/living-ui/runs/<run_id>/creation.log'; $bytes = if (Test-Path $log) { (Get-Item $log).Length } else { 0 }; $text = if ($bytes -gt 0) { Get-Content $log -Raw } else { '' }; $err = $text -match 'is not recognized|Invalid API key|not authenticated'; if ($p) { \"HEALTHY proc_running pid=<pid>\" } elseif ($bytes -gt 0 -and -not $err) { \"HEALTHY finished_fast log_bytes=$bytes\" } else { \"UNHEALTHY proc_found=$([bool]$p) log_bytes=$bytes error_signature=$err\" }", "shell": "powershell", "cwd": "d:\\tempCraftBot\\CraftBot" }
    ```
    This prints exactly one line starting `HEALTHY` or `UNHEALTHY` — that word, not your own reading of the raw output, is the pass/fail signal. **Run craftdex-20260715's actual failure mode**: the doc's old check chained `tasklist /FI "PID eq <pid>" & powershell -Command "..."`, which itself errored (`Invalid argument/option - 'eq'.`) before the model switched to `Get-Process -Id <pid> -ErrorAction SilentlyContinue` — which returned nothing at all (process gone, error suppressed) alongside an empty log, and the model read that *silence* as a pass and declared success. Both are UNHEALTHY by definition; `-ErrorAction SilentlyContinue` suppresses the error text, not the fact that nothing was found — never treat an empty/silent result as healthy. If healthy at the 20s check, stop polling and move to step 7.
-5. **If UNHEALTHY at the 20s check** (matches run craftdex-20260715): retry the launch **once**, same payload, before falling back. A verified-working launch mechanism failing outright twice in a row is what actually warrants the manual fallback, not a single flaky attempt. Re-poll the retry at 20s/60s the same way.
+5. **If UNHEALTHY at the 20s check**: retry the launch **once**, same payload, before falling back. A verified-working launch mechanism failing outright twice in a row is what actually warrants the manual fallback, not a single flaky attempt. Re-poll the retry at 20s/60s the same way.
 6. If still `UNHEALTHY` after the retry: append a `BLOCKED` ITERATION_LOG line with `reason: research: HANDOFF launch failed — <first error line>` and the log evidence, and include the manual fallback in your final message.
 7. Post your final chat message, from this template, then **end the task** (hard-forbidden to keep polling or touching the run folder again):
    ```
    Living UI research complete for <app_name> (<run_id>).
    SPEC.md and DESIGN_SPEC.md passed all gates; handoff manifest all-PASS.
    Creation runner launched (PID <pid>), log: pipeline/living-ui/runs/<run_id>/creation.log.
-   The build, QA, and review request now happen autonomously.
+   The build, QA, and packaging now happen autonomously; you'll get a review
+   request with a ZIP to import into CraftBot.
    If runs/<run_id>/ITERATION_LOG.md still shows "HANDOFF" as its last status
    tomorrow morning, the launch died — paste the Creation kickoff prompt from
    pipeline/living-ui/README.md §5 into a Claude Code session to resume.
@@ -383,6 +407,7 @@ Document the standard domain model of <category> apps.
 3. Lifecycle/status enums and their exact typical values.
 4. Computed/derived values products commonly show.
 5. Common validations and domain rules (limits, required fields, min/max counts).
+6. Where the data typically comes from: manual entry, import, or sync from another service.
 ```
 
 ### 5.2 SPEC.md template
@@ -402,14 +427,19 @@ bar is for this category and where this app wins.>
 ## 2. Scope
 **In (v1):** <one line per Must/Should feature>
 **Out (explicit non-goals):** <from Constraints + platform non-goals>
-**Won't (v1):** <research-suggested features cut by scope caps, one-line note each>
+**Won't (v1):** <research-suggested features cut by scope caps or by the platform
+filter (R4 step 4), one-line note each>
 
-## 3. Entities & data model
-| Entity | Fields (name: type) | Relations | Notes |
-|---|---|---|---|
-<max 6 entities; enum fields list every value; never a field named metadata;
-persistence = FastAPI backend + database. State how ordering, file uploads,
-and the category's core mechanic are modeled.>
+## 3. Collections & data model
+| Collection | Fields (name: type) | Relations | Rules | Ingress |
+|---|---|---|---|---|
+<max 6 collections. Types are PocketBase types only: text, editor, number, bool,
+date, select, relation, file, json. Every select field lists every value. Never a
+field named metadata. Rules cell says who can read/write given the auth mode.
+Every Ingress cell starts with the literal word "Ingress:" and names how records
+get in: a user form, a bridge pull from <service> on load/refresh + a scheduled
+sync, a file import, or computed from <collection>. State how ordering, file
+uploads, and the category's core mechanic are modeled.>
 
 ## 4. Features (MoSCoW)
 ### Must
@@ -439,9 +469,12 @@ concrete change if the assumption is wrong>
 references listed first; note which block automated capture>
 
 ## 8. Build notes
-<Auth needed? Integrations (only if Constraints allow)? Libraries the template
-already ships that should be reused? Anything that changes the builder's
-default path. Never "fully client-side" — this platform has a backend.>
+<Auth mode (verbatim from the ITERATION_LOG header) and what it implies for
+collection rules. Custom operations worth declaring beyond plain CRUD, and which
+are destructive. Any connected service reached through the bridge, plus its
+scheduled sync cadence. Any in-app AI use. Anything else that changes the
+builder's default path. Never "fully client-side" — this platform always has a
+PocketBase backend.>
 ```
 
 ### 5.3 DESIGN_SPEC.md template
@@ -471,16 +504,16 @@ Responsive: <what collapses/stacks at 768px and 360px>
 <repeat per screen>
 
 ## 4. Interaction patterns
-<Detail view: modal vs side panel vs inline. Drag-and-drop incl. touch fallback.
+<Detail view: modal vs side panel vs drawer. Drag-and-drop incl. touch fallback.
 Bulk actions. Keyboard affordances. One entry per SPEC Must that has interaction.>
 
 ## 5. Empty / loading / error conventions
 <Per list view: what the empty state says and offers. Loading pattern. Error surfacing.>
 
 ## 6. Component mapping
-| Observed pattern | CraftBot preset component | Notes |
+| Observed pattern | Kit component (§5.7 only) | Notes |
 |---|---|---|
-<unmapped patterns: "compose from Card/primitives" or "dropped — <why>">
+<unmapped patterns: "compose from Card + primitives" or "dropped — <why>">
 
 ## 7. Non-goals of the reference pass
 <What was deliberately NOT copied from the references, and why — ads, login,
@@ -503,20 +536,23 @@ Answer all six; one concrete choice per line; expansions and Safe Assumptions la
 ## Category 1: Design & Visual Identity
 <theme (default: follow system), layout style, visual style — CraftBot tokens always>
 
-## Category 2: Data & Entities
-<the main "things", their fields, relations, statuses/workflows>
+## Category 2: Data & Collections
+<the main "things", their fields, relations, select-field values, and where each
+collection's records come from>
 
 ## Category 3: Features & Functionality
-<CRUD scope, search/filter/sort, media, detail views, drag-and-drop, bulk ops>
+<CRUD scope, search/filter/sort, media, detail views, drag-and-drop, bulk ops,
+any in-app AI or connected-service pull>
 
 ## Category 4: Layout & Navigation
-<single vs multi page, nav model, content organization, detail panel vs modal>
+<single vs multi screen, nav model, content organization, detail drawer vs modal>
 
 ## Category 5: UX & Polish
-<empty states, responsiveness, specific interactions>
+<empty states, responsiveness, specific interactions, keyboard shortcuts>
 
 ## Category 6: Users & Access
-<multi-user? accounts? admin? sharing? (default: single user, no auth)>
+<auth mode: none (single user, default) or multi-user; if multi-user, which data
+is per-account>
 ```
 
 ### 5.6 Vague-phrase expansions & Safe Assumptions
@@ -525,7 +561,7 @@ Standard expansions (record which you applied):
 
 | Human says | Expand to |
 |---|---|
-| "basic user stuff" / "user management" | login, signup, profiles, member list, admin/member roles |
+| "basic user stuff" / "user management" | multi-user mode: email+password login, signup, profile, per-account data |
 | "normal/standard layout" | left sidebar nav, main content area, responsive, top header |
 | "simple dashboard" | 3–4 stat cards, recent activity list, quick-action buttons |
 | "basic CRUD" / "the usual" | create/read/update/delete with confirm dialogs, search/filter, sort by date |
@@ -534,19 +570,38 @@ Standard expansions (record which you applied):
 | "drag and drop" | reorder via drag, visual drop indicator, touch fallback (tap-select then tap-target) |
 | "tags" / "labels" | colored chips, create/delete, filter by tag, multi-tag per item |
 | "notifications" | toasts for CRUD feedback |
+| "sync with <service>" | a bridge pull on load/refresh + a scheduled sync operation — never OAuth, tokens, or webhooks |
+| "AI" / "smart" | an in-app bridge LLM call on an explicit user action, degrading to a plain message when unavailable |
 
 Safe Assumptions (usable without a source when request and research are silent — record each in SPEC §6 with `source: safe-assumption`):
 
 - System theme preference (light/dark follows OS)
 - Responsive design (mobile + desktop)
-- Standard CRUD on all entities
+- Standard CRUD on all collections
 - Loading spinners on async operations
 - Confirmation dialogs on destructive actions
 - Empty states with a helpful message + action button
 - CraftBot design tokens for all visual identity
 - Search/filter on primary text fields
 - Newest-first default sort
-- Single user, no auth
+- Single user, auth mode `none`
+
+### 5.7 Component vocabulary (DESIGN_SPEC §6 must map to these)
+
+These are the components the builder actually has. Use these exact names; anything else is "compose from Card + primitives" or "dropped".
+
+| Group | Components |
+|---|---|
+| Shell & feedback | `Shell`, `toast`, `Spinner`, `Progress` |
+| Layout & display | `Card` (+ `CardHeader`, `CardTitle`, `CardDescription`, `CardContent`, `CardFooter`), `Table`, `Badge`, `Tabs` (+ `TabsList`, `TabsTrigger`, `TabsContent`) |
+| Forms | `Input`, `Textarea`, `Select`, `Switch`, `NumberInput`, `DateInput`, `SearchInput` (debounced), `TagInput`, `Button` |
+| CRUD presets | `EntityForm` (declare fields → validated create/edit form, relation fields become live dropdowns), `EntityTable` (declare columns → live sortable table with row actions + delete confirmation) |
+| Overlays & actions | `Dialog`, `Drawer` (slide-over), `DropdownMenu` (⋯ row actions), `Tooltip`, `useConfirm()` |
+| Data viz & interaction | `Sparkline`, `MiniBarChart`, `SortableList` (+ `reorderAndSave`), `FileUpload`, `ImageInput` |
+| Auth (multi-user only) | `LoginGate`, `useAuth()` |
+| Hooks | `useCollection` (realtime data), `useRecord`, `useDebounce`, `useHotkey` |
+
+Prefer `EntityForm`/`EntityTable` for ordinary CRUD surfaces — spec'ing a hand-built form where a preset fits wastes build time and loses validation for free.
 
 ---
 
@@ -560,9 +615,10 @@ Use this from any stage when a bound is hit or something outside your control fa
 | Failure | Action |
 |---|---|
 | Kickoff message missing `slug`, `app_name`, or the requirement paragraph | BLOCKED — never guess intent fields (if the run folder doesn't exist yet, there's nothing to log; just tell the human directly) |
-| `where claude` empty at R1 | Tell the human directly and stop (R1 step 3) — nothing to log yet |
+| `where claude` empty, or node below v24, at R1 | Tell the human directly and stop (R1 step 3) — nothing to log yet |
 | A research lane still <30 lines after its one retry | BLOCKED with the line counts |
 | SPEC or DESIGN_SPEC gate still failing after 2 revision loops | BLOCKED with the gate output |
+| The request's core feature is impossible on this platform (needs a webhook, a login to a third-party service, or a browser permission) and has no bridge equivalent | BLOCKED with 2–3 concrete re-scopes, before writing the SPEC — not after |
 | All 4 capture rungs attempted, nothing capturable | NOT blocked — write capture-fallback.md, proceed text-derived (R6.4) |
 | `claude` launch fails at R8 | BLOCKED with the first error line from creation.log + manual-fallback instructions |
 | Anything else not on this table | BLOCKED — escalate with options rather than improvise past a rule |
