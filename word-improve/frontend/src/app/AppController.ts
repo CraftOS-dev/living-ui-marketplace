@@ -25,7 +25,7 @@ async function http<T>(
     'Content-Type': 'application/json',
     ...(init?.headers as Record<string, string> | undefined),
   }
-  const body = init?.json !== undefined ? JSON.stringify(init.json) : init?.body
+  const body = init?.json !== undefined ? JSON.stringify(init.json) : (init?.body ?? null)
   const resp = await fetch(`${BACKEND_URL}${path}`, {
     method: init?.method ?? (init?.json !== undefined ? 'POST' : 'GET'),
     headers,
@@ -75,7 +75,7 @@ export class AppController {
         ...(llmStatus ? { llmAvailable: llmStatus.llmAvailable } : {}),
       })
       if (sessions.length > 0) {
-        await this.loadSession(sessions[0].id)
+        await this.loadSession(sessions[0]!.id)
       }
     } catch (err) {
       this.set({

@@ -9,17 +9,19 @@
  */
 
 import React, {
-  ButtonHTMLAttributes,
-  InputHTMLAttributes,
-  TextareaHTMLAttributes,
-  SelectHTMLAttributes,
-  ReactNode,
   forwardRef,
   useState,
   useEffect,
   useId,
   createContext,
   useContext,
+} from 'react'
+import type {
+  ButtonHTMLAttributes,
+  InputHTMLAttributes,
+  TextareaHTMLAttributes,
+  SelectHTMLAttributes,
+  ReactNode,
 } from 'react'
 import { createPortal } from 'react-dom'
 
