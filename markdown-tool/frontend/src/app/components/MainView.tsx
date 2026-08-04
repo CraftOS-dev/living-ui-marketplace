@@ -155,9 +155,12 @@ export function MainView({ controller }: MainViewProps) {
   function handleFileRenamed(oldPath: string, newPath: string) {
     setTabs(prev => {
       const next = prev.map(t => t.path === oldPath ? { ...t, path: newPath } : t)
+      const nextActive = activeTab === oldPath ? newPath : activeTab
       debouncedSave({
         openTabs: next.map(t => ({ path: t.path, savedContent: t.savedContent })) as any,
-        activeTab: activeTab === oldPath ? newPath : activeTab ?? undefined,
+        // Omit activeTab when there's no active tab (V1 sent `undefined`, which
+        // JSON.stringify drops, leaving the persisted value untouched).
+        ...(nextActive != null ? { activeTab: nextActive } : {}),
       })
       return next
     })

@@ -1,3 +1,20 @@
+/**
+ * App entry for the V2 platform.
+ *
+ * Bootstraps the ORIGINAL V1 markdown-tool frontend unchanged — same
+ * components, same "CraftBot Browser Interface" design system, same behavior.
+ * The adaptation to the V2 (PocketBase) platform is a client-side API adapter
+ * (./services/apiAdapter): it translates the V1 REST calls (state, workspace
+ * file ops, editor session) into PocketBase collection ops. The workspace is a
+ * virtual filesystem backed by the `nodes` collection; the editor session is a
+ * single `sessions` record. Look and interactions are unchanged.
+ *
+ * The adapter import is FIRST on purpose — it sets
+ * window.__CRAFTBOT_BACKEND_URL__ to a sentinel host at module-eval time,
+ * before the component/controller modules (which read that global at their own
+ * top level) are evaluated.
+ */
+import { installApiAdapter } from './services/apiAdapter'
 import { useEffect, useRef } from 'react'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
@@ -10,11 +27,22 @@ import {
   type CustomColors,
   type ThemeId,
 } from './theme/themes'
+import './styles/global.css'
 
-// Initialize the controller
+// Patch fetch before any component effect or the controller can fire a request.
+installApiAdapter()
+
+// Preserve V1 main.tsx behavior: point instrumentation at the (sentinel)
+// backend with auto-capture; the adapter neutralizes those calls.
+const backendUrl =
+  ((window as unknown as { __CRAFTBOT_BACKEND_URL__?: string }).__CRAFTBOT_BACKEND_URL__ ?? '') +
+  '/api'
+uiCapture.initialize(backendUrl, true, 2000)
+
+// Initialize the controller (module singleton, exactly as in V1)
 const controller = new AppController()
 
-function App() {
+export function App(): React.JSX.Element {
   // Start with defaults — the CraftBot shell sends the correct per-project
   // theme via 'livingui-theme' on mount, before the iframe becomes visible.
   const themIdRef = useRef<ThemeId>('craftbot')
@@ -31,7 +59,7 @@ function App() {
 
     applyThemeToDocument(themIdRef.current, modeRef.current, customColorsRef.current)
 
-    const onMessage = (e: MessageEvent) => {
+    const onMessage = (e: MessageEvent): void => {
       if (!e.data) return
 
       if (e.data.type === 'craftbot-theme') {
@@ -58,7 +86,9 @@ function App() {
     // Request the current mode from the parent CraftBot shell
     try {
       window.parent.postMessage({ type: 'craftbot-theme-request' }, '*')
-    } catch {}
+    } catch {
+      /* not embedded */
+    }
 
     return () => {
       controller.cleanup()
@@ -82,5 +112,3 @@ function App() {
     </div>
   )
 }
-
-export default App
