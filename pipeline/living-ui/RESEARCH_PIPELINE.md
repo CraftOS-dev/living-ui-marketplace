@@ -30,14 +30,9 @@ Every claim in your SPEC must be buildable on **this** platform. Getting this wr
 - **Realtime is only for the app's own records.** Lists update instantly when the app's own data changes. That is free and automatic; don't spec polling.
 - **Never depend on a browser permission prompt.** Location, notifications, and camera prompts are unreliable in the embedded tab. Location comes from a keyless backend lookup or a user-entered setting. Public data (weather, news, prices) is fetched by the backend from keyless public APIs and cached, degrading gracefully offline.
 
-**Gold standard.** Before writing SPEC.md (stage R5) and DESIGN_SPEC.md (stage R7) you will read these two files in full and match their **depth**:
+**Depth bar.** SPEC.md and DESIGN_SPEC.md are read by a strong model at C2 who repairs weak-model gaps — but repairing a shallow spec into a good one costs nearly as much as writing it right the first time. A previous run wrote specs about half the depth needed and its app was rejected. Shallow specs fail this pipeline. R5 and R7 below each embed a REJECTED-vs-GOLD comparison at the point you need it — match the GOLD examples' concreteness, never the REJECTED ones' vagueness.
 
-- `/workspace/pipeline/living-ui/runs/tierlist-20260709/SPEC.md`
-- `/workspace/pipeline/living-ui/runs/tierlist-20260709/DESIGN_SPEC.md`
-
-A previous run in the same product category produced specs half that depth. That run's app was rejected. Shallow specs fail this pipeline.
-
-> **Caveat on the gold files:** they were written for the platform's older version and use its vocabulary (FastAPI, SQLAlchemy models, `Literal[...]` types, separate backend/frontend ports). **Copy their depth and precision, never their platform words.** Yours uses PocketBase collections and the field types listed above.
+> **Why this isn't "read this other run's files and match them" anymore:** an earlier version of this doc pointed at a full external run's `SPEC.md`/`DESIGN_SPEC.md` as the depth example. That file lived under `runs/`, which is git-ignored — so the reference silently stopped existing on any fresh checkout, and separately it was written for the platform's older version (FastAPI/SQLAlchemy vocabulary) which risked leaking the wrong platform words into a V2 spec. The inlined examples below fix both problems: self-contained, no external file dependency, written in this platform's own vocabulary.
 
 ### 0.2 The closed artifact list — you write nothing else
 
@@ -122,6 +117,9 @@ Lessons from past runs, restated as orders. (The creation runner appends here af
 16. **A quiet ITERATION_LOG across several stages, while files still get produced, is not efficiency — it means the stages' literal templates and gates were abandoned.** Notice the gap and stop before declaring anything done, don't push through to a finish (hard rule 12).
 17. **A collection's `Ingress`/`Rules` claim in SPEC §3 must not be contradicted by a different storage mechanism named in §8 Build notes.** A past run's §3 declared Pokemon/Type/Ability/Move as PocketBase collections with "Full one-way sync from PokéAPI on initial app load, cached locally permanently" as their Ingress — then §8 said "reference data stored as static JSON assets bundled at build time," a different mechanism entirely. Pick one and say it once; a builder reading a contradiction has to guess which section is authoritative.
 18. **A research finding stating an absolute performance or "no loading feedback" mandate must be checked against the platform's own Always-Enforced rules (`GLOBAL_LIVING_UI.md`) before it becomes binding, not carried into the questionnaire and SPEC verbatim.** A past run's `features` lane wrote "Response time for any user action must be <100ms. No loading spinners for core browsing functionality" — a real, sourced finding about the category norm — and it flowed untouched into the questionnaire and then SPEC's own acceptance criteria, directly conflicting with the platform's "loading spinners required for all async operations" rule and with the same SPEC's own one-time full-dataset sync, which will visibly take longer than 100ms. R4's merge step is where this gets reconciled: an absolute claim like this becomes "instant for cached/local operations; a loading state is still shown for the one-time initial sync," not a blanket ban.
+19. **DESIGN_SPEC §3 must state imagery treatment and information density per screen, sourced from the actual reference screenshot — not just structural layout.** A past run's app passed every SPEC/DESIGN_SPEC mechanical gate (LINES/SECTIONS/WIREFRAME/HEX/COVERED all green) and still shipped reading as generic/prototype-y, because the spec never said how large or central the reference's imagery was, or what specifically belonged on a card versus a detail page — only that "a grid shows the items." Passing the existing gates is necessary but not sufficient for a competitive build; see §0.1's GOLD/REJECTED example and R7 step 1.
+20. **Every ITERATION_LOG timestamp must come from an actual clock check performed immediately before writing the line — never estimated or pattern-completed from the sequence of prior lines.** A run once shipped log entries dated *later than the real current time*, caught only because a later, unrelated command happened to print the real clock. The mistake is otherwise invisible.
+21. **File-writing tool calls (screenshot capture, any throwaway script) must use an absolute output path, never one relative to the current working directory.** The working directory persists across tool calls within a session — an earlier, unrelated `cd` can silently redirect a later relative-path write into the wrong folder. This has misplaced reference screenshots twice now, for two different root causes (see R6).
 
 ---
 
@@ -152,6 +150,8 @@ ITERATION_LOG line format (one line per event, appended with `write_file` append
 ```
 
 When a gate output is multi-line, paste it in a fenced block directly under the log line.
+
+**The `<YYYY-MM-DD HH:MM>` must be the real current time, checked at the moment you write the line — never estimated (Standing correction 20).**
 
 ---
 
@@ -267,16 +267,14 @@ run_shell: { "command": "findstr /c:\"## Category\" agent_file_system\\workspace
 
 ### R5 — Write SPEC.md
 
-1. **Read `/workspace/pipeline/living-ui/runs/tierlist-20260709/SPEC.md` in full, now.** Your SPEC must match its depth. Compare these before writing a single criterion:
+1. **Match the depth bar (§0.1) before writing a single criterion.** Compare these:
 
    **REJECTED** (from a failed run): `- [ ] No blank canvas state` · `- [ ] Zero latency drag interaction`
-   **GOLD** (from the accepted run): `- [ ] A new list opens with exactly 5 tiers labeled S, A, B, C, D in canonical colors, all empty, plus an empty pool.` · `- [ ] × on a ranked item returns it to the end of the pool; the item is not deleted.` · `- [ ] A .txt or 15 MB file is rejected with a user-visible error toast; valid files in the same batch still land.`
+   **GOLD** (from an accepted run): `- [ ] A new list opens with exactly 5 tiers labeled S, A, B, C, D in canonical colors, all empty, plus an empty pool.` · `- [ ] × on a ranked item returns it to the end of the pool; the item is not deleted.` · `- [ ] A .txt or 15 MB file is rejected with a user-visible error toast; valid files in the same batch still land.`
 
    The difference: the gold criteria name a **user action and an observable result**, cover **edge cases** (wrong file type, oversized file, partial batch), and check **persistence across reload**. Write yours like the gold ones.
 
-   Two places NOT to copy the gold file:
-   - Its assumptions table has a "Risk if wrong" column. **Yours** uses the newer template (§5.2) — the last column is `Fallback` and every cell in it starts with the literal text `Fallback:` (the gate counts that string).
-   - Its data model uses the old platform's words (SQLAlchemy models, `Literal[...]`, separate ports). **Yours** uses PocketBase collections and the field types in §0.1, and every row's last cell starts with the literal text `Ingress:` (the gate counts that too).
+   Two requirements to hold yourself to directly, not by copying an example file: your assumptions table (§5.2) uses `Fallback` as its last column, and every cell in it starts with the literal text `Fallback:` (the gate counts that string). Your data model uses PocketBase collections and the field types in §0.1 — **never** the old platform's words (SQLAlchemy models, `Literal[...]`, separate backend/frontend ports) — and every collection row's last cell starts with the literal text `Ingress:` (the gate counts that too).
 
 2. Fill the SPEC template (§5.2) and write it to `/workspace/pipeline/living-ui/runs/<run_id>/SPEC.md`. Section-by-section requirements:
    - **§3 Collections:** **at most 6, mechanically checked below — this cap has already been exceeded once** (a past run declared 7: Pokemon, Type, Ability, Move, Team, TeamMember, UserFavorite). If you're at 7, merge or cut one before writing, don't rely on judgment alone. Every field with a PocketBase type from §0.1; every `select` field's values listed; relations explicit; the category's core mechanic modeled (Standing correction 6); every row's `Ingress:` cell states how records get in (Standing correction 10), and that claim must **not** be contradicted anywhere else in the doc (Standing correction 17) — don't call something a synced collection here and a build-time static asset in §8. Never a field named `metadata`. **Never a `user_id`/`owner` field if `auth_mode` is `none`** (Standing correction 14) — a single-user app has no user to key records to.
@@ -299,6 +297,8 @@ Fail → revise the SPEC (not the numbers' meaning) and re-run. **Maximum 2 revi
 ### R6 — Reference capture (Playwright screenshots)
 
 **Save every screenshot into the `reference-shots/` folder that R1 step 4 already created — it exists, empty, from the start of this run. Never create a new folder for this** (a `screenshots/` folder, or any other name). A past run (`pokedex-web-app-20260803`, round 2) captured three real screenshots successfully but saved them all to a freshly-created `screenshots/` folder while the correct, already-existing `reference-shots/` sat empty — the R8 manifest check (§0.2) looks *only* in `reference-shots/`, so from its point of view zero shots existed. If `browser_take_screenshot` or your file-copy step asks for or defaults to a directory name, override it to the exact path `agent_file_system\workspace\pipeline\living-ui\runs\<run_id>\reference-shots\`.
+
+**A different, unrelated way to end up in the wrong folder: a stray earlier `cd` or relative-path assumption.** If your capture path involves any shell/script step, always give it the full absolute path above, never a path relative to whatever directory a shell happens to be sitting in — that directory persists across calls and an unrelated earlier command can leave it somewhere unexpected (Standing correction 21). This produces the identical symptom (screenshots outside `reference-shots/`) to the folder-naming mistake above but from a completely different cause, so fixing one does not protect against the other.
 
 1. Pick **1–2** reference products — no more — in this priority order: (a) human-pinned reference from decomposition.md — always chosen if present; (b) the category leader with a publicly viewable UI (competitors lane nominates candidates); (c) the most-imitated UX in the category. **Two is the hard cap; the second is only justified if it shows a screen type the first lacks.** The same round-2 run captured three products — pick the two that matter most and stop; a third reference adds research-runner time for no gate benefit (the manifest only needs ≥4 pngs, which two products' worth of shots already clears).
 2. Capture with the Playwright browser tools, per reference, **at most 6 shots**:
@@ -327,10 +327,15 @@ run_shell: { "command": "dir /b agent_file_system\\workspace\\pipeline\\living-u
 
 **There is no "technical architecture" stage in this pipeline.** DESIGN_SPEC.md is UX/layout/component-mapping only — schema, operations, and any tech-stack notes already live inside SPEC.md's own template (§3, §8). A past run invented a separate `technical-architecture.md` here instead of ever writing DESIGN_SPEC.md, and used it to (wrongly) prescribe specific libraries and pinned versions that aren't research's call to make (Standing correction 15). If you feel the pull to write a document about the "architecture," that pull is the drift covered in §0.2 — the file you're supposed to be writing is this one.
 
-1. **Read `/workspace/pipeline/living-ui/runs/tierlist-20260709/DESIGN_SPEC.md` in full, now.** Match its depth: it reads real measurements and behaviors off the screenshots ("label cells are ~70px colored squares … each row's right edge holds a gear icon and stacked ▲▼ chevrons") and states responsive behavior breakpoint by breakpoint. One place NOT to copy it: it doesn't tag SPEC Must IDs — **your** doc must write `M1`, `M2`, … next to the screens and interactions that host them (template §5.3; the gate counts them).
+1. **Match the depth bar (§0.1) — read real measurements and behavior off your actual reference screenshot, not off a generic memory of what the category "usually" looks like.**
+
+   **REJECTED** (vague, could describe any app in the category): `A card grid shows the items with some info on each card.`
+   **GOLD** (specific, reads real pixels/behavior off the actual captured screenshot): `Cards are sprite/artwork-dominant — the image fills roughly half the card's height, not a small corner icon; dex number and name stack in two lines directly below it; type badges sit at the bottom edge as a single horizontal row, never wrapping past 2 lines.`
+
+   The difference: the gold example states **imagery treatment** (how large, how central the art is) and **information density** (what's on the card, in what order) as concrete facts read off the screenshot, not a structural description that any competitor could match. **Every screen entry in §3 must state both** — a DESIGN_SPEC that's silent on them gives the builder nothing to calibrate polish against, and a functionally-complete build that skips this reads as generic/prototype-y even when every gate passes (Standing correction 19). Your doc must also tag SPEC Must IDs — write `M1`, `M2`, … next to the screens and interactions that host them (template §5.3; the gate counts them).
 2. **Identity rule (this is where past runs violated it):** colors, fonts, spacing, radii, shadows come from CraftBot's design tokens ONLY — never from the screenshots. Screenshots dictate *where things go and how they behave*. Zero hex colors, zero font names in DESIGN_SPEC.md. Colors that are user DATA belong in SPEC §3, not here.
 3. Fill the template (§5.3) and write it to `/workspace/pipeline/living-ui/runs/<run_id>/DESIGN_SPEC.md`:
-   - **§3 Layout per screen:** one ASCII wireframe per screen (box-drawing with `+--` borders) plus information hierarchy (what the eye hits first/second/third) plus responsive behavior at 768px and 360px.
+   - **§3 Layout per screen:** one ASCII wireframe per screen (box-drawing with `+--` borders) plus information hierarchy (what the eye hits first/second/third) plus responsive behavior at 768px and 360px plus **imagery treatment and information density** (§0.1's GOLD/REJECTED example) — both read off the actual reference screenshot, not invented.
    - **§2/§3 must cover every SPEC Must:** each M-number appears next to the screen that hosts it.
    - **§6 Component mapping:** every observed UI pattern → a component name **from the list in §5.7**, or "compose from Card + primitives", or "dropped — <why>". Do not invent component names; if the pattern isn't in §5.7, it gets composed or dropped.
 4. Append the ITERATION_LOG line (status stays `SPEC_READY`).

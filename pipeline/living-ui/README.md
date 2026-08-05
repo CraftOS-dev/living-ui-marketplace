@@ -41,6 +41,7 @@ The handoff is automatic: the research runner's last stage launches `claude -p -
 9. **All run artifacts live under `runs/<run_id>/`, including the app itself.** Nothing in the repo root, nothing in system temp dirs, nothing in `living-ui-v2/examples/`. A fresh session must be able to find everything a dead session left behind.
 10. **The human only ever receives an importable ZIP.** They test by importing it into CraftBot — so QA gate **G7 (package + audit)** must pass before *every* review handoff (C6 and each I6 round), not just at the end. This rule's V1 ancestor existed because a run once handed over a folder with `node_modules/` that the import choked on; the shape changed, the failure mode didn't.
 11. **Respect the token budget (§9).**
+12. **Every logged timestamp comes from an actual clock check, and every file-writing script uses an absolute output path.** Don't type a plausible-looking `ITERATION_LOG` timestamp from memory — run the actual clock check immediately before writing the line, every time; a run has shipped log entries dated *after* the real current time this way. Don't rely on the shell's current working directory for a script's output path either — it persists across tool calls within a session, so an unrelated earlier `cd` can silently redirect a later relative-path write into the wrong folder (this has misplaced reference screenshots twice, for two different root causes). Always pass absolute paths to anything that writes a file.
 
 ---
 
@@ -182,6 +183,8 @@ run_shell: { "command": "(Get-Content 'agent_file_system/workspace/pipeline/livi
 ```
 
 Any non-zero count → you can't fix past entries, but log the current line correctly and don't let it recur.
+
+**The time-of-day must be real, not estimated (rule 12).** Check the actual clock immediately before writing each line — never pattern-complete a plausible-looking time from the sequence of lines before it. A run has shipped ITERATION_LOG entries dated *later than the real current time* this way; the mistake is invisible until something forces a clock check, which may be never.
 
 **Heartbeat rule** — BUILDING and SELF_QA are the longest, quietest stages; a run can go dark for over an hour between naturally-triggered lines. If more than 10 minutes elapses inside a stage with no event to log naturally, write a one-line heartbeat anyway: `<timestamp> | <STATUS> | heartbeat: <what's in progress right now> | next: <what's next>`.
 
@@ -327,7 +330,7 @@ Standing rules:
 
 1. **`lui validate` is one command, not five gates.** It runs the dependency policy, `tsc`, the Vite build, migrations against a fresh temp database, `operations.json` structure + route matching, and the ownership hash check — in that order, reporting every failing step with the offending source line annotated. Run it after every meaningful change and read its output; never hand-roll equivalent checks.
 2. **Research reports transit once.** Subagent lane briefs are written to `research/*.md` verbatim on arrival and merged from the files, never re-transcribed (RESEARCH_PIPELINE R3).
-3. **Image reads are budgeted**: ≤1 reference screenshot during design (R6/C2), ≤1 QA screenshot (the thumbnail) per QA cycle; viewport captures only, never full-page. Trust the QA script's assertions — screenshots are artifacts for the human, not reading material for the runner.
+3. **Image reads are budgeted**: ≤1 reference screenshot during design (R6/C2), ≤1 QA screenshot (the thumbnail) per QA cycle; viewport captures only, never full-page. Trust the QA script's assertions — screenshots are artifacts for the human, not reading material for the runner. **Bounded exception**: up to 2 additional `reference-shots/*.png` reads during C4, specifically when implementing a screen where DESIGN_SPEC's written imagery/density guidance leaves genuine ambiguity — not a standing invitation to re-browse references throughout the build. A prior run wrote a functionally-correct app that still read as generic/prototype-y because the builder never once looked at the captured reference screenshots after R7 (DESIGN_SPEC's text was the only input at C4); this exception exists to prevent that specific failure, not to loosen the budget generally.
 4. **Never read `logs/pocketbase.log` whole.** It is a full SQL trace — a trivial boot is ~55 KB. Grep it for `Error`/`failed`/`panic` and quote only the matching lines.
 5. **Gate re-runs follow the impact matrix** (QA_GATES §4), quiet output flags always (`| tail -20`). Full cascades on frontend-only fixes catch nothing.
 6. **Artifacts are terse**: ITERATION_LOG entries ≤2 lines; QA reports summarize with failure excerpts only; no full logs pasted anywhere.

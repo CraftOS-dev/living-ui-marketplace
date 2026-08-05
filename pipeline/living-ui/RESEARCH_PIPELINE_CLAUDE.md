@@ -26,11 +26,11 @@ Read [README.md](README.md) (especially §1, the platform contract) and [LESSONS
 
 There's no queue to claim from — the human pastes a filled-in [NEW_APP_PROMPT.md](NEW_APP_PROMPT.md) block directly, and that message is the request. First, check `runs/` for an in-flight run (ITERATION_LOG last status `RESEARCHING`/`SPEC_READY`) and resume it instead if one exists. Otherwise: compute `run_id: <slug>-<YYYYMMDD>`; create `runs/<run_id>/{research,reference-shots}`; write the ITERATION_LOG header capturing `app_name`/`slug`/`tags`/`auth_mode`/the requirement text verbatim (this is the only copy of the request that persists) with status `RESEARCHING`; read [GLOBAL_LIVING_UI.md](../../../GLOBAL_LIVING_UI.md) for the palette and enabled rules.
 
-**Preflight the handoff toolchain now** — a broken handoff should fail at minute 1, not hour 6: `node --version` (≥ 24) and, if you plan to auto-launch, `where claude` / `which claude`.
-
-**Decide the handoff mode now** (affects R8 only): will you auto-launch a fresh creation session in the background when research finishes, or end the turn and let the human paste the Creation kickoff themselves?
+**Preflight now**: `node --version` (≥ 24) — you'll need this regardless, since the default path (R8) continues straight into the creation stages in this same session rather than handing off to a separate process. Only check `where claude`/`which claude` if you already know you'll need R8's supervised-pause exception (rare).
 
 **Exit:** started, run folder exists, log started.
+
+**Every ITERATION_LOG timestamp from here on must be the real current time, checked at the moment you write the line — never estimated or pattern-completed from the sequence of prior lines** (README rule 12 / RESEARCH_PIPELINE.md Standing correction 20). A run has shipped log entries dated *later than the real current time* this way; the mistake is invisible until something forces an actual clock check.
 
 ---
 
@@ -69,7 +69,12 @@ Answer all 6 questionnaire categories in writing to `runs/<run_id>/research/ques
 
 Use the template in §7.1. The parts worth real attention, since they're what the creation runner and QA gates lean on hardest:
 
-- **Acceptance criteria** name a user action and an observable result, cover edge cases, and at least a few per feature-set verify persistence across reload. ("No blank canvas state" is not a criterion; "a new list opens with 5 tiers labeled S/A/B/C/D, all empty" is.)
+- **Acceptance criteria** name a user action and an observable result, cover edge cases, and at least a few per feature-set verify persistence across reload.
+
+  **REJECTED**: `- [ ] No blank canvas state` · `- [ ] Zero latency drag interaction`
+  **GOLD**: `- [ ] A new list opens with exactly 5 tiers labeled S, A, B, C, D in canonical colors, all empty, plus an empty pool.` · `- [ ] × on a ranked item returns it to the end of the pool; the item is not deleted.` · `- [ ] A .txt or 15 MB file is rejected with a user-visible error toast; valid files in the same batch still land.`
+
+  Write yours like the gold ones — a user action, an observable result, an edge case, a reload check.
 - **Collections**: PocketBase field types only (`text`, `editor`, `number`, `bool`, `date`, `select`, `relation`, `file`, `json`); every `select` field's values enumerated; the "unplaced/pool" mechanic is an empty optional `relation`, not a second collection; never a field named `metadata`; rules stated against the run's auth mode; **an ingress per collection**.
 - **Assumptions register**: source + a concrete fallback (what changes if the assumption is wrong), not just a restated risk.
 - **Build notes (§8)**: the auth mode verbatim, the custom operations worth declaring and which are destructive, any bridge usage plus its scheduled sync cadence.
@@ -91,6 +96,8 @@ Not there yet → revise. If you're stuck (the request itself is ambiguous in a 
 
 Pick 1–2 references (pinned human reference first, then category leader, then most-imitated UX). Capture with Playwright (MCP tools if configured, else a throwaway script — Playwright resolution and the `waitUntil: 'load'` rule are covered in [QA_GATES.md](QA_GATES.md) §2.1/§2.2) at **1280×800** and **390×844**, viewport only, never full-page, ≤6 shots per reference, saved to `runs/<run_id>/reference-shots/`.
 
+**Use an absolute output path for the capture script, not one relative to the shell's current directory.** The working directory persists across tool calls within a session, so an earlier, unrelated `cd` can silently redirect the script's writes into the wrong folder — this has actually happened (6 screenshots landed inside `living-ui-v2/`, read-only platform territory, because of a stray `cd` several calls earlier) and the mistake wasn't caught until a screenshot was spot-checked. Pass the full path `<CRAFTBOT_ROOT>/agent_file_system/workspace/pipeline/living-ui/runs/<run_id>/reference-shots/` into the script explicitly.
+
 If a reference blocks capture (login wall, bot-blocker), work down: marketing site → docs/help-center screenshots → an alternative competitor with a public UI → a captioned image-search mosaic → give up and write DESIGN_SPEC from `ux-patterns.md` text alone, noting "no visual reference" in DESIGN_SPEC §1 (record what you tried in `research/capture-fallback.md`). Not having screenshots is fine; not trying is not — a prior CraftBot run skipped the attempt entirely and got rejected for it.
 
 ---
@@ -99,9 +106,16 @@ If a reference blocks capture (login wall, bot-blocker), work down: marketing si
 
 Use the template in §7.2. **Identity rule**: colors, fonts, spacing, radii, shadows come only from the kit's design tokens plus GLOBAL_LIVING_UI.md's palette — screenshots dictate layout and behavior, never appearance. Zero hex colors or font names in this file (user-data colors, e.g. tier-row colors, belong in SPEC §3, not here).
 
+**State imagery treatment and information density per screen, read off the actual reference screenshot — not just structural layout.** A SPEC/DESIGN_SPEC pair can pass every quality-bar item below and still produce a build that reads as generic/prototype-y, because "a grid shows the items" tells the builder nothing about *how* to show them.
+
+**REJECTED** (structural only, could describe any app in the category): `A card grid shows the items with some info on each card.`
+**GOLD** (specific, read off the actual screenshot): `Cards are sprite/artwork-dominant — the image fills roughly half the card's height, not a small corner icon; two-line name/number stack below it; type badges as a single non-wrapping row at the bottom edge.`
+
+Every screen entry in your layout section needs a GOLD-level statement of both dimensions, not just a wireframe box.
+
 **Quality bar:**
 - [ ] Every SPEC Must appears on a screen in the inventory.
-- [ ] Every screen has a wireframe and stated responsive behavior (768px, 360px).
+- [ ] Every screen has a wireframe, stated responsive behavior (768px, 360px), **and** stated imagery treatment + information density.
 - [ ] Every observed pattern maps to a component that actually exists in the kit ([RESEARCH_PIPELINE.md](RESEARCH_PIPELINE.md) §5.7 lists them — `EntityForm`/`EntityTable` cover most CRUD surfaces), is flagged for composition from `Card` + primitives, or is explicitly dropped. Don't invent component names.
 - [ ] No visual-identity leakage from the references.
 
@@ -111,9 +125,8 @@ Use the template in §7.2. **Identity rule**: colors, fonts, spacing, radii, sha
 
 1. Confirm the bundle is complete: `SPEC.md`, `DESIGN_SPEC.md`, `research/decomposition.md` + the 4 lane files + `questionnaire.md`, and either 4+ shots or `capture-fallback.md`. This is the same list CREATION_PIPELINE.md's C2 checks — if something's missing, finish it now rather than let C2 bounce it.
 2. Log status `HANDOFF` in ITERATION_LOG.
-3. Hand off, either way:
-   - **Auto-launch** (for an unattended run): background-launch a fresh session with the exact Creation kickoff prompt from README §5, **pinned to Sonnet 5** (a headless launch has no prior session to inherit a model choice from): `claude -p "<prompt>" --model claude-sonnet-5 --dangerously-skip-permissions > runs/<run_id>/creation.log 2>&1 &`, verify it started, then end the turn.
-   - **Hand back to the human** (if you're being supervised): just report the bundle is complete and `status: HANDOFF`, and that pasting the Creation kickoff prompt (README §5) continues the build.
+3. **Continue directly into creation, in this same session — no external process.** You are the Claude Code research runner, which means you're already the creation-capable model; there is no separate session to hand off to. **Never** background-launch `claude -p` or any other external process here — that mechanism (README §5's Creation kickoff prompt, `--dangerously-skip-permissions`, health-poll-and-retry) exists solely for CraftBot's handoff, where the research runner genuinely cannot do the build itself. Launching it anyway when you did the research wastes a process spawn on a session that was already able to continue (this happened once and had to be caught and killed mid-run). Instead: read [README.md](README.md) and [CREATION_PIPELINE.md](CREATION_PIPELINE.md) (if you haven't already this session) and proceed straight into C1 (claim) — its claim steps (folders, `GLOBAL_LIVING_UI.md`, preflight) still apply, it's just a same-session continuation rather than a fresh session discovering a stale `HANDOFF`.
+   - **Exception**: only if a human supervising this session explicitly asked you to stop for review before building — report the bundle complete and `status: HANDOFF`, and that a reply to continue will resume it. This is a deliberate deviation from the default, not the normal path.
 
 ---
 

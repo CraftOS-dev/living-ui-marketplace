@@ -50,6 +50,8 @@ node living-ui-v2/tools/src/cli.ts pb path
 
 **If `<APP>/manifest.json` doesn't exist**, C3 never ran or scaffolded somewhere else. Don't improvise a manual project layout — go back to CREATION_PIPELINE C3 and scaffold properly with `lui create`. This is a process error to fix at the source, not a QA-stage workaround.
 
+**Any throwaway script this stage writes (the G5 harness's `OUT` dir, ad-hoc capture scripts) must use an absolute output path.** The shell's working directory persists across tool calls within a session, so an unrelated earlier `cd` can silently redirect a later relative-path write into the wrong folder — this has actually misplaced captured output before (README rule 12).
+
 ---
 
 ## 2. The gates
@@ -93,6 +95,8 @@ Start from the §9 skeleton — don't design the harness from scratch each run. 
 
 **Never `waitUntil: 'networkidle'`.** A Living UI holds a permanent realtime (SSE) subscription, so the network is *never* idle — the wait hangs until timeout and the gate fails for a reason that has nothing to do with the app. Use `waitUntil: 'load'` plus an explicit `waitForTimeout`.
 
+**Never select a plain-text field with `input[type="text"]`.** The kit's `Input` component renders a native `<input>` with no explicit `type` attribute for ordinary text fields (it only shows up for `type="number"`, `type="email"`, etc.) — the selector silently matches nothing and the script hangs on a 30s timeout. Select on the field's `placeholder` or `label` text instead (the §9 skeleton already does this correctly; this note exists because a run wrote the broken selector anyway, from habit).
+
 **Image-read budget:** trust the script's assertions — screenshots are saved as artifacts for the human, not reading material for the runner. Read **at most one** screenshot into context per QA cycle (normally the thumbnail, to sanity-check it).
 
 ---
@@ -133,6 +137,7 @@ Fresh-eyes pass. Adopt the persona: *a strict product manager who did not build 
     ```sh
     grep -n "features land here as they are planned/built\|Example starter collection\|Replace or extend via pb_migrations" <APP>/LIVING_UI.md
     ```
+19. **Visual polish spot-check** — every functional gate can pass on a build that still reads as a generic prototype; this item exists specifically to catch that. Walk the running app screen by screen: is every discrete content section visually contained (`Card` or a clear boundary — not bare stacked text)? Do interactive affordances use real icon components, not Unicode glyph characters (★☆▲▼✕ etc.)? Does imagery match DESIGN_SPEC's stated treatment (large/central art where specified, not a shrunken icon)? A build that's functionally correct but generic-looking is still a finding (name the specific screens) — MINOR at minimum, MAJOR if a screen is materially thinner than DESIGN_SPEC's own stated density for it.
 
 Findings table (goes in the QA report):
 

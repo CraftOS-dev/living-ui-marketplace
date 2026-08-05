@@ -24,7 +24,7 @@ Notation (README §2): `LUI = node living-ui-v2/tools/src/cli.ts`, `RUN = agent_
 ## 1. Stage C1 — Claim
 
 1. Apply the README §7 pre-run self-check, including the Node/`lui`/Playwright preflight. The in-flight scan covers **creation-owned states only**: `HANDOFF` (with no live launcher session working it), `BUILDING`, `SELF_QA`, `IMPROVING`, `PACKAGING` — resume beats claim (README §8).
-2. Otherwise find the run under `runs/` whose ITERATION_LOG last status is `HANDOFF`. None → report "nothing handed off yet" and stop (hard rule 6). (There's at most one — README rule 3.)
+2. Otherwise find the run under `runs/` whose ITERATION_LOG last status is `HANDOFF`. None → report "nothing handed off yet" and stop (hard rule 6). (There's at most one — README rule 3.) **Same-session direct continuation is a valid, expected way to arrive here**: when a Claude Code session did its own research (RESEARCH_PIPELINE_CLAUDE.md), R8 has it continue straight into C1 in that same session rather than launching a separate process — there's no external `HANDOFF` to "find" in that case, just a status you logged yourself moments ago. Still perform every other step below (folders, `GLOBAL_LIVING_UI.md`, preflight) — this is a shortcut around the process boundary, not around the claim steps.
 3. The run folder `runs/<run_id>/` already exists — the research runner created it, and its ITERATION_LOG header carries the original `app_name`/`slug`/`tags`/`auth_mode`/requirement verbatim (there's no separate request file). **Do not log a new status yet** — C2 does that, so a stuck handoff (launch died before Claude started) stays distinguishable from a claimed one.
 4. Create the folders this pipeline will fill and append to the existing ITERATION_LOG:
    ```sh
@@ -175,6 +175,24 @@ Pipeline-specific amendments to the guide — these are the only deltas; everyth
 | `lui validate` is the gate | True during the build. **Full verification is Stage C5** — [QA_GATES.md](QA_GATES.md) is a strict superset; don't declare done on a green `lui validate` alone |
 | `living_ui_notify_ready` / `living_ui_walk_verify` finish the build | **Not available here** — those are CraftBot actions, and this session is a standalone Claude Code run. Their equivalents are QA_GATES G2/G3 (`lui verify`) and G5 (the browser walk) |
 | Keep `LIVING_UI.md` current | Unchanged, and enforced: G6 checks it for leftover blueprint placeholders |
+
+### 4.1 Visual polish
+
+Passing every functional gate does not guarantee a competitive-looking build — a prior run shipped a fully-functional, gate-green app that still read as a generic prototype. Concrete practices that close that gap:
+
+- **Compose from the kit's presentational primitives even for non-collection-backed data.** `Table` doesn't require a live PocketBase collection — it renders any array of rows (see the starter `App.tsx`). A screen showing a plain list read from a json field, or computed client-side, should still wrap in `Card`/`Table` — a hand-rolled bordered `<div>` layout in the same app as a proper `Card` elsewhere reads as inconsistent and unfinished.
+- **Real icon components over Unicode glyph characters.** The kit's own icon set is limited (`ChevronDownIcon`, `XIcon`, `SearchIcon`, `UploadIcon`). For anything else (favorite, sort, remove, expand, reorder), compose a small custom SVG icon component in agent-owned `app/components/` rather than falling back to ★☆▲▼✕-style glyphs — cheap to add, and reads as materially more polished than a text character standing in for an icon.
+- **Re-view the reference screenshot while writing UI, not just at C2.** DESIGN_SPEC's stated imagery treatment and information density (R7/RESEARCH_PIPELINE.md §0.1's GOLD/REJECTED example) is the primary input, but if it leaves genuine ambiguity for a specific screen, README §9's bounded exception allows up to 2 additional `reference-shots/*.png` reads during C4 to calibrate against the real thing — this is what catches a build that would otherwise be written from text description alone.
+- **G6 checks this explicitly** (QA_GATES §3) — a generic-but-functional build is a finding, not a pass.
+
+### 4.2 Bulk external-data operations
+
+If a feature needs to populate a collection from a paginated or bulk external source (many outbound HTTP calls in one op), **never run it as a single synchronous HTTP hook** — it blocks first paint for as long as the fetch takes, which can run into minutes. Use one of:
+
+- **A `job`-type operation** (`operations.json`'s `executor.type: "job"`) — the route returns `{jobId}` immediately, does the work in the background, and exposes status at `GET /api/_jobs/{jobId}`. Pair it with a frontend progress UI (spinner + "N/M synced") that polls status, not a single opaque wait.
+- **A migration-time seed**, for a near-static dataset that changes rarely (e.g. only on an upstream release): fetch the data once during development and embed it as a data literal directly in a `pb_migrations/*.js` file's `up` function, so a fresh install needs zero runtime network calls at all. Trade-off: this grows the migration file — and therefore the shipped ZIP — in proportion to the seeded data; reasonable for a few hundred small records, not for a large dataset with heavy per-record payloads.
+
+Either way, first paint must never be gated on a slow external fetch with no feedback — a prior run shrank a dataset's scope as a workaround for exactly this, when the real fix was one of the two patterns above.
 
 Log one ITERATION_LOG line per completed feature (schema applied + ops declared + UI wired + gate green counts as complete; not before). This is the stage where a run most often goes dark for over an hour — apply the README §4 heartbeat rule (a line at least every 10 minutes even mid-feature) so a human checking in can tell the run is alive.
 
