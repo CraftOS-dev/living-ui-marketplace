@@ -14,6 +14,7 @@
     },
 	{
       "id": "kanban-board",
+      "livingUIVersion": 2,
       "name": "Kanban Board",
       "description": "Local single-user Kanban board with drag-and-drop, labels, priorities, checklists, and due dates (no auth)",
       "folder": "kanban-board",
@@ -22,6 +23,7 @@
     },
 	{
       "id": "kanban-online",
+      "livingUIVersion": 2,
       "name": "Kanban Online",
       "description": "Multi-user online Kanban board with sign-up/login auth, drag-and-drop, labels, priorities, checklists, and due dates",
       "folder": "kanban-online",
@@ -46,6 +48,7 @@
     },
 	{
       "id": "trading-view",
+      "livingUIVersion": 2,
       "name": "Trading View",
       "description": "TradingView-like trading dashboard with interactive charts, technical indicators, and customizable widget layout.",
       "folder": "trading-view",
@@ -54,6 +57,7 @@
     },
 	{
       "id": "crm-system",
+      "livingUIVersion": 2,
       "name": "CRM System",
       "description": "Attio-class multi-user CRM: People, Companies, and Deals as linked records with custom attributes, saved table/kanban views with inline editing, drag-and-drop pipelines edited on the board, 3-panel record pages with activity timelines, tasks + My Work, Cmd+K palette, SMTP email, funnel/win-rate/velocity reports, and on-demand AI via CraftBot's LLM.",
       "folder": "crm-system",
@@ -81,8 +85,9 @@
     },
     {
       "id": "habit-tracker",
+      "livingUIVersion": 2,
       "name": "Habit Tracker",
-      "description": "Compact, customizable habit tracker with streaks, GitHub-style heatmap, and per-habit analytics. Track binary, count, duration, and avoidance habits in a Notion-monochrome layout.",
+      "description": "Compact, customizable habit tracker with streaks, GitHub-style heatmap, and per-habit analytics. Track yes/no and quantity habits by category in a Notion-monochrome layout.",
       "folder": "habit-tracker",
       "tags": ["productivity", "improvement", "lifestyle"],
       "version": "1.0.0"
@@ -98,13 +103,14 @@
     {
       "id": "pdf-splitter",
       "name": "PDF Splitter",
-      "description": "Upload a PDF, preview pages, then split by selected pages, custom ranges, or every N pages. Download files individually or as a ZIP. Per-document split history, drag-and-drop upload, fully offline (PyMuPDF on the backend).",
+      "description": "Upload a PDF, preview pages, then split by selected pages, custom ranges, or every N pages. Download files individually or as a ZIP. Per-document split history, drag-and-drop upload, fully offline (all PDF processing runs in your browser).",
       "folder": "pdf-splitter",
       "tags": ["pdf", "productivity", "files"],
       "version": "1.0.0"
     },
     {
       "id": "newsletter-tool",
+      "livingUIVersion": 2,
       "name": "Newsletter Tool",
       "description": "Production newsletter platform like Loops or Beehiiv: subscribers with tags, drag-and-drop email builder, AI-generated copy via CraftBot's LLM, pre-built templates, scheduled sends through Gmail, plus open/click analytics and one-click unsubscribe.",
       "folder": "newsletter-tool",
@@ -137,6 +143,7 @@
     },
     {
       "id": "brainstorm-graph",
+      "livingUIVersion": 2,
       "name": "Brainstorm Graph",
       "description": "Agentic brainstorming tool: give a topic and CraftBot spawns a growing graph of questions, answers, and ideas. Two views: Obsidian-style graph canvas and tree outline. CraftBot drives exploration autonomously.",
       "folder": "brainstorm-graph",

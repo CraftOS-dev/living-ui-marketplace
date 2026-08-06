@@ -6,62 +6,58 @@ For the multi-user online version with login/sign-up, see "Kanban Online".
 
 ## Overview
 
-- **Project ID**: 3d8a5c92
-- **Frontend Port**: 3112
-- **Backend Port**: 3113
-- **Theme**: System (dark/light)
-- **Auth**: None (local, single-user)
+- **Platform**: Living UI V2 (PocketBase)
+- **Port**: single port — PocketBase serves both the built frontend and the API
+- **Theme**: System (dark/light), synced from the CraftBot shell via the kit's `ThemeBridge`
+- **Auth**: None (`authMode: "none"`, `AUTH_MODE = 'none'` in `frontend/src/config.gen.ts`)
+
+## Layout
+
+```
+manifest.json          livingUIVersion 2, pbVersion, and the install/build/start pipeline
+operations.json        agent-discoverable verbs (served at GET /api/_ops)
+pb/pb_migrations/      collection schema + seed data (JS migrations)
+pb/pb_hooks/           custom API routes; _system.pb.js and _craftbot_bridge.js are system files
+pb/pb_public/          Vite build output — generated, never edited by hand
+frontend/src/kit/      vendored Living UI kit (system-managed, never edited by agents)
+frontend/src/app/      the app itself — this is what you change
+```
 
 ## Data Model
 
-### Backend Models (backend/models.py)
+PocketBase collections, created by `pb/pb_migrations/1700000000_init_kanban.js`. Auth mode is `none`, so all rules are open (`''`) — the app binds loopback.
 
-| Model | Purpose | Key Fields |
-|-------|---------|------------|
-| Board | A named collection of lists | id, name, created_at, updated_at |
-| BoardList | Vertical column on a board | id, board_id, title, position |
-| Card | Task/item within a list | id, list_id, title, description, priority, due_date, position, archived |
-| Label | Colored tag per board | id, board_id, name, color |
-| card_labels | Many-to-many Card-Label | card_id, label_id |
-| ChecklistItem | Subtask within a card | id, card_id, text, completed, position |
+| Collection | Purpose | Fields |
+|------------|---------|--------|
+| `boards` | A named collection of lists | `name`, `created`, `updated` |
+| `labels` | Colored tag, scoped to a board | `board` (relation → boards, cascade), `name`, `color` |
+| `lists` | Vertical column on a board | `board` (relation → boards, cascade), `title`, `position`, `created`, `updated` |
+| `cards` | Task/item within a list | `list` (relation → lists, cascade), `title`, `description`, `priority`, `due_date`, `position`, `archived`, `labels` (relation → labels, multi), `checklist` (json), `created`, `updated` |
 
-## API Endpoints
+Checklist items live in a `json` field on the card rather than in their own collection — there is no `checklist_items` collection to query.
 
-### Custom Routes (backend/routes.py)
+`pb/pb_migrations/1700000001_seed_board.js` seeds a starter board so the app is not empty on first open.
+
+## API
+
+Everything is PocketBase's REST API — `GET/POST/PATCH/DELETE /api/collections/{collection}/records` — reached from the frontend through the kit's PocketBase client (`kit/pb/client.ts`, `useCollection` / `useRecord`).
+
+Custom routes beyond CRUD live in `pb/pb_hooks/ops.pb.js` and **must** have a matching entry in `operations.json`:
 
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | /boards | List all boards |
-| POST | /boards | Create board (auto-creates 3 default lists) |
-| GET | /boards/{id} | Get board with lists, cards, labels |
-| PUT | /boards/{id} | Rename board |
-| DELETE | /boards/{id} | Delete board (cascades) |
-| POST | /lists | Add list to board |
-| PUT | /lists/{id} | Rename / reorder list |
-| DELETE | /lists/{id} | Delete list (cascades) |
-| POST | /cards | Create card in list |
-| GET | /cards/{id} | Get card with labels + checklist |
-| PUT | /cards/{id} | Update card fields |
-| DELETE | /cards/{id} | Delete card |
-| PUT | /cards/{id}/move | Move card to list at position |
-| POST | /labels | Create label |
-| PUT | /labels/{id} | Update label |
-| DELETE | /labels/{id} | Delete label |
-| PUT | /cards/{cid}/labels/{lid} | Assign label to card |
-| DELETE | /cards/{cid}/labels/{lid} | Remove label from card |
-| POST | /checklist | Add checklist item |
-| PUT | /checklist/{id} | Update / reorder checklist item |
-| DELETE | /checklist/{id} | Delete checklist item |
-| POST | /search | Search/filter cards within a board |
-| POST | /stats | Board statistics |
+| POST | `/api/ops/cards/clear-archived` | Delete all archived cards, returns `{ cleared: n }` |
 
-Plus framework routes: `/state` (GET/PUT/POST/DELETE), `/action`, `/ui-snapshot`, `/ui-screenshot`.
+System routes from `pb/pb_hooks/_system.pb.js`: `GET /api/health` (PocketBase built-in), `GET /api/_ops` (operations manifest), `POST /api/_console` (frontend console relay).
+
+When adding a hook, read the request body with `e.requestInfo().body` — `e.request.body` is a Go stream and reads as empty.
 
 ## Frontend Components
 
+Under `frontend/src/app/components/`:
+
 | Component | Purpose |
 |-----------|---------|
-| App.tsx | Root component — directly renders MainView (no AuthGate) |
 | MainView.tsx | Top-level layout, board state management |
 | Header.tsx | Board selector dropdown, search bar, sidebar toggle |
 | BoardView.tsx | Horizontal scrolling board with list columns |
@@ -70,39 +66,31 @@ Plus framework routes: `/state` (GET/PUT/POST/DELETE), `/action`, `/ui-snapshot`
 | CardDetailModal.tsx | Full card editor modal |
 | Sidebar.tsx | Filters, label manager, statistics tabs (no Members tab) |
 
-## Key Files
-
-| File | Purpose |
-|------|---------|
-| backend/models.py | 6 SQLAlchemy models for Kanban data |
-| backend/routes.py | REST API endpoints |
-| frontend/types.ts | TypeScript interfaces |
-| frontend/AppController.ts | State management + API client (plain fetch, no auth) |
-| frontend/components/MainView.tsx | Main UI orchestrator |
+`frontend/src/app/App.tsx` renders MainView directly. `frontend/src/main.tsx` is a system file: it wraps the app in the kit `Shell`, and in `LoginGate` only when `AUTH_MODE === 'multi-user'` — which this app is not.
 
 ## Differences from Kanban Online
 
-- No `auth_*.py` files (deleted: `auth_models.py`, `auth_service.py`, `auth_middleware.py`, `auth_routes.py`)
-- No `frontend/auth_types.ts`, `frontend/services/AuthService.ts`, or `frontend/components/auth/` directory
-- `Board` model has no `user_id` column
-- Board endpoints have no `Depends(get_current_user)` and no membership filtering
-- `App.tsx` does not wrap MainView in `AuthProvider` / `AuthGate`
-- `Header.tsx` does not render `<UserMenu />`
-- `Sidebar.tsx` has no Members tab
-- `requirements.txt` does not include `bcrypt` or `PyJWT`
+- `authMode: "none"` in manifest.json and `AUTH_MODE = 'none'` in `config.gen.ts`
+- No owner relation on `boards`, and no per-user filtering in the collection rules
+- `Header.tsx` does not render a user menu; `Sidebar.tsx` has no Members tab
+- The kit's `LoginGate` is compiled in but never mounted
 
 ## State Flow
 
 ```
-User Action -> Frontend Component -> AppController -> Backend API -> SQLite DB
-                                        |
-                                  Update UI State
+User action → component → PocketBase SDK (kit/pb) → PocketBase → SQLite
+                              ↓
+                     useCollection re-renders
 ```
 
-## Testing
+## Local Development
 
 ```bash
-cd backend && python -m pytest tests/ -v --tb=short
+npm install --prefix frontend
+npm run build --prefix frontend      # emits into pb/pb_public
+pocketbase serve --http=127.0.0.1:8090 \
+  --dir pb/pb_data --hooksDir pb/pb_hooks \
+  --migrationsDir pb/pb_migrations --publicDir pb/pb_public
 ```
 
-The `auth_headers` fixture in `tests/conftest.py` is now a no-op returning `{}` so existing test signatures continue to work.
+`npm run typecheck --prefix frontend` runs `tsc` alone; the build runs it first and fails on any type error.

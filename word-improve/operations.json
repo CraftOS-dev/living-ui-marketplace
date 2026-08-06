@@ -1,0 +1,34 @@
+{
+  "opsVersion": 1,
+  "operations": [
+    {
+      "name": "health",
+      "description": "Liveness check (PocketBase built-in).",
+      "system": true,
+      "params": {},
+      "executor": { "type": "http", "method": "GET", "path": "/api/health" }
+    },
+    {
+      "name": "ops.list",
+      "description": "Return this operations manifest.",
+      "system": true,
+      "params": {},
+      "executor": { "type": "http", "method": "GET", "path": "/api/_ops" }
+    },
+    {
+      "name": "ai.generate",
+      "description": "Run one prompt through the CraftBot LLM bridge and return the raw text (empty string when the app runs outside CraftBot). Used to produce the whole-text rewrite variants.",
+      "params": {
+        "system": { "type": "string", "required": false, "description": "System prompt." },
+        "prompt": { "type": "string", "required": true, "description": "User prompt." }
+      },
+      "executor": { "type": "http", "method": "POST", "path": "/api/ops/ai/generate" }
+    },
+    {
+      "name": "integrations.status",
+      "description": "Whether the CraftBot LLM bridge is configured, so the frontend can show an honest LLM-available banner.",
+      "params": {},
+      "executor": { "type": "http", "method": "GET", "path": "/api/ops/integrations/status" }
+    }
+  ]
+}

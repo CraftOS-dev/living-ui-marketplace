@@ -18,7 +18,7 @@
  * before the component modules read it.
  */
 import { installApiAdapter } from './services/apiAdapter';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { MainView } from './components/MainView';
@@ -27,13 +27,8 @@ import { uiCapture } from './services/UICapture';
 import { AuthProvider, useAuth } from './components/auth/AuthProvider';
 import { LoginPage } from './components/auth/LoginPage';
 import { RegisterPage } from './components/auth/RegisterPage';
-import {
-  applyThemeToDocument,
-  DEFAULT_CUSTOM_COLORS,
-  type CustomColors,
-  type ThemeId,
-} from './theme/themes';
 import './styles/global.css';
+import './styles/theme-bridge.css';
 
 installApiAdapter();
 
@@ -106,43 +101,6 @@ export function App(): React.JSX.Element {
     syncAuthToken();
     return 0;
   });
-
-  const themeIdRef = useRef<ThemeId>('craftbot');
-  const modeRef = useRef<'dark' | 'light'>('dark');
-  const customColorsRef = useRef<CustomColors>({ ...DEFAULT_CUSTOM_COLORS });
-
-  useEffect(() => {
-    applyThemeToDocument(themeIdRef.current, modeRef.current, customColorsRef.current);
-
-    const onMessage = (e: MessageEvent): void => {
-      if (!e.data) return;
-
-      if (e.data.type === 'craftbot-theme') {
-        const mode: 'dark' | 'light' = e.data.theme === 'light' ? 'light' : 'dark';
-        modeRef.current = mode;
-        applyThemeToDocument(themeIdRef.current, mode, customColorsRef.current);
-      }
-
-      if (e.data.type === 'livingui-theme') {
-        const themeId = e.data.themeId as ThemeId;
-        themeIdRef.current = themeId;
-        if (e.data.customColors) {
-          customColorsRef.current = e.data.customColors as CustomColors;
-        }
-        applyThemeToDocument(themeId, modeRef.current, customColorsRef.current);
-      }
-    };
-
-    window.addEventListener('message', onMessage);
-
-    try {
-      window.parent.postMessage({ type: 'craftbot-theme-request' }, '*');
-    } catch {
-      /* not embedded */
-    }
-
-    return () => window.removeEventListener('message', onMessage);
-  }, []);
 
   return (
     <AuthProvider>
