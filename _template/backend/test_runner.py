@@ -84,6 +84,18 @@ def _generate_value(schema: Dict[str, Any], definitions: Dict[str, Any]) -> Any:
         ref_schema = definitions.get(ref_name, {})
         return generate_payload_from_schema(ref_schema, definitions)
 
+    # anyOf / oneOf must be resolved before the type-default fallback below:
+    # Pydantic v2 emits Optional[T] as {"anyOf": [{T}, {"type": "null"}]} with
+    # no top-level "type" key, so checking this after the type dispatch made
+    # it dead code and every Optional field fell through to the "string"
+    # branch, sending the literal "test" for optional ints/bools/datetimes.
+    if "type" not in schema:
+        for key in ("anyOf", "oneOf"):
+            if key in schema:
+                for variant in schema[key]:
+                    if variant.get("type") != "null":
+                        return _generate_value(variant, definitions)
+
     field_type = schema.get("type", "string")
 
     if field_type == "string":
