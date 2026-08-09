@@ -1,0 +1,60 @@
+/**
+ * Bridges this app's legacy design-system variable names (--bg-primary,
+ * --color-primary, etc., read throughout components/*) onto the kit's
+ * --lui-* tokens (set on <html> by kit/theme/bridge.ts's ThemeBridge via
+ * data-style/data-theme). Generic by design — any theme added to
+ * living-ui-v2/kit/src/theme/tokens.css works here automatically, no
+ * per-theme cases needed.
+ */
+:root {
+  --bg-primary: var(--lui-bg);
+  --bg-secondary: var(--lui-surface);
+  --bg-tertiary: color-mix(in srgb, var(--lui-surface) 50%, var(--lui-bg) 50%);
+  --text-primary: var(--lui-text);
+  --text-secondary: color-mix(in srgb, var(--lui-text) 65%, var(--lui-bg) 35%);
+  --text-muted: color-mix(in srgb, var(--lui-text) 40%, var(--lui-bg) 60%);
+  --border-primary: var(--lui-border);
+  --border-secondary: color-mix(in srgb, var(--lui-border) 60%, var(--lui-bg) 40%);
+  --color-primary: var(--lui-accent);
+  --color-primary-hover: color-mix(in srgb, var(--lui-accent) 82%, black 18%);
+  --color-primary-light: color-mix(in srgb, var(--lui-accent) 15%, transparent);
+  --color-primary-subtle: color-mix(in srgb, var(--lui-accent) 8%, transparent);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.6);
+  --overlay-color: rgba(0, 0, 0, 0.6);
+}
+
+:root[data-theme='light'] {
+  --color-primary-hover: color-mix(in srgb, var(--lui-accent) 82%, white 18%);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.12);
+  --overlay-color: rgba(0, 0, 0, 0.4);
+}
+
+/* Brutalist is hard-edged by design (kit tokens.css already sets
+   --lui-radius: 0 for it) — flatten every corner, including fully-round
+   elements like the scrollbar thumb and avatar/badge pills. */
+:root[data-style='brutalist'] {
+  --radius-sm: 0;
+  --radius-md: 0;
+  --radius-lg: 0;
+  --radius-xl: 0;
+  --radius-full: 0;
+}
+
+/* The variables above only flatten code that reads them. Plenty of
+   components hardcode border-radius (px/%/999) or use static Tailwind
+   rounded-* classes (rounded-full has no CSS var backing in Tailwind v4 at
+   all), and react-toastify ships its own rounded corners. Force every
+   element flat as a blanket guarantee instead of chasing each one. */
+:root[data-style='brutalist'] *,
+:root[data-style='brutalist'] *::before,
+:root[data-style='brutalist'] *::after {
+  border-radius: 0 !important;
+}
+:root[data-style='brutalist'] rect {
+  rx: 0;
+  ry: 0;
+}

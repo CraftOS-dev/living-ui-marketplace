@@ -28,8 +28,22 @@ const CHART = {
   c3: 'hsl(var(--chart-3))',
   c4: 'hsl(var(--chart-4))',
   c5: 'hsl(var(--chart-5))',
-  grid: 'hsl(var(--border))',
-  ink: 'hsl(var(--muted-foreground))',
+  grid: 'var(--border)',
+  ink: 'var(--muted-foreground)',
+}
+
+// Recharts bakes its `radius` prop directly into the bar's SVG path, so no
+// CSS rule can flatten it for the brutalist style — watch data-style instead.
+function useSharpCorners(): boolean {
+  const [sharp, setSharp] = useState(() => document.documentElement.getAttribute('data-style') === 'brutalist')
+  useEffect(() => {
+    const root = document.documentElement
+    const update = () => setSharp(root.getAttribute('data-style') === 'brutalist')
+    const observer = new MutationObserver(update)
+    observer.observe(root, { attributes: true, attributeFilter: ['data-style'] })
+    return () => observer.disconnect()
+  }, [])
+  return sharp
 }
 
 // Fixed categorical order — validated palette (dataviz skill)
@@ -68,6 +82,7 @@ export function Reports() {
   const [velocity, setVelocity] = useState<VelocityReport | null>(null)
   const [volume, setVolume] = useState<ActivityVolumeReport | null>(null)
   const [loading, setLoading] = useState(true)
+  const sharpCorners = useSharpCorners()
 
   const load = useCallback(() => {
     setLoading(true)
@@ -255,8 +270,8 @@ export function Reports() {
                   <CartesianGrid stroke={CHART.grid} strokeDasharray="0" vertical={false} />
                   <XAxis dataKey="label" tick={{ fill: CHART.ink, fontSize: 11 }} axisLine={{ stroke: CHART.grid }} tickLine={false} />
                   <YAxis tickFormatter={(value: number) => formatCompactCurrency(value)} tick={{ fill: CHART.ink, fontSize: 11 }} axisLine={false} tickLine={false} width={48} />
-                  <Tooltip content={<ChartTooltip />} cursor={{ fill: 'hsl(var(--accent))' }} />
-                  <Bar dataKey="wonValue" name="Won value" fill={CHART.c2} radius={[4, 4, 0, 0]} maxBarSize={36} />
+                  <Tooltip content={<ChartTooltip />} cursor={{ fill: 'var(--accent)' }} />
+                  <Bar dataKey="wonValue" name="Won value" fill={CHART.c2} radius={sharpCorners ? [0, 0, 0, 0] : [4, 4, 0, 0]} maxBarSize={36} />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
@@ -303,7 +318,7 @@ export function Reports() {
                     <CartesianGrid stroke={CHART.grid} vertical={false} />
                     <XAxis dataKey="label" tick={{ fill: CHART.ink, fontSize: 11 }} axisLine={{ stroke: CHART.grid }} tickLine={false} />
                     <YAxis allowDecimals={false} tick={{ fill: CHART.ink, fontSize: 11 }} axisLine={false} tickLine={false} width={32} />
-                    <Tooltip content={<ChartTooltip />} cursor={{ fill: 'hsl(var(--accent))' }} />
+                    <Tooltip content={<ChartTooltip />} cursor={{ fill: 'var(--accent)' }} />
                     {VOLUME_SERIES.map((series, index) => (
                       <Bar
                         key={series.key}
@@ -311,9 +326,9 @@ export function Reports() {
                         name={series.label}
                         stackId="volume"
                         fill={series.color}
-                        stroke="hsl(var(--card))"
+                        stroke="var(--card)"
                         strokeWidth={1}
-                        radius={index === VOLUME_SERIES.length - 1 ? [4, 4, 0, 0] : [0, 0, 0, 0]}
+                        radius={!sharpCorners && index === VOLUME_SERIES.length - 1 ? [4, 4, 0, 0] : [0, 0, 0, 0]}
                         maxBarSize={40}
                       />
                     ))}
