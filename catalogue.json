@@ -31,22 +31,6 @@
       "version": "1.0.0"
     },
 	{
-      "id": "ledgerflow",
-      "name": "Ledgerflow",
-      "description": "Comprehensive bookkeeping app for personal and business use with income/expense tracking, invoicing, bills, contacts, and financial reports.",
-      "folder": "ledgerflow",
-      "tags": ["bookkeeping", "finance", "productivity"],
-      "version": "1.0.0"
-    },
-	{
-      "id": "luolinglo",
-      "name": "Luolinglo",
-      "description": "Language learning app with vocabulary, flashcards, quizzes, AI teacher, and heavy gamification.",
-      "folder": "luolinglo",
-      "tags": ["language", "education"],
-      "version": "1.0.0"
-    },
-	{
       "id": "trading-view",
       "livingUIVersion": 2,
       "name": "Trading View",
@@ -63,25 +47,6 @@
       "folder": "crm-system",
       "tags": ["CRM", "sales", "pipeline", "productivity", "business"],
       "version": "1.0.0"
-    },
-    {
-      "id": "creator-command-center",
-      "name": "Creator Command Center",
-      "description": "Multi-platform dashboard for content creators. Pulls real data from YouTube, Discord, Twitter, and Notion via CraftBot integrations. See your subscribers, videos, community, and content pipeline in one place.",
-      "folder": "creator_command_center",
-      "tags": ["creator", "youtube", "social-media", "dashboard", "integrations"],
-      "version": "1.0.0"
-    },
-    {
-      "id": "tamagotchi",
-      "name": "CraftBot Tamagotchi",
-      "description": "A virtual CraftBot pet. Feed, play with, clean, and care for your own little CraftBot as it evolves from egg to adult.",
-      "folder": "tamagotchi",
-      "tags": ["game", "fun", "pet", "virtual-pet"],
-      "version": "1.0.0",
-      "customizable": [
-        {"key": "PET_DEFAULT_NAME", "label": "Default pet name", "type": "text", "default": "Bitsy", "placeholder": "e.g. Bitsy, Sparky, Zap"}
-      ]
     },
     {
       "id": "habit-tracker",
@@ -148,14 +113,6 @@
       "description": "Agentic brainstorming tool: give a topic and CraftBot spawns a growing graph of questions, answers, and ideas. Two views: Obsidian-style graph canvas and tree outline. CraftBot drives exploration autonomously.",
       "folder": "brainstorm-graph",
       "tags": ["brainstorming", "AI", "graph", "productivity"],
-      "version": "1.0.0"
-    },
-    {
-      "id": "social-media-manager",
-      "name": "Social Media Manager",
-      "description": "Compose, schedule, publish, and analyze posts across Twitter/X, LinkedIn, and YouTube — with an AI writing suite built in.",
-      "folder": "social-media-manager",
-      "tags": ["social-media", "AI", "productivity", "marketing"],
       "version": "1.0.0"
     }
   ]
