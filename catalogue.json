@@ -157,6 +157,15 @@
       "folder": "social-media-manager",
       "tags": ["social-media", "AI", "productivity", "marketing"],
       "version": "1.0.0"
+    },
+    {
+      "id": "resume-builder",
+      "livingUIVersion": 2,
+      "name": "Resume Maker",
+      "description": "Interactive split-view resume maker with 34 live template previews, custom fonts and colors, certifications, publications section, portfolio links, section management, multi-resume dashboard, score analysis, and PDF/Print export.",
+      "folder": "resume-builder",
+      "tags": ["resume", "resume-maker", "cv", "career", "document", "productivity", "portfolio", "living-ui"],
+      "version": "1.0.0"
     }
   ]
 }
