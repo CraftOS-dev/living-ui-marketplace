@@ -157,6 +157,15 @@
       "folder": "social-media-manager",
       "tags": ["social-media", "AI", "productivity", "marketing"],
       "version": "1.0.0"
+    },
+    {
+      "id": "invoice-tracker",
+      "livingUIVersion": 2,
+      "name": "Invoice & Subscription Tracker",
+      "description": "Multi-group invoice, receipt, and subscription tracker with automatic renewal reminders, interactive monthly & multi-year cost explorers, currency switching, PDF attachment inspection, and CSV report export.",
+      "folder": "invoice-tracker",
+      "tags": ["finance", "invoices", "subscriptions", "expenses", "productivity", "business"],
+      "version": "1.0.0"
     }
   ]
 }
