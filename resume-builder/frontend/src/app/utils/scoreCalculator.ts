@@ -1,4 +1,4 @@
-import { ResumeData, ResumeScore } from '../types/resume';
+import type { ResumeData, ResumeScore } from '../types/resume';
 
 const ACTION_VERBS = [
   'spearheaded', 'engineered', 'architected', 'led', 'scaled', 'built', 'redesigned',

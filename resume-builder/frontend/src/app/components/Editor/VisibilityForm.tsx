@@ -1,6 +1,6 @@
 import React from 'react';
 import { useResume } from '../../context/ResumeContext';
-import { SectionKey, SectionVisibility } from '../../types/resume';
+import type { SectionKey, SectionVisibility } from '../../types/resume';
 import { getTemplateSupportedSections } from '../../utils/templateSections';
 import { Eye, EyeOff, ArrowUp, ArrowDown, Hash } from 'lucide-react';
 
@@ -30,10 +30,13 @@ export const VisibilityForm: React.FC = () => {
     const newOrder = [...sectionOrder];
     const targetIndex = direction === 'up' ? index - 1 : index + 1;
     if (targetIndex >= 0 && targetIndex < newOrder.length) {
-      const temp = newOrder[index];
-      newOrder[index] = newOrder[targetIndex];
-      newOrder[targetIndex] = temp;
-      updateSectionOrder(newOrder);
+      const a = newOrder[index];
+      const b = newOrder[targetIndex];
+      if (a && b) {
+        newOrder[index] = b;
+        newOrder[targetIndex] = a;
+        updateSectionOrder(newOrder);
+      }
     }
   };
 

@@ -1,5 +1,6 @@
+import { getPbClient, toast } from '../../kit/index.ts';
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { ResumeData, ResumeScore, SectionKey, SectionVisibility, ResumeStyle } from '../types/resume';
+import type { ResumeData, ResumeScore, SectionKey, SectionVisibility, ResumeStyle } from '../types/resume';
 import { INITIAL_RESUME, PRESETS } from '../data/presets';
 import { calculateResumeScore } from '../utils/scoreCalculator';
 import { generateRandomCandidate } from '../utils/randomCandidateGenerator';
@@ -65,26 +66,77 @@ export const ResumeProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         const parsed = JSON.parse(savedList);
         if (Array.isArray(parsed) && parsed.length > 0) {
           return parsed.map(r => ({
+            ...INITIAL_RESUME,
             ...r,
-            style: { ...r.style, showPageNumbers: false }
+            personal: { ...INITIAL_RESUME.personal, ...(r.personal || {}) },
+            experiences: Array.isArray(r.experiences) ? r.experiences : INITIAL_RESUME.experiences,
+            educations: Array.isArray(r.educations) ? r.educations : INITIAL_RESUME.educations,
+            skills: Array.isArray(r.skills) ? r.skills : INITIAL_RESUME.skills,
+            myTime: Array.isArray(r.myTime) ? r.myTime : INITIAL_RESUME.myTime,
+            mostProudOf: Array.isArray(r.mostProudOf) ? r.mostProudOf : INITIAL_RESUME.mostProudOf,
+            philosophy: r.philosophy && typeof r.philosophy === 'object' ? { ...INITIAL_RESUME.philosophy, ...r.philosophy } : INITIAL_RESUME.philosophy,
+            projects: Array.isArray(r.projects) ? r.projects : INITIAL_RESUME.projects,
+            certifications: Array.isArray(r.certifications) ? r.certifications : INITIAL_RESUME.certifications,
+            publications: Array.isArray(r.publications) ? r.publications : (INITIAL_RESUME.publications || []),
+            sectionVisibility: { ...INITIAL_RESUME.sectionVisibility, ...(r.sectionVisibility || {}) },
+            sectionOrder: Array.isArray(r.sectionOrder) ? r.sectionOrder : INITIAL_RESUME.sectionOrder,
+            style: { ...INITIAL_RESUME.style, ...(r.style || {}), showPageNumbers: false }
           }));
         }
       } catch (e) {
         console.error('Failed to parse cached resumes list', e);
       }
     }
-    // Migration fallback for legacy single resume
-    const legacySaved = localStorage.getItem('living_resume_maker_v1');
-    if (legacySaved) {
-      try {
-        const parsedLegacy = JSON.parse(legacySaved);
-        if (parsedLegacy.personal) {
-          return [{ ...parsedLegacy, id: parsedLegacy.id || 'resume-1', title: parsedLegacy.title || 'My First Resume' }];
-        }
-      } catch (e) {}
-    }
     return [{ ...INITIAL_RESUME, id: 'resume-1', title: 'Software Engineer Resume' }];
   });
+
+  // Load from PocketBase on mount
+  useEffect(() => {
+    let active = true;
+    const fetchPbResumes = async () => {
+      try {
+        const records = await getPbClient().call((pb) =>
+          pb.collection('resume_state').getFullList({ sort: '-created' })
+        );
+        if (!active || !records || records.length === 0) return;
+        
+        const loaded: ResumeData[] = [];
+        for (const rec of records) {
+          if (rec.data && typeof rec.data === 'object' && rec.data.personal) {
+            loaded.push({
+              ...INITIAL_RESUME,
+              ...rec.data,
+              personal: { ...INITIAL_RESUME.personal, ...(rec.data.personal || {}) },
+              experiences: Array.isArray(rec.data.experiences) ? rec.data.experiences : INITIAL_RESUME.experiences,
+              educations: Array.isArray(rec.data.educations) ? rec.data.educations : INITIAL_RESUME.educations,
+              skills: Array.isArray(rec.data.skills) ? rec.data.skills : INITIAL_RESUME.skills,
+              myTime: Array.isArray(rec.data.myTime) ? rec.data.myTime : INITIAL_RESUME.myTime,
+              mostProudOf: Array.isArray(rec.data.mostProudOf) ? rec.data.mostProudOf : INITIAL_RESUME.mostProudOf,
+              philosophy: rec.data.philosophy && typeof rec.data.philosophy === 'object' ? { ...INITIAL_RESUME.philosophy, ...rec.data.philosophy } : INITIAL_RESUME.philosophy,
+              projects: Array.isArray(rec.data.projects) ? rec.data.projects : INITIAL_RESUME.projects,
+              certifications: Array.isArray(rec.data.certifications) ? rec.data.certifications : INITIAL_RESUME.certifications,
+              publications: Array.isArray(rec.data.publications) ? rec.data.publications : (INITIAL_RESUME.publications || []),
+              sectionVisibility: { ...INITIAL_RESUME.sectionVisibility, ...(rec.data.sectionVisibility || {}) },
+              sectionOrder: Array.isArray(rec.data.sectionOrder) ? rec.data.sectionOrder : INITIAL_RESUME.sectionOrder,
+              style: { ...INITIAL_RESUME.style, ...(rec.data.style || {}) },
+              id: rec.id,
+              title: rec.title || rec.data.title || 'Resume'
+            });
+          }
+        }
+        if (loaded.length > 0) {
+          setResumes(loaded);
+          if (!loaded.some(r => r.id === activeResumeId)) {
+            setActiveResumeId(loaded[0]!.id);
+          }
+        }
+      } catch {
+        // Fallback to localStorage / initial data
+      }
+    };
+    void fetchPbResumes();
+    return () => { active = false; };
+  }, []);
 
   const [activeResumeId, setActiveResumeId] = useState<string>(() => {
     const savedActive = localStorage.getItem(LOCAL_STORAGE_ACTIVE_KEY);
@@ -107,6 +159,32 @@ export const ResumeProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   useEffect(() => {
     localStorage.setItem(LOCAL_STORAGE_ACTIVE_KEY, activeResumeId);
   }, [activeResumeId]);
+
+  // Sync active resume changes to PocketBase (debounced)
+  useEffect(() => {
+    const timer = setTimeout(async () => {
+      if (!activeResume || !activeResume.id) return;
+      try {
+        await getPbClient().call(async (pb) => {
+          try {
+            // Update by key or id
+            const existing = await pb.collection('resume_state').getFirstListItem(`key = "${activeResume.id}"`);
+            await pb.collection('resume_state').update(existing.id, {
+              data: activeResume
+            });
+          } catch {
+            // Create if missing
+            await pb.collection('resume_state').create({
+              key: activeResume.id,
+              data: activeResume
+            });
+          }
+        }, { silent: true });
+      } catch {}
+    }, 600);
+    return () => clearTimeout(timer);
+  }, [activeResume]);
+
 
   const score = calculateResumeScore(activeResume);
 
@@ -142,7 +220,7 @@ export const ResumeProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const remaining = resumes.filter(r => r.id !== id);
     setResumes(remaining);
     if (activeResumeId === id) {
-      setActiveResumeId(remaining[0].id);
+      setActiveResumeId(remaining[0]?.id || '');
     }
   };
 
@@ -301,7 +379,7 @@ export const ResumeProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const addMyTimeItem = () => {
     const defaultColors = ['#f97316', '#ec4899', '#10b981', '#f59e0b', '#8b5cf6', '#06b6d4'];
-    const color = defaultColors[activeResume.myTime.length % defaultColors.length];
+    const color = defaultColors[activeResume.myTime.length % defaultColors.length] || '#f97316';
     const newItem = {
       id: `mt-${Date.now()}`,
       label: 'New Activity Focus',
@@ -464,22 +542,25 @@ export const ResumeProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   // Generic direct in-canvas editor helper
   const updateInlineField = (path: string, value: string) => {
     const parts = path.split('.');
-    if (parts[0] === 'personal') {
-      updatePersonal({ [parts[1]]: value });
-    } else if (parts[0] === 'philosophy') {
-      updatePhilosophy(parts[1] === 'quote' ? value : activeResume.philosophy.quote, parts[1] === 'author' ? value : activeResume.philosophy.author);
-    } else if (parts[0] === 'experience' && parts.length === 3) {
-      updateExperience(parts[1], { [parts[2]]: value });
-    } else if (parts[0] === 'education' && parts.length === 3) {
-      updateEducation(parts[1], { [parts[2]]: value });
-    } else if (parts[0] === 'mostProudOf' && parts.length === 3) {
-      updateMostProudOfItem(parts[1], { [parts[2]]: value });
-    } else if (parts[0] === 'myTime' && parts.length === 3) {
-      updateMyTimeItem(parts[1], { [parts[2]]: parts[2] === 'percentage' ? Number(value) : value });
-    } else if (parts[0] === 'project' && parts.length === 3) {
-      updateProject(parts[1], { [parts[2]]: value });
-    } else if (parts[0] === 'publication' && parts.length === 3) {
-      updatePublication(parts[1], { [parts[2]]: value });
+    const p0 = parts[0] ?? '';
+    const p1 = parts[1] ?? '';
+    const p2 = parts[2] ?? '';
+    if (p0 === 'personal' && p1) {
+      updatePersonal({ [p1]: value });
+    } else if (p0 === 'philosophy') {
+      updatePhilosophy(p1 === 'quote' ? value : activeResume.philosophy.quote, p1 === 'author' ? value : activeResume.philosophy.author);
+    } else if (p0 === 'experience' && p1 && p2) {
+      updateExperience(p1, { [p2]: value });
+    } else if (p0 === 'education' && p1 && p2) {
+      updateEducation(p1, { [p2]: value });
+    } else if (p0 === 'mostProudOf' && p1 && p2) {
+      updateMostProudOfItem(p1, { [p2]: value });
+    } else if (p0 === 'myTime' && p1 && p2) {
+      updateMyTimeItem(p1, { [p2]: p2 === 'percentage' ? Number(value) : value });
+    } else if (p0 === 'project' && p1 && p2) {
+      updateProject(p1, { [p2]: value });
+    } else if (p0 === 'publication' && p1 && p2) {
+      updatePublication(p1, { [p2]: value });
     }
   };
 

@@ -46,8 +46,8 @@ export const handleBulletKeyDown = (
     if (bulletMatch) {
       bulletPrefix = `${bulletMatch[1]}${bulletMatch[2]} `;
     } else if (numberMatch) {
-      const nextNum = parseInt(numberMatch[2], 10) + 1;
-      bulletPrefix = `${numberMatch[1]}${nextNum}. `;
+      const nextNum = parseInt(numberMatch[2] || '1', 10) + 1;
+      bulletPrefix = `${numberMatch[1] || ''}${nextNum}. `;
     } else {
       // Case 3: Line does not have a bullet prefix yet.
       // Prepend bullet prefix to the current line if it has content

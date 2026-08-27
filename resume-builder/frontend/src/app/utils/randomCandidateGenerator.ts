@@ -1,4 +1,4 @@
-import { ResumeData } from '../types/resume';
+import type { ResumeData } from '../types/resume';
 import { INITIAL_RESUME } from '../data/presets';
 
 const CANDIDATE_POOL = [
@@ -261,7 +261,7 @@ const CANDIDATE_POOL = [
 
 export function generateRandomCandidate(title?: string): ResumeData {
   // Pick random candidate persona
-  const randomPersona = CANDIDATE_POOL[Math.floor(Math.random() * CANDIDATE_POOL.length)];
+  const randomPersona = CANDIDATE_POOL[Math.floor(Math.random() * CANDIDATE_POOL.length)] || CANDIDATE_POOL[0]!;
   const timestamp = Date.now();
 
   return {

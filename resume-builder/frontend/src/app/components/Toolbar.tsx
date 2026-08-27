@@ -1,6 +1,7 @@
 import React from 'react';
 import { useResume } from '../context/ResumeContext';
-import { TemplateId, FontFamily, FontSize, LineSpacing, PhotoShape, SectionVisibility, getTemplateDefaultFont } from '../types/resume';
+import type { TemplateId, FontFamily, FontSize, LineSpacing, PhotoShape, SectionVisibility } from '../types/resume';
+import { getTemplateDefaultFont } from '../types/resume';
 import { getTemplateSupportedSections } from '../utils/templateSections';
 import { Palette, Type, Layout, User, Hash } from 'lucide-react';
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { PhilosophyItem } from '../../../types/resume';
+import type { PhilosophyItem } from '../../../types/resume';
 
 export const PhilosophyQuote: React.FC<{ philosophy: PhilosophyItem; accentColor: string }> = ({ philosophy, accentColor }) => {
   if (!philosophy || !philosophy.quote) return null;

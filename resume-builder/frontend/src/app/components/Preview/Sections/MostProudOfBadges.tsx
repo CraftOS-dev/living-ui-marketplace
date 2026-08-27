@@ -1,5 +1,5 @@
 import React from 'react';
-import { MostProudOfItem } from '../../../types/resume';
+import type { MostProudOfItem } from '../../../types/resume';
 import { Trophy, Rocket, Target, Star, Award, Zap, Heart, Flame } from 'lucide-react';
 
 const ICON_MAP = {

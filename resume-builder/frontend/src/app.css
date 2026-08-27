@@ -1,2 +1,2 @@
-/* SYSTEM FILE — kit design tokens (spec K3/D10). */
+@import 'tailwindcss';
 @import './kit/theme/tokens.css';

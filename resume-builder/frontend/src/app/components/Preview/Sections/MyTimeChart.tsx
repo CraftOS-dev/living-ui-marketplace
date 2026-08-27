@@ -1,5 +1,5 @@
 import React from 'react';
-import { MyTimeItem } from '../../../types/resume';
+import type { MyTimeItem } from '../../../types/resume';
 
 export const MyTimeChart: React.FC<{ items: MyTimeItem[]; accentColor: string }> = ({ items, accentColor }) => {
   if (!items || items.length === 0) return null;

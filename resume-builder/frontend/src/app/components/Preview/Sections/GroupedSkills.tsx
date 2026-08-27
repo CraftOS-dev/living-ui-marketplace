@@ -1,5 +1,5 @@
 import React from 'react';
-import { Skill } from '../../../types/resume';
+import type { Skill } from '../../../types/resume';
 
 interface GroupedSkillsProps {
   skills: Skill[];
@@ -36,7 +36,7 @@ export const GroupedSkills: React.FC<GroupedSkillsProps> = ({
             {catName}
           </div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-            {categoriesMap[catName].map(sk => (
+            {(categoriesMap[catName] ?? []).map(sk => (
               <span 
                 key={sk.id} 
                 style={{ 

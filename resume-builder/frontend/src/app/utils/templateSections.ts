@@ -1,4 +1,4 @@
-import { TemplateId, SectionKey } from '../types/resume';
+import type { TemplateId, SectionKey } from '../types/resume';
 
 export function getTemplateSupportedSections(templateId: TemplateId): Record<SectionKey, boolean> {
   switch (templateId) {

@@ -1,7 +1,7 @@
 import React from 'react';
 import { useResume } from '../../context/ResumeContext';
 import { Plus, Trash2, Trophy, Rocket, Target, Star, Award, Zap, Heart, Flame } from 'lucide-react';
-import { MostProudOfItem } from '../../types/resume';
+import type { MostProudOfItem } from '../../types/resume';
 
 const ICONS = [
   { id: 'trophy', label: 'Trophy', Component: Trophy },
