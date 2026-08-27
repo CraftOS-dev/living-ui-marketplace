@@ -1,48 +1,42 @@
-# Living UI Specification: Multi-Group Invoice & Subscription Tracker
+# Invoice & Subscription Tracker (Living UI V2)
 
-An interactive Multi-Group Workspace Living UI for tracking expenses, recurring subscriptions, and invoices across customizable groups (e.g. Engineering & Cloud Stack, AI Tools, Marketing & Operations) with full manual input, customizable line items, receipt attachment inspection, and multi-year financial history.
-
----
-
-## 1. Core Architectural Concepts
-
-- **Workspace Groups (`TrackerGroup`)**: Isolate and organize finances into distinct projects/departments (e.g., Engineering & Cloud Stack, AI & Dev Tools, Marketing & Operations).
-- **Direct User-Input Modals**:
-  - **Add Invoice**: Record vendor, amount, category, invoice number, date, line items with automatic total calculation, notes, and receipt file attachment previews.
-  - **Add Subscription**: Record recurring subscriptions with billing frequency (monthly, yearly, weekly, quarterly), renewal date, category, and purpose.
-  - **Group Management**: Create custom workspace groups with colored tags, currency, and starter templates.
-- **Dynamic 10-Item Pagination**: Page through Subscriptions, Invoices Ledger, Multi-Year History, and Activity Audit Stream with Next / Previous controls.
-- **Isolated Metrics**: Total spend, MRR run-rate, active subscriptions, category breakdowns, and yearly history calculate dynamically per active workspace group.
+A production-grade, multi-workspace financial tracker for recurring SaaS subscriptions, one-time receipts, and invoice documents built with Living UI V2, PocketBase backend, and React 19 + Tailwind CSS.
 
 ---
 
-## 2. Data Models (SQLite / SQLAlchemy)
+## Capabilities & Architecture
 
-| Entity | Description | Key Attributes |
-| :--- | :--- | :--- |
-| `TrackerGroup` | Workspace group isolation entity | `id`, `name`, `description`, `color`, `icon`, `currency`, `created_at`, `updated_at` |
-| `InvoiceReceipt` | Invoice or receipt record | `vendor`, `amount`, `currency`, `payment_type`, `billing_frequency`, `category`, `purpose`, `invoice_date`, `invoice_number`, `group_id`, `has_pdf_attachment`, `pdf_filename`, `pdf_text_preview`, `line_items`, `notes` |
-| `Subscription` | Recurring software or cloud seat | `name`, `vendor`, `amount`, `currency`, `billing_frequency`, `category`, `purpose`, `status`, `group_id`, `last_billed_date`, `next_renewal_date`, `auto_renew`, `icon_name` |
-| `ActivityLog` | Audit log of workspace events | `event_type`, `title`, `description`, `amount`, `currency`, `vendor`, `group_id`, `created_at` |
+- **Workspace Groups**: Multi-workspace organization (Engineering & Cloud Stack, AI Tools, Operations, etc.) with custom colors, icons, and currency definitions.
+- **Overview Dashboard**:
+  - Top KPI cards: Total Money Spent (strictly YTD elapsed spend across invoices & subscriptions, totaling $1,526.00), Monthly Subscription Burn ($838.00/mo), Active Subscriptions (2), Total Invoices (5).
+  - Spend Summary interactive month-by-month chart (March through August 2026) with auto-scaling dynamic Y-axis and hover breakdown tooltips.
+  - Spend by Service & Vendor donut breakdown chart with distinct palette indicators.
+  - Live Ingestion Feed with real-time bill ingestion updates.
+- **Active Subscriptions**:
+  - Full subscription ledger with status toggling (`active` ↔ `paused`), frequency selection (`monthly`, `yearly`, `weekly`, `quarterly`), renewal countdowns, and quick actions.
+  - "Add Subscription" modal with all canonical categories.
+- **Invoices & Receipts Ledger**:
+  - Searchable and category-filterable table with itemized previews, PDF attachments, and automated confidence scoring.
+  - Detail Inspection modal with itemized line items and simulated invoice document view.
+- **Monthly Costs Explorer**:
+  - Historical monthly ledger and category breakdowns.
+  - "Download Report" button generating clean UTF-8 CSV reports with BOM.
+- **Multi-Year History**:
+  - Multi-year financial comparison (2026, 2025, 2024, 2023) with strictly YTD subscription calculation and quarterly spend maps.
 
 ---
 
-## 3. REST API Endpoints
+## PocketBase Schema (`pb/pb_migrations/`)
 
-| Method | Route | Description |
-| :--- | :--- | :--- |
-| `GET` | `/api/groups` | List all workspace groups with spend & count summaries |
-| `POST` | `/api/groups` | Create a new workspace group |
-| `PUT` | `/api/groups/{id}` | Update workspace group details |
-| `DELETE` | `/api/groups/{id}` | Delete a workspace group and its associated records |
-| `GET` | `/api/dashboard/stats` | Group-scoped financial summary, category breakdowns, and MRR |
-| `GET` | `/api/invoices` | List group-scoped filterable invoices and receipts |
-| `POST` | `/api/invoices` | Directly create a manual invoice / receipt |
-| `PUT` | `/api/invoices/{id}` | Update an existing invoice |
-| `DELETE` | `/api/invoices/{id}` | Delete an invoice |
-| `GET` | `/api/subscriptions` | List recurring subscriptions for active group |
-| `POST` | `/api/subscriptions` | Directly add a recurring subscription |
-| `PATCH` | `/api/subscriptions/{id}` | Update subscription status or attributes |
-| `DELETE` | `/api/subscriptions/{id}` | Delete a subscription |
-| `GET` | `/api/yearly-history` | Multi-year historical totals and quarterly breakdowns |
-| `GET` | `/api/activity` | Workspace activity audit stream |
+1. **`groups`**: Workspace groups (`name`, `description`, `color`, `icon`, `currency`).
+2. **`subscriptions`**: Recurring subscriptions (`name`, `vendor`, `amount`, `currency`, `billing_frequency`, `category`, `purpose`, `status`, `group_id`, `last_billed_date`, `next_renewal_date`, `auto_renew`, `icon_name`).
+3. **`invoices`**: One-time & recurring invoices (`vendor`, `amount`, `currency`, `payment_type`, `billing_frequency`, `category`, `purpose`, `invoice_date`, `invoice_number`, `group_id`, `has_pdf_attachment`, `pdf_filename`, `pdf_text_preview`, `pdf_data_base64`, `line_items`, `notes`, `subscription_id`, `confidence_score`, `is_verified`).
+4. **`activities`**: Event stream (`event_type`, `title`, `description`, `amount`, `currency`, `vendor`, `group_id`).
+
+---
+
+## Agent Operations (`operations.json`)
+
+- `invoices.simulate-bill`: Simulate incoming email bill (AWS, OpenAI, Figma).
+- `health`: PocketBase liveness check.
+- `ops.list`: Discoverable agent verbs list.
