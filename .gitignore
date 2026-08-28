@@ -50,5 +50,7 @@ _template/backend/living_ui.db-*
 _template/backend/logs/
 _template/.last_launch
 
+**/.lui
+**/.superuser
 
 craftos-command-center/
