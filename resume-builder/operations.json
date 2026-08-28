@@ -1,0 +1,66 @@
+{
+  "opsVersion": 1,
+  "operations": [
+    {
+      "name": "health",
+      "description": "Liveness check (PocketBase built-in).",
+      "system": true,
+      "params": {},
+      "executor": { "type": "http", "method": "GET", "path": "/api/health" }
+    },
+    {
+      "name": "ops.list",
+      "description": "Return this operations manifest.",
+      "system": true,
+      "params": {},
+      "executor": { "type": "http", "method": "GET", "path": "/api/_ops" }
+    },
+    {
+      "name": "resumes.list",
+      "description": "List all saved resume records.",
+      "params": {},
+      "executor": {
+        "type": "crud",
+        "collection": "resume_state",
+        "action": "list"
+      }
+    },
+    {
+      "name": "resumes.get",
+      "description": "Get a specific resume by ID.",
+      "params": {
+        "id": { "type": "string", "description": "Resume record ID" }
+      },
+      "executor": {
+        "type": "crud",
+        "collection": "resume_state",
+        "action": "get"
+      }
+    },
+    {
+      "name": "resumes.create",
+      "description": "Create a new resume record.",
+      "params": {
+        "title": { "type": "string", "description": "Resume title" },
+        "data": { "type": "object", "description": "Complete resume JSON data" }
+      },
+      "executor": {
+        "type": "crud",
+        "collection": "resume_state",
+        "action": "create"
+      }
+    },
+    {
+      "name": "resumes.duplicate",
+      "description": "Duplicate an existing resume by ID.",
+      "params": {
+        "id": { "type": "string", "description": "Resume record ID to clone" }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/resumes/duplicate"
+      }
+    }
+  ]
+}

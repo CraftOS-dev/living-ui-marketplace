@@ -12,7 +12,7 @@
         {"key": "APP_TITLE", "label": "Board Title", "type": "text", "default": "Research Board", "placeholder": "e.g., Game Design Board"}
       ]
     },
-	{
+    {
       "id": "kanban-board",
       "livingUIVersion": 2,
       "name": "Kanban Board",
@@ -21,7 +21,7 @@
       "tags": ["kanban", "project management", "productivity"],
       "version": "1.0.0"
     },
-	{
+    {
       "id": "kanban-online",
       "livingUIVersion": 2,
       "name": "Kanban Online",
@@ -30,7 +30,7 @@
       "tags": ["kanban", "project management", "productivity", "multi-user"],
       "version": "1.0.0"
     },
-	{
+    {
       "id": "ledgerflow",
       "name": "Ledgerflow",
       "description": "Comprehensive bookkeeping app for personal and business use with income/expense tracking, invoicing, bills, contacts, and financial reports.",
@@ -38,7 +38,7 @@
       "tags": ["bookkeeping", "finance", "productivity"],
       "version": "1.0.0"
     },
-	{
+    {
       "id": "luolinglo",
       "name": "Luolinglo",
       "description": "Language learning app with vocabulary, flashcards, quizzes, AI teacher, and heavy gamification.",
@@ -46,7 +46,7 @@
       "tags": ["language", "education"],
       "version": "1.0.0"
     },
-	{
+    {
       "id": "trading-view",
       "livingUIVersion": 2,
       "name": "Trading View",
@@ -55,7 +55,7 @@
       "tags": ["finance", "stock"],
       "version": "1.0.0"
     },
-	{
+    {
       "id": "crm-system",
       "livingUIVersion": 2,
       "name": "CRM System",
@@ -156,6 +156,24 @@
       "description": "Compose, schedule, publish, and analyze posts across Twitter/X, LinkedIn, and YouTube — with an AI writing suite built in.",
       "folder": "social-media-manager",
       "tags": ["social-media", "AI", "productivity", "marketing"],
+      "version": "1.0.0"
+    },
+    {
+      "id": "resume-builder",
+      "livingUIVersion": 2,
+      "name": "Resume Maker",
+      "description": "Interactive split-view resume maker with 34 live template previews, custom fonts and colors, certifications, publications section, portfolio links, section management, multi-resume dashboard, score analysis, and PDF/Print export.",
+      "folder": "resume-builder",
+      "tags": ["resume", "cv", "career", "productivity", "templates", "pdf"],
+      "version": "1.0.0"
+    },
+    {
+      "id": "invoice-tracker",
+      "livingUIVersion": 2,
+      "name": "Invoice & Subscription Tracker",
+      "description": "Multi-workspace recurring SaaS subscription, invoice ledger, and monthly expense manager with spend analytics, interactive timeline charts, status toggles, and PDF preview.",
+      "folder": "invoice-tracker",
+      "tags": ["finance", "invoices", "subscriptions", "expenses", "analytics", "saas"],
       "version": "1.0.0"
     }
   ]
