@@ -160,13 +160,6 @@
     },
     {
       "id": "resume-builder",
-<<<<<<< Updated upstream
-      "livingUIVersion": 2,
-      "name": "Resume Maker",
-      "description": "Interactive split-view resume maker with 34 live template previews, custom fonts and colors, certifications, publications section, portfolio links, section management, multi-resume dashboard, score analysis, and PDF/Print export.",
-      "folder": "resume-builder",
-      "tags": ["resume", "resume-maker", "cv", "career", "document", "productivity", "portfolio", "living-ui"],
-=======
       "livingUIVersion": 2,
       "name": "Resume Maker",
       "description": "Interactive split-view resume maker with 34 live template previews, custom fonts and colors, certifications, publications section, portfolio links, section management, multi-resume dashboard, score analysis, and PDF/Print export.",
@@ -181,7 +174,6 @@
       "description": "Multi-workspace recurring SaaS subscription, invoice ledger, and monthly expense manager with spend analytics, interactive timeline charts, status toggles, and PDF preview.",
       "folder": "invoice-tracker",
       "tags": ["finance", "invoices", "subscriptions", "expenses", "analytics", "saas"],
->>>>>>> Stashed changes
       "version": "1.0.0"
     }
   ]
