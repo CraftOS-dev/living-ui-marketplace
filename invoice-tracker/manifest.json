@@ -1,19 +1,17 @@
 {
-  "id": "invoice-tracker",
-  "name": "Invoice & Subscription Tracker",
-  "description": "Invoice & Subscription Tracker — a Living UI app",
+  "id": "{{PROJECT_ID}}",
+  "name": "{{PROJECT_NAME}}",
+  "description": "{{PROJECT_DESCRIPTION}}",
   "livingUIVersion": 2,
-  "createdAt": "2026-08-26T11:03:14.363Z",
+  "createdAt": "{{CREATED_AT}}",
   "authMode": "none",
-  "port": 3200,
+  "port": "{{PORT}}",
   "pbVersion": "0.39.7",
   "kitVersion": "0.5.0",
-  "craftbotVersion": "",
   "pipeline": {
     "install": "npm install --ignore-scripts --prefix frontend",
     "build": "npm run build --prefix frontend",
     "start": "pocketbase serve --http=127.0.0.1:3200 --dir pb/pb_data --hooksDir pb/pb_hooks --migrationsDir pb/pb_migrations --publicDir pb/pb_public",
     "health": "/api/health"
   },
-  "adapterVersion": "1.8.0"
 }
