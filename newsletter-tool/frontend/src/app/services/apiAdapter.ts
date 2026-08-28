@@ -890,7 +890,11 @@ function randomKey(n = 20): string {
 }
 
 async function getSettingsRecord(): Promise<PbRecord | null> {
-  const rows = await pbList('settings', 'perPage=1&sort=created')
+  // `settings` declares only sender_name, sender_email and `updated`
+  // (1700000000_init_newsletter.js) — it has NO `created` field, so
+  // sort=created made PocketBase answer 400 on every first load. It is a
+  // singleton read with perPage=1, so sort by the field that exists.
+  const rows = await pbList('settings', 'perPage=1&sort=updated')
   if (rows[0]) return rows[0]
   return pbCreate('settings', { sender_name: '', sender_email: '' })
 }
