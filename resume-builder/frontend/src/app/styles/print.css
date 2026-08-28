@@ -1,0 +1,90 @@
+@media print {
+  /* Default rule for all pages (Page 2, Page 3, etc.) */
+  @page {
+    size: A4 portrait;
+    margin-top: 18mm; /* Padding at top of every page AFTER page 1 */
+    margin-bottom: 12mm;
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  /* Specific rule for the FIRST page ONLY */
+  @page :first {
+    margin-top: 4mm; /* Reduced top padding for page 1 only */
+  }
+
+  html, body, #root, .app-container, .main-workspace, .preview-canvas-container, .print-only-container {
+    background: #ffffff !important;
+    color: #000000 !important;
+    height: auto !important;
+    min-height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    position: static !important;
+    display: block !important;
+    float: none !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .no-print,
+  .app-header,
+  .app-toolbar,
+  .editor-sidebar {
+    display: none !important;
+  }
+
+  .print-only-container {
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .a4-sheet-print {
+    width: 794px !important;
+    max-width: 100% !important;
+    height: auto !important;
+    min-height: auto !important;
+    max-height: none !important;
+    box-shadow: none !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+    overflow: visible !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Prevent page breaks from cutting headers, subsection items (projects, experience, education, certs) */
+  h1, h2, h3, h4 {
+    page-break-after: avoid !important;
+    break-after: avoid !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  .resume-section-item,
+  .resume-entry-card,
+  .badge-card,
+  .mytime-bar-wrapper,
+  .skill-category-block,
+  .form-card,
+  .experience-item,
+  .project-item,
+  .education-item,
+  .cert-item {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    -webkit-column-break-inside: avoid !important;
+  }
+
+  [contenteditable="true"] {
+    outline: none !important;
+    background: transparent !important;
+  }
+}
