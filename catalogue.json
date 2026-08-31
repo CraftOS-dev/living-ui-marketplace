@@ -138,23 +138,6 @@
       "description": "A generic company operating system: guided journey from idea to scale, canonical business records (customers, money, goals, team, meetings, processes), progressive module activation, and minimal AI assists via CraftBot. Multi-user with sign-up/login.",
       "folder": "company-os",
       "tags": ["business", "operations", "productivity", "dashboard", "multi-user"],
-    },
-    {
-      "id": "resume-builder",
-      "livingUIVersion": 2,
-      "name": "Resume Maker",
-      "description": "Interactive split-view resume maker with 34 live template previews, custom fonts and colors, certifications, publications section, portfolio links, section management, multi-resume dashboard, score analysis, and PDF/Print export.",
-      "folder": "resume-builder",
-      "tags": ["resume", "cv", "career", "productivity", "templates", "pdf"],
-      "version": "1.0.0"
-    },
-    {
-      "id": "invoice-tracker",
-      "livingUIVersion": 2,
-      "name": "Invoice & Subscription Tracker",
-      "description": "Multi-workspace recurring SaaS subscription, invoice ledger, and monthly expense manager with spend analytics, interactive timeline charts, status toggles, and PDF preview.",
-      "folder": "invoice-tracker",
-      "tags": ["finance", "invoices", "subscriptions", "expenses", "analytics", "saas"],
       "version": "1.0.0"
     }
   ]
