@@ -79,6 +79,15 @@
         "format": { "type": "string", "enum": ["post", "email", "ad", "article", "event", "other"], "description": "Content format" }
       },
       "executor": { "type": "http", "method": "POST", "path": "/api/ops/ai-content-draft" }
+    },
+    {
+      "name": "team.member_access",
+      "description": "Manage another account's access (owner/admin only). approve/revoke toggle a member's approved flag; make_admin/make_member change role (owner only); remove deletes the account. You cannot change your own or the owner's access.",
+      "params": {
+        "userId": { "type": "string", "required": true, "description": "Target users record id" },
+        "action": { "type": "string", "required": true, "enum": ["approve", "revoke", "make_admin", "make_member", "remove"], "description": "Access change to apply" }
+      },
+      "executor": { "type": "http", "method": "POST", "path": "/api/ops/member-access" }
     }
   ]
 }
