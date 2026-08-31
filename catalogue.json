@@ -30,7 +30,23 @@
       "tags": ["kanban", "project management", "productivity", "multi-user"],
       "version": "1.0.0"
     },
-	{
+    {
+      "id": "ledgerflow",
+      "name": "Ledgerflow",
+      "description": "Comprehensive bookkeeping app for personal and business use with income/expense tracking, invoicing, bills, contacts, and financial reports.",
+      "folder": "ledgerflow",
+      "tags": ["bookkeeping", "finance", "productivity"],
+      "version": "1.0.0"
+    },
+    {
+      "id": "luolinglo",
+      "name": "Luolinglo",
+      "description": "Language learning app with vocabulary, flashcards, quizzes, AI teacher, and heavy gamification.",
+      "folder": "luolinglo",
+      "tags": ["language", "education"],
+      "version": "1.0.0"
+    },
+    {
       "id": "trading-view",
       "livingUIVersion": 2,
       "name": "Trading View",
@@ -114,6 +130,14 @@
       "folder": "brainstorm-graph",
       "tags": ["brainstorming", "AI", "graph", "productivity"],
       "version": "1.0.0"
+    },
+    {
+      "id": "company-os",
+      "livingUIVersion": 2,
+      "name": "Company OS",
+      "description": "A generic company operating system: guided journey from idea to scale, canonical business records (customers, money, goals, team, meetings, processes), progressive module activation, and minimal AI assists via CraftBot. Multi-user with sign-up/login.",
+      "folder": "company-os",
+      "tags": ["business", "operations", "productivity", "dashboard", "multi-user"],
     },
     {
       "id": "resume-builder",
