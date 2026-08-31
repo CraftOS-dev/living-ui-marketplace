@@ -1,0 +1,19 @@
+{
+  "id": "resume-builder",
+  "name": "Resume Maker",
+  "description": "Interactive split-view resume maker with 34 live template previews, custom fonts and colors, certifications, publications section, portfolio links, section management, multi-resume dashboard, score analysis, and PDF/Print export.",
+  "livingUIVersion": 2,
+  "createdAt": "2026-08-26T00:00:00.000Z",
+  "authMode": "none",
+  "port": 8090,
+  "pbVersion": "0.26.0",
+  "kitVersion": "0.5.0",
+  "craftbotVersion": "1.0.0",
+  "pipeline": {
+    "install": "npm install --ignore-scripts --prefix frontend",
+    "build": "npm run build --prefix frontend",
+    "start": "pocketbase serve --http=127.0.0.1:{{PORT}} --dir pb/pb_data --hooksDir pb/pb_hooks --migrationsDir pb/pb_migrations --publicDir pb/pb_public",
+    "health": "/api/health"
+  },
+  "adapterVersion": "1.8.0"
+}
