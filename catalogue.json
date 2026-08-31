@@ -65,25 +65,6 @@
       "version": "1.0.0"
     },
     {
-      "id": "creator-command-center",
-      "name": "Creator Command Center",
-      "description": "Multi-platform dashboard for content creators. Pulls real data from YouTube, Discord, Twitter, and Notion via CraftBot integrations. See your subscribers, videos, community, and content pipeline in one place.",
-      "folder": "creator_command_center",
-      "tags": ["creator", "youtube", "social-media", "dashboard", "integrations"],
-      "version": "1.0.0"
-    },
-    {
-      "id": "tamagotchi",
-      "name": "CraftBot Tamagotchi",
-      "description": "A virtual CraftBot pet. Feed, play with, clean, and care for your own little CraftBot as it evolves from egg to adult.",
-      "folder": "tamagotchi",
-      "tags": ["game", "fun", "pet", "virtual-pet"],
-      "version": "1.0.0",
-      "customizable": [
-        {"key": "PET_DEFAULT_NAME", "label": "Default pet name", "type": "text", "default": "Bitsy", "placeholder": "e.g. Bitsy, Sparky, Zap"}
-      ]
-    },
-    {
       "id": "habit-tracker",
       "livingUIVersion": 2,
       "name": "Habit Tracker",
@@ -151,11 +132,21 @@
       "version": "1.0.0"
     },
     {
-      "id": "social-media-manager",
-      "name": "Social Media Manager",
-      "description": "Compose, schedule, publish, and analyze posts across Twitter/X, LinkedIn, and YouTube — with an AI writing suite built in.",
-      "folder": "social-media-manager",
-      "tags": ["social-media", "AI", "productivity", "marketing"],
+      "id": "resume-builder",
+      "livingUIVersion": 2,
+      "name": "Resume Maker",
+      "description": "Interactive split-view resume maker with 34 live template previews, custom fonts and colors, certifications, publications section, portfolio links, section management, multi-resume dashboard, score analysis, and PDF/Print export.",
+      "folder": "resume-builder",
+      "tags": ["resume", "cv", "career", "productivity", "templates", "pdf"],
+      "version": "1.0.0"
+    },
+    {
+      "id": "invoice-tracker",
+      "livingUIVersion": 2,
+      "name": "Invoice & Subscription Tracker",
+      "description": "Multi-workspace recurring SaaS subscription, invoice ledger, and monthly expense manager with spend analytics, interactive timeline charts, status toggles, and PDF preview.",
+      "folder": "invoice-tracker",
+      "tags": ["finance", "invoices", "subscriptions", "expenses", "analytics", "saas"],
       "version": "1.0.0"
     },
     {
