@@ -1,0 +1,84 @@
+{
+  "opsVersion": 1,
+  "operations": [
+    {
+      "name": "health",
+      "description": "Liveness check (PocketBase built-in).",
+      "system": true,
+      "params": {},
+      "executor": { "type": "http", "method": "GET", "path": "/api/health" }
+    },
+    {
+      "name": "ops.list",
+      "description": "Return this operations manifest.",
+      "system": true,
+      "params": {},
+      "executor": { "type": "http", "method": "GET", "path": "/api/_ops" }
+    },
+    {
+      "name": "onboarding.complete",
+      "description": "Create the company from the onboarding wizard answers and seed the vocabulary pack, module activation, Journey steps, starter metrics, and the default meeting ritual. Fails with 409 if a company already exists.",
+      "params": {
+        "name": { "type": "string", "description": "Company name" },
+        "what_it_does": { "type": "string", "description": "Plain-language description of the business" },
+        "company_type": { "type": "string", "required": true, "enum": ["services", "retail_ecommerce", "food_hospitality", "software_digital", "other"] },
+        "stage": { "type": "string", "required": true, "enum": ["validate", "setup", "first_customers", "grow", "scale"] },
+        "team_size": { "type": "string", "enum": ["solo", "two_five", "six_fifteen", "sixteen_fifty", "fifty_plus"] },
+        "focus": { "type": "string", "description": "JSON array of focus areas chosen in the wizard" }
+      },
+      "executor": { "type": "http", "method": "POST", "path": "/api/ops/onboarding-complete" }
+    },
+    {
+      "name": "journey.autocheck",
+      "description": "Mark data-detectable Journey steps done (e.g. first customer exists, first sale recorded). Returns the titles of newly completed steps.",
+      "params": {},
+      "executor": { "type": "http", "method": "POST", "path": "/api/ops/journey-autocheck" }
+    },
+    {
+      "name": "stage.recompute",
+      "description": "Compute the suggested company stage from real records. When it differs from the current stage an open suggestion card is created; nothing is applied.",
+      "params": {},
+      "executor": { "type": "http", "method": "POST", "path": "/api/ops/stage-recompute" }
+    },
+    {
+      "name": "stage.advance",
+      "description": "Apply a user-confirmed stage change: sets the company stage, unlocks that stage's Journey steps, and marks newly recommended modules as suggestions.",
+      "params": {
+        "stage": { "type": "string", "required": true, "enum": ["validate", "setup", "first_customers", "grow", "scale"] }
+      },
+      "executor": { "type": "http", "method": "POST", "path": "/api/ops/stage-advance" }
+    },
+    {
+      "name": "workflows.run",
+      "description": "Run one built-in workflow: weekly_digest (writes a Weekly review note), journey_autocheck, stage_check, or attention_sweep (opens suggestion cards for overdue follow-ups and low runway). Every run is recorded in workflow_runs.",
+      "params": {
+        "workflow": { "type": "string", "required": true, "enum": ["weekly_digest", "journey_autocheck", "stage_check", "attention_sweep"] }
+      },
+      "executor": { "type": "http", "method": "POST", "path": "/api/ops/workflows-run" }
+    },
+    {
+      "name": "ai.draft-plan",
+      "description": "Draft the EMPTY fields of the one-page plan (mission, who we serve, offer, how we make money) from the onboarding answers via the CraftBot bridge. Draft-only; returns 503 when no AI is available.",
+      "params": {},
+      "executor": { "type": "http", "method": "POST", "path": "/api/ops/ai-draft-plan" }
+    },
+    {
+      "name": "marketing.ai_campaign_ideas",
+      "description": "Suggest 3 concrete low-cost campaign ideas for a funnel goal, from the company profile and active channels, via the CraftBot LLM. Suggestions only; returns 503 when no AI is available.",
+      "params": {
+        "goal": { "type": "string", "enum": ["awareness", "leads", "sales", "loyalty"], "description": "Funnel goal the ideas should target" }
+      },
+      "executor": { "type": "http", "method": "POST", "path": "/api/ops/ai-campaign-ideas" }
+    },
+    {
+      "name": "marketing.ai_content_draft",
+      "description": "Draft copy for one content piece (post, email, ad, article, event) from its title/format and the company profile via the CraftBot LLM. Saves onto the content note when a promoId is given and its note is empty. Returns 503 when no AI is available.",
+      "params": {
+        "promoId": { "type": "string", "description": "Optional id of the promos record to draft for and save onto" },
+        "title": { "type": "string", "description": "Content title/topic (used when no promoId)" },
+        "format": { "type": "string", "enum": ["post", "email", "ad", "article", "event", "other"], "description": "Content format" }
+      },
+      "executor": { "type": "http", "method": "POST", "path": "/api/ops/ai-content-draft" }
+    }
+  ]
+}

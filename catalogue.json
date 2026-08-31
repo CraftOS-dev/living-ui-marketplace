@@ -157,6 +157,15 @@
       "folder": "social-media-manager",
       "tags": ["social-media", "AI", "productivity", "marketing"],
       "version": "1.0.0"
+    },
+    {
+      "id": "company-os",
+      "livingUIVersion": 2,
+      "name": "Company OS",
+      "description": "A generic company operating system: guided journey from idea to scale, canonical business records (customers, money, goals, team, meetings, processes), progressive module activation, and minimal AI assists via CraftBot. Multi-user with sign-up/login.",
+      "folder": "company-os",
+      "tags": ["business", "operations", "productivity", "dashboard", "multi-user"],
+      "version": "1.0.0"
     }
   ]
 }
