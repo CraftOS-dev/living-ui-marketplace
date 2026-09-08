@@ -1,0 +1,36 @@
+{
+  "opsVersion": 1,
+  "operations": [
+    {
+      "name": "health",
+      "description": "Liveness check (PocketBase built-in).",
+      "system": true,
+      "params": {},
+      "executor": { "type": "http", "method": "GET", "path": "/api/health" }
+    },
+    {
+      "name": "ops.list",
+      "description": "Return this operations manifest.",
+      "system": true,
+      "params": {},
+      "executor": { "type": "http", "method": "GET", "path": "/api/_ops" }
+    },
+    {
+      "name": "sessions.duplicate",
+      "description": "Duplicate a saved audio note session.",
+      "params": {
+        "session_id": { "type": "string", "required": true, "description": "ID of the session to duplicate." }
+      },
+      "executor": { "type": "http", "method": "POST", "path": "/api/ops/sessions/duplicate" }
+    },
+    {
+      "name": "sessions.clear-completed-actions",
+      "description": "Clear all completed action items for a session.",
+      "destructive": true,
+      "params": {
+        "session_id": { "type": "string", "required": true, "description": "ID of the session." }
+      },
+      "executor": { "type": "http", "method": "POST", "path": "/api/ops/sessions/clear-completed-actions" }
+    }
+  ]
+}
