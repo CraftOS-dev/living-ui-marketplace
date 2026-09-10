@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { AudioSession, ActionItem, HighlightSection } from '../types.ts';
-import { parseHighlightSections, serializeHighlightSections } from '../utils.ts';
+import { parseHighlightSections, serializeHighlightSections, parseActionItems } from '../utils.ts';
 import {
   ListChecks,
   Copy,
@@ -99,7 +99,7 @@ export function HighlightsSection({
   };
 
   // Action Items methods
-  const actionItems: ActionItem[] = session.action_items || [];
+  const actionItems: ActionItem[] = parseActionItems(session.action_items);
 
   const toggleActionItem = (itemId: string) => {
     const updated = actionItems.map((item) =>

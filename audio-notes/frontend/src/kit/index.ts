@@ -1,5 +1,5 @@
 /**
- * Living UI kit — PUBLIC API (spec K6).
+ * Agent App kit — PUBLIC API (spec K6).
  * Anything exported here is the contract (append-only within a major version).
  * Anything not exported is internal and may change without notice.
  */

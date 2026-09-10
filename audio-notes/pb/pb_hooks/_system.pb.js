@@ -27,7 +27,7 @@
  *
  * Policy: loopback origins, PLUS the one public origin the host publishes in
  * `<project>/.tunnel-origin` while the user is deliberately sharing this app
- * (LivingUIManager.start_tunnel writes it, stop_tunnel deletes it). Loopback
+ * (AgentAppManager.start_tunnel writes it, stop_tunnel deletes it). Loopback
  * alone did not make sharing safe, it made it impossible: browsers send
  * `Origin` on same-origin writes too, so through a tunnel the app LOADED (a
  * GET carries no Origin) and then answered 403 to every save. The file is read

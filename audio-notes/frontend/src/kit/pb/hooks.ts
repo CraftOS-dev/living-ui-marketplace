@@ -1,5 +1,5 @@
 /**
- * Realtime data hooks — Living UIs are living by default (spec K2).
+ * Realtime data hooks — Agent Apps are living by default (spec K2).
  * Strategy: full fetch + realtime subscription; events trigger a debounced refetch
  * (simple, always-consistent; optimize per-event later if ever needed).
  */

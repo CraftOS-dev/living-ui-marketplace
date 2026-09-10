@@ -1,4 +1,4 @@
-import type { AudioSession, HighlightSection } from './types.ts';
+import type { AudioSession, HighlightSection, ActionItem } from './types.ts';
 
 export function formatDuration(seconds: number): string {
   if (!seconds || isNaN(seconds) || !isFinite(seconds) || seconds <= 0) return '00:00';
@@ -29,25 +29,53 @@ export function formatDate(dateStr: string): string {
   }
 }
 
-export function parseHighlightSections(raw: string | undefined): HighlightSection[] {
-  if (!raw || !raw.trim()) {
+export function parseActionItems(raw: unknown): ActionItem[] {
+  if (!raw) return [];
+  if (Array.isArray(raw)) return raw as ActionItem[];
+  if (typeof raw === 'string') {
+    const trimmed = raw.trim();
+    if (!trimmed) return [];
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (Array.isArray(parsed)) return parsed as ActionItem[];
+    } catch {
+      return [];
+    }
+  }
+  return [];
+}
+
+export function parseHighlightSections(raw: unknown): HighlightSection[] {
+  if (!raw) {
     return [{ id: 'sec-1', title: 'Key Highlights', content: '' }];
   }
-  try {
-    const parsed = JSON.parse(raw);
-    if (
-      Array.isArray(parsed) &&
-      parsed.length > 0 &&
-      typeof parsed[0] === 'object' &&
-      parsed[0] !== null &&
-      'title' in parsed[0]
-    ) {
-      return parsed as HighlightSection[];
+  if (Array.isArray(raw)) {
+    if (raw.length > 0 && typeof raw[0] === 'object' && raw[0] !== null && 'title' in raw[0]) {
+      return raw as HighlightSection[];
     }
-  } catch {
-    // Non-JSON string: legacy plain text, wrap into single default section
   }
-  return [{ id: 'sec-1', title: 'Key Highlights', content: raw }];
+  if (typeof raw === 'string') {
+    const trimmed = raw.trim();
+    if (!trimmed) {
+      return [{ id: 'sec-1', title: 'Key Highlights', content: '' }];
+    }
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (
+        Array.isArray(parsed) &&
+        parsed.length > 0 &&
+        typeof parsed[0] === 'object' &&
+        parsed[0] !== null &&
+        'title' in parsed[0]
+      ) {
+        return parsed as HighlightSection[];
+      }
+    } catch {
+      // Non-JSON string: legacy plain text, wrap into single default section
+      return [{ id: 'sec-1', title: 'Key Highlights', content: raw }];
+    }
+  }
+  return [{ id: 'sec-1', title: 'Key Highlights', content: String(raw) }];
 }
 
 export function serializeHighlightSections(sections: HighlightSection[]): string {
@@ -55,7 +83,7 @@ export function serializeHighlightSections(sections: HighlightSection[]): string
 }
 
 export function generateSessionMarkdown(session: AudioSession): string {
-  const actionsText = (session.action_items || [])
+  const actionsText = parseActionItems(session.action_items)
     .map(
       (item) =>
         `- [${item.completed ? 'x' : ' '}] ${item.title}${item.assignee ? ` (@${item.assignee})` : ''}${item.dueDate ? ` [Due: ${item.dueDate}]` : ''}`
@@ -270,11 +298,11 @@ export function formatWeekRange(weekStartStr: string): string {
 
 export function generateWeeklySummaryMarkdown(sessions: AudioSession[], weekLabel: string): string {
   const totalDuration = sessions.reduce((acc, s) => acc + (s.duration || 0), 0);
-  const allActionItems = sessions.flatMap((s) => s.action_items || []);
+  const allActionItems = sessions.flatMap((s) => parseActionItems(s.action_items));
 
   const meetingsMarkdown = sessions
     .map((s, idx) => {
-      const actionsList = (s.action_items || [])
+      const actionsList = parseActionItems(s.action_items)
         .map((a) => `  - [${a.completed ? 'x' : ' '}] ${a.title}${a.assignee ? ` (@${a.assignee})` : ''}`)
         .join('\n');
 

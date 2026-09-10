@@ -16,6 +16,7 @@ import { SummarySection } from './components/SummarySection.tsx';
 import { HighlightsSection } from './components/HighlightsSection.tsx';
 import { WeeklySummaryView } from './components/WeeklySummaryView.tsx';
 import { EmptyState } from './components/EmptyState.tsx';
+import { parseActionItems } from './utils.ts';
 import { Menu, AudioLines, CalendarDays, Plus, Sun, Moon } from 'lucide-react';
 import './styles.css';
 
@@ -395,13 +396,13 @@ export function App(): React.JSX.Element {
       } else {
         // Local fallback
         if (activeSession) {
-          const activeOnly = (activeSession.action_items || []).filter((i) => !i.completed);
+          const activeOnly = parseActionItems(activeSession.action_items).filter((i) => !i.completed);
           void handleUpdateSession({ action_items: activeOnly });
         }
       }
     } catch {
       if (activeSession) {
-        const activeOnly = (activeSession.action_items || []).filter((i) => !i.completed);
+        const activeOnly = parseActionItems(activeSession.action_items).filter((i) => !i.completed);
         void handleUpdateSession({ action_items: activeOnly });
       }
     }

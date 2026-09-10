@@ -8,6 +8,7 @@ import {
   formatWeekRange,
   generateWeeklySummaryMarkdown,
   downloadFile,
+  parseActionItems,
 } from '../utils.ts';
 import {
   CalendarDays,
@@ -71,7 +72,7 @@ export function WeeklySummaryView({
   // Metrics for the week
   const metrics = useMemo(() => {
     const totalDuration = weekSessions.reduce((sum, s) => sum + (s.duration || 0), 0);
-    const allActions = weekSessions.flatMap((s) => s.action_items || []);
+    const allActions = weekSessions.flatMap((s) => parseActionItems(s.action_items));
     const completedActions = allActions.filter((a) => a.completed).length;
 
     const attendeesSet = new Set<string>();
@@ -128,7 +129,7 @@ export function WeeklySummaryView({
 
   // Toggle action item completion directly from weekly summary
   const handleToggleActionItem = (session: AudioSession, actionId: string) => {
-    const currentItems = session.action_items || [];
+    const currentItems = parseActionItems(session.action_items);
     const updated = currentItems.map((a) =>
       a.id === actionId ? { ...a, completed: !a.completed } : a
     );
@@ -301,7 +302,7 @@ export function WeeklySummaryView({
 
             {/* Individual Meeting Sections */}
             {weekSessions.map((session, index) => {
-              const actionItems = session.action_items || [];
+              const actionItems = parseActionItems(session.action_items);
               const completedCount = actionItems.filter((a) => a.completed).length;
 
               return (
