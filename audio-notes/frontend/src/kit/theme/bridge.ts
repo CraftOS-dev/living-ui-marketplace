@@ -5,6 +5,10 @@
  *   { type: 'livingui-theme', themeId, mode: 'light'|'dark', customColors? }
  * and announces readiness with `craftbot-theme-request` so the host replays.
  *
+ * The `livingui-theme` type is a frozen wire contract shared with every app
+ * already built by this kit — it deliberately survived the Living UI → Agent
+ * App rename so theme following keeps working for existing apps. Do not rename.
+ *
  * Standalone (no embedding host): follows the system color scheme.
  *
  * All theming lands as attributes/custom properties on <html>; components only

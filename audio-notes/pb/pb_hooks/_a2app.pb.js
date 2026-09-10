@@ -65,7 +65,7 @@ routerAdd('GET', '/api/_a2app', (e) => {
     app: {
       id: manifest.id || null,
       name: manifest.name || null,
-      livingUIVersion: manifest.livingUIVersion || null,
+      agentAppVersion: manifest.agentAppVersion || null,
       kitVersion: manifest.kitVersion || null,
     },
     // Which environment this instance IS: the dev provisioner stamps

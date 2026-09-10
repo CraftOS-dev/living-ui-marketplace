@@ -1,5 +1,5 @@
 /*
- * Living UI design tokens (spec K3). Components read ONLY these custom
+ * Agent App design tokens (spec K3). Components read ONLY these custom
  * properties — never hardcoded colors. The host (or standalone bridge) sets
  * data-theme; hosts may override any token via custom colors.
  */
@@ -30,7 +30,7 @@
   --lui-accent-contrast: #ffffff;
 }
 
-/* ---- Host style packs (LivingUIThemeModal presets; bridge sets data-style).
+/* ---- Host style packs (AgentAppThemeModal presets; bridge sets data-style).
    'craftbot' is the brand default (same as base). 'custom' uses the custom
    color properties the bridge injects — no block needed here. */
 
