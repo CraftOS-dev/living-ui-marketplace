@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import type { AudioSession } from '../types.ts';
 import { AlignLeft } from 'lucide-react';
+import { AttendeesEditor } from './AttendeesEditor.tsx';
 
 interface OverviewSectionProps {
   session: AudioSession;
@@ -25,6 +26,12 @@ export function OverviewSection({
 
   return (
     <div className="flex flex-col gap-6">
+      {/* Members Present / Attendees Component */}
+      <AttendeesEditor
+        attendees={session.attendees || ''}
+        onUpdateAttendees={(newAttendees) => onUpdateSession({ attendees: newAttendees })}
+      />
+
       {/* Overview Notes Box */}
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between">
