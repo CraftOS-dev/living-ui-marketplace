@@ -215,12 +215,28 @@ export function SessionHeader({
         />
 
         {/* Attendees subtitle */}
-        {session.attendees && (
-          <div className="flex items-center gap-1.5 text-xs lg:text-sm text-[var(--lui-muted)] mt-1">
-            <Users size={13} className="opacity-60" />
-            <span className="truncate">{session.attendees}</span>
-          </div>
-        )}
+        <div className="flex items-center gap-1.5 text-xs lg:text-sm text-[var(--lui-muted)] mt-1">
+          <Users size={13} className="opacity-70 text-[#FF4F18]" />
+          {session.attendees ? (
+            <button
+              type="button"
+              onClick={() => onTabChange('overview')}
+              className="truncate hover:text-[var(--lui-foreground)] text-left hover:underline underline-offset-2 transition-colors cursor-pointer"
+              title="Click to view or edit members in Overview"
+            >
+              <span>{session.attendees}</span>
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => onTabChange('overview')}
+              className="text-[11.5px] text-[var(--lui-muted)]/70 hover:text-[#FF4F18] transition-colors cursor-pointer"
+              title="Click to add members present in Overview"
+            >
+              + Add members present
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Clean Segmented Tab Navigation - Adaptive scroll on mobile */}
