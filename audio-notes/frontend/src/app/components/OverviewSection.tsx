@@ -29,6 +29,7 @@ export function OverviewSection({
       {/* Members Present / Attendees Component */}
       <AttendeesEditor
         attendees={session.attendees || ''}
+        transcript={session.transcript || ''}
         onUpdateAttendees={(newAttendees) => onUpdateSession({ attendees: newAttendees })}
       />
 

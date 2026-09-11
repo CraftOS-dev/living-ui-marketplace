@@ -12,6 +12,8 @@ import {
   downloadFile,
   parseTranscriptSegments,
   generateSrtContent,
+  extractNamesFromTranscript,
+  mergeAttendees,
 } from '../utils.ts';
 
 interface AudioToTextSectionProps {
@@ -194,8 +196,17 @@ export function AudioToTextSection({
       if (transcribedText) {
         setTranscribeProgress(100);
         setTranscriptText(transcribedText);
-        onUpdateSession({ transcript: transcribedText });
-        setStatusMessage('✓ Audio transcribed successfully!');
+        const detectedNames = extractNamesFromTranscript(transcribedText, session.attendees || '');
+        const updatedAttendees = detectedNames.length > 0 ? mergeAttendees(session.attendees || '', detectedNames) : session.attendees;
+        onUpdateSession({
+          transcript: transcribedText,
+          ...(detectedNames.length > 0 ? { attendees: updatedAttendees } : {}),
+        });
+        if (detectedNames.length > 0) {
+          setStatusMessage(`✓ Transcribed & added ${detectedNames.length} member(s): ${detectedNames.join(', ')}`);
+        } else {
+          setStatusMessage('✓ Audio transcribed successfully!');
+        }
         setTimeout(() => setStatusMessage(null), 4000);
       } else {
         setStatusMessage('No speech detected. Please check audio file.');
@@ -218,7 +229,16 @@ export function AudioToTextSection({
 
   const handleTextBlur = () => {
     if (transcriptText !== session.transcript) {
-      onUpdateSession({ transcript: transcriptText });
+      const detectedNames = extractNamesFromTranscript(transcriptText, session.attendees || '');
+      const updatedAttendees = detectedNames.length > 0 ? mergeAttendees(session.attendees || '', detectedNames) : session.attendees;
+      onUpdateSession({
+        transcript: transcriptText,
+        ...(detectedNames.length > 0 ? { attendees: updatedAttendees } : {}),
+      });
+      if (detectedNames.length > 0) {
+        setStatusMessage(`✓ Detected & added ${detectedNames.length} member(s): ${detectedNames.join(', ')}`);
+        setTimeout(() => setStatusMessage(null), 4000);
+      }
     }
   };
 
