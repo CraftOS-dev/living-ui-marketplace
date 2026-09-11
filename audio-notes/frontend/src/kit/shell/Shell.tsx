@@ -60,6 +60,7 @@ export function Shell({ children }: { children: ReactNode }): React.JSX.Element 
     relay.start();
     coverage.start();
     const offError = getPbClient().onError((err) => {
+      if (err.status === 404 || err.isAbort) return;
       toast.error(err.status === 0 ? 'Network error — is the backend running?' : err.message);
     });
     return () => {

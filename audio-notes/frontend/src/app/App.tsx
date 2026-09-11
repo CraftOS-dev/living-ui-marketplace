@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import type { AudioSession, ActiveTab, ActionItem, AppViewMode } from './types.ts';
 import {
   getPbClient,
@@ -16,7 +16,7 @@ import { SummarySection } from './components/SummarySection.tsx';
 import { HighlightsSection } from './components/HighlightsSection.tsx';
 import { WeeklySummaryView } from './components/WeeklySummaryView.tsx';
 import { EmptyState } from './components/EmptyState.tsx';
-import { parseActionItems } from './utils.ts';
+import { parseActionItems, extractNamesFromTranscript, mergeAttendees } from './utils.ts';
 import { Menu, AudioLines, CalendarDays, Plus, Sun, Moon } from 'lucide-react';
 import './styles.css';
 
@@ -26,6 +26,7 @@ export function App(): React.JSX.Element {
   });
 
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
+  const deletedSessionIdsRef = useRef<Set<string>>(new Set());
   const [viewMode, setViewMode] = useState<AppViewMode>('note');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
@@ -123,14 +124,22 @@ export function App(): React.JSX.Element {
   // Update active session fields in PocketBase
   const handleUpdateSession = async (fields: Partial<AudioSession>) => {
     if (!activeSessionId) return;
+    if (deletedSessionIdsRef.current.has(activeSessionId)) return;
     const sessionExists = sessions.some((s) => s.id === activeSessionId);
     if (!sessionExists) return;
     try {
-      await getPbClient().call((pb) =>
-        pb.collection('sessions').update(activeSessionId, fields)
+      await getPbClient().call(
+        (pb) => pb.collection('sessions').update(activeSessionId, fields),
+        { silent: true }
       );
       refresh();
-    } catch (err) {
+    } catch (err: unknown) {
+      const status = (err as { status?: number })?.status;
+      if (status === 404) {
+        deletedSessionIdsRef.current.add(activeSessionId);
+        refresh();
+        return;
+      }
       console.error('Failed to update session:', err);
     }
   };
@@ -138,14 +147,22 @@ export function App(): React.JSX.Element {
   // Update specific session by ID (used by Weekly Summary and cross-session actions)
   const handleUpdateSpecificSession = async (sessionId: string, fields: Partial<AudioSession>) => {
     if (!sessionId) return;
+    if (deletedSessionIdsRef.current.has(sessionId)) return;
     const sessionExists = sessions.some((s) => s.id === sessionId);
     if (!sessionExists) return;
     try {
-      await getPbClient().call((pb) =>
-        pb.collection('sessions').update(sessionId, fields)
+      await getPbClient().call(
+        (pb) => pb.collection('sessions').update(sessionId, fields),
+        { silent: true }
       );
       refresh();
-    } catch (err) {
+    } catch (err: unknown) {
+      const status = (err as { status?: number })?.status;
+      if (status === 404) {
+        deletedSessionIdsRef.current.add(sessionId);
+        refresh();
+        return;
+      }
       console.error('Failed to update specific session:', err);
     }
   };
@@ -184,9 +201,11 @@ export function App(): React.JSX.Element {
 
   // Permanent Delete session without leaving any caches, object URLs, or storage remnants
   const handleDeleteSession = async (session: AudioSession) => {
-    try {
-      const sessionId = session.id;
+    const sessionId = session?.id;
+    if (!sessionId) return;
+    deletedSessionIdsRef.current.add(sessionId);
 
+    try {
       // 1. Immediately revoke and purge any in-memory audio object URLs
       if (localAudioUrls[sessionId]) {
         try {
@@ -235,15 +254,23 @@ export function App(): React.JSX.Element {
         }
       }
 
-      // 3. Update active session selection
+      // 3. Update active session selection immediately
       const remaining = sessions.filter((s) => s.id !== sessionId);
       if (activeSessionId === sessionId) {
         const nextSession = remaining[0];
         setActiveSessionId(nextSession ? nextSession.id : null);
       }
 
-      // 4. Permanently delete from PocketBase database and storage cascade
-      await getPbClient().call((pb) => pb.collection('sessions').delete(sessionId));
+      // 4. Permanently delete from PocketBase database and storage cascade (silently ignore if already removed)
+      try {
+        await getPbClient().call((pb) => pb.collection('sessions').delete(sessionId), { silent: true });
+      } catch (err: unknown) {
+        const status = (err as { status?: number })?.status;
+        if (status !== 404) {
+          console.warn('Delete session error:', err);
+        }
+      }
+
       refresh();
       toast.success(`Permanently deleted "${session.title || 'Untitled note'}"`);
     } catch (err) {
@@ -297,14 +324,23 @@ export function App(): React.JSX.Element {
 
   // Toggle star
   const handleToggleStar = async (session: AudioSession) => {
+    if (!session?.id || deletedSessionIdsRef.current.has(session.id)) return;
     try {
-      await getPbClient().call((pb) =>
-        pb.collection('sessions').update(session.id, {
-          is_starred: !session.is_starred,
-        })
+      await getPbClient().call(
+        (pb) =>
+          pb.collection('sessions').update(session.id, {
+            is_starred: !session.is_starred,
+          }),
+        { silent: true }
       );
       refresh();
-    } catch (err) {
+    } catch (err: unknown) {
+      const status = (err as { status?: number })?.status;
+      if (status === 404) {
+        deletedSessionIdsRef.current.add(session.id);
+        refresh();
+        return;
+      }
       console.error('Failed to toggle star:', err);
     }
   };
@@ -333,6 +369,11 @@ export function App(): React.JSX.Element {
         formData.append('audio_format', audioBlob.type);
         if (transcriptText && transcriptText.trim()) {
           formData.append('transcript', transcriptText.trim());
+          const detectedNames = extractNamesFromTranscript(transcriptText, activeSession?.attendees || '');
+          if (detectedNames.length > 0) {
+            const updatedAttendees = mergeAttendees(activeSession?.attendees || '', detectedNames);
+            formData.append('attendees', updatedAttendees);
+          }
         }
 
         await getPbClient().call((pb) =>
@@ -343,20 +384,24 @@ export function App(): React.JSX.Element {
       } catch (err) {
         console.error('Failed to save audio file to session:', err);
         // Save duration locally if file upload fails
+        const detectedNames = transcriptText ? extractNamesFromTranscript(transcriptText, activeSession?.attendees || '') : [];
         void handleUpdateSession({
           duration: durationSeconds,
           ...(transcriptText && transcriptText.trim() ? { transcript: transcriptText.trim() } : {}),
+          ...(detectedNames.length > 0 ? { attendees: mergeAttendees(activeSession?.attendees || '', detectedNames) } : {}),
         });
       }
     } else {
       // Create new session with recording
       try {
         const today = new Date().toISOString().split('T')[0] ?? '';
+        const detectedNames = transcriptText ? extractNamesFromTranscript(transcriptText, '') : [];
         const formData = new FormData();
         formData.append('title', `Voice Memo - ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`);
         formData.append('category', 'Voice Memo');
         formData.append('date', today);
         formData.append('duration', String(durationSeconds));
+        formData.append('attendees', detectedNames.join(', '));
         formData.append('audio', audioBlob, fileName);
         formData.append('audio_format', audioBlob.type || 'audio/webm');
         formData.append('overview', 'Voice recording captured via microphone.');
@@ -569,7 +614,12 @@ export function App(): React.JSX.Element {
                   onRecordingComplete={handleRecordingComplete}
                   onLiveTranscriptChange={(liveText) => {
                     if (activeSessionId) {
-                      void handleUpdateSession({ transcript: liveText });
+                      const detectedNames = extractNamesFromTranscript(liveText, activeSession?.attendees || '');
+                      const updatedAttendees = detectedNames.length > 0 ? mergeAttendees(activeSession?.attendees || '', detectedNames) : (activeSession?.attendees || '');
+                      void handleUpdateSession({
+                        transcript: liveText,
+                        ...(detectedNames.length > 0 ? { attendees: updatedAttendees } : {}),
+                      });
                     }
                   }}
                 />
