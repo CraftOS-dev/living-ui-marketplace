@@ -1,24 +1,36 @@
 /**
  * Bridges this app's legacy design-system variable names (--bg-primary,
- * --color-primary, etc., read throughout components/*) onto the kit's
- * --lui-* tokens (set on <html> by kit/theme/bridge.ts's ThemeBridge via
- * data-style/data-theme). Generic by design — any theme added to
- * living-ui-v2/kit/src/theme/tokens.css works here automatically, no
- * per-theme cases needed.
+ * --color-primary, etc., read throughout components/*) onto the kit design
+ * tokens (set on <html> by kit/theme/bridge.ts's ThemeBridge via
+ * data-style/data-theme). Generic by design — any theme added to the kit's
+ * tokens.css works here automatically, no per-theme cases needed.
+ *
+ * The kit renamed its tokens from the legacy --lui-* prefix to --agent-app-*.
+ * We read the new names and fall back to the old ones so this bridge works
+ * against either kit version (host-vendored --agent-app-* or a standalone
+ * build still on --lui-*).
  */
 :root {
-  --bg-primary: var(--lui-bg);
-  --bg-secondary: var(--lui-surface);
-  --bg-tertiary: color-mix(in srgb, var(--lui-surface) 50%, var(--lui-bg) 50%);
-  --text-primary: var(--lui-text);
-  --text-secondary: color-mix(in srgb, var(--lui-text) 65%, var(--lui-bg) 35%);
-  --text-muted: color-mix(in srgb, var(--lui-text) 40%, var(--lui-bg) 60%);
-  --border-primary: var(--lui-border);
-  --border-secondary: color-mix(in srgb, var(--lui-border) 60%, var(--lui-bg) 40%);
-  --color-primary: var(--lui-accent);
-  --color-primary-hover: color-mix(in srgb, var(--lui-accent) 82%, black 18%);
-  --color-primary-light: color-mix(in srgb, var(--lui-accent) 15%, transparent);
-  --color-primary-subtle: color-mix(in srgb, var(--lui-accent) 8%, transparent);
+  /* Resolved kit tokens: prefer the new --agent-app-* names, fall back to
+     the legacy --lui-* ones. Everything below derives from these. */
+  --kit-bg: var(--agent-app-bg, var(--lui-bg));
+  --kit-surface: var(--agent-app-surface, var(--lui-surface));
+  --kit-text: var(--agent-app-text, var(--lui-text));
+  --kit-border: var(--agent-app-border, var(--lui-border));
+  --kit-accent: var(--agent-app-accent, var(--lui-accent));
+
+  --bg-primary: var(--kit-bg);
+  --bg-secondary: var(--kit-surface);
+  --bg-tertiary: color-mix(in srgb, var(--kit-surface) 50%, var(--kit-bg) 50%);
+  --text-primary: var(--kit-text);
+  --text-secondary: color-mix(in srgb, var(--kit-text) 65%, var(--kit-bg) 35%);
+  --text-muted: color-mix(in srgb, var(--kit-text) 40%, var(--kit-bg) 60%);
+  --border-primary: var(--kit-border);
+  --border-secondary: color-mix(in srgb, var(--kit-border) 60%, var(--kit-bg) 40%);
+  --color-primary: var(--kit-accent);
+  --color-primary-hover: color-mix(in srgb, var(--kit-accent) 82%, black 18%);
+  --color-primary-light: color-mix(in srgb, var(--kit-accent) 15%, transparent);
+  --color-primary-subtle: color-mix(in srgb, var(--kit-accent) 8%, transparent);
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
   --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.5);
   --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.6);
@@ -26,15 +38,15 @@
 }
 
 :root[data-theme='light'] {
-  --color-primary-hover: color-mix(in srgb, var(--lui-accent) 82%, white 18%);
+  --color-primary-hover: color-mix(in srgb, var(--kit-accent) 82%, white 18%);
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
   --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.08);
   --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.12);
   --overlay-color: rgba(0, 0, 0, 0.4);
 }
 
-/* Brutalist is hard-edged by design (kit tokens.css already sets
-   --lui-radius: 0 for it) — flatten every corner, including fully-round
+/* Brutalist is hard-edged by design (kit tokens.css already sets the radius
+   token to 0 for it) — flatten every corner, including fully-round
    elements like the scrollbar thumb and avatar/badge pills. */
 :root[data-style='brutalist'] {
   --radius-sm: 0;

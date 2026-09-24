@@ -58,26 +58,39 @@
 
 @layer base {
   :root {
-    --background: var(--lui-bg);
-    --foreground: var(--lui-text);
-    --card: var(--lui-surface);
-    --card-foreground: var(--lui-text);
-    --popover: var(--lui-surface);
-    --popover-foreground: var(--lui-text);
-    --primary: var(--lui-accent);
-    --primary-foreground: var(--lui-accent-contrast);
-    --secondary: color-mix(in srgb, var(--lui-surface) 70%, var(--lui-bg) 30%);
-    --secondary-foreground: var(--lui-text);
-    --muted: color-mix(in srgb, var(--lui-surface) 60%, var(--lui-bg) 40%);
-    --muted-foreground: var(--lui-muted);
-    --accent: color-mix(in srgb, var(--lui-surface) 80%, var(--lui-accent) 20%);
-    --accent-foreground: var(--lui-text);
+    /* Resolved kit tokens: the kit renamed its tokens from the legacy --lui-*
+       prefix to --agent-app-*. Prefer the new names, fall back to the old ones
+       so this works against either kit version (host-vendored --agent-app-* or
+       a standalone build still on --lui-*). */
+    --kit-bg: var(--agent-app-bg, var(--lui-bg));
+    --kit-surface: var(--agent-app-surface, var(--lui-surface));
+    --kit-text: var(--agent-app-text, var(--lui-text));
+    --kit-muted: var(--agent-app-muted, var(--lui-muted));
+    --kit-border: var(--agent-app-border, var(--lui-border));
+    --kit-accent: var(--agent-app-accent, var(--lui-accent));
+    --kit-accent-contrast: var(--agent-app-accent-contrast, var(--lui-accent-contrast));
+    --kit-radius: var(--agent-app-radius, var(--lui-radius));
+
+    --background: var(--kit-bg);
+    --foreground: var(--kit-text);
+    --card: var(--kit-surface);
+    --card-foreground: var(--kit-text);
+    --popover: var(--kit-surface);
+    --popover-foreground: var(--kit-text);
+    --primary: var(--kit-accent);
+    --primary-foreground: var(--kit-accent-contrast);
+    --secondary: color-mix(in srgb, var(--kit-surface) 70%, var(--kit-bg) 30%);
+    --secondary-foreground: var(--kit-text);
+    --muted: color-mix(in srgb, var(--kit-surface) 60%, var(--kit-bg) 40%);
+    --muted-foreground: var(--kit-muted);
+    --accent: color-mix(in srgb, var(--kit-surface) 80%, var(--kit-accent) 20%);
+    --accent-foreground: var(--kit-text);
     --destructive: 0 68% 50%;
     --destructive-foreground: 0 0% 100%;
-    --border: var(--lui-border);
-    --input: var(--lui-border);
-    --ring: var(--lui-accent);
-    --radius: var(--lui-radius);
+    --border: var(--kit-border);
+    --input: var(--kit-border);
+    --ring: var(--kit-accent);
+    --radius: var(--kit-radius);
     /* Chart palette validated (dataviz six checks) for dark & light surfaces */
     --chart-1: 17 87% 47%;
     --chart-2: 210 64% 50%;
