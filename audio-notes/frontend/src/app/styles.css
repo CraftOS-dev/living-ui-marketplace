@@ -1,0 +1,276 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+ * CraftBot Design System Color Scheme for Soundnote / Audio Notes
+ * Philosophy: Notion-inspired warm neutral grayscale, subtle borders, 
+ * brand accent (#FF4F18) used purposefully for key CTAs and highlights.
+ * ────────────────────────────────────────────────────────────────────────── */
+
+@layer base {
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    letter-spacing: -0.012em;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    letter-spacing: -0.022em;
+    font-weight: 600;
+  }
+
+  input, textarea, select, button {
+    letter-spacing: -0.011em;
+  }
+}
+
+/* CraftBot Theme Tokens */
+:root,
+:root[data-theme='light'] {
+  /* CraftBot Light Mode */
+  --cb-bg: #FFFFFF;
+  --cb-sidebar-bg: #FEFEFD;
+  --cb-surface: #FFFFFF;
+  --cb-surface-elevated: #F3F2EF;
+  --cb-text: #1F1E1B;
+  --cb-text-secondary: #4D4B47;
+  --cb-text-muted: #75726D;
+  --cb-border: rgba(15, 15, 15, 0.13);
+  --cb-border-secondary: rgba(15, 15, 15, 0.22);
+  --cb-hover: rgba(55, 53, 47, 0.05);
+  --cb-selected: rgba(55, 53, 47, 0.08);
+  --cb-selected-hover: rgba(55, 53, 47, 0.13);
+  --cb-accent: #FF4F18;
+  --cb-accent-hover: #E64515;
+  --cb-accent-contrast: #FFFFFF;
+
+  /* Living UI mapping */
+  --lui-bg: var(--cb-bg);
+  --lui-background: var(--cb-bg);
+  --lui-foreground: var(--cb-text);
+  --lui-card: var(--cb-sidebar-bg);
+  --lui-surface: var(--cb-surface);
+  --lui-border: var(--cb-border);
+  --lui-muted: var(--cb-text-muted);
+  --lui-primary: var(--cb-accent);
+  --lui-primary-foreground: var(--cb-accent-contrast);
+}
+
+:root[data-theme='dark'] {
+  /* CraftBot Dark Mode (warm Notion-style dark) */
+  --cb-bg: #191919;
+  --cb-sidebar-bg: #202020;
+  --cb-surface: #202020;
+  --cb-surface-elevated: #262626;
+  --cb-text: #E6E6E4;
+  --cb-text-secondary: #9B9A97;
+  --cb-text-muted: #7E7D7A;
+  --cb-border: rgba(255, 255, 255, 0.094);
+  --cb-border-secondary: rgba(255, 255, 255, 0.15);
+  --cb-hover: rgba(255, 255, 255, 0.055);
+  --cb-selected: rgba(255, 255, 255, 0.08);
+  --cb-selected-hover: rgba(255, 255, 255, 0.12);
+  --cb-accent: #FF4F18;
+  --cb-accent-hover: #E64515;
+  --cb-accent-contrast: #FFFFFF;
+
+  /* Living UI mapping */
+  --lui-bg: var(--cb-bg);
+  --lui-background: var(--cb-bg);
+  --lui-foreground: var(--cb-text);
+  --lui-card: var(--cb-sidebar-bg);
+  --lui-surface: var(--cb-surface);
+  --lui-border: var(--cb-border);
+  --lui-muted: var(--cb-text-muted);
+  --lui-primary: var(--cb-accent);
+  --lui-primary-foreground: var(--cb-accent-contrast);
+}
+
+/* Tabular figures for all timers and timestamps */
+.tabular-numbers {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Custom minimal scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--cb-border);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--cb-text-muted);
+}
+
+/* Hide scrollbar for clean mobile horizontal navigation */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* 
+ * CraftBot Document Containers, Textareas & Cards (.doc-box, .doc-textarea)
+ */
+.doc-box,
+.doc-textarea {
+  background-color: var(--cb-surface) !important;
+  border: 1px solid var(--cb-border) !important;
+  border-radius: 0.75rem !important;
+  color: var(--cb-text) !important;
+  box-shadow: 0 1px 2px rgba(15, 15, 15, 0.06);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+:where([data-theme='dark'], [data-theme='dark'] *) .doc-box,
+:where([data-theme='dark'], [data-theme='dark'] *) .doc-textarea {
+  background-color: #202020 !important;
+  border-color: rgba(255, 255, 255, 0.094) !important;
+  color: #E6E6E4 !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+}
+
+/* Hover and Focus states */
+.doc-textarea:hover,
+.doc-box:hover {
+  border-color: var(--cb-border-secondary) !important;
+}
+
+:where([data-theme='dark'], [data-theme='dark'] *) .doc-textarea:hover,
+:where([data-theme='dark'], [data-theme='dark'] *) .doc-box:hover {
+  border-color: rgba(255, 255, 255, 0.18) !important;
+}
+
+.doc-textarea:focus,
+.doc-box:focus-within {
+  border-color: var(--cb-text-secondary) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 1.5px rgba(125, 125, 125, 0.25) !important;
+}
+
+/* Custom sleek scrollbar for transcript and document textareas */
+.doc-textarea::-webkit-scrollbar {
+  width: 6px;
+}
+.doc-textarea::-webkit-scrollbar-track {
+  background: transparent;
+}
+.doc-textarea::-webkit-scrollbar-thumb {
+  background: rgba(125, 125, 125, 0.25);
+  border-radius: 9999px;
+}
+.doc-textarea::-webkit-scrollbar-thumb:hover {
+  background: rgba(125, 125, 125, 0.45);
+}
+
+
+/* 
+ * CraftBot Sidebar note items (.sidebar-note-item)
+ */
+.sidebar-note-item {
+  border-radius: 0.5rem;
+  transition: all 0.12s ease;
+  background-color: transparent;
+  border: 1px solid transparent;
+}
+
+.sidebar-note-item:hover {
+  background-color: var(--cb-hover);
+}
+
+:where([data-theme='dark'], [data-theme='dark'] *) .sidebar-note-item:hover {
+  background-color: rgba(255, 255, 255, 0.055);
+}
+
+/* Active selected note item: CraftBot neutral selected state */
+.sidebar-note-item.active {
+  background-color: var(--cb-selected) !important;
+  border-color: var(--cb-border) !important;
+  box-shadow: 0 1px 2px rgba(15, 15, 15, 0.04);
+}
+
+:where([data-theme='dark'], [data-theme='dark'] *) .sidebar-note-item.active {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+
+.sidebar-note-item.active .note-title {
+  color: var(--cb-text) !important;
+  font-weight: 600 !important;
+}
+
+:where([data-theme='dark'], [data-theme='dark'] *) .sidebar-note-item.active .note-title {
+  color: #FFFFFF !important;
+}
+
+.sidebar-note-item.active .note-preview {
+  color: var(--cb-text-secondary) !important;
+}
+
+:where([data-theme='dark'], [data-theme='dark'] *) .sidebar-note-item.active .note-preview {
+  color: #9B9A97 !important;
+}
+
+.sidebar-note-item.active .note-badge {
+  background-color: var(--cb-surface-elevated) !important;
+  color: var(--cb-text) !important;
+  border-color: var(--cb-border) !important;
+}
+
+:where([data-theme='dark'], [data-theme='dark'] *) .sidebar-note-item.active .note-badge {
+  background-color: #191919 !important;
+  color: #E6E6E4 !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+/* CraftBot Brand CTA Button */
+.btn-primary {
+  background-color: #FF4F18;
+  color: #FFFFFF;
+  font-weight: 500;
+  transition: opacity 0.15s ease, background-color 0.15s ease;
+}
+.btn-primary:hover {
+  background-color: #E64515;
+}
+
+/* Subtle pulse for active recording */
+@keyframes subtle-pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.15);
+  }
+}
+
+.record-dot-pulse {
+  animation: subtle-pulse 1.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Theme styling for select and option elements */
+select {
+  background-color: var(--cb-surface) !important;
+  color: var(--cb-text) !important;
+  border-color: var(--cb-border) !important;
+}
+
+option {
+  background-color: #FFFFFF;
+  color: #1F1E1B;
+}
+
+:where([data-theme='dark'], [data-theme='dark'] *) select,
+:where([data-theme='dark'], [data-theme='dark'] *) option {
+  background-color: #202020 !important;
+  color: #E6E6E4 !important;
+}
