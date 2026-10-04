@@ -1,0 +1,2754 @@
+{
+  "opsVersion": 1,
+  "operations": [
+    {
+      "name": "health",
+      "description": "Liveness check (PocketBase built-in).",
+      "system": true,
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/health"
+      }
+    },
+    {
+      "name": "ops.list",
+      "description": "Return this operations manifest.",
+      "system": true,
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/_ops"
+      }
+    },
+    {
+      "name": "session.check",
+      "description": "Whether a session token (sent in the X-Session-Token header) is still valid. Always 200 with valid true or false; needs no sign-in.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/session/check"
+      }
+    },
+    {
+      "name": "meta",
+      "description": "Catalog: event codes with English and Japanese labels and the record types each applies to, status groups, enabled modules, business profiles, organization language, and office connection state (no secrets). Read it to learn which codes events.record accepts.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/meta"
+      }
+    },
+    {
+      "name": "onboarding.complete",
+      "description": "Admin only. Organization name, business profiles (anime, talent, character: they switch modules on), home currency, default language (ja or en) and trademark offices of interest.",
+      "params": {
+        "org_name": {
+          "type": "string",
+          "required": true
+        },
+        "profiles": {
+          "type": "string",
+          "description": "JSON. Array of anime | talent | character",
+          "required": true
+        },
+        "home_currency": {
+          "type": "string",
+          "description": "ISO 4217, e.g. JPY"
+        },
+        "default_language": {
+          "type": "string",
+          "enum": [
+            "ja",
+            "en"
+          ]
+        },
+        "jurisdictions": {
+          "type": "string",
+          "description": "JSON. Array of office codes, e.g. [\"JP\",\"US\",\"CN\",\"KR\",\"TW\",\"EM\",\"WO\"]"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/onboarding"
+      }
+    },
+    {
+      "name": "settings.modules",
+      "description": "Admin only. Change business profiles and/or switch individual modules on or off (titles, committees, franchises, talents, permissions, guidelines, music, products, royalties, approvals).",
+      "params": {
+        "profiles": {
+          "type": "string",
+          "description": "JSON. Array of anime | talent | character"
+        },
+        "modules": {
+          "type": "string",
+          "description": "JSON. Object of module: true|false"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/settings/modules"
+      }
+    },
+    {
+      "name": "app.guide",
+      "description": "START HERE: how to operate this app from the CLI. Param conventions (names accepted wherever an id is asked) and ready-to-run recipes for the common jobs.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/app/guide"
+      }
+    },
+    {
+      "name": "records.delete",
+      "description": "Delete one record of any kind (character, talent, title, song, agreement, product, trademark, case, deadline, user...). Run with preview=true first: it lists what goes with it (cascades) and what only loses its link. Needs manager rights (admin for deadlines, Inbox items, evidence, identity, rules and users).",
+      "destructive": true,
+      "params": {
+        "collection": {
+          "type": "string",
+          "description": "Record kind: a collection name or its singular (character, talent, title, song, recording, agreement, grant, committee, product, approval, trademark, case, deadline, event, party, user...)",
+          "required": true
+        },
+        "id": {
+          "type": "string",
+          "description": "The record id, reference or exact name",
+          "required": true
+        },
+        "preview": {
+          "type": "boolean",
+          "description": "true = show what the delete would do, change nothing"
+        },
+        "reason": {
+          "type": "string",
+          "description": "Why (kept in the audit log)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/records/delete"
+      }
+    },
+    {
+      "name": "portfolio.summary",
+      "description": "Counts across the register: franchises, titles, characters, talents, trademarks by status, agreements active and expiring, approvals waiting and overdue, statements due, deadlines overdue and due soon, Inbox waiting, renewal decisions pending, and renewal spend by month in the home currency.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/summary"
+      }
+    },
+    {
+      "name": "portfolio.search",
+      "description": "Search franchises, titles, characters (all name variants), talents, songs (ISWC, JASRAC/NexTone codes), recordings (ISRC), trademarks (application and registration numbers in any format), agreements, products, cases and people.",
+      "params": {
+        "q": {
+          "type": "string",
+          "required": true
+        },
+        "limit": {
+          "type": "number",
+          "description": "Default 25"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/search"
+      }
+    },
+    {
+      "name": "events.preview",
+      "description": "Preview the deadlines an event would create on any record, each with its explained calculation (English and Japanese steps). Changes nothing.",
+      "params": {
+        "subject_type": {
+          "type": "string",
+          "description": "Record type the event or deadline is about. \"trademark\" and \"design\" mean matter.",
+          "required": true,
+          "enum": [
+            "matter",
+            "agreement",
+            "work",
+            "character",
+            "talent",
+            "product",
+            "approval",
+            "permission",
+            "committee",
+            "case",
+            "registration",
+            "claim",
+            "recordation",
+            "society_contract",
+            "fan_registration",
+            "enrollment"
+          ]
+        },
+        "subject_id": {
+          "type": "string",
+          "description": "Record id (id, reference or exact name)",
+          "required": true
+        },
+        "code": {
+          "type": "string",
+          "description": "Event code from meta",
+          "required": true
+        },
+        "date": {
+          "type": "string",
+          "description": "YYYY-MM-DD",
+          "required": true
+        },
+        "data": {
+          "type": "string",
+          "description": "JSON. Extra event data, e.g. {\"period_months\":3}"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/events/preview"
+      }
+    },
+    {
+      "name": "events.record",
+      "description": "Record an event (filing, registration, office action, licence signed, graduation announced, counter-notice received, ...) on any record and create its deadlines. select/skip pick proposals by key or rule code; commit=false records the event only.",
+      "params": {
+        "subject_type": {
+          "type": "string",
+          "description": "Record type the event or deadline is about. \"trademark\" and \"design\" mean matter.",
+          "required": true,
+          "enum": [
+            "matter",
+            "agreement",
+            "work",
+            "character",
+            "talent",
+            "product",
+            "approval",
+            "permission",
+            "committee",
+            "case",
+            "registration",
+            "claim",
+            "recordation",
+            "society_contract",
+            "fan_registration",
+            "enrollment"
+          ]
+        },
+        "subject_id": {
+          "type": "string",
+          "description": "Record id (id, reference or exact name)",
+          "required": true
+        },
+        "code": {
+          "type": "string",
+          "description": "Event code from meta",
+          "required": true
+        },
+        "date": {
+          "type": "string",
+          "description": "YYYY-MM-DD",
+          "required": true
+        },
+        "label": {
+          "type": "string"
+        },
+        "data": {
+          "type": "string",
+          "description": "JSON. Extra event data"
+        },
+        "document_id": {
+          "type": "string",
+          "description": "Id, reference or exact name"
+        },
+        "select": {
+          "type": "string",
+          "description": "JSON. Array of proposal keys or rule codes to create"
+        },
+        "skip": {
+          "type": "string",
+          "description": "JSON. Array of proposal keys or rule codes to leave out"
+        },
+        "assignees": {
+          "type": "string",
+          "description": "JSON. Array of {key|rule_code, assignee}"
+        },
+        "commit": {
+          "type": "boolean",
+          "description": "Default true"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/events/record"
+      }
+    },
+    {
+      "name": "events.regenerate",
+      "description": "Recalculate a record's rule deadlines after its base data changed. apply=false shows the diff (from, to) only; locked deadlines never move.",
+      "params": {
+        "subject_type": {
+          "type": "string",
+          "description": "Record type the event or deadline is about. \"trademark\" and \"design\" mean matter.",
+          "required": true,
+          "enum": [
+            "matter",
+            "agreement",
+            "work",
+            "character",
+            "talent",
+            "product",
+            "approval",
+            "permission",
+            "committee",
+            "case",
+            "registration",
+            "claim",
+            "recordation",
+            "society_contract",
+            "fan_registration",
+            "enrollment"
+          ]
+        },
+        "subject_id": {
+          "type": "string",
+          "description": "Record id (id, reference or exact name)",
+          "required": true
+        },
+        "apply": {
+          "type": "boolean",
+          "description": "Default false"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/events/regenerate"
+      }
+    },
+    {
+      "name": "deadlines.create",
+      "description": "Create a manual deadline on any record (title in English and optionally Japanese).",
+      "params": {
+        "subject_type": {
+          "type": "string",
+          "description": "Record type the event or deadline is about. \"trademark\" and \"design\" mean matter.",
+          "required": true,
+          "enum": [
+            "matter",
+            "agreement",
+            "work",
+            "character",
+            "talent",
+            "product",
+            "approval",
+            "permission",
+            "committee",
+            "case",
+            "registration",
+            "claim",
+            "recordation",
+            "society_contract",
+            "fan_registration",
+            "enrollment"
+          ]
+        },
+        "subject_id": {
+          "type": "string",
+          "description": "Record id (id, reference or exact name)",
+          "required": true
+        },
+        "title": {
+          "type": "string",
+          "required": true
+        },
+        "title_ja": {
+          "type": "string"
+        },
+        "due_date": {
+          "type": "string",
+          "description": "YYYY-MM-DD",
+          "required": true
+        },
+        "final_date": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "hard",
+            "extendable",
+            "designated",
+            "internal",
+            "reminder"
+          ]
+        },
+        "category": {
+          "type": "string",
+          "description": "Deadline category, e.g. licensing, talent, enforcement"
+        },
+        "assignee": {
+          "type": "string",
+          "description": "users id"
+        },
+        "citation": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "string"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/deadlines/create"
+      }
+    },
+    {
+      "name": "deadlines.close",
+      "description": "Close deadlines. done may create the next cycle (renewals, recurring reports). not_needed, missed, transferred and cancelled need a reason. Deadlines are never deleted.",
+      "destructive": true,
+      "params": {
+        "ids": {
+          "type": "string",
+          "description": "JSON. Array of deadline ids",
+          "required": true
+        },
+        "status": {
+          "type": "string",
+          "required": true,
+          "enum": [
+            "done",
+            "not_needed",
+            "missed",
+            "transferred",
+            "cancelled"
+          ]
+        },
+        "reason": {
+          "type": "string"
+        },
+        "closed_on": {
+          "type": "string",
+          "description": "YYYY-MM-DD, default today"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/deadlines/close"
+      }
+    },
+    {
+      "name": "deadlines.extend",
+      "description": "Extend an extendable deadline to an extension tier from its rule. preview=true returns the new dates without saving.",
+      "params": {
+        "id": {
+          "type": "string",
+          "required": true
+        },
+        "level": {
+          "type": "number",
+          "description": "Extension tier, 1-based",
+          "required": true
+        },
+        "preview": {
+          "type": "boolean"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/deadlines/extend"
+      }
+    },
+    {
+      "name": "deadlines.reassign",
+      "description": "Assign deadlines to a person (users id, or empty to unassign).",
+      "params": {
+        "ids": {
+          "type": "string",
+          "description": "JSON. Array of deadline ids",
+          "required": true
+        },
+        "assignee": {
+          "type": "string"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/deadlines/reassign"
+      }
+    },
+    {
+      "name": "deadlines.move",
+      "description": "Move deadlines by days or to a date with a reason; moved deadlines are locked so regeneration leaves them alone. Statutory deadlines need manager rights. preview=true shows the result only.",
+      "destructive": true,
+      "params": {
+        "ids": {
+          "type": "string",
+          "description": "JSON. Array of deadline ids",
+          "required": true
+        },
+        "days": {
+          "type": "number"
+        },
+        "date": {
+          "type": "string",
+          "description": "YYYY-MM-DD"
+        },
+        "reason": {
+          "type": "string",
+          "description": "Required unless preview"
+        },
+        "preview": {
+          "type": "boolean"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/deadlines/move"
+      }
+    },
+    {
+      "name": "deadlines.upcoming",
+      "description": "Open deadlines due in the next N days (and overdue), with record, office, assignee and both titles.",
+      "params": {
+        "days": {
+          "type": "number",
+          "description": "Default 30"
+        },
+        "include_overdue": {
+          "type": "boolean"
+        },
+        "assignee_email": {
+          "type": "string"
+        },
+        "jurisdiction": {
+          "type": "string"
+        },
+        "category": {
+          "type": "string"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/deadlines/upcoming"
+      }
+    },
+    {
+      "name": "deadlines.explain",
+      "description": "How a deadline was calculated, step by step in English and Japanese: base date, rule, offset, office closures and roll-forward, window, grace and final date.",
+      "params": {
+        "id": {
+          "type": "string",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/deadlines/explain"
+      }
+    },
+    {
+      "name": "rules.test",
+      "description": "Try a deadline rule on a hypothetical date without saving anything.",
+      "params": {
+        "rule_id": {
+          "type": "string",
+          "required": true,
+          "description": "Id, reference or exact name"
+        },
+        "base_date": {
+          "type": "string",
+          "description": "YYYY-MM-DD"
+        },
+        "filing_date": {
+          "type": "string"
+        },
+        "registration_date": {
+          "type": "string"
+        },
+        "publication_date": {
+          "type": "string"
+        },
+        "jurisdiction": {
+          "type": "string"
+        },
+        "route": {
+          "type": "string"
+        },
+        "cycle": {
+          "type": "number"
+        },
+        "overrides": {
+          "type": "string",
+          "description": "JSON. Object of overrides"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/rules/test"
+      }
+    },
+    {
+      "name": "calendars.refresh",
+      "description": "Manager. Rebuild an office's closure calendar for a year (Japanese holidays from the Cabinet Office list where reachable). CN, KR and TW use the stored official rows.",
+      "params": {
+        "office": {
+          "type": "string",
+          "description": "JP, US, EP, EM, WO, CN, KR or TW",
+          "required": true
+        },
+        "year": {
+          "type": "number",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/calendars/refresh"
+      }
+    },
+    {
+      "name": "calendars.business-days",
+      "description": "Add N business days to a date on an office calendar (or the organization calendar), with the steps.",
+      "params": {
+        "from": {
+          "type": "string",
+          "description": "YYYY-MM-DD",
+          "required": true
+        },
+        "days": {
+          "type": "number",
+          "required": true
+        },
+        "office": {
+          "type": "string",
+          "description": "Default: organization work calendar"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/calendars/business-days"
+      }
+    },
+    {
+      "name": "calendar.feed",
+      "description": "Get (or rotate) your private iCalendar feed URL for deadlines.",
+      "params": {
+        "scope": {
+          "type": "string",
+          "enum": [
+            "mine",
+            "all"
+          ]
+        },
+        "rotate": {
+          "type": "boolean"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/calendar/feed"
+      }
+    },
+    {
+      "name": "calendar.ics",
+      "description": "The iCalendar feed itself (token from calendar.feed).",
+      "params": {
+        "token": {
+          "type": "string",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ics/{token}"
+      }
+    },
+    {
+      "name": "digest.preview",
+      "description": "Preview the daily digest for the caller in their language (external accounts get their portal digest).",
+      "params": {
+        "days": {
+          "type": "number",
+          "description": "Look-ahead, default 14"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/digest/preview"
+      }
+    },
+    {
+      "name": "digest.send",
+      "description": "Manager. Send today's digests now.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/digest/send"
+      }
+    },
+    {
+      "name": "reports.run",
+      "description": "Run a report: deadlines, portfolio, agreements_expiring, chain_of_title, renewal_decisions, forecast, approvals, royalties, seals, distributions, permissions, music_unregistered, trademark_gaps, enforcement, audit (audit needs edit rights). Returns columns and rows in the chosen language.",
+      "params": {
+        "report": {
+          "type": "string",
+          "required": true,
+          "enum": [
+            "deadlines",
+            "portfolio",
+            "agreements_expiring",
+            "chain_of_title",
+            "renewal_decisions",
+            "forecast",
+            "approvals",
+            "royalties",
+            "seals",
+            "distributions",
+            "permissions",
+            "music_unregistered",
+            "trademark_gaps",
+            "enforcement",
+            "audit"
+          ]
+        },
+        "params": {
+          "type": "string",
+          "description": "JSON. Report filters, e.g. {\"days\":90}"
+        },
+        "lang": {
+          "type": "string",
+          "enum": [
+            "ja",
+            "en"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/reports/run"
+      }
+    },
+    {
+      "name": "inbox.propose",
+      "description": "File a proposal for people to review; nothing changes until a person accepts it. Kinds: document, agent_proposal, email (one event and/or extra deadlines on any record), agreement_draft, royalty_statement, permission, watch_hit. Give subject_type+subject_id, or matter_id/matter_ref for trademarks.",
+      "params": {
+        "kind": {
+          "type": "string",
+          "required": true,
+          "enum": [
+            "document",
+            "agent_proposal",
+            "email",
+            "agreement_draft",
+            "royalty_statement",
+            "permission",
+            "watch_hit"
+          ]
+        },
+        "title": {
+          "type": "string",
+          "required": true
+        },
+        "summary": {
+          "type": "string"
+        },
+        "subject_type": {
+          "type": "string",
+          "enum": [
+            "matter",
+            "agreement",
+            "work",
+            "character",
+            "talent",
+            "product",
+            "approval",
+            "permission",
+            "committee",
+            "case",
+            "registration",
+            "claim",
+            "recordation",
+            "society_contract",
+            "fan_registration",
+            "enrollment"
+          ]
+        },
+        "subject_id": {
+          "type": "string",
+          "description": "Id, reference or exact name"
+        },
+        "matter_id": {
+          "type": "string",
+          "description": "Id, reference or exact name"
+        },
+        "matter_ref": {
+          "type": "string",
+          "description": "Reference or application/registration number"
+        },
+        "document_id": {
+          "type": "string",
+          "description": "Id, reference or exact name"
+        },
+        "agreement_id": {
+          "type": "string",
+          "description": "Id, reference or exact name"
+        },
+        "proposal": {
+          "type": "string",
+          "description": "JSON. Kind-specific payload (see the trigger instructions)"
+        },
+        "confidence": {
+          "type": "string",
+          "enum": [
+            "high",
+            "medium",
+            "low",
+            "none"
+          ]
+        },
+        "citations": {
+          "type": "string",
+          "description": "JSON. Array of {field, page, quote}"
+        },
+        "proposed_by": {
+          "type": "string"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/inbox/propose"
+      }
+    },
+    {
+      "name": "inbox.preview",
+      "description": "What accepting an Inbox item would do: deadlines with explanations, grant conflicts for an agreement draft, priced lines for a royalty statement, the permission diff.",
+      "params": {
+        "id": {
+          "type": "string",
+          "required": true
+        },
+        "agreement_id": {
+          "type": "string",
+          "description": "Royalty statements: price against this licence instead of the proposed one (id, reference or exact name)"
+        },
+        "event_override": {
+          "type": "string",
+          "description": "JSON. Replacement event {code,date,...}"
+        },
+        "grants": {
+          "type": "string",
+          "description": "JSON. Edited grants"
+        },
+        "lines": {
+          "type": "string",
+          "description": "JSON. Edited lines"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/inbox/preview"
+      }
+    },
+    {
+      "name": "inbox.decide",
+      "description": "Accept or reject an Inbox item, optionally with edits (fields, events, deadlines, agreement, grants, lines, hits). With second review on, statutory deadlines from automated proposals need a second person.",
+      "destructive": true,
+      "params": {
+        "id": {
+          "type": "string",
+          "required": true
+        },
+        "decision": {
+          "type": "string",
+          "required": true,
+          "enum": [
+            "accept",
+            "reject"
+          ]
+        },
+        "note": {
+          "type": "string"
+        },
+        "fields": {
+          "type": "string",
+          "description": "JSON. Field diffs to apply"
+        },
+        "events": {
+          "type": "string",
+          "description": "JSON. Office events to apply"
+        },
+        "deadlines": {
+          "type": "string",
+          "description": "JSON. Deadline selection"
+        },
+        "extra_deadlines": {
+          "type": "string",
+          "description": "JSON. Array of {title, due_date, kind}"
+        },
+        "event_override": {
+          "type": "string",
+          "description": "JSON. "
+        },
+        "agreement": {
+          "type": "string",
+          "description": "JSON. Edited agreement"
+        },
+        "agreement_id": {
+          "type": "string",
+          "description": "Id, reference or exact name"
+        },
+        "grants": {
+          "type": "string",
+          "description": "JSON. Edited grants"
+        },
+        "lines": {
+          "type": "string",
+          "description": "JSON. Edited statement lines"
+        },
+        "period_end": {
+          "type": "string"
+        },
+        "hits": {
+          "type": "string",
+          "description": "JSON. Array of hit indexes to accept"
+        },
+        "map_raw": {
+          "type": "string",
+          "description": "JSON. Office code mapping"
+        },
+        "annuity": {
+          "type": "string",
+          "description": "JSON. "
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/inbox/decide"
+      }
+    },
+    {
+      "name": "products.submit-approval",
+      "description": "Licensing. Submit a product stage for approval (監修): builds the reviewer chain from the licence (internal, committee, original publisher, talent, outside reviewers) and the business-day due date.",
+      "params": {
+        "product_id": {
+          "type": "string",
+          "required": true,
+          "description": "Id, reference or exact name"
+        },
+        "stage": {
+          "type": "string",
+          "enum": [
+            "proposal",
+            "concept",
+            "design",
+            "color_proof",
+            "prototype",
+            "pre_production_sample",
+            "final_sample",
+            "packaging",
+            "advertising",
+            "mass_production_check"
+          ]
+        },
+        "reviewers": {
+          "type": "string",
+          "description": "JSON. Array of outside reviewer user ids"
+        },
+        "notes": {
+          "type": "string"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/products/submit-approval"
+      }
+    },
+    {
+      "name": "products.advance",
+      "description": "Licensing. Move a product to a stage. Mass production and on sale need an approved final sample unless force=true. Cancelling needs a reason.",
+      "params": {
+        "product_id": {
+          "type": "string",
+          "required": true,
+          "description": "Id, reference or exact name"
+        },
+        "stage": {
+          "type": "string",
+          "required": true,
+          "enum": [
+            "proposal",
+            "contract",
+            "concept",
+            "design",
+            "prototype",
+            "final_sample",
+            "packaging",
+            "mass_production",
+            "on_sale",
+            "sell_off",
+            "ended",
+            "cancelled"
+          ]
+        },
+        "force": {
+          "type": "boolean"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/products/advance"
+      }
+    },
+    {
+      "name": "approvals.decide",
+      "description": "Decide an approval slot: approved, changes or rejected (changes and rejected need a comment). Internal staff decide any slot; an outside reviewer only their own. advance=true moves the product on when the stage is approved.",
+      "params": {
+        "approval_id": {
+          "type": "string",
+          "required": true,
+          "description": "Id, reference or exact name"
+        },
+        "decision": {
+          "type": "string",
+          "required": true,
+          "enum": [
+            "approved",
+            "changes",
+            "rejected"
+          ]
+        },
+        "reviewer_key": {
+          "type": "string",
+          "description": "Default: the caller's pending slot"
+        },
+        "comment": {
+          "type": "string"
+        },
+        "copyright_check": {
+          "type": "string",
+          "enum": [
+            "ok",
+            "wrong",
+            "unchecked"
+          ]
+        },
+        "annotations": {
+          "type": "string",
+          "description": "JSON. Array of image annotations"
+        },
+        "advance": {
+          "type": "boolean"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/approvals/decide"
+      }
+    },
+    {
+      "name": "approvals.resubmit",
+      "description": "A new round after \"changes\": licensee or licensing staff. Reviewers who asked for changes go back to pending; the due date restarts.",
+      "params": {
+        "approval_id": {
+          "type": "string",
+          "required": true,
+          "description": "Id, reference or exact name"
+        },
+        "notes": {
+          "type": "string"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/approvals/resubmit"
+      }
+    },
+    {
+      "name": "approvals.withdraw",
+      "description": "Withdraw an open approval (licensee or licensing staff).",
+      "params": {
+        "approval_id": {
+          "type": "string",
+          "required": true,
+          "description": "Id, reference or exact name"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/approvals/withdraw"
+      }
+    },
+    {
+      "name": "seals.order",
+      "description": "Licensing. Record a seal (証紙) order for a product.",
+      "params": {
+        "product_id": {
+          "type": "string",
+          "required": true,
+          "description": "Id, reference or exact name"
+        },
+        "quantity": {
+          "type": "number",
+          "required": true
+        },
+        "unit_cost": {
+          "type": "number"
+        },
+        "currency": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "string"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/seals/order"
+      }
+    },
+    {
+      "name": "seals.issue",
+      "description": "Licensing. Issue a requested seal order with a serial range (next free range when not given).",
+      "params": {
+        "order_id": {
+          "type": "string",
+          "required": true,
+          "description": "Id, reference or exact name"
+        },
+        "serial_from": {
+          "type": "string"
+        },
+        "serial_to": {
+          "type": "string"
+        },
+        "issued_date": {
+          "type": "string"
+        },
+        "unit_cost": {
+          "type": "number"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/seals/issue"
+      }
+    },
+    {
+      "name": "seals.reconcile",
+      "description": "Report used, void and returned seals for an issued order (licensee or licensing staff). Reconciled when they add up to the quantity.",
+      "params": {
+        "order_id": {
+          "type": "string",
+          "required": true,
+          "description": "Id, reference or exact name"
+        },
+        "used": {
+          "type": "number",
+          "required": true
+        },
+        "void": {
+          "type": "number"
+        },
+        "returned": {
+          "type": "number"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/seals/reconcile"
+      }
+    },
+    {
+      "name": "seals.variance",
+      "description": "Seals used against manufactured quantity reported on royalty statements, per product (or every product on an agreement). A positive variance is the flag.",
+      "params": {
+        "product_id": {
+          "type": "string",
+          "description": "Id, reference or exact name"
+        },
+        "agreement_id": {
+          "type": "string",
+          "description": "Id, reference or exact name"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/seals/variance"
+      }
+    },
+    {
+      "name": "royalties.add-lines",
+      "description": "Licensing. Add (or replace) statement lines; each is priced by the agreement's royalty basis and the report re-totals with MG credit and late interest.",
+      "params": {
+        "report_id": {
+          "type": "string",
+          "required": true,
+          "description": "Id, reference or exact name"
+        },
+        "lines": {
+          "type": "string",
+          "description": "JSON. Array of {product_id, description, territory, manufactured_qty, sold_qty, retail_price, wholesale_price, rate, currency}",
+          "required": true
+        },
+        "replace": {
+          "type": "boolean"
+        },
+        "received_date": {
+          "type": "string"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/royalties/add-lines"
+      }
+    },
+    {
+      "name": "royalties.recalc",
+      "description": "Licensing. Re-price a statement's lines and totals.",
+      "params": {
+        "report_id": {
+          "type": "string",
+          "required": true,
+          "description": "Id, reference or exact name"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/royalties/recalc"
+      }
+    },
+    {
+      "name": "royalties.mg-status",
+      "description": "Minimum guarantee position for an agreement: guaranteed, earned, recouped, remaining, overage, paid.",
+      "params": {
+        "agreement_id": {
+          "type": "string",
+          "required": true,
+          "description": "Id, reference or exact name"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/royalties/mg-status"
+      }
+    },
+    {
+      "name": "royalties.record-payment",
+      "description": "Licensing. Record the amount received for a statement; dispute=true marks a shortfall as disputed.",
+      "params": {
+        "report_id": {
+          "type": "string",
+          "required": true,
+          "description": "Id, reference or exact name"
+        },
+        "amount": {
+          "type": "number",
+          "required": true
+        },
+        "dispute": {
+          "type": "boolean"
+        },
+        "note": {
+          "type": "string"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/royalties/record-payment"
+      }
+    },
+    {
+      "name": "portal.context",
+      "description": "For an external account (licensee, committee member, reviewer): everything it can see and act on in one call.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/portal/context"
+      }
+    },
+    {
+      "name": "portal.submit-product",
+      "description": "Licensee. Propose a product under one of its active agreements and submit the first approval.",
+      "params": {
+        "agreement_id": {
+          "type": "string",
+          "required": true,
+          "description": "Id, reference or exact name"
+        },
+        "name": {
+          "type": "string",
+          "required": true
+        },
+        "stage": {
+          "type": "string",
+          "description": "Default proposal"
+        },
+        "sku": {
+          "type": "string"
+        },
+        "jan": {
+          "type": "string"
+        },
+        "characters": {
+          "type": "string",
+          "description": "JSON. Array of character ids"
+        },
+        "category": {
+          "type": "string",
+          "description": "Category code"
+        },
+        "channel": {
+          "type": "string",
+          "description": "Channel code"
+        },
+        "occasion": {
+          "type": "string"
+        },
+        "sales_start": {
+          "type": "string"
+        },
+        "sales_model": {
+          "type": "string"
+        },
+        "retail_price": {
+          "type": "number"
+        },
+        "currency": {
+          "type": "string"
+        },
+        "includes_voice": {
+          "type": "boolean"
+        },
+        "regions": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "string"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/portal/submit-product"
+      }
+    },
+    {
+      "name": "portal.submit-stage",
+      "description": "Licensee. Submit the next approval stage for one of its products.",
+      "params": {
+        "product_id": {
+          "type": "string",
+          "required": true,
+          "description": "Id, reference or exact name"
+        },
+        "stage": {
+          "type": "string",
+          "required": true
+        },
+        "notes": {
+          "type": "string"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/portal/submit-stage"
+      }
+    },
+    {
+      "name": "portal.submit-statement",
+      "description": "Licensee. File the lines of an expected royalty statement.",
+      "params": {
+        "report_id": {
+          "type": "string",
+          "required": true,
+          "description": "Id, reference or exact name"
+        },
+        "lines": {
+          "type": "string",
+          "description": "JSON. Array of {product_id, manufactured_qty, sold_qty, retail_price, ...}",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/portal/submit-statement"
+      }
+    },
+    {
+      "name": "portal.order-seals",
+      "description": "Licensee. Ask for seals for one of its products.",
+      "params": {
+        "product_id": {
+          "type": "string",
+          "required": true,
+          "description": "Id, reference or exact name"
+        },
+        "quantity": {
+          "type": "number",
+          "required": true
+        },
+        "notes": {
+          "type": "string"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/portal/order-seals"
+      }
+    },
+    {
+      "name": "matters.info",
+      "description": "Expiry (computed from the office rules) and office sync state for a trademark or design.",
+      "params": {
+        "matter_id": {
+          "type": "string",
+          "required": true,
+          "description": "Id, reference or exact name"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/matters/info"
+      }
+    },
+    {
+      "name": "matters.lookup",
+      "description": "Look up a trademark or design at its office (JPO, USPTO TSDR or EUIPO when connected). CN, KR and TW have no connection: create those by hand.",
+      "params": {
+        "ip_type": {
+          "type": "string",
+          "enum": [
+            "trademark",
+            "design"
+          ]
+        },
+        "jurisdiction": {
+          "type": "string",
+          "required": true
+        },
+        "number": {
+          "type": "string",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/matters/lookup"
+      }
+    },
+    {
+      "name": "matters.import-office",
+      "description": "Create a trademark or design from its office record, with classes, history and deadlines, linked to a franchise, character or talent.",
+      "params": {
+        "ip_type": {
+          "type": "string",
+          "enum": [
+            "trademark",
+            "design"
+          ]
+        },
+        "jurisdiction": {
+          "type": "string",
+          "required": true
+        },
+        "number": {
+          "type": "string",
+          "required": true
+        },
+        "franchise_id": {
+          "type": "string",
+          "description": "Id, reference or exact name"
+        },
+        "character_id": {
+          "type": "string",
+          "description": "Id, reference or exact name"
+        },
+        "talent_id": {
+          "type": "string",
+          "description": "Id, reference or exact name"
+        },
+        "family_id": {
+          "type": "string",
+          "description": "Id, reference or exact name"
+        },
+        "family_title": {
+          "type": "string"
+        },
+        "route": {
+          "type": "string"
+        },
+        "responsible": {
+          "type": "string"
+        },
+        "generate": {
+          "type": "boolean",
+          "description": "Default true"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/matters/import-office"
+      }
+    },
+    {
+      "name": "matters.sync",
+      "description": "Check a trademark or design against its office now; differences arrive in the Inbox for review.",
+      "params": {
+        "matter_id": {
+          "type": "string",
+          "required": true,
+          "description": "Id, reference or exact name"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/matters/sync"
+      }
+    },
+    {
+      "name": "matters.designate",
+      "description": "Create child filings from a mark: Madrid designations, national filings claiming its priority, divisionals. Copies classes (optionally a subset) and creates their deadlines.",
+      "params": {
+        "matter_id": {
+          "type": "string",
+          "required": true,
+          "description": "Id, reference or exact name"
+        },
+        "jurisdictions": {
+          "type": "string",
+          "description": "JSON. Array of office codes",
+          "required": true
+        },
+        "relation": {
+          "type": "string",
+          "enum": [
+            "designation",
+            "priority",
+            "divisional",
+            "related"
+          ]
+        },
+        "filing_date": {
+          "type": "string"
+        },
+        "classes": {
+          "type": "string",
+          "description": "JSON. Array of Nice classes to keep"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/matters/designate"
+      }
+    },
+    {
+      "name": "matters.leak-check",
+      "description": "When a trademark filing becomes publicly visible, and whether that is before the announcement date (lag set in Settings, default 14 days).",
+      "params": {
+        "filing_date": {
+          "type": "string"
+        },
+        "announcement_date": {
+          "type": "string",
+          "required": true
+        },
+        "jurisdiction": {
+          "type": "string"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/matters/leak-check"
+      }
+    },
+    {
+      "name": "coverage.matrix",
+      "description": "Trademark coverage for a character, talent or franchise: Nice classes by office, with gaps.",
+      "params": {
+        "subject_type": {
+          "type": "string",
+          "required": true,
+          "enum": [
+            "character",
+            "talent",
+            "franchise"
+          ]
+        },
+        "subject_id": {
+          "type": "string",
+          "required": true,
+          "description": "Id, reference or exact name"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/coverage/matrix"
+      }
+    },
+    {
+      "name": "renewals.decide",
+      "description": "Decide renewals: renew, renew_partial (keep classes), lapse (needs a rationale and closes the deadline), defer, pending.",
+      "destructive": true,
+      "params": {
+        "ids": {
+          "type": "string",
+          "description": "JSON. Array of renewal ids",
+          "required": true
+        },
+        "decision": {
+          "type": "string",
+          "required": true,
+          "enum": [
+            "renew",
+            "renew_partial",
+            "lapse",
+            "defer",
+            "pending"
+          ]
+        },
+        "rationale": {
+          "type": "string"
+        },
+        "classes_keep": {
+          "type": "string",
+          "description": "JSON. Array of Nice classes"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/renewals/decide"
+      }
+    },
+    {
+      "name": "renewals.instruct",
+      "description": "Mark renewals as instructed to a provider; returns a CSV and an instruction letter (Japanese or English).",
+      "params": {
+        "ids": {
+          "type": "string",
+          "description": "JSON. Array of renewal ids",
+          "required": true
+        },
+        "provider": {
+          "type": "string",
+          "required": true
+        },
+        "po_number": {
+          "type": "string"
+        },
+        "lang": {
+          "type": "string",
+          "enum": [
+            "ja",
+            "en"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/renewals/instruct"
+      }
+    },
+    {
+      "name": "renewals.record-payment",
+      "description": "Record a renewal as paid: closes its deadline, creates the next cycle and records the renewal event.",
+      "params": {
+        "id": {
+          "type": "string",
+          "required": true
+        },
+        "paid_date": {
+          "type": "string"
+        },
+        "amount": {
+          "type": "number"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/renewals/record-payment"
+      }
+    },
+    {
+      "name": "renewals.forecast",
+      "description": "Renewal and annuity spend forecast by year and office in the home currency.",
+      "params": {
+        "years": {
+          "type": "number",
+          "description": "1-10, default 5"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/renewals/forecast"
+      }
+    },
+    {
+      "name": "renewals.refresh-costs",
+      "description": "Re-price renewals from the fee schedule and exchange rates.",
+      "params": {
+        "ids": {
+          "type": "string",
+          "description": "JSON. Array of renewal ids (default all not instructed)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/renewals/refresh-costs"
+      }
+    },
+    {
+      "name": "offices.save",
+      "description": "Admin. Save an office connection (JPO, USPTO TSDR, EUIPO). Credentials are optional; secrets are write-only.",
+      "destructive": true,
+      "params": {
+        "office": {
+          "type": "string",
+          "required": true,
+          "enum": [
+            "jpo",
+            "uspto_tsdr",
+            "euipo"
+          ]
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "sandbox": {
+          "type": "boolean"
+        },
+        "api_key": {
+          "type": "string"
+        },
+        "client_id": {
+          "type": "string",
+          "description": "Id, reference or exact name"
+        },
+        "client_secret": {
+          "type": "string"
+        },
+        "username": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "string"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/offices/save"
+      }
+    },
+    {
+      "name": "offices.test",
+      "description": "Admin. Test an office connection.",
+      "params": {
+        "office": {
+          "type": "string",
+          "required": true,
+          "enum": [
+            "jpo",
+            "uspto_tsdr",
+            "euipo"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/offices/test"
+      }
+    },
+    {
+      "name": "offices.sync-all",
+      "description": "Manager. Check every connected trademark and design against its office now.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/offices/sync-all"
+      }
+    },
+    {
+      "name": "fx.refresh",
+      "description": "Manager. Refresh exchange rates (ECB) and re-price renewals.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/fx/refresh"
+      }
+    },
+    {
+      "name": "import.matters",
+      "description": "Import trademarks and designs from rows (CSV parsed to JSON). dry_run (default true) validates only; a real import needs manager rights. Franchise, character and talent link by name.",
+      "params": {
+        "rows": {
+          "type": "string",
+          "description": "JSON. Array of row objects",
+          "required": true
+        },
+        "dry_run": {
+          "type": "boolean",
+          "description": "Default true"
+        },
+        "generate": {
+          "type": "boolean",
+          "description": "Create deadlines, default true"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/import/matters"
+      }
+    },
+    {
+      "name": "import.watch",
+      "description": "Import trademark-watch or marketplace-monitoring hits from rows.",
+      "params": {
+        "rows": {
+          "type": "string",
+          "description": "JSON. Array of row objects",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/import/watch"
+      }
+    },
+    {
+      "name": "music.completeness",
+      "description": "What a song still needs: writers and splits, ISWC, society registration, recordings with ISRC, publishing and master agreements.",
+      "params": {
+        "song_id": {
+          "type": "string",
+          "required": true,
+          "description": "Id, reference or exact name"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/music/completeness"
+      }
+    },
+    {
+      "name": "music.setlist-check",
+      "description": "Check a singing-stream setlist: platform blanket licence (composition only), backing track and master permission, archive and monetization. Per song: ok, live_only or blocked with reasons.",
+      "params": {
+        "items": {
+          "type": "string",
+          "description": "JSON. Array of {song, recording?, backing: own|commissioned|licensed_karaoke|commercial_master|a_cappella, platform, archive, monetized, arranged, talent}",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/music/setlist-check"
+      }
+    },
+    {
+      "name": "music.unregistered",
+      "description": "Songs that are published or released but not registered with JASRAC, NexTone or marked self-managed.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/music/unregistered"
+      }
+    },
+    {
+      "name": "music.neighbouring-terms",
+      "description": "Performer and record-producer term end dates for a recording (Japanese Copyright Act Art. 101).",
+      "params": {
+        "recording_id": {
+          "type": "string",
+          "required": true,
+          "description": "Id, reference or exact name"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/music/neighbouring-terms"
+      }
+    },
+    {
+      "name": "music.new-version",
+      "description": "Create a new version of a recording (TV size, instrumental, live, remix...) with its own ISRC, copying owners and credits.",
+      "params": {
+        "recording_id": {
+          "type": "string",
+          "required": true,
+          "description": "Id, reference or exact name"
+        },
+        "version_type": {
+          "type": "string",
+          "required": true,
+          "enum": [
+            "studio",
+            "tv_size",
+            "instrumental",
+            "a_cappella",
+            "live",
+            "remix",
+            "cover",
+            "music_video",
+            "other"
+          ]
+        },
+        "isrc": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "recording_date": {
+          "type": "string"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/music/new-version"
+      }
+    },
+    {
+      "name": "content-id.conflicts",
+      "description": "Content ID assets whose claimed ownership adds up to more than 100% in a territory.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/content-id/conflicts"
+      }
+    },
+    {
+      "name": "content-id.claim-event",
+      "description": "Record a Content ID step on a claim (dispute or appeal received, resolved); creates the 30-day or 7-day reply deadline.",
+      "params": {
+        "claim_id": {
+          "type": "string",
+          "required": true,
+          "description": "Id, reference or exact name"
+        },
+        "code": {
+          "type": "string",
+          "required": true,
+          "enum": [
+            "CID_DISPUTE_RECEIVED",
+            "CID_APPEAL_RECEIVED",
+            "CID_RESOLVED"
+          ]
+        },
+        "date": {
+          "type": "string"
+        },
+        "preview": {
+          "type": "boolean"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/content-id/claim-event"
+      }
+    },
+    {
+      "name": "talents.pre-stream-check",
+      "description": "Can this talent stream this title or song on this platform with this monetization today? allowed, needs_application or blocked, with reasons.",
+      "params": {
+        "talent_id": {
+          "type": "string",
+          "description": "Id, reference or exact name"
+        },
+        "title": {
+          "type": "string",
+          "description": "Game or work name"
+        },
+        "permission_id": {
+          "type": "string",
+          "description": "Id, reference or exact name"
+        },
+        "platform": {
+          "type": "string"
+        },
+        "monetization": {
+          "type": "string",
+          "description": "JSON. Array of ads, super_chat, membership, sponsored, paid_download"
+        },
+        "date": {
+          "type": "string"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/talents/pre-stream-check"
+      }
+    },
+    {
+      "name": "talents.exposure",
+      "description": "What a talent change touches: characters voiced, products on sale, trademarks, permissions.",
+      "params": {
+        "talent_id": {
+          "type": "string",
+          "required": true,
+          "description": "Id, reference or exact name"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/talents/exposure"
+      }
+    },
+    {
+      "name": "talents.lifecycle",
+      "description": "Talent manager. Record a lifecycle step (debut, hiatus, suspension, graduation, termination); moves the lifecycle and lays out the playbook deadlines. preview=true returns the playbook only. Suspension and termination need a reason (audit log only).",
+      "params": {
+        "talent_id": {
+          "type": "string",
+          "required": true,
+          "description": "Id, reference or exact name"
+        },
+        "code": {
+          "type": "string",
+          "required": true,
+          "enum": [
+            "DEBUT_SCHEDULED",
+            "DEBUTED",
+            "HIATUS",
+            "SUSPENDED",
+            "RESUMED",
+            "GRADUATION_SCHEDULED",
+            "GRADUATED",
+            "TERMINATED"
+          ]
+        },
+        "date": {
+          "type": "string",
+          "description": "Announcement or event date, default today"
+        },
+        "graduation_date": {
+          "type": "string",
+          "description": "Last day of activity"
+        },
+        "debut_date": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "select": {
+          "type": "string",
+          "description": "JSON. Array of proposal keys or rule codes to create (default: the not-past ones)"
+        },
+        "skip": {
+          "type": "string",
+          "description": "JSON. Array of rule codes to leave out"
+        },
+        "assignees": {
+          "type": "string",
+          "description": "JSON. Array of {rule_code, assignee}"
+        },
+        "preview": {
+          "type": "boolean"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/talents/lifecycle"
+      }
+    },
+    {
+      "name": "permissions.recheck",
+      "description": "Record that a third-party guideline was re-read today: closes the open re-check and schedules the next. changed=true needs a note and tells the talents' managers.",
+      "params": {
+        "permission_id": {
+          "type": "string",
+          "required": true,
+          "description": "Id, reference or exact name"
+        },
+        "changed": {
+          "type": "boolean"
+        },
+        "note": {
+          "type": "string"
+        },
+        "revision": {
+          "type": "string",
+          "description": "Guideline revision date"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "active",
+            "pending_application",
+            "expired",
+            "revoked",
+            "suspended"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/permissions/recheck"
+      }
+    },
+    {
+      "name": "guidelines.from-template",
+      "description": "Copy a starter guideline template (fan works, clips, covers, AI use, one-day event licence) into an editable draft.",
+      "params": {
+        "template_id": {
+          "type": "string",
+          "required": true,
+          "description": "Id, reference or exact name"
+        },
+        "title": {
+          "type": "string"
+        },
+        "franchise_id": {
+          "type": "string",
+          "description": "Id, reference or exact name"
+        },
+        "talent_id": {
+          "type": "string",
+          "description": "Id, reference or exact name"
+        },
+        "characters": {
+          "type": "string",
+          "description": "JSON. Array of character ids"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/guidelines/from-template"
+      }
+    },
+    {
+      "name": "guidelines.publish",
+      "description": "Manager. Publish a draft guideline; the previous published one for the same scope becomes superseded.",
+      "params": {
+        "guideline_id": {
+          "type": "string",
+          "required": true,
+          "description": "Id, reference or exact name"
+        },
+        "version": {
+          "type": "string"
+        },
+        "effective_date": {
+          "type": "string"
+        },
+        "changelog": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/guidelines/publish"
+      }
+    },
+    {
+      "name": "fan.decide",
+      "description": "Approve, activate, reject, suspend or revoke a fan permit (clip channel, fan permit, one-day event licence). Anything but approve/activate needs a reason.",
+      "params": {
+        "registration_id": {
+          "type": "string",
+          "required": true,
+          "description": "Id, reference or exact name"
+        },
+        "decision": {
+          "type": "string",
+          "required": true,
+          "enum": [
+            "approve",
+            "activate",
+            "reject",
+            "suspend",
+            "revoke"
+          ]
+        },
+        "reason": {
+          "type": "string"
+        },
+        "end_date": {
+          "type": "string"
+        },
+        "royalty_pct": {
+          "type": "number"
+        },
+        "seals_issued": {
+          "type": "number"
+        },
+        "guideline_id": {
+          "type": "string",
+          "description": "Id, reference or exact name"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/fan/decide"
+      }
+    },
+    {
+      "name": "cases.draft-notice",
+      "description": "Draft the notice a case's forum expects (DMCA, 送信防止措置依頼, marketplace report, 警告書) from the rights linked to the case. Saved to the case as a draft for a person to check and send; never sent. preview=true does not save.",
+      "params": {
+        "case_id": {
+          "type": "string",
+          "required": true,
+          "description": "Id, reference or exact name"
+        },
+        "forum": {
+          "type": "string",
+          "description": "Default: the case forum",
+          "enum": [
+            "dmca",
+            "jp_platform",
+            "marketplace",
+            "cease_desist",
+            "sender_disclosure",
+            "customs",
+            "other"
+          ]
+        },
+        "lang": {
+          "type": "string",
+          "enum": [
+            "ja",
+            "en"
+          ]
+        },
+        "preview": {
+          "type": "boolean"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/cases/draft-notice"
+      }
+    },
+    {
+      "name": "cases.evidence",
+      "description": "Add evidence to a case: URL and/or file, capture time, SHA-256 (computed by the caller), who captured it, and a preservation date.",
+      "params": {
+        "case_id": {
+          "type": "string",
+          "required": true,
+          "description": "Id, reference or exact name"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "screenshot",
+            "page_archive",
+            "test_purchase",
+            "listing",
+            "video",
+            "document",
+            "other"
+          ]
+        },
+        "url": {
+          "type": "string"
+        },
+        "captured_at": {
+          "type": "string",
+          "description": "ISO time"
+        },
+        "sha256": {
+          "type": "string",
+          "description": "64 hex characters"
+        },
+        "chain_note": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "string"
+        },
+        "preserve_years": {
+          "type": "number",
+          "description": "Default 5"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/cases/evidence"
+      }
+    },
+    {
+      "name": "rights.can-we",
+      "description": "\"Can we?\" for a use: per territory (or other column), availability, who decides (window holder or every committee member, Art. 65(2)), original-work licence, chain of title per character layer, performer consent for sound-only (Art. 91(2)), talent status, trademark cover by Nice class and the © line. Verdict yes, conditions, consent or no.",
+      "params": {
+        "assets": {
+          "type": "string",
+          "description": "JSON. Array of {type: franchise|work|character|song|recording|matter, id} or \"type:id\"",
+          "required": true
+        },
+        "column": {
+          "type": "string",
+          "description": "Dimension for columns, default territory"
+        },
+        "columns": {
+          "type": "string",
+          "description": "JSON. Array of codes, e.g. [\"JP\",\"US\",\"CN\"]"
+        },
+        "filters": {
+          "type": "string",
+          "description": "JSON. Object of dimension: [codes], e.g. {\"media\":[\"MERCHANDISE\"],\"category\":[\"ACRYLIC\"]}"
+        },
+        "start": {
+          "type": "string"
+        },
+        "end": {
+          "type": "string"
+        },
+        "exclusive": {
+          "type": "boolean"
+        },
+        "includes_voice": {
+          "type": "boolean"
+        },
+        "exclude_agreement": {
+          "type": "string"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/rights/can-we"
+      }
+    },
+    {
+      "name": "rights.availability",
+      "description": "Rights availability only: available, partial, unavailable or no_rights per column, with the agreements behind each reason.",
+      "params": {
+        "assets": {
+          "type": "string",
+          "description": "JSON. Array of {type, id} or \"type:id\"",
+          "required": true
+        },
+        "column": {
+          "type": "string"
+        },
+        "columns": {
+          "type": "string",
+          "description": "JSON. Array of codes"
+        },
+        "filters": {
+          "type": "string",
+          "description": "JSON. Object of dimension: [codes]"
+        },
+        "start": {
+          "type": "string"
+        },
+        "end": {
+          "type": "string"
+        },
+        "exclusive": {
+          "type": "boolean"
+        },
+        "exclude_agreement": {
+          "type": "string"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/rights/availability"
+      }
+    },
+    {
+      "name": "rights.dimensions",
+      "description": "The rights dimension trees (territory, media, language, category, channel, platform) with English and Japanese labels and Nice classes.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/rights/dimensions"
+      }
+    },
+    {
+      "name": "agreements.check-conflicts",
+      "description": "Conflicts of an agreement's out-grants (saved, or draft grants given) with every other agreement.",
+      "params": {
+        "agreement_id": {
+          "type": "string",
+          "description": "Id, reference or exact name"
+        },
+        "grants": {
+          "type": "string",
+          "description": "JSON. Array of draft grants"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/agreements/check-conflicts"
+      }
+    },
+    {
+      "name": "agreements.sync",
+      "description": "Rebuild an agreement's generated obligations (statements, payments, options, reversion, sell-off).",
+      "params": {
+        "agreement_id": {
+          "type": "string",
+          "required": true,
+          "description": "Id, reference or exact name"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/agreements/sync"
+      }
+    },
+    {
+      "name": "titles.copyright-term",
+      "description": "Copyright term of a title under Japanese, US and EU law (film and corporate rules), optionally for its episodes too.",
+      "params": {
+        "work_id": {
+          "type": "string",
+          "required": true,
+          "description": "Id, reference or exact name"
+        },
+        "children": {
+          "type": "boolean"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/titles/copyright-term"
+      }
+    },
+    {
+      "name": "characters.chain",
+      "description": "A character's rights stack layer by layer (name, design, model, voice...) with problems: unknown acquisition, Art. 61(2), moral rights, licence ending, payment overdue, Freelance Act. Verdict clear, attention or blocked.",
+      "params": {
+        "character_id": {
+          "type": "string",
+          "required": true,
+          "description": "Id, reference or exact name"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/characters/chain"
+      }
+    },
+    {
+      "name": "committees.compute",
+      "description": "Compute a committee distribution (not saved): window receipts, deductions, window fees, committee steps, pool and each member's share. Also checks that shares add to 100%.",
+      "params": {
+        "committee_id": {
+          "type": "string",
+          "required": true,
+          "description": "Id, reference or exact name"
+        },
+        "receipts": {
+          "type": "string",
+          "description": "JSON. Array of {window, holder, gross, deductions:[{label, amount}], fee_pct, fee_base}",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/committees/compute"
+      }
+    },
+    {
+      "name": "committees.save-distribution",
+      "description": "Rights. Save a distribution statement for a period (draft or issued). Issued statements show in the members' portal.",
+      "params": {
+        "committee_id": {
+          "type": "string",
+          "required": true,
+          "description": "Id, reference or exact name"
+        },
+        "period_start": {
+          "type": "string"
+        },
+        "period_end": {
+          "type": "string",
+          "required": true
+        },
+        "receipts": {
+          "type": "string",
+          "description": "JSON. Array of receipts",
+          "required": true
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "draft",
+            "issued"
+          ]
+        },
+        "id": {
+          "type": "string",
+          "description": "Existing distribution to update"
+        },
+        "due_date": {
+          "type": "string"
+        },
+        "currency": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "string"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/committees/save-distribution"
+      }
+    },
+    {
+      "name": "committees.mark-paid",
+      "description": "Rights. Mark an issued distribution as paid.",
+      "params": {
+        "distribution_id": {
+          "type": "string",
+          "required": true,
+          "description": "Id, reference or exact name"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/committees/mark-paid"
+      }
+    },
+    {
+      "name": "committees.recoupment",
+      "description": "Investment recoupment per committee member from all distributions.",
+      "params": {
+        "committee_id": {
+          "type": "string",
+          "required": true,
+          "description": "Id, reference or exact name"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/committees/recoupment"
+      }
+    },
+    {
+      "name": "committees.who-decides",
+      "description": "Who decides a use for a committee title: the window holder (窓口), or every member when no window covers it.",
+      "params": {
+        "committee_id": {
+          "type": "string",
+          "required": true,
+          "description": "Id, reference or exact name"
+        },
+        "use": {
+          "type": "string",
+          "description": "JSON. Object of dimension: [codes], e.g. {\"media\":[\"GAMES\"],\"territory\":[\"JP\"]}",
+          "required": true
+        },
+        "start": {
+          "type": "string"
+        },
+        "end": {
+          "type": "string"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/committees/who-decides"
+      }
+    },
+    {
+      "name": "consent.open",
+      "description": "Rights. Ask every committee member to consent to a use (Art. 65). Members answer in their portal.",
+      "params": {
+        "committee_id": {
+          "type": "string",
+          "required": true,
+          "description": "Id, reference or exact name"
+        },
+        "subject": {
+          "type": "string",
+          "required": true
+        },
+        "use": {
+          "type": "string",
+          "description": "JSON. Object of dimension: [codes]"
+        },
+        "agreement_id": {
+          "type": "string",
+          "description": "Id, reference or exact name"
+        },
+        "product_id": {
+          "type": "string",
+          "description": "Id, reference or exact name"
+        },
+        "due_date": {
+          "type": "string",
+          "description": "Default 14 days"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/consent/open"
+      }
+    },
+    {
+      "name": "consent.answer",
+      "description": "Record a member's answer (approve or refuse with a reason, Art. 65(3)). A committee_member account answers for its own company; internal staff for any member.",
+      "params": {
+        "request_id": {
+          "type": "string",
+          "required": true,
+          "description": "Id, reference or exact name"
+        },
+        "answer": {
+          "type": "string",
+          "required": true,
+          "enum": [
+            "approve",
+            "refuse",
+            "no_answer",
+            "pending"
+          ]
+        },
+        "member_id": {
+          "type": "string",
+          "description": "Id, reference or exact name"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/consent/answer"
+      }
+    },
+    {
+      "name": "consent.close",
+      "description": "Rights. Close an open consent request with a note.",
+      "params": {
+        "request_id": {
+          "type": "string",
+          "required": true,
+          "description": "Id, reference or exact name"
+        },
+        "status": {
+          "type": "string",
+          "required": true,
+          "enum": [
+            "withdrawn",
+            "expired",
+            "approved",
+            "refused"
+          ]
+        },
+        "note": {
+          "type": "string",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/consent/close"
+      }
+    }
+  ]
+}
