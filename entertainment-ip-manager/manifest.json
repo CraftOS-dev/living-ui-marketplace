@@ -1,0 +1,46 @@
+{
+  "id": "{{PROJECT_ID}}",
+  "name": "{{PROJECT_NAME}}",
+  "description": "{{PROJECT_DESCRIPTION}}",
+  "agentAppVersion": 2,
+  "createdAt": "{{CREATED_AT}}",
+  "authMode": "multi-user",
+  "port": "{{PORT}}",
+  "pbVersion": "0.39.7",
+  "kitVersion": "0.6.0",
+  "craftbotVersion": "1.4.3",
+  "pipeline": {
+    "install": "npm install --ignore-scripts --prefix frontend",
+    "build": "npm run build --prefix frontend",
+    "start": "pocketbase serve --http=127.0.0.1:{{PORT}} --dir pb/pb_data --hooksDir pb/pb_hooks --migrationsDir pb/pb_migrations --publicDir pb/pb_public",
+    "health": "/api/health"
+  },
+  "capabilities": {
+    "external_hosts": [
+      "api-sandbox.euipo.europa.eu",
+      "api.euipo.europa.eu",
+      "auth-sandbox.euipo.europa.eu",
+      "auth.euipo.europa.eu",
+      "ip-data.jpo.go.jp",
+      "tsdrapi.uspto.gov",
+      "www.ecb.europa.eu",
+      "www8.cao.go.jp"
+    ],
+    "actions": [
+      "send_gmail",
+      "send_slack_message"
+    ],
+    "triggers": [
+      "agreement_extraction_requested",
+      "approval_review_requested",
+      "document_docketing_requested",
+      "email_draft_requested",
+      "guideline_check_requested",
+      "marketplace_scan_requested",
+      "portfolio_question_asked",
+      "royalty_statement_requested",
+      "takedown_drafts_requested"
+    ]
+  },
+  "adapterVersion": "1.9.0"
+}
