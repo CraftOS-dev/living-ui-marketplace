@@ -1,0 +1,154 @@
+/*
+ * IP Manager visual identity (shared with Company OS and the CraftOS Command Center): the CraftBot browser palette (warm-neutral
+ * Notion grays, near-white/near-black surfaces, CraftBot orange, sharp
+ * corners, Inter) refined with the SOTA research rules: hierarchy from
+ * weight and muted grays, one accent used only for interaction, 1px borders
+ * over shadows, 4px rhythm.
+ *
+ * html:root (not plain :root): main.tsx imports the kit tokens AFTER this
+ * file lands in the bundle, so these overrides must out-rank the kit's
+ * `:root[data-theme=...]` blocks (0-2-0) with 0-2-1 specificity. The host's
+ * theme bridge (style packs, custom colors) still wins: it injects inline
+ * custom properties, which beat any stylesheet.
+ */
+
+html:root {
+  --agent-app-radius: 0;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-feature-settings: 'cv11', 'ss01';
+}
+
+html:root,
+html:root[data-theme='light'] {
+  --agent-app-radius: 0;
+  --agent-app-bg: #ffffff;
+  --agent-app-surface: #f7f6f3;
+  --agent-app-text: #1f1e1b;
+  --agent-app-muted: #75726d;
+  --agent-app-border: #e6e5e2;
+}
+
+html:root[data-theme='dark'] {
+  --agent-app-radius: 0;
+  --agent-app-bg: #191919;
+  --agent-app-surface: #202020;
+  --agent-app-text: #e6e6e4;
+  --agent-app-muted: #9b9a97;
+  --agent-app-border: #2f2f2f;
+}
+
+/* Sharp corners everywhere (Command Center language): the kit hardcodes
+ * Tailwind radius utilities on Card/Dialog/etc., so flatten them at higher
+ * specificity. rounded-full stays untouched for genuinely circular parts. */
+html .rounded-sm,
+html .rounded-md,
+html .rounded-lg,
+html .rounded-xl,
+html .rounded-2xl {
+  border-radius: 0;
+}
+
+/* Cards separate with hairline borders, never shadows (shadows belong to
+ * overlays only). */
+html .shadow-sm,
+html .shadow {
+  box-shadow: none;
+}
+
+/* Headline tracking: page titles read engineered, not default. */
+h1 {
+  letter-spacing: -0.02em;
+}
+
+/* Everything interactive shows a pointer. Tailwind v4's preflight keeps the
+ * browser default (arrow) on buttons, which kills the click affordance. */
+html button:not(:disabled),
+html [role='button']:not([aria-disabled='true']),
+html [role='tab']:not(:disabled),
+html a[href],
+html select:not(:disabled),
+html summary,
+html label[for],
+html input[type='checkbox']:not(:disabled) {
+  cursor: pointer;
+}
+
+/* Sharp scrollbars, matching the Command Center surface language. */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--agent-app-border);
+  border-radius: 0;
+}
+
+@keyframes ipm-page-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.ipm-page {
+  animation: ipm-page-in 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes ipm-pop {
+  0% {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.08);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+.ipm-pop {
+  animation: ipm-pop 260ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes ipm-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 79, 24, 0.28);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(255, 79, 24, 0);
+  }
+}
+.ipm-pulse {
+  animation: ipm-pulse 3.2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ipm-page,
+  .ipm-pop,
+  .ipm-pulse {
+    animation: none;
+  }
+}
+
+/* Office numbers and references read as data. */
+.ipm-mono {
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+/* Native date inputs follow the theme in dark mode. */
+html:root[data-theme='dark'] input[type='date'] {
+  color-scheme: dark;
+}
+
+/* Tables: tabular figures everywhere numbers line up. */
+html table td {
+  font-variant-numeric: tabular-nums;
+}
