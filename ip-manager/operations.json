@@ -1,0 +1,1257 @@
+{
+  "opsVersion": 1,
+  "operations": [
+    {
+      "name": "health",
+      "description": "Liveness check (PocketBase built-in).",
+      "system": true,
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/health"
+      }
+    },
+    {
+      "name": "ops.list",
+      "description": "Return this operations manifest.",
+      "system": true,
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/_ops"
+      }
+    },
+    {
+      "name": "session.check",
+      "description": "Whether a session token (sent in the X-Session-Token header) is still valid on this server. Always answers 200 with valid true or false; needs no sign-in.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/session/check"
+      }
+    },
+    {
+      "name": "meta",
+      "description": "Catalog of event codes, status groups and office connection state (no secrets). Use it to learn which event codes record-event accepts.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/meta"
+      }
+    },
+    {
+      "name": "onboarding.complete",
+      "description": "Admin only. Set the organization name, vocabulary pack (general, entertainment, technology, consumer), home currency and jurisdictions of interest.",
+      "params": {
+        "org_name": {
+          "type": "string",
+          "required": true
+        },
+        "vocab_pack": {
+          "type": "string",
+          "enum": [
+            "general",
+            "entertainment",
+            "technology",
+            "consumer"
+          ]
+        },
+        "home_currency": {
+          "type": "string",
+          "description": "ISO 4217 code, e.g. USD, EUR, JPY"
+        },
+        "jurisdictions": {
+          "type": "string",
+          "description": "JSON array of office codes, e.g. [\"US\",\"EP\",\"EM\",\"JP\",\"WO\"]"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/onboarding"
+      }
+    },
+    {
+      "name": "portfolio.summary",
+      "description": "Counts of the portfolio by IP type and status group, deadlines overdue and due soon, inbox items waiting, renewal decisions pending, active and expiring agreements, and renewal spend by month in the home currency.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/summary"
+      }
+    },
+    {
+      "name": "portfolio.search",
+      "description": "Search matters, families, properties, works, agreements, people and inventions. Application, publication and registration numbers match in any format (EP23150237, EP 23 150 237, 23150237.5).",
+      "params": {
+        "q": {
+          "type": "string",
+          "required": true
+        },
+        "limit": {
+          "type": "number"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/search"
+      }
+    },
+    {
+      "name": "matters.preview-event",
+      "description": "Show which deadlines an event would create (rule, dates, explanation, citation) without writing anything.",
+      "params": {
+        "matter_id": {
+          "type": "string",
+          "required": true
+        },
+        "subject_type": {
+          "type": "string",
+          "enum": [
+            "matter",
+            "agreement",
+            "work"
+          ]
+        },
+        "code": {
+          "type": "string",
+          "required": true,
+          "description": "Event code from meta.event_codes, e.g. OA_NONFINAL, REGISTERED"
+        },
+        "date": {
+          "type": "string",
+          "required": true,
+          "description": "YYYY-MM-DD"
+        },
+        "data": {
+          "type": "string",
+          "description": "JSON object; period_months or due_date for examiner-set periods"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/matters/preview-event"
+      }
+    },
+    {
+      "name": "matters.record-event",
+      "description": "Record an event on a matter (or agreement/work) and create its rule-based deadlines. Past deadlines are skipped. Pass select to limit which proposals are created.",
+      "params": {
+        "matter_id": {
+          "type": "string",
+          "required": true
+        },
+        "subject_type": {
+          "type": "string",
+          "enum": [
+            "matter",
+            "agreement",
+            "work"
+          ]
+        },
+        "code": {
+          "type": "string",
+          "required": true
+        },
+        "date": {
+          "type": "string",
+          "required": true
+        },
+        "label": {
+          "type": "string"
+        },
+        "data": {
+          "type": "string",
+          "description": "JSON object"
+        },
+        "select": {
+          "type": "string",
+          "description": "JSON array of proposal keys or rule codes to create"
+        },
+        "skip": {
+          "type": "string",
+          "description": "JSON array of proposal keys or rule codes to skip"
+        },
+        "document_id": {
+          "type": "string"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/matters/record-event"
+      }
+    },
+    {
+      "name": "matters.regenerate",
+      "description": "Recalculate rule-based deadlines after base dates changed. With apply=false it returns the diff only; locked dates are never moved.",
+      "params": {
+        "matter_id": {
+          "type": "string",
+          "required": true
+        },
+        "subject_type": {
+          "type": "string",
+          "enum": [
+            "matter",
+            "agreement",
+            "work"
+          ]
+        },
+        "apply": {
+          "type": "boolean"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/matters/regenerate"
+      }
+    },
+    {
+      "name": "matters.info",
+      "description": "Statutory expiry with its explanation, and which office data source covers the matter.",
+      "params": {
+        "matter_id": {
+          "type": "string",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/matters/info"
+      }
+    },
+    {
+      "name": "matters.lookup",
+      "description": "Fetch a case from its office (USPTO, EPO, EUIPO, JPO) by number and return a preview without creating anything. Returns available=false when the office is not connected.",
+      "params": {
+        "ip_type": {
+          "type": "string",
+          "required": true,
+          "enum": [
+            "patent",
+            "utility_model",
+            "design",
+            "trademark",
+            "copyright",
+            "domain"
+          ]
+        },
+        "jurisdiction": {
+          "type": "string",
+          "required": true
+        },
+        "number": {
+          "type": "string",
+          "required": true
+        },
+        "include_family": {
+          "type": "boolean"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/matters/lookup"
+      }
+    },
+    {
+      "name": "matters.import-office",
+      "description": "Create a matter (and optionally family members) from office data, record its office events and create current deadlines.",
+      "params": {
+        "ip_type": {
+          "type": "string",
+          "required": true
+        },
+        "jurisdiction": {
+          "type": "string",
+          "required": true
+        },
+        "number": {
+          "type": "string",
+          "required": true
+        },
+        "property_id": {
+          "type": "string"
+        },
+        "family_id": {
+          "type": "string"
+        },
+        "family_title": {
+          "type": "string"
+        },
+        "family_members": {
+          "type": "string",
+          "description": "JSON array of {jurisdiction, number, filing_date}"
+        },
+        "responsible": {
+          "type": "string"
+        },
+        "generate": {
+          "type": "boolean"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/matters/import-office"
+      }
+    },
+    {
+      "name": "matters.sync",
+      "description": "Check one matter against its office now. Differences arrive in the Inbox for review; nothing is overwritten.",
+      "params": {
+        "matter_id": {
+          "type": "string",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/matters/sync"
+      }
+    },
+    {
+      "name": "matters.national-phase",
+      "description": "Create child matters from a PCT application (national_phase), a European patent (validation), an international registration (designation), or a continuation/divisional, with their deadlines.",
+      "params": {
+        "matter_id": {
+          "type": "string",
+          "required": true
+        },
+        "relation": {
+          "type": "string",
+          "enum": [
+            "national_phase",
+            "validation",
+            "designation",
+            "continuation",
+            "divisional",
+            "continuation_in_part"
+          ]
+        },
+        "jurisdictions": {
+          "type": "string",
+          "description": "JSON array of office codes"
+        },
+        "entry_date": {
+          "type": "string"
+        },
+        "filing_date": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/matters/national-phase"
+      }
+    },
+    {
+      "name": "import.matters",
+      "description": "Import matters from rows (ip_type, title, jurisdiction, application_no, filing_date, registration_no, registration_date, status, family, property, classes...). dry_run=true (default) validates only.",
+      "params": {
+        "rows": {
+          "type": "string",
+          "required": true,
+          "description": "JSON array of row objects"
+        },
+        "dry_run": {
+          "type": "boolean"
+        },
+        "generate": {
+          "type": "boolean"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/import/matters"
+      }
+    },
+    {
+      "name": "import.watch",
+      "description": "Import trademark watch hits from a provider report (their_mark, their_owner, jurisdiction, application_no, classes, publication_date, opposition_deadline, score, our_mark).",
+      "params": {
+        "rows": {
+          "type": "string",
+          "required": true,
+          "description": "JSON array of row objects"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/import/watch"
+      }
+    },
+    {
+      "name": "deadlines.close",
+      "description": "Close deadlines with a status. not_needed, missed, transferred and cancelled need a reason. Closing a recurring deadline as done creates the next cycle.",
+      "params": {
+        "ids": {
+          "type": "string",
+          "required": true,
+          "description": "JSON array of deadline ids"
+        },
+        "status": {
+          "type": "string",
+          "required": true,
+          "enum": [
+            "done",
+            "not_needed",
+            "missed",
+            "transferred",
+            "cancelled"
+          ]
+        },
+        "reason": {
+          "type": "string"
+        },
+        "closed_on": {
+          "type": "string"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/deadlines/close"
+      }
+    },
+    {
+      "name": "deadlines.extend",
+      "description": "Move an extendable deadline to an extension tier (1 = first). preview=true shows the new date only.",
+      "params": {
+        "id": {
+          "type": "string",
+          "required": true
+        },
+        "level": {
+          "type": "number",
+          "required": true
+        },
+        "preview": {
+          "type": "boolean"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/deadlines/extend"
+      }
+    },
+    {
+      "name": "deadlines.reassign",
+      "description": "Assign deadlines to a person (user id); empty assignee unassigns.",
+      "params": {
+        "ids": {
+          "type": "string",
+          "required": true,
+          "description": "JSON array of deadline ids"
+        },
+        "assignee": {
+          "type": "string"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/deadlines/reassign"
+      }
+    },
+    {
+      "name": "deadlines.move",
+      "description": "Shift open deadlines by days or to a date, with a reason. Moved dates are locked against recalculation. preview=true shows the moves only.",
+      "params": {
+        "ids": {
+          "type": "string",
+          "required": true,
+          "description": "JSON array of deadline ids"
+        },
+        "days": {
+          "type": "number"
+        },
+        "date": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "preview": {
+          "type": "boolean"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/deadlines/move"
+      }
+    },
+    {
+      "name": "deadlines.upcoming",
+      "description": "Open deadlines due in the next N days (optionally including overdue, for one assignee email or jurisdiction).",
+      "params": {
+        "days": {
+          "type": "number"
+        },
+        "include_overdue": {
+          "type": "boolean"
+        },
+        "assignee_email": {
+          "type": "string"
+        },
+        "jurisdiction": {
+          "type": "string"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/deadlines/upcoming"
+      }
+    },
+    {
+      "name": "deadlines.explain",
+      "description": "Why a deadline has its date: base event, rule, offset, closure-day moves, extensions and legal citation.",
+      "params": {
+        "id": {
+          "type": "string",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/deadlines/explain"
+      }
+    },
+    {
+      "name": "inbox.propose",
+      "description": "File a proposal in the Inbox for human review (never writes deadlines directly). For an office action: kind=document, matter_ref or matter_id, proposal={event:{code,date,label,period_months?,due_date?}, document_type, summary, extra_deadlines:[{title,due_date,kind}], fields:{}}, citations=[{field,page,quote}], confidence high|medium|low. For a contract: kind=agreement_draft, proposal={agreement:{title, agreement_type, direction, counterparty_name, signed_date, term_start, term_end, currency, royalty_rate, advance, minimum_guarantee, reporting_frequency, option_period_end, ...}, grants:[{direction, kind, exclusive, works:[ids], properties:[ids], dims:{territory:{include:[codes],exclude:[codes]}, media:{include:[codes]}}, term_start, term_end}]}.",
+      "params": {
+        "kind": {
+          "type": "string",
+          "required": true,
+          "enum": [
+            "document",
+            "agreement_draft",
+            "agent_proposal",
+            "email",
+            "watch_hit"
+          ]
+        },
+        "title": {
+          "type": "string",
+          "required": true
+        },
+        "summary": {
+          "type": "string"
+        },
+        "matter_id": {
+          "type": "string"
+        },
+        "matter_ref": {
+          "type": "string",
+          "description": "Matter reference or application/registration number in any format"
+        },
+        "document_id": {
+          "type": "string"
+        },
+        "agreement_id": {
+          "type": "string"
+        },
+        "proposal": {
+          "type": "string",
+          "required": true,
+          "description": "JSON object"
+        },
+        "citations": {
+          "type": "string",
+          "description": "JSON array"
+        },
+        "confidence": {
+          "type": "string",
+          "enum": [
+            "high",
+            "medium",
+            "low",
+            "none"
+          ]
+        },
+        "proposed_by": {
+          "type": "string"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/inbox/propose"
+      }
+    },
+    {
+      "name": "inbox.preview",
+      "description": "Deadlines an Inbox item would create if accepted.",
+      "params": {
+        "id": {
+          "type": "string",
+          "required": true
+        },
+        "matter_id": {
+          "type": "string"
+        },
+        "event_override": {
+          "type": "string",
+          "description": "JSON object {code,date,period_months,due_date}"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/inbox/preview"
+      }
+    },
+    {
+      "name": "inbox.decide",
+      "description": "Accept or reject an Inbox item. Humans decide: with the second-reviewer setting on, statutory deadlines proposed by CraftBot need two different people.",
+      "params": {
+        "id": {
+          "type": "string",
+          "required": true
+        },
+        "decision": {
+          "type": "string",
+          "required": true,
+          "enum": [
+            "accept",
+            "reject"
+          ]
+        },
+        "matter_id": {
+          "type": "string"
+        },
+        "fields": {
+          "type": "string",
+          "description": "JSON array of diff fields to accept"
+        },
+        "events": {
+          "type": "string",
+          "description": "JSON array of event indexes to record"
+        },
+        "deadlines": {
+          "type": "string",
+          "description": "JSON object {eventIndex: [keys]}"
+        },
+        "map_raw": {
+          "type": "string",
+          "description": "JSON object {eventIndex: eventCode} for unmapped office events"
+        },
+        "note": {
+          "type": "string"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/inbox/decide"
+      }
+    },
+    {
+      "name": "renewals.decide",
+      "description": "Record renewal decisions. lapse closes the renewal deadline and needs a rationale; the right lapses after its grace period.",
+      "destructive": true,
+      "params": {
+        "ids": {
+          "type": "string",
+          "required": true,
+          "description": "JSON array of renewal ids"
+        },
+        "decision": {
+          "type": "string",
+          "required": true,
+          "enum": [
+            "renew",
+            "renew_partial",
+            "lapse",
+            "defer",
+            "pending"
+          ]
+        },
+        "rationale": {
+          "type": "string"
+        },
+        "classes_keep": {
+          "type": "string",
+          "description": "JSON array of Nice classes to keep (renew_partial)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/renewals/decide"
+      }
+    },
+    {
+      "name": "renewals.instruct",
+      "description": "Mark renewals decided as Renew as instructed to a provider and return a CSV and a cover letter to send them.",
+      "params": {
+        "ids": {
+          "type": "string",
+          "required": true,
+          "description": "JSON array of renewal ids"
+        },
+        "provider": {
+          "type": "string",
+          "required": true
+        },
+        "po_number": {
+          "type": "string"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/renewals/instruct"
+      }
+    },
+    {
+      "name": "renewals.record-payment",
+      "description": "Record that a renewal was paid: closes the deadline, records the event and creates the next cycle.",
+      "params": {
+        "id": {
+          "type": "string",
+          "required": true
+        },
+        "paid_date": {
+          "type": "string"
+        },
+        "amount": {
+          "type": "number"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/renewals/record-payment"
+      }
+    },
+    {
+      "name": "renewals.forecast",
+      "description": "Renewal and maintenance cost forecast for the next N years (default 5), including projected future cycles, in the home currency.",
+      "params": {
+        "years": {
+          "type": "number"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/renewals/forecast"
+      }
+    },
+    {
+      "name": "renewals.refresh-costs",
+      "description": "Recompute renewal cost estimates from the fee schedule and exchange rates.",
+      "params": {
+        "ids": {
+          "type": "string",
+          "description": "JSON array; empty = all not yet instructed"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/renewals/refresh-costs"
+      }
+    },
+    {
+      "name": "rights.availability",
+      "description": "Can we license this? For assets (works, properties, matters) and dimension values (columns), over a window, returns available / partial / unavailable / no_rights per cell with reasons naming the agreements.",
+      "params": {
+        "assets": {
+          "type": "string",
+          "required": true,
+          "description": "JSON array of {type: work|property|matter, id}"
+        },
+        "column": {
+          "type": "string",
+          "description": "Dimension shown as columns (default territory)"
+        },
+        "columns": {
+          "type": "string",
+          "description": "JSON array of dimension value codes, e.g. [\"US\",\"GB\",\"DE\"]"
+        },
+        "filters": {
+          "type": "string",
+          "description": "JSON object of other dimensions, e.g. {\"media\":[\"SVOD\"]}"
+        },
+        "start": {
+          "type": "string"
+        },
+        "end": {
+          "type": "string"
+        },
+        "exclusive": {
+          "type": "boolean"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/rights/availability"
+      }
+    },
+    {
+      "name": "agreements.check-conflicts",
+      "description": "Check an agreement's outbound grants (saved, or draft grants passed in) against every other active agreement.",
+      "params": {
+        "agreement_id": {
+          "type": "string"
+        },
+        "grants": {
+          "type": "string",
+          "description": "JSON array of draft grants"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/agreements/check-conflicts"
+      }
+    },
+    {
+      "name": "agreements.sync",
+      "description": "Rebuild an agreement's obligation deadlines (option expiry, notice, sell-off, payments, royalty reports, reversion, termination windows).",
+      "params": {
+        "agreement_id": {
+          "type": "string",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/agreements/sync"
+      }
+    },
+    {
+      "name": "works.copyright-term",
+      "description": "Copyright term of a work under US, Japanese and EU law, with the basis for each.",
+      "params": {
+        "work_id": {
+          "type": "string",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/works/copyright-term"
+      }
+    },
+    {
+      "name": "properties.coverage",
+      "description": "Trademark coverage for a property: Nice classes by jurisdiction with status, plus live patent, design and copyright counts.",
+      "params": {
+        "property_id": {
+          "type": "string",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/properties/coverage"
+      }
+    },
+    {
+      "name": "disclosures.submit",
+      "description": "Submit a draft invention disclosure for review.",
+      "params": {
+        "id": {
+          "type": "string",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/disclosures/submit"
+      }
+    },
+    {
+      "name": "disclosures.move",
+      "description": "Move an invention to a pipeline stage. rejected and on_hold need a decision note for the inventor.",
+      "params": {
+        "id": {
+          "type": "string",
+          "required": true
+        },
+        "stage": {
+          "type": "string",
+          "required": true,
+          "enum": [
+            "draft",
+            "submitted",
+            "search",
+            "review",
+            "approved",
+            "drafting",
+            "filed",
+            "rejected",
+            "on_hold",
+            "merged",
+            "archived"
+          ]
+        },
+        "decision": {
+          "type": "string"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/disclosures/move"
+      }
+    },
+    {
+      "name": "disclosures.review",
+      "description": "Score an invention against the weighted criteria (0-100 each) with a recommendation.",
+      "params": {
+        "id": {
+          "type": "string",
+          "required": true
+        },
+        "scores": {
+          "type": "string",
+          "required": true,
+          "description": "JSON object {criterion_key: 0..100}"
+        },
+        "comment": {
+          "type": "string"
+        },
+        "recommendation": {
+          "type": "string",
+          "enum": [
+            "file",
+            "hold",
+            "reject",
+            "more_info"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/disclosures/review"
+      }
+    },
+    {
+      "name": "disclosures.convert",
+      "description": "Turn an approved invention into a patent family and first filing (status to file), copying inventors and adding a grace-period deadline when there was a public disclosure.",
+      "params": {
+        "id": {
+          "type": "string",
+          "required": true
+        },
+        "ip_type": {
+          "type": "string",
+          "enum": [
+            "patent",
+            "utility_model",
+            "design"
+          ]
+        },
+        "jurisdiction": {
+          "type": "string"
+        },
+        "route": {
+          "type": "string",
+          "enum": [
+            "national",
+            "provisional",
+            "pct"
+          ]
+        },
+        "title": {
+          "type": "string"
+        },
+        "responsible": {
+          "type": "string"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/disclosures/convert"
+      }
+    },
+    {
+      "name": "approvals.decide",
+      "description": "Decide a licensed product approval (approved, approved_with_changes, resubmit, rejected). advance=true moves an approved product to the next stage.",
+      "params": {
+        "id": {
+          "type": "string",
+          "required": true
+        },
+        "status": {
+          "type": "string",
+          "required": true,
+          "enum": [
+            "in_review",
+            "approved",
+            "approved_with_changes",
+            "resubmit",
+            "rejected"
+          ]
+        },
+        "comment": {
+          "type": "string"
+        },
+        "advance": {
+          "type": "boolean"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/approvals/decide"
+      }
+    },
+    {
+      "name": "offices.save",
+      "description": "Admin only. Store an office connection's credentials (kept hidden) and turn it on or off.",
+      "params": {
+        "office": {
+          "type": "string",
+          "required": true,
+          "enum": [
+            "uspto_odp",
+            "uspto_tsdr",
+            "epo_ops",
+            "euipo",
+            "jpo"
+          ]
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "sandbox": {
+          "type": "boolean"
+        },
+        "api_key": {
+          "type": "string"
+        },
+        "client_id": {
+          "type": "string"
+        },
+        "client_secret": {
+          "type": "string"
+        },
+        "username": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/offices/save"
+      }
+    },
+    {
+      "name": "offices.test",
+      "description": "Admin only. Test an office connection's credentials.",
+      "params": {
+        "office": {
+          "type": "string",
+          "required": true,
+          "enum": [
+            "uspto_odp",
+            "uspto_tsdr",
+            "epo_ops",
+            "euipo",
+            "jpo"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/offices/test"
+      }
+    },
+    {
+      "name": "offices.sync-all",
+      "description": "Check every synced matter against its office now. Changes arrive in the Inbox.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/offices/sync-all"
+      }
+    },
+    {
+      "name": "fx.refresh",
+      "description": "Fetch the ECB reference exchange rates now and recompute renewal costs.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/fx/refresh"
+      }
+    },
+    {
+      "name": "calendars.refresh",
+      "description": "Regenerate computed office closure days for a year (and refresh Japan's official holiday list).",
+      "params": {
+        "office": {
+          "type": "string",
+          "enum": [
+            "US",
+            "EP",
+            "EM",
+            "JP",
+            "WO"
+          ]
+        },
+        "year": {
+          "type": "number"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/calendars/refresh"
+      }
+    },
+    {
+      "name": "calendar.feed",
+      "description": "Get (or rotate) the signed-in person's private calendar feed URL for their deadlines.",
+      "params": {
+        "scope": {
+          "type": "string",
+          "enum": [
+            "mine",
+            "all"
+          ]
+        },
+        "rotate": {
+          "type": "boolean"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/calendar/feed"
+      }
+    },
+    {
+      "name": "calendar.ics",
+      "description": "The calendar feed itself (text/calendar). The token comes from calendar.feed.",
+      "params": {
+        "token": {
+          "type": "string",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ics/{token}"
+      }
+    },
+    {
+      "name": "rules.test",
+      "description": "Compute a rule against a sample date to check it (dates, closure-day moves, explanation).",
+      "params": {
+        "rule_id": {
+          "type": "string",
+          "required": true
+        },
+        "base_date": {
+          "type": "string",
+          "required": true
+        },
+        "jurisdiction": {
+          "type": "string"
+        },
+        "cycle": {
+          "type": "number"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/rules/test"
+      }
+    },
+    {
+      "name": "digest.preview",
+      "description": "The signed-in person's digest as it would be sent today.",
+      "params": {
+        "days": {
+          "type": "number"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/digest/preview"
+      }
+    },
+    {
+      "name": "digest.send",
+      "description": "Send today's digest to everyone now (in-app, plus email or Slack when configured).",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/digest/send"
+      }
+    },
+    {
+      "name": "reports.run",
+      "description": "Run a standard report: deadlines, portfolio, agreements_expiring, chain_of_title, renewal_decisions, forecast, inventions, audit.",
+      "params": {
+        "report": {
+          "type": "string",
+          "required": true,
+          "enum": [
+            "deadlines",
+            "portfolio",
+            "agreements_expiring",
+            "chain_of_title",
+            "renewal_decisions",
+            "forecast",
+            "inventions",
+            "audit"
+          ]
+        },
+        "params": {
+          "type": "string",
+          "description": "JSON object, e.g. {\"days\":90}"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/reports/run"
+      }
+    }
+  ]
+}

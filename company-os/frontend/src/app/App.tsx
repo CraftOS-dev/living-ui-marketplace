@@ -5,7 +5,8 @@
  * render an activation prompt instead of content (Journey links land there).
  */
 import { useCallback, useEffect, useState } from 'react';
-import { Spinner, getPbClient, useAuth } from '../kit/index.ts';
+import { Spinner, getPbClient } from '../kit/index.ts';
+import { useAuth } from './lib/useAuth.ts';
 import './theme.css';
 
 // PocketBase's SDK auto-cancels concurrent list requests to the same

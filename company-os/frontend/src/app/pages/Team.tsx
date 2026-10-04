@@ -14,12 +14,12 @@ import {
   EntityForm,
   getPbClient,
   toast,
-  useAuth,
   useCollection,
   useConfirm,
   cn,
 } from '../../kit/index.ts';
 import type { EntityField } from '../../kit/index.ts';
+import { useAuth } from '../lib/useAuth.ts';
 import type { AccessRole, Candidate, Company, Seat, TeamMember, UserAccount } from '../lib/types.ts';
 import { STAGES } from '../lib/types.ts';
 import { callOp } from '../lib/ops.ts';

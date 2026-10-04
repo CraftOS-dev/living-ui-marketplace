@@ -1,8 +1,7 @@
 /**
  * LoginGate (spec B4 multi-user): renders children only when authenticated;
- * otherwise an email/password login/register form with INLINE, human error
- * messages (no silent "Failed to authenticate"). Whether an authenticated user
- * may actually see the app is decided downstream by the approval gate.
+ * otherwise a minimal email/password login/register form. The shell's toast
+ * handler surfaces auth errors — no custom error plumbing here.
  */
 import { useState, type FormEvent, type ReactNode } from 'react';
 import { useAuth } from '../pb/auth.ts';
@@ -10,66 +9,26 @@ import { Button } from './Button.tsx';
 import { Card, CardBody, CardHeader } from './Card.tsx';
 import { Input } from './Input.tsx';
 
-interface FieldErr {
-  message?: string;
-}
-
-/** Turn a normalized PB error into a sentence a person can act on. */
-function authErrorMessage(err: unknown, mode: 'login' | 'register'): string {
-  const e = err as { status?: number; message?: string; raw?: { response?: { data?: Record<string, FieldErr> } } };
-  const status = e?.status ?? 0;
-  const data = e?.raw?.response?.data;
-
-  if (data && typeof data === 'object') {
-    const email = data['email']?.message;
-    if (email !== undefined && email !== '') {
-      if (/unique|already|exist/i.test(email)) return 'That email is already registered — try signing in instead.';
-      return email;
-    }
-    const password = data['password']?.message;
-    if (password !== undefined && password !== '') return password;
-    const first = Object.values(data)[0]?.message;
-    if (first !== undefined && first !== '') return first;
-  }
-
-  if (mode === 'login' && (status === 400 || status === 401 || status === 403)) {
-    return 'Wrong email or password.';
-  }
-  if (status === 0) return 'Could not reach the server. Check your connection and try again.';
-  return e?.message !== undefined && e.message !== '' ? e.message : 'Something went wrong. Please try again.';
-}
-
 export function LoginGate({ children }: { children: ReactNode }): React.JSX.Element {
   const { userId, login, register } = useAuth();
   const [mode, setMode] = useState<'login' | 'register'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   if (userId !== null) return <>{children}</>;
 
   const submit = async (event: FormEvent): Promise<void> => {
     event.preventDefault();
-    if (mode === 'register' && password.length < 8) {
-      setError('Password must be at least 8 characters.');
-      return;
-    }
     setBusy(true);
-    setError(null);
     try {
-      if (mode === 'login') await login(email.trim(), password);
-      else await register(email.trim(), password);
-    } catch (err) {
-      setError(authErrorMessage(err, mode));
+      if (mode === 'login') await login(email, password);
+      else await register(email, password);
+    } catch {
+      /* surfaced by shell toast */
     } finally {
       setBusy(false);
     }
-  };
-
-  const switchMode = (): void => {
-    setMode(mode === 'login' ? 'register' : 'login');
-    setError(null);
   };
 
   return (
@@ -84,10 +43,7 @@ export function LoginGate({ children }: { children: ReactNode }): React.JSX.Elem
               autoComplete="email"
               required
               value={email}
-              onChange={(e) => {
-                setEmail(e.target.value);
-                if (error !== null) setError(null);
-              }}
+              onChange={(e) => setEmail(e.target.value)}
             />
             <Input
               label="Password"
@@ -96,31 +52,17 @@ export function LoginGate({ children }: { children: ReactNode }): React.JSX.Elem
               required
               minLength={8}
               value={password}
-              onChange={(e) => {
-                setPassword(e.target.value);
-                if (error !== null) setError(null);
-              }}
+              onChange={(e) => setPassword(e.target.value)}
             />
-            {mode === 'register' && (
-              <p className="text-xs text-[var(--lui-muted)]">
-                At least 8 characters. New accounts need an admin’s approval before they can open the workspace.
-              </p>
-            )}
-
-            {error !== null && (
-              <p
-                role="alert"
-                className="border border-red-500/40 bg-red-500/10 px-3 py-2 text-[13px] text-red-700 dark:text-red-400"
-              >
-                {error}
-              </p>
-            )}
-
             <Button type="submit" loading={busy} className="mt-1">
-              {mode === 'login' ? 'Sign in' : 'Create account'}
+              {mode === 'login' ? 'Sign in' : 'Register'}
             </Button>
-            <Button variant="ghost" size="sm" type="button" onClick={switchMode}>
-              {mode === 'login' ? 'No account? Create one' : 'Have an account? Sign in'}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setMode(mode === 'login' ? 'register' : 'login')}
+            >
+              {mode === 'login' ? 'No account? Register' : 'Have an account? Sign in'}
             </Button>
           </form>
         </CardBody>
