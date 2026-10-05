@@ -193,6 +193,15 @@
       "folder": "invoice-tracker",
       "tags": ["finance", "invoices", "subscriptions", "expenses", "analytics", "saas"],
       "version": "1.0.0"
+    },
+    {
+      "id": "netsentry", 
+      "livingUIVersion": 2, 
+      "name": "NetSentry", 
+      "description": "Look after the server it runs on, in plain words: what runs, what to fix (each with its one button), app updates and backups, files, app settings, any app from a Compose file, disk space, programs, the firewall, SSH keys, scheduled jobs, a recorded terminal — and an agent that prepares fixes you confirm with one tap. Every change is previewed, confirmed by a person and can be undone.", 
+      "folder": "netsentry", 
+      "tags": ["server", "security", "self-hosting", "monitoring", "devops", "multi-user"], 
+      "version": "1.0.0"
     }
   ]
 }

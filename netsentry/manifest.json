@@ -1,0 +1,42 @@
+{
+  "id": "{{PROJECT_ID}}",
+  "name": "NetSentry",
+  "description": "Digital security monitor: watches your attack surface, servers, network and cloud, explains what it finds, and lets a connected agent apply approved fixes that the app then verifies.",
+  "agentAppVersion": 2,
+  "createdAt": "{{CREATED_AT}}",
+  "authMode": "multi-user",
+  "port": "{{PORT}}",
+  "pbVersion": "0.39.7",
+  "kitVersion": "0.6.0",
+  "craftbotVersion": "",
+  "pipeline": {
+    "install": "npm install --ignore-scripts --prefix frontend",
+    "build": "npm run build --prefix frontend",
+    "start": "pocketbase serve --http=127.0.0.1:{{PORT}} --dir pb/pb_data --hooksDir pb/pb_hooks --migrationsDir pb/pb_migrations --publicDir pb/pb_public",
+    "health": "/api/health"
+  },
+  "capabilities": {
+    "external_hosts": [
+      "api.first.org",
+      "api.github.com",
+      "cloudflare-dns.com",
+      "feodotracker.abuse.ch",
+      "ghcr.io",
+      "hub.docker.com",
+      "urlhaus.abuse.ch",
+      "www.cisa.gov",
+      "www.spamhaus.org"
+    ],
+    "actions": [
+      "send_gmail"
+    ],
+    "triggers": [
+      "daily_digest",
+      "help_requested",
+      "plans_requested",
+      "remediation_approved",
+      "source_unhealthy",
+      "triage_queue_ready"
+    ]
+  }
+}

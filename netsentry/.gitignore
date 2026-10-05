@@ -1,0 +1,12 @@
+.superuser
+.agent-token
+pb/pb_data/
+pb/pb_public/
+frontend/node_modules/
+logs/
+.agent-app/dev/
+__pycache__/
+*.pyc
+.a2app/
+.dev-accounts
+tests/lab/.state/
