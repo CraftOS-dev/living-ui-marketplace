@@ -9,7 +9,7 @@
 const repo = require('../infra/repo.js');
 const audit = require('./audit.js');
 const playbooks = require('../playbooks/index.js');
-const { canMove, validatePlan, planHash, OPEN } = require('../core/remediation.js');
+const { canMove, planHash, OPEN } = require('../core/remediation.js');
 const { OpError } = require('../core/util.js');
 
 const APPROVAL_TTL_MS = 24 * 3600000;
@@ -57,20 +57,6 @@ function releaseFinding(app, rem) {
   if (f && f.getString('status') === 'acknowledged' && f.getString('status_note') === FIX_REQUESTED_NOTE) {
     repo.update(app, f, { status: 'open', status_note: '', status_by: '' });
   }
-}
-
-/** Identifiers a plan may target: the finding's asset, its root and the root's discovered children. */
-function allowedTargets(app, assetRec) {
-  const out = [assetRec.getString('identifier')];
-  let root = assetRec;
-  for (let i = 0; i < 10 && root.getString('parent'); i++) {
-    const p = repo.byId(app, 'assets', root.getString('parent'));
-    if (!p) break;
-    root = p;
-    out.push(p.getString('identifier'));
-  }
-  for (const c of repo.find(app, 'assets', 'parent = {:p}', { p: root.id })) out.push(c.getString('identifier'));
-  return out;
 }
 
 // ------------------------------------------------ v2: NetSentry's own typed fixes
@@ -141,10 +127,17 @@ function suggest(app, p) {
 }
 
 /** Whether an AI agent has worked here — every agent action is in the audit log. */
+/**
+ * Is an agent there to answer? Inside CraftBot, CraftBot hands it every request at once (its bridge is
+ * set for this app) — that is the honest "connected", even on day one before the agent has done
+ * anything. Elsewhere only an agent's own recent work says so.
+ */
 function agentPresence(app) {
   const last = repo.first(app, 'audit_log', 'actor_type = "agent"', {}, '-seq');
   const at = last ? last.getString('at') : '';
-  return { ok: true, ever: !!last, last_seen: at, recent: !!at && Date.now() - new Date(at).getTime() < 7 * 86400000 };
+  const recent = !!at && Date.now() - new Date(at).getTime() < 7 * 86400000;
+  const insideCraftBot = !!($os.getenv('CRAFTBOT_BRIDGE_URL') && $os.getenv('CRAFTBOT_BRIDGE_TOKEN'));
+  return { ok: true, ever: !!last, last_seen: at, recent, inside_craftbot: insideCraftBot, connected: insideCraftBot || recent };
 }
 
 /** The app a problem is about (its evidence names it), so the fix shows on that app's page too. '' for server-wide problems. */
@@ -164,6 +157,10 @@ function requestPlan(app, actor, p) {
   const existing = repo.first(app, 'remediations', 'fingerprint = {:f} && (status = "plan_requested" || status = "planned" || status = "approved" || status = "executing" || status = "verifying")', { f: f.getString('fingerprint') });
   if (existing) throw new OpError(409, `A remediation is already ${existing.getString('status').replace('_', ' ')} for this finding.`, 'duplicate');
   const guided = pb.risk === 'guided';
+  // Anything else used to be planned AND run by the agent with its own access — on whatever machine the
+  // agent runs, which need not be this server (N-B43). Now it is a person's question to the agent, which
+  // prepares changes for the server's own monitor; a person confirms each.
+  if (!guided) return require('./help.js').askFix(app, actor, f, pb);
   const rem = repo.create(app, 'remediations', {
     finding: f.id,
     fingerprint: f.getString('fingerprint'),
@@ -175,37 +172,24 @@ function requestPlan(app, actor, p) {
     plain_title: `Fix: ${f.getString('plain_title') || f.getString('title')}`.slice(0, 300),
     risk_class: pb.risk,
     // Guided fixes are done by a person: the playbook's steps ARE the plan.
-    status: guided ? 'planned' : 'plan_requested',
-    plan: guided ? { steps: pb.steps.map((s) => ({ description: s, command: '', target: '', rollback: '' })) } : null,
+    status: 'planned',
+    plan: { steps: pb.steps.map((s) => ({ description: s, command: '', target: '', rollback: '' })) },
     preconditions: pb.preconditions,
     downtime: pb.downtime,
     cost_note: pb.cost,
     requested_by: actor.label,
-    planned_by: guided ? 'playbook (guided)' : '',
+    planned_by: 'playbook (guided)',
     steps_log: [],
   });
   audit.append(app, actor, 'remediation.requested', { collection: 'remediations', id: rem.id }, `Fix requested: ${rem.getString('title')}`, { playbook: pb.id });
   if (f.getString('status') === 'open') {
     require('./findings.js').transition(app, actor, 'acknowledge', { finding_id: f.id, note: FIX_REQUESTED_NOTE });
   }
-  let rang = null;
-  if (!guided) {
-    rang = require('./agentbell.js').ring(app, 'plans_requested', {});
-    if (rang.ok) repo.update(app, rem, { agent_request: rang.id });
-  }
   return {
     ok: true,
     remediation_id: rem.id,
     status: rem.getString('status'),
-    message: guided
-      ? 'This fix has to be done by a person — follow the steps, then mark it done.'
-      : !agentPresence(app).ever
-        ? 'Saved — but no AI agent has connected to NetSentry yet, so nobody will write the plan until one does. Use "Show me how" to fix it yourself.'
-        : rang && rang.ok
-        ? 'The agent has been asked to write a concrete plan.'
-        : rang && rang.code === 'cooldown'
-          ? 'Queued — the agent was asked moments ago and picks up every waiting plan request together.'
-          : 'Queued for the agent. No agent could be reached right now — you can also write the plan yourself.',
+    message: 'This fix has to be done by a person — follow the steps, then mark it done.',
   };
 }
 
@@ -237,47 +221,6 @@ function requestV2(app, actor, f, opts) {
   };
 }
 
-function plan(app, actor, p) {
-  const rem = requireRem(app, p.remediation_id);
-  // Starts, stops, updates, backups and installs are NetSentry's own typed plans: never rewritten (C9).
-  if (rem.getString('purpose') && rem.getString('purpose') !== 'fix') throw new OpError(409, 'Only fixes can be planned; this change is NetSentry\'s own.');
-  if (rem.getString('risk_class') === 'guided') throw new OpError(409, 'Guided fixes follow the playbook steps; there is nothing to plan.');
-  let raw;
-  try {
-    raw = typeof p.plan_json === 'string' ? JSON.parse(p.plan_json) : p.plan_json;
-  } catch (_) {
-    throw new OpError(400, 'plan_json is not valid JSON.');
-  }
-  const asset = repo.byId(app, 'assets', rem.getString('asset'));
-  const v = validatePlan(raw, asset ? allowedTargets(app, asset) : []);
-  if (v.error) throw new OpError(400, v.error, 'invalid_plan');
-  let pre = rem.getString('preconditions') ? repo.jsonOf(rem, 'preconditions') : [];
-  if (p.preconditions_json) {
-    try {
-      pre = JSON.parse(String(p.preconditions_json));
-    } catch (_) {
-      throw new OpError(400, 'preconditions_json is not valid JSON.');
-    }
-  }
-  const hash = planHash(sha256, v.plan);
-  const wasApproved = rem.getString('status') === 'approved';
-  move(app, rem, 'planned', {
-    plan: v.plan,
-    plan_hash: hash,
-    approved_plan_hash: '', // any (re)plan voids an earlier approval
-    approved_by: '',
-    approved_at: '',
-    preconditions: pre,
-    blast_radius: String(p.blast_radius || '').slice(0, 2000),
-    downtime: String(p.downtime || rem.getString('downtime')).slice(0, 500),
-    cost_note: String(p.cost_note || rem.getString('cost_note')).slice(0, 500),
-    planned_by: actor.type === 'agent' ? 'agent' : actor.label,
-  }, actor, `Plan ${wasApproved ? 'changed (approval voided)' : 'written'} for "${rem.getString('title')}" (${v.plan.steps.length} steps)`);
-
-  // v4 (V4-D4): a person confirms every change; no policy approves a plan the agent wrote.
-  return { ok: true, remediation_id: rem.id, status: 'planned', plan_hash: hash };
-}
-
 function approveInternal(app, rem, actor) {
   move(app, rem, 'approved', {
     approved_plan_hash: rem.getString('plan_hash'),
@@ -285,16 +228,18 @@ function approveInternal(app, rem, actor) {
     approved_at: repo.nowIso(),
     deadline_at: new Date(Date.now() + APPROVAL_TTL_MS).toISOString(),
   }, actor, actor.type === 'system' ? `Started "${rem.getString('title')}" — as set up by ${actor.label}` : `Approved "${rem.getString('title')}"`);
-  // NetSentry's own typed fixes are applied by the machine's monitor; only other plans need the agent.
-  if (require('../v2/actions.js').isTyped(repo.jsonOf(rem, 'plan'))) return;
-  const r = require('./agentbell.js').ring(app, 'remediation_approved', {});
-  if (r.ok) repo.update(app, rem, { agent_request: r.id });
+  // Applied by the machine's own monitor — the only thing that runs a change (N-B43).
 }
 
 function approve(app, actor, p) {
   const rem = requireRem(app, p.remediation_id);
   if (rem.getString('risk_class') === 'guided') throw new OpError(409, 'Guided fixes are done by a person — mark them done instead.');
   if (!rem.getString('plan_hash')) throw new OpError(409, 'There is no plan to approve yet.');
+  // Only NetSentry's typed changes can be applied — by the server's monitor. A plan of commands someone
+  // wrote (older versions let the agent run them itself) is not approved any more (N-B43).
+  if (!require('../v2/actions.js').isTyped(repo.jsonOf(rem, 'plan'))) {
+    throw new OpError(409, 'NetSentry only applies its own changes, through the monitor on the server. Follow the steps yourself, or ask the agent — it prepares changes for you to confirm.', 'not_typed');
+  }
   if (paused(app)) throw new OpError(409, 'Remediation is paused (Workspace → Settings). Resume it first.', 'paused');
   approveInternal(app, rem, actor);
   return { ok: true, remediation_id: rem.id, status: 'approved' };
@@ -308,10 +253,10 @@ function reject(app, actor, p) {
   return { ok: true, remediation_id: rem.id, status: 'rejected' };
 }
 
-/** Typed plans are applied by the machine's own monitor only — nobody else may report them (C10). */
+/** Plans are applied by the machine's own monitor only — nobody else may claim or report them (C10, N-B43). */
 function monitorOnly(rem, actor) {
-  if (actor.type !== 'sensor' && require('../v2/actions.js').isTyped(repo.jsonOf(rem, 'plan'))) {
-    throw new OpError(403, "Only the server's own monitor reports on NetSentry's built-in changes.");
+  if (actor.type !== 'sensor' && actor.type !== 'system') {
+    throw new OpError(403, "Only the server's own monitor applies and reports changes.");
   }
 }
 
@@ -477,25 +422,13 @@ function queue(app, p) {
     ok: true,
     remediations: rows.map((r) => {
       const a = repo.byId(app, 'assets', r.getString('asset'));
-      const access = a ? repo.first(app, 'agent_access', 'asset = {:a}', { a: a.id }) : null;
       return {
         id: r.id, title: r.getString('title'), status: r.getString('status'), risk_class: r.getString('risk_class'),
         playbook_id: r.getString('playbook_id'), asset: a ? a.getString('identifier') : '', asset_kind: a ? a.getString('kind') : '',
         plan: repo.jsonOf(r, 'plan'), plan_hash: r.getString('plan_hash'), preconditions: repo.jsonOf(r, 'preconditions'),
-        agent_can_execute: access ? access.getBool('can_execute') : null,
       };
     }),
   };
-}
-
-function accessReport(app, actor, p) {
-  const a = repo.byId(app, 'assets', p.asset_id);
-  if (!a) throw new OpError(404, 'Asset not found.', 'not_found');
-  const fields = { asset: a.id, can_execute: p.can_execute === true || p.can_execute === 'true', method: String(p.method || '').slice(0, 60), missing: String(p.missing || '').slice(0, 1000), reported_at: repo.nowIso() };
-  const existing = repo.first(app, 'agent_access', 'asset = {:a}', { a: a.id });
-  if (existing) repo.update(app, existing, fields);
-  else repo.create(app, 'agent_access', fields);
-  return { ok: true, asset_id: a.id, can_execute: fields.can_execute };
 }
 
 function alertPeople(app, rem, severity, title, text) {
@@ -557,5 +490,5 @@ function housekeeping(app) {
 
 module.exports = {
   V2_FIX, executorReady, v2Fix, requestV2, FIX_REQUESTED_NOTE, alertPeople, approveInternal,
-  suggest, requestPlan, plan, approve, reject, claim, reportStep, complete, markManual, fail, cancel, queue, accessReport,
-  verifyAfterScan, housekeeping, allowedTargets, agentPresence };
+  suggest, requestPlan, approve, reject, claim, reportStep, complete, markManual, fail, cancel, queue,
+  verifyAfterScan, housekeeping, agentPresence };

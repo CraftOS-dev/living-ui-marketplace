@@ -57,7 +57,7 @@ and explains every finding with fix steps. Increment 1 = plan phases P0 + P1.
 - [x] Only a human admin approves or rejects; the agent is refused. Kill switch `remediation_paused`; optional auto-approve for the `auto` class only
 - [x] Verification = the finding's own rule after the next report; passive collectors cannot prove a failure
 - [x] Fixes page + drawer, "Fix it" section in the finding drawer, Workspace → Fixes settings
-- [x] Triggers `plans_requested`, `remediation_approved`
+- [x] ~~Triggers `plans_requested`, `remediation_approved`~~ — retired in N-B43: the agent never writes or runs command plans; every change is applied by the server's own monitor
 - [x] End to end in an Ubuntu container (2026-09-30): HOST-003 → agent plan → admin approve → 4 steps executed → re-report → verified done; negative path (plan-hash mismatch) failed correctly; audit chain intact
 
 ## Status — Increment 6 (P6 cloud, via the instance's own identity — no keys)
@@ -163,7 +163,7 @@ and explains every finding with fix steps. Increment 1 = plan phases P0 + P1.
 | sensors (auth) | registered sensors: status, host facts, capabilities, linked host asset | `sensors.*` |
 | signals | aggregated sensor events (auth.failure / auth.success per source per minute), 7-day retention | sensor reports |
 | remediations | one fix attempt: playbook, risk class, plan + plan hash, approval, steps log, verify result | `remediations.*` |
-| agent_access | what the connected agent reported it can reach (for plan feasibility) | `agent.access-report` |
+| agent_access | (retired N-B43 — kept for old rows; nothing writes it) | — |
 | notifiers | alert destinations; `url_encrypted` (hidden field, key in pb_data/.netsentry_key), `url_hint`, last result | `notifiers.*` |
 
 All domain collections: list/view for signed-in users; **every REST write is
@@ -198,10 +198,8 @@ each) → dispatcher `lib/ops.js` → services. Roles in `lib/core/roles.js`.
 | sensors.checkin / sensors.report | **sensor only** | people and the agent are refused |
 | baselines.accept-listeners | analyst | host listener baseline |
 | remediations.suggest / queue | viewer | read-only |
-| remediations.request-plan / cancel / mark-manual | analyst | |
-| remediations.plan / claim / report-step / complete / fail | analyst | the agent's side of a fix |
+| remediations.request-plan / cancel / mark-manual | analyst | built-in fix → typed plan; guided → steps; anything else → the person's question to the agent (people only) |
 | remediations.approve / reject | admin, **human only** | approval is bound to the plan hash |
-| agent.access-report | analyst | agent declares what it can reach |
 
 The agent acts with analyst rights; human-only ops refuse it.
 
@@ -215,8 +213,7 @@ Declared in `triggers.json` (doorbells — ids only; the queue is NetSentry stat
 | source_unhealthy (source_id) | source crosses 3 consecutive failures | diagnose, tell the user; change nothing |
 | daily_digest | digest hour (UTC) or "Send digest now" | brief the user; change nothing |
 
-| plans_requested | a person asked for a fix plan | `remediations.queue` → write each plan with `remediations.plan` |
-| remediation_approved | an admin approved a plan | `remediations.claim` → run steps → `report-step` → `complete` |
+| help_requested | a person asked from Home or "Ask the agent to fix it"; re-rung every 5 min while a question waits (≤ 1 day) | `help.pending` → look (read-only) → prepare (`changes.request`, `updates.request`, `changes.prepare-fix`, `commands.prepare`) → `help.answer` |
 
 Fired only via `_triggers_lib.fire()` (lib/services/agentbell.js); the app never reads agent_requests.
 

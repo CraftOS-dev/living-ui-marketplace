@@ -56,6 +56,11 @@ cronAdd('netsentry-tick', '* * * * *', () => {
   } catch (err) {
     console.error('[netsentry] triage re-ring failed:', err);
   }
+  try {
+    require(`${__hooks}/lib/services/agentbell.js`).reringHelpIfWaiting($app);
+  } catch (err) {
+    console.error('[netsentry] help re-ring failed:', err);
+  }
 });
 
 cronAdd('netsentry-digest', '5 * * * *', () => {

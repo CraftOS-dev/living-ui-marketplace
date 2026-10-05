@@ -90,9 +90,10 @@ export function IssuePage({ findingId, technical, steps = false }: { findingId: 
     if (findingId === null) return;
     setBusy(true);
     try {
-      const r = await runOp<{ remediation_id: string; message: string }>('remediations.request-plan', { finding_id: findingId, playbook_id: playbookId });
+      // Guided: the steps to follow. Anything else: the agent is asked and prepares changes to confirm (N-B43).
+      const r = await runOp<{ remediation_id?: string; message: string }>('remediations.request-plan', { finding_id: findingId, playbook_id: playbookId });
       toast.success(r.message);
-      setFixOpen(r.remediation_id);
+      if (r.remediation_id) setFixOpen(r.remediation_id);
     } catch {
       /* toast shown */
     } finally {
@@ -290,7 +291,7 @@ export function IssuePage({ findingId, technical, steps = false }: { findingId: 
                               {can('analyst') && (
                                 <div>
                                   <Button size="sm" loading={busy} onClick={() => void requestFix(pb.id)}>
-                                    {pb.risk === 'guided' ? 'Guide me through it' : 'Ask the agent for a plan'}
+                                    {pb.risk === 'guided' ? 'Guide me through it' : 'Ask the agent to fix it'}
                                   </Button>
                                 </div>
                               )}

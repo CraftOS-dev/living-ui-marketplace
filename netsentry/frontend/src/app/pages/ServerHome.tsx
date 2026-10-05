@@ -489,8 +489,9 @@ function AskAgent({ ask, busy }: { ask: ReturnType<typeof useChange>['ask']; bus
   const shownIds = shown.flatMap((h) => h.changes ?? []);
   const changes = useCollection<Remediation>('remediations', { filter: shownIds.length ? shownIds.map((id) => `id = "${id}"`).join(' || ') : 'id = ""' });
   // Is an agent connected? (it acted in the last week) — so "looking" is never claimed when nobody is.
-  const presence = useOp<{ recent: boolean }>('agent.presence', {}, { deps: recent.records.length });
-  const agentNear = presence.data ? presence.data.recent : null;
+  const presence = useOp<{ recent: boolean; inside_craftbot?: boolean; connected?: boolean }>('agent.presence', {}, { deps: recent.records.length });
+  const agentNear = presence.data ? (presence.data.connected ?? presence.data.recent) : null;
+  const insideCraftBot = !!presence.data?.inside_craftbot;
   const send = async (): Promise<void> => {
     setSending(true);
     try {
@@ -537,9 +538,15 @@ function AskAgent({ ask, busy }: { ask: ReturnType<typeof useChange>['ask']; bus
               {h.status === 'waiting' ? (
                 <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
                   {agentNear === false ? (
-                    <p className="text-[13px] text-[var(--agent-app-muted)]">Waiting for the agent — it isn't connected right now. Your question stays here until it is (connect NetSentry to CraftBot).</p>
+                    <p className="text-[13px] text-[var(--agent-app-muted)]">
+                      Waiting for an agent — none is connected. Open NetSentry from CraftBot (Agent Apps) and its agent picks this up; your question stays here until then.
+                    </p>
                   ) : Date.now() - (toDate(h.created)?.getTime() ?? Date.now()) > LATE_MS ? (
-                    <p className="text-[13px] text-[var(--agent-app-muted)]">The agent hasn't answered yet. It may be busy or switched off — your question stays here until it answers.</p>
+                    <p className="text-[13px] text-[var(--agent-app-muted)]">
+                      {insideCraftBot
+                        ? 'The agent hasn’t answered yet. If CraftBot asked you to allow NetSentry’s requests, say yes there — NetSentry keeps asking until the agent answers.'
+                        : 'The agent hasn’t answered yet. It may be busy or switched off — your question stays here until it answers.'}
+                    </p>
                   ) : (
                     <p className="flex items-center gap-2 text-[13px] text-[var(--agent-app-muted)]">
                       <Spinner /> The agent is looking…

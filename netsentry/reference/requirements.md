@@ -272,8 +272,11 @@ domains, active scanning, IPv6 assets, CIDR ranges, CSV import/export.
   by a person and marked manually.
 - F-FX-6 An admin can pause all fixes (kill switch) and may allow automatic
   approval of the `auto` class only.
-- F-FX-7 Triggers `plans_requested` and `remediation_approved` wake the agent;
-  every step is in the audit log.
+- ~~F-FX-7 Triggers `plans_requested` and `remediation_approved` wake the agent;
+  every step is in the audit log.~~ Retired (N-B43, 2026-10-05): the agent never writes or runs command
+  plans — it ran them on its own machine, not necessarily the server. A fix NetSentry has no built-in
+  action for becomes the person's question to the agent, which prepares changes the server's monitor
+  applies after a person confirms.
 
 - 2026-09-30 — **Increment 6 (P6: cloud, via the instance's identity)** added below.
 
@@ -486,6 +489,17 @@ the person called it at install) with logs, settings, updates, reach, backups an
 **The agent** may prepare a command for what no button covers (*commands.prepare*): the exact command,
 why, a time limit — shown verbatim, run as root after an admin confirms, output recorded with secrets
 hidden; off unless the terminal is switched on at the server.
+
+### v4 N-B43 — the agent prepares, the monitor applies (found testing inside CraftBot, 2026-10-05)
+
+1. "Ask the agent to fix it" on a problem NetSentry can't fix itself asks the agent (as the person's
+   question, answered under *Ask the agent* on Home). The agent prepares changes for the server's own
+   monitor — never runs anything itself — and a person confirms each.
+2. A question that waits (the agent was away, or CraftBot had not been allowed to pass requests on yet)
+   is asked again every 5 minutes for a day.
+3. Inside CraftBot, *Ask the agent* knows an agent is connected from the start; outside it, it says to
+   open NetSentry from CraftBot.
+4. The marketplace card shows NetSentry's Home.
 
 ### v4 N-B42 — make scheduled jobs (docs/SYSTEM-V4-PLAN.md §17; asked 2026-10-05)
 

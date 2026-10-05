@@ -56,13 +56,8 @@ routerAdd('POST', '/api/ops/baselines-accept-listeners', (e) => require(`${__hoo
 routerAdd('GET', '/api/ops/remediations-suggest', (e) => require(`${__hooks}/lib/ops.js`).handle(e, 'remediations.suggest'));
 routerAdd('GET', '/api/ops/remediations-queue', (e) => require(`${__hooks}/lib/ops.js`).handle(e, 'remediations.queue'));
 routerAdd('POST', '/api/ops/remediations-request-plan', (e) => require(`${__hooks}/lib/ops.js`).handle(e, 'remediations.request-plan'));
-routerAdd('POST', '/api/ops/remediations-plan', (e) => require(`${__hooks}/lib/ops.js`).handle(e, 'remediations.plan'));
 routerAdd('POST', '/api/ops/remediations-approve', (e) => require(`${__hooks}/lib/ops.js`).handle(e, 'remediations.approve'));
 routerAdd('POST', '/api/ops/remediations-reject', (e) => require(`${__hooks}/lib/ops.js`).handle(e, 'remediations.reject'));
-routerAdd('POST', '/api/ops/remediations-claim', (e) => require(`${__hooks}/lib/ops.js`).handle(e, 'remediations.claim'));
-routerAdd('POST', '/api/ops/remediations-report-step', (e) => require(`${__hooks}/lib/ops.js`).handle(e, 'remediations.report-step'));
-routerAdd('POST', '/api/ops/remediations-complete', (e) => require(`${__hooks}/lib/ops.js`).handle(e, 'remediations.complete'));
-routerAdd('POST', '/api/ops/remediations-fail', (e) => require(`${__hooks}/lib/ops.js`).handle(e, 'remediations.fail'));
 routerAdd('POST', '/api/ops/remediations-mark-manual', (e) => require(`${__hooks}/lib/ops.js`).handle(e, 'remediations.mark-manual'));
 routerAdd('POST', '/api/ops/remediations-cancel', (e) => require(`${__hooks}/lib/ops.js`).handle(e, 'remediations.cancel'));
 routerAdd('GET', '/api/ops/activity-stats', (e) => require(`${__hooks}/lib/ops.js`).handle(e, 'activity.stats'));
@@ -82,7 +77,6 @@ routerAdd('POST', '/api/ops/apps-evaluate-now', (e) => require(`${__hooks}/lib/o
 routerAdd('POST', '/api/ops/backups-create-plan', (e) => require(`${__hooks}/lib/ops.js`).handle(e, 'backups.create-plan'));
 routerAdd('POST', '/api/ops/backups-new-link', (e) => require(`${__hooks}/lib/ops.js`).handle(e, 'backups.new-link'));
 routerAdd('POST', '/api/ops/backups-delete-plan', (e) => require(`${__hooks}/lib/ops.js`).handle(e, 'backups.delete-plan'));
-routerAdd('POST', '/api/ops/agent-access-report', (e) => require(`${__hooks}/lib/ops.js`).handle(e, 'agent.access-report'));
 
 // v3 M1–M2: how it's running, start / stop / restart, logs.
 routerAdd('GET', '/api/ops/metrics-series', (e) => require(`${__hooks}/lib/ops.js`).handle(e, 'metrics.series'));

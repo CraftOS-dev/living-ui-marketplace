@@ -25,6 +25,9 @@ type Mode = 'idle' | 'steps' | 'fine' | 'noagent' | 'noexecutor';
 interface Presence {
   ever: boolean;
   last_seen: string;
+  /** NetSentry runs inside CraftBot, so its agent is asked at once (N-B43) */
+  inside_craftbot?: boolean;
+  connected?: boolean;
 }
 
 // One lookup per minute for all cards on the page.
@@ -135,17 +138,17 @@ export function ProblemCard({
       return;
     } else {
       const presence = await agentPresence();
-      if (!anyway && presence !== null && !presence.ever) {
+      if (!anyway && presence !== null && !(presence.connected ?? presence.ever)) {
         setMode('noagent');
         return;
       }
     }
     setBusy(true);
     try {
-      const r = await runOp<{ remediation_id: string; message: string }>('remediations.request-plan', { finding_id: finding.id, playbook_id: agentFix.id });
+      // The agent is asked, as this person: it prepares changes for the server's monitor, each confirmed here (N-B43).
+      const r = await runOp<{ remediation_id?: string; message: string }>('remediations.request-plan', { finding_id: finding.id, playbook_id: agentFix.id });
       toast.success(r.message);
-      // Follow the fix: its page shows each step as it happens.
-      go(to.fix(r.remediation_id));
+      if (r.remediation_id) go(to.fix(r.remediation_id));
     } catch {
       /* toast shown */
     } finally {
@@ -277,8 +280,8 @@ export function ProblemCard({
         <div className="mt-4 rounded-lg bg-[var(--agent-app-surface-2)] p-3 text-[14px]">
           <p className="font-medium">No agent is connected yet</p>
           <p className="mt-1 text-[var(--agent-app-muted)]">
-            NetSentry has no built-in fix for this one, so your CraftBot agent would write the plan — and you'd approve it before anything changes. Until an agent is
-            connected, follow "Show me how".
+            NetSentry has no built-in fix for this one, so your CraftBot agent would prepare the change — and you'd confirm it before anything happens. Open NetSentry from
+            CraftBot (Agent Apps) to connect it; until then, follow "Show me how".
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
             <Button onClick={() => setMode('steps')}>Show me how instead</Button>

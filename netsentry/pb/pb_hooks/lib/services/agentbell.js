@@ -24,4 +24,20 @@ function reringTriageIfWaiting(app) {
   if (Date.now() - last >= RERING_MS) ring(app, 'triage_queue_ready', {});
 }
 
-module.exports = { ring, reringTriageIfWaiting };
+const HELP_RERING_MS = 5 * 60000;
+const HELP_FOR_MS = 24 * 3600000;
+
+/**
+ * Ask the agent again while a person's question waits (N-B43): it was offline, or CraftBot hadn't been
+ * allowed yet to pass NetSentry's requests on — a refused ring is not retried by anyone else.
+ */
+function reringHelpIfWaiting(app) {
+  const repo = require('../infra/repo.js');
+  const since = new Date(Date.now() - HELP_FOR_MS).toISOString().replace('T', ' ');
+  const waiting = repo.find(app, 'help_requests', 'status = "waiting" && created >= {:s}', { s: since }, '', 1).length;
+  if (!waiting) return;
+  const last = Number(app.store().get('netsentry-rang-help_requested') || 0);
+  if (Date.now() - last >= HELP_RERING_MS) ring(app, 'help_requested', {});
+}
+
+module.exports = { ring, reringTriageIfWaiting, reringHelpIfWaiting };

@@ -11,7 +11,30 @@ const { OpError } = require('../core/util.js');
 const MAX_WAITING = 20;
 
 function ask(app, actor, p) {
-  const q = String(p.question || '').trim();
+  return create(app, actor, String(p.question || '').trim());
+}
+
+/**
+ * "Ask the agent to fix it" on a problem NetSentry has no built-in fix for (N-B43). It used to ask the
+ * agent to write commands and run them itself — on whatever machine the agent is on. Now it is this
+ * person's question: the agent looks, prepares changes for the server's own monitor, and a person
+ * confirms each. People only: the agent never files questions for itself.
+ */
+function askFix(app, actor, finding, playbook) {
+  if (actor.type !== 'user') throw new OpError(403, 'Only a person asks the agent for a fix; the agent prepares fixes with changes.prepare-fix or commands.prepare.');
+  const title = finding.getString('plain_title') || finding.getString('title');
+  const q = `Please fix this problem on the server: “${title}” (problem ${finding.id}). ` +
+    `The usual way: ${playbook.steps.join('; ')}. Prepare the changes for me to confirm.`;
+  const r = create(app, actor, q.slice(0, 1000));
+  return Object.assign(r, {
+    status: 'asked',
+    message: r.rang
+      ? 'Asked the agent. Its answer — and any change it prepares for you to confirm — shows under “Ask the agent” on Home.'
+      : r.message,
+  });
+}
+
+function create(app, actor, q) {
   if (q.length < 3) throw new OpError(400, 'Say what you need help with.');
   if (q.length > 1000) throw new OpError(400, 'Keep it under 1000 characters.');
   if (repo.find(app, 'help_requests', 'status = "waiting"').length >= MAX_WAITING) throw new OpError(429, 'The agent already has a lot waiting — give it a moment.');
@@ -63,4 +86,4 @@ function withdraw(app, actor, p) {
   return { ok: true, message: 'Question withdrawn.' };
 }
 
-module.exports = { ask, pending, answer, withdraw };
+module.exports = { ask, askFix, pending, answer, withdraw };

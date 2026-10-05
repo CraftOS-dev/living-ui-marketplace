@@ -853,7 +853,7 @@
     },
     {
       "name": "remediations.queue",
-      "description": "Read-only: fixes in progress (default) or with a given status, with plan, plan_hash, preconditions and whether the agent reported it can reach the asset.",
+      "description": "Read-only: fixes in progress (default) or with a given status, with plan, plan_hash and preconditions.",
       "params": {
         "status": {
           "type": "string",
@@ -881,7 +881,7 @@
     },
     {
       "name": "remediations.request-plan",
-      "description": "Start a fix for a finding from a playbook; rings the agent to plan it (guided playbooks go straight to planned for a person).",
+      "description": "Start a fix for a finding: NetSentry's built-in fix (typed, applied by the server's monitor after a person confirms), a guided playbook (a person follows the steps), or — for anything else — the person's request goes to the agent as a question (people only), which prepares changes for them to confirm. The agent never runs commands itself.",
       "params": {
         "finding_id": {
           "type": "string",
@@ -897,43 +897,6 @@
         "type": "http",
         "method": "POST",
         "path": "/api/ops/remediations-request-plan"
-      }
-    },
-    {
-      "name": "remediations.plan",
-      "description": "Write or replace the concrete plan: plan_json = {\"steps\":[{\"description\",\"command\",\"target\",\"rollback\"}]}. Targets must be within the finding's asset tree. Replanning voids an approval.",
-      "params": {
-        "remediation_id": {
-          "type": "string",
-          "description": "Remediation record id",
-          "required": true
-        },
-        "plan_json": {
-          "type": "string",
-          "description": "JSON plan",
-          "required": true
-        },
-        "preconditions_json": {
-          "type": "string",
-          "description": "JSON array of preconditions"
-        },
-        "blast_radius": {
-          "type": "string",
-          "description": "What could break"
-        },
-        "downtime": {
-          "type": "string",
-          "description": "Expected downtime"
-        },
-        "cost_note": {
-          "type": "string",
-          "description": "Cost impact"
-        }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/remediations-plan"
       }
     },
     {
@@ -971,107 +934,6 @@
         "type": "http",
         "method": "POST",
         "path": "/api/ops/remediations-reject"
-      }
-    },
-    {
-      "name": "remediations.claim",
-      "description": "Executor: start executing an approved fix. Refused if paused, expired, plan changed, or another fix runs on the asset. approve/high risk require backup_ref.",
-      "params": {
-        "remediation_id": {
-          "type": "string",
-          "description": "Remediation record id",
-          "required": true
-        },
-        "backup_ref": {
-          "type": "string",
-          "description": "Where the backup/snapshot is"
-        }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/remediations-claim"
-      }
-    },
-    {
-      "name": "remediations.report-step",
-      "description": "Executor: record the outcome of one plan step.",
-      "params": {
-        "remediation_id": {
-          "type": "string",
-          "description": "Remediation record id",
-          "required": true
-        },
-        "step_index": {
-          "type": "number",
-          "description": "Zero-based step index",
-          "required": true
-        },
-        "outcome": {
-          "type": "string",
-          "description": "Step outcome",
-          "required": true,
-          "enum": [
-            "ok",
-            "failed",
-            "skipped"
-          ]
-        },
-        "output_excerpt": {
-          "type": "string",
-          "description": "Short output (max 1000 chars)"
-        }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/remediations-report-step"
-      }
-    },
-    {
-      "name": "remediations.complete",
-      "description": "Executor: all steps done. executed_plan_hash must equal the approved plan_hash (a mismatch fails the fix and alerts people). NetSentry then re-checks.",
-      "params": {
-        "remediation_id": {
-          "type": "string",
-          "description": "Remediation record id",
-          "required": true
-        },
-        "executed_plan_hash": {
-          "type": "string",
-          "description": "plan_hash of the plan executed",
-          "required": true
-        }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/remediations-complete"
-      }
-    },
-    {
-      "name": "remediations.fail",
-      "description": "Executor: the fix failed; say whether the rollback was done. Alerts people.",
-      "params": {
-        "remediation_id": {
-          "type": "string",
-          "description": "Remediation record id",
-          "required": true
-        },
-        "reason": {
-          "type": "string",
-          "description": "What went wrong",
-          "required": true
-        },
-        "rolled_back": {
-          "type": "boolean",
-          "description": "Rollback completed"
-        }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/remediations-fail"
       }
     },
     {
@@ -1132,41 +994,12 @@
     },
     {
       "name": "agent.presence",
-      "description": "Read-only: whether an AI agent has worked in NetSentry, and when last — so the app can say honestly whether \"Fix it for me\" will be picked up.",
+      "description": "Read-only: whether NetSentry runs inside CraftBot (so an agent is rung at once), whether an AI agent has worked here and when last — so the app can say honestly whether a question will be picked up.",
       "params": {},
       "executor": {
         "type": "http",
         "method": "GET",
         "path": "/api/ops/agent-presence"
-      }
-    },
-    {
-      "name": "agent.access-report",
-      "description": "Agent: record whether it can execute fixes on an asset, how (ssh, ssm, cloud CLI…) and what access is missing.",
-      "params": {
-        "asset_id": {
-          "type": "string",
-          "description": "Asset record id",
-          "required": true
-        },
-        "can_execute": {
-          "type": "boolean",
-          "description": "Agent can reach and change it",
-          "required": true
-        },
-        "method": {
-          "type": "string",
-          "description": "ssh, ssm, aws_cli, gcloud, az, local…"
-        },
-        "missing": {
-          "type": "string",
-          "description": "Access that is missing"
-        }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/agent-access-report"
       }
     },
     {
