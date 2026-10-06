@@ -157,6 +157,15 @@
       "folder": "entertainment-ip-manager",
       "tags": ["IP", "entertainment", "licensing", "anime", "multi-user"],
       "version": "1.0.0"
+    },
+    {
+      "id": "audio-notes",
+      "livingUIVersion": 2,
+      "name": "Audio Notes",
+      "description": "Record from your microphone with live transcription, or upload audio files (.mp3, .wav, .m4a, .webm, .ogg), and keep structured notes per session: attendees auto-detected from the transcript, overview, executive summary, meeting notes, key highlights, and an action-item checklist. Weekly digest across meetings, TXT/SRT/Markdown export, categories, search, and starring.",
+      "folder": "audio-notes",
+      "tags": ["audio", "notes", "transcription", "meetings", "productivity"],
+      "version": "1.0.0"
     }
   ]
 }
