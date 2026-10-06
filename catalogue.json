@@ -168,24 +168,6 @@
       "version": "1.0.0"
     },
     {
-      "id": "ip-manager",
-      "livingUIVersion": 2,
-      "name": "IP Manager",
-      "description": "One register for everything an organization owns: patents, trademarks, designs, copyrights and creative works, inventions, and the agreements that license them. A rules-based deadline engine with explained dates, renewal decisions with multi-currency cost forecasts, rights availability with conflict checks, office data sync (USPTO, EPO, EUIPO, JPO) through a review inbox, and CraftBot reading documents and contracts into reviewable proposals.",
-      "folder": "ip-manager",
-      "tags": ["IP", "legal", "patents", "trademarks", "multi-user"],
-      "version": "1.0.0"
-    },
-    {
-      "id": "entertainment-ip-manager",
-      "livingUIVersion": 2,
-      "name": "Entertainment IP Manager",
-      "description": "One register for an entertainment company's IP: characters and their rights stacks, VTubers and voice talent, anime titles and production committees, songs and recordings, licences and merchandise approvals, trademarks and enforcement. A rules-based deadline engine with explained dates, a Can we? check that names who decides, and CraftBot reading contracts, statements and samples into reviewable proposals. English and Japanese.",
-      "folder": "entertainment-ip-manager",
-      "tags": ["IP", "entertainment", "licensing", "anime", "multi-user"],
-      "version": "1.0.0"
-    },
-    {
       "id": "resume-builder",
       "livingUIVersion": 2,
       "name": "Resume Maker",
