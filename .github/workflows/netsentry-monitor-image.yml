@@ -1,0 +1,43 @@
+# Publishes the NetSentry monitor container (netsentry/sensor/Dockerfile) for NAS boxes and Docker-only hosts.
+# Runs on a tag like netsentry-monitor-v0.3.0 → ghcr.io/craftos-dev/netsentry-monitor:0.3.0 and :0.3
+# (amd64 + arm64). Uses this repository's own token; nothing else is needed.
+name: netsentry-monitor-image
+
+on:
+  push:
+    tags: ['netsentry-monitor-v*']
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Monitor tests
+        working-directory: netsentry/sensor
+        run: python3 -m unittest discover -s tests
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Version from the tag
+        id: v
+        run: |
+          full="${GITHUB_REF_NAME#netsentry-monitor-v}"
+          echo "full=$full" >> "$GITHUB_OUTPUT"
+          echo "minor=${full%.*}" >> "$GITHUB_OUTPUT"
+      - uses: docker/build-push-action@v6
+        with:
+          context: netsentry/sensor
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ghcr.io/craftos-dev/netsentry-monitor:${{ steps.v.outputs.full }}
+            ghcr.io/craftos-dev/netsentry-monitor:${{ steps.v.outputs.minor }}

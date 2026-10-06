@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<!-- NetSentry monitor for Unraid (Docker tab → Add Container → Template, or Community Applications).
+     Docker's socket is as powerful as root: the monitor never opens a port, and it only changes anything
+     if "Allow changes" is on here AND a person confirms each change in NetSentry. -->
+<Container version="2">
+  <Name>netsentry-monitor</Name>
+  <Repository>ghcr.io/craftos-dev/netsentry-monitor:0.3</Repository>
+  <Registry>https://github.com/CraftOS-dev/living-ui-marketplace/pkgs/container/netsentry-monitor</Registry>
+  <Network>host</Network>
+  <Privileged>false</Privileged>
+  <Support>https://github.com/CraftOS-dev/living-ui-marketplace/tree/main/netsentry</Support>
+  <Project>https://github.com/CraftOS-dev/living-ui-marketplace/tree/main/netsentry</Project>
+  <Overview>Watches this Unraid server for NetSentry: apps, health, disks, updates and security. With "Allow changes" on, NetSentry can also restart, update and back up apps — each change confirmed by a person in NetSentry.</Overview>
+  <Category>Security: Tools:Utilities</Category>
+  <ExtraParams>--pid=host --uts=host --log-opt max-size=10m --log-opt max-file=3</ExtraParams>
+  <Config Name="NetSentry address" Target="NETSENTRY_CONSOLE" Default="" Mode="" Description="NetSentry's https address (Settings → Machine monitors shows it)." Type="Variable" Display="always" Required="true" Mask="false"></Config>
+  <Config Name="Join token" Target="NETSENTRY_JOIN" Default="" Mode="" Description="A join token from NetSentry. Only used the first time; then this server has its own credential." Type="Variable" Display="always" Required="true" Mask="true"></Config>
+  <Config Name="Allow changes" Target="NETSENTRY_EXECUTOR" Default="off|on" Mode="" Description="on = NetSentry may restart, update and back up apps here when a person confirms each change." Type="Variable" Display="always" Required="true" Mask="false">off</Config>
+  <Config Name="Backups go to" Target="NETSENTRY_FOLDERS" Default="/mnt/user/backups" Mode="" Description="Folder NetSentry's own backups may use (must be mapped below too)." Type="Variable" Display="advanced" Required="false" Mask="false">/mnt/user/backups</Config>
+  <Config Name="State" Target="/state" Default="/mnt/user/appdata/netsentry-monitor" Mode="rw" Description="This server's NetSentry credential and the monitor's memory." Type="Path" Display="advanced" Required="true" Mask="false">/mnt/user/appdata/netsentry-monitor</Config>
+  <Config Name="Host /proc" Target="/host/proc" Default="/proc" Mode="ro" Description="Processor, memory, temperatures." Type="Path" Display="advanced-hide" Required="true" Mask="false">/proc</Config>
+  <Config Name="Host /sys" Target="/host/sys" Default="/sys" Mode="ro" Description="Disks and temperatures." Type="Path" Display="advanced-hide" Required="true" Mask="false">/sys</Config>
+  <Config Name="Docker" Target="/var/run/docker.sock" Default="/var/run/docker.sock" Mode="rw" Description="The apps (containers)." Type="Path" Display="advanced-hide" Required="true" Mask="false">/var/run/docker.sock</Config>
+  <Config Name="Docker logs" Target="/var/lib/docker/containers" Default="/var/lib/docker/containers" Mode="ro" Description="How big each app's log has grown." Type="Path" Display="advanced-hide" Required="true" Mask="false">/var/lib/docker/containers</Config>
+  <Config Name="Backups folder" Target="/mnt/user/backups" Default="/mnt/user/backups" Mode="rw" Description="Where NetSentry's own backups go." Type="Path" Display="advanced" Required="false" Mask="false">/mnt/user/backups</Config>
+</Container>

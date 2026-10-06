@@ -1,0 +1,41 @@
+# NetSentry monitor as a container — Synology (Container Manager → Project), TrueNAS SCALE
+# (Apps → Custom App → Install via YAML), or any machine with Docker.
+#
+# 1. In NetSentry: Settings → Machine monitors → Put a monitor on your servers → make a join token.
+# 2. Fill in the three values below and start the project.
+# 3. The machine appears in NetSentry within a minute.
+#
+# What it can see, and why:
+#   network_mode/pid/uts host   the machine's own network, processes and name (what listens where)
+#   /proc, /sys (read-only)     processor, memory, temperatures, disks
+#   docker.sock                 the apps (containers) — and, only if you allow changes below, restarting
+#                               and updating them. Docker's socket is as powerful as root: the monitor
+#                               never opens a port, and changes need NETSENTRY_EXECUTOR=on here AND a
+#                               person confirming each one in NetSentry.
+#   /var/lib/docker/containers  (read-only) how big each app's log has grown
+#   /volume1/backups            (optional) where NetSentry's own backups of your apps go
+name: netsentry-monitor
+services:
+  monitor:
+    image: ghcr.io/craftos-dev/netsentry-monitor:0.3
+    restart: unless-stopped
+    network_mode: host
+    pid: host
+    uts: host
+    environment:
+      NETSENTRY_CONSOLE: "https://netsentry.example.lan"   # NetSentry's address
+      NETSENTRY_JOIN: "nsj1.paste-your-join-token-here"     # only used the first time
+      NETSENTRY_EXECUTOR: "off"                            # "on" = allow changes you confirm
+      NETSENTRY_FOLDERS: "/volume1/backups,/volume1/docker,/volume1/media"  # folders NetSentry may use: backups, installed apps, media
+    volumes:
+      - netsentry-state:/state
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /volume1/backups:/volume1/backups
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }
+volumes:
+  netsentry-state: {}
