@@ -1,0 +1,42 @@
+/*
+ * NetSentry's own palette — Slate (v4 plan §16, N-B22). Ahmad chose that NetSentry keeps this look
+ * whatever style CraftBot is set to, so the kit's colour tokens are set here with !important (the
+ * kit's own files stay as shipped). Everything derived from them (surface-2, hover, selected, ring)
+ * follows, because the kit mixes those from these. Status colours are TONE_COLOR (visual.tsx).
+ */
+:root {
+  --agent-app-bg: #eef2f7 !important;
+  --agent-app-surface: #fbfcfe !important;
+  --agent-app-text: #1a2230 !important;
+  --agent-app-muted: #5b677a !important;
+  --agent-app-border: #d6dee9 !important;
+  --agent-app-accent: #1e2a3b !important;
+  --agent-app-accent-contrast: #f5f8fc !important;
+  --agent-app-radius: 0.5rem !important;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --agent-app-bg: #11161d !important;
+  --agent-app-surface: #181f29 !important;
+  --agent-app-text: #e3e9f1 !important;
+  --agent-app-muted: #8a97aa !important;
+  --agent-app-border: #28323f !important;
+  --agent-app-accent: #dbe4f0 !important;
+  --agent-app-accent-contrast: #111823 !important;
+}
+
+/* Live dot: a soft pulse that says "this is moving now". */
+@keyframes ns-pulse {
+  0% { box-shadow: 0 0 0 0 rgb(22 163 74 / 0.5); }
+  70%, 100% { box-shadow: 0 0 0 6px rgb(22 163 74 / 0); }
+}
+.ns-live-dot { animation: ns-pulse 2s infinite; }
+@keyframes ns-flash {
+  from { background-color: color-mix(in srgb, var(--agent-app-surface), var(--agent-app-accent) 14%); }
+  to { background-color: transparent; }
+}
+.ns-flash { animation: ns-flash 1.8s ease-out; }
+@media (prefers-reduced-motion: reduce) {
+  .ns-live-dot, .ns-flash { animation: none; }
+}

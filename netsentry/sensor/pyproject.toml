@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "netsentry-sensor"
+version = "0.4.7"
+description = "Reports a host's security state (listeners, users, SSH, logins, autostart, file integrity, posture, Docker) to a NetSentry console."
+requires-python = ">=3.9"
+dependencies = []  # standard library only
+
+[project.scripts]
+netsentry-sensor = "netsentry_sensor.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["netsentry_sensor*"]
