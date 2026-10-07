@@ -191,7 +191,16 @@
       "name": "NetSentry", 
       "description": "Look after the server it runs on, in plain words: what runs, what to fix (each with its one button), app updates and backups, files, app settings, any app from a Compose file, disk space, programs, the firewall, SSH keys, scheduled jobs, a recorded terminal — and an agent that prepares fixes you confirm with one tap. Every change is previewed, confirmed by a person and can be undone.", 
       "folder": "netsentry", 
-      "tags": ["server", "security", "self-hosting", "monitoring", "devops", "multi-user"], 
+      "tags": ["server", "security", "self-hosting", "monitoring", "devops", "multi-user"],
+      "version": "1.0.0"
+    },
+    {
+      "id": "expenses-tracker",
+      "livingUIVersion": 2,
+      "name": "Expenses Tracker",
+      "description": "Personal expense tracker: add an expense in seconds on a keypad, then see where your money goes on a dashboard with a spending ring, daily bars, a spending calendar and a budget gauge. Monthly and per-category budgets, recurring expenses that add themselves, 12-month insights, spending in other currencies converted automatically, bank CSV import and CSV export, and CraftBot reading receipt photos and sorting uncategorized expenses for you.",
+      "folder": "expenses-tracker",
+      "tags": ["finance", "expenses", "budgeting", "receipts", "personal", "productivity"],
       "version": "1.0.0"
     }
   ]
