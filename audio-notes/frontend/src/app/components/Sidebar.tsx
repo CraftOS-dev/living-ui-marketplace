@@ -1,481 +1,311 @@
-import { useState, useMemo, useRef } from 'react';
-import type { AudioSession } from '../types.ts';
-import { formatDuration, formatDate } from '../utils.ts';
+import { useMemo } from 'react';
 import {
-  Search,
-  Star,
-  Plus,
-  PanelLeftClose,
-  PanelLeft,
-  Trash2,
-  Copy,
-  X,
+  AlertTriangle,
   AudioLines,
   CalendarDays,
-  ChevronLeft,
-  ChevronRight,
+  FileText,
+  Loader2,
+  Mic,
+  MoreHorizontal,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Search,
+  Star,
+  Upload,
+  VolumeX,
+  X,
 } from 'lucide-react';
-import { Button, Dialog } from '../../kit/index.ts';
-import { CATEGORY_OPTIONS } from './CategorySelect.tsx';
+import { Button, DropdownMenu, cn } from '../../kit/index.ts';
+import { clock, dayGroup, fmtDay, length } from '../format.ts';
+import type { EngineStatus, NoteSummary, View } from '../types.ts';
+import { SelectField } from './ui.tsx';
 
-interface SidebarProps {
-  sessions: AudioSession[];
-  activeSessionId: string | null;
-  onSelectSession: (id: string) => void;
-  onNewSession: () => void;
-  onDeleteSession: (session: AudioSession) => void;
-  onDuplicateSession: (session: AudioSession) => void;
-  onToggleStar: (session: AudioSession) => void;
-  collapsed: boolean;
-  onToggleCollapse: () => void;
-  mobileOpen?: boolean;
-  onCloseMobile?: () => void;
-  viewMode?: 'note' | 'weekly-summary';
-  onViewModeChange?: (mode: 'note' | 'weekly-summary') => void;
+function StatusIcon({ note, recording }: { note: NoteSummary; recording: boolean }): React.JSX.Element | null {
+  const t = note.transcript_status;
+  const n = note.notes_status;
+  if (recording) return <span className="size-2 animate-pulse rounded-full bg-red-500" aria-label="Recording" />;
+  if (t === 'queued' || t === 'processing' || t === 'finishing' || n === 'queued' || n === 'processing') {
+    return <Loader2 size={14} className="animate-spin text-[var(--agent-app-accent)]" aria-label="Processing" />;
+  }
+  if (t === 'failed' || n === 'failed') return <AlertTriangle size={14} className="text-red-500" aria-label="Failed" />;
+  if (t === 'no_speech') return <VolumeX size={14} className="text-amber-500" aria-label="No speech found" />;
+  return null;
 }
 
-const ALL_BASE_CATEGORIES = ['All', 'Starred', ...CATEGORY_OPTIONS];
+function SourceIcon({ note }: { note: NoteSummary }): React.JSX.Element {
+  const cls = 'shrink-0 text-[var(--agent-app-muted)]';
+  if (note.source === 'text') return <FileText size={16} className={cls} />;
+  if (note.source === 'upload' || note.source === 'import') return <AudioLines size={16} className={cls} />;
+  return <Mic size={16} className={cls} />;
+}
 
 export function Sidebar({
-  sessions,
-  activeSessionId,
-  onSelectSession,
-  onNewSession,
-  onDeleteSession,
-  onDuplicateSession,
-  onToggleStar,
+  notes,
+  matchIds,
+  query,
+  onQuery,
+  filter,
+  onFilter,
+  view,
+  onSelect,
+  onDigest,
+  onRecord,
+  onUpload,
+  onNewText,
+  recordingNoteId,
+  recordingMs,
+  engine,
   collapsed,
   onToggleCollapse,
-  mobileOpen = false,
-  onCloseMobile,
-  viewMode = 'note',
-  onViewModeChange,
-}: SidebarProps): React.JSX.Element {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All');
-  const [sessionToDelete, setSessionToDelete] = useState<AudioSession | null>(null);
-  const categoryScrollRef = useRef<HTMLDivElement | null>(null);
-
-  const scrollCategories = (direction: 'left' | 'right') => {
-    if (categoryScrollRef.current) {
-      const amount = direction === 'left' ? -120 : 120;
-      categoryScrollRef.current.scrollBy({ left: amount, behavior: 'smooth' });
-    }
-  };
-
-  // Derive complete category list including all standard options + any custom note categories
-  const allCategories = useMemo(() => {
-    const list = [...ALL_BASE_CATEGORIES];
-    for (const s of sessions) {
-      if (s.category && !list.some((c) => c.toLowerCase() === s.category.toLowerCase())) {
-        list.push(s.category);
-      }
-    }
-    return list;
-  }, [sessions]);
-
-  const filteredSessions = useMemo(() => {
-    return sessions.filter((s) => {
-      if (selectedCategory === 'Starred' && !s.is_starred) {
-        return false;
-      }
-      if (
-        selectedCategory !== 'All' &&
-        selectedCategory !== 'Starred' &&
-        s.category?.toLowerCase() !== selectedCategory.toLowerCase()
-      ) {
-        return false;
-      }
-
-      if (searchQuery.trim() === '') return true;
-      const query = searchQuery.toLowerCase();
-      return (
-        s.title?.toLowerCase().includes(query) ||
-        s.overview?.toLowerCase().includes(query) ||
-        s.summary?.toLowerCase().includes(query) ||
-        s.transcript?.toLowerCase().includes(query) ||
-        s.category?.toLowerCase().includes(query) ||
-        s.attendees?.toLowerCase().includes(query)
-      );
-    });
-  }, [sessions, searchQuery, selectedCategory]);
-
-  const handleSelect = (id: string) => {
-    onSelectSession(id);
-    if (onCloseMobile) {
-      onCloseMobile();
-    }
-  };
-
-  // Reusable Sidebar Content for both Desktop and Mobile Drawer
-  const renderSidebarBody = (isMobile: boolean = false) => (
-    <div className="flex flex-col h-full select-none">
-      {/* Brand & Header */}
-      <div className="p-4 pb-3 flex flex-col gap-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <AudioLines size={18} className="text-[var(--lui-foreground)] shrink-0" />
-            <div>
-              <h2 className="text-[14px] lg:text-[15px] font-semibold tracking-tight text-[var(--lui-foreground)]">
-                Audio Notes
-              </h2>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-1">
-            <button
-              onClick={() => {
-                onNewSession();
-                if (isMobile && onCloseMobile) onCloseMobile();
-              }}
-              title="New empty note"
-              className="p-1.5 rounded-md bg-[#FF4F18] hover:bg-[#E64515] text-white transition-all shadow-xs flex items-center justify-center active:scale-95"
-              aria-label="New empty note"
-            >
-              <Plus size={15} />
-            </button>
-
-            {isMobile ? (
-              <button
-                onClick={onCloseMobile}
-                title="Close sidebar"
-                className="p-1.5 rounded-md text-[var(--lui-muted)] hover:text-[var(--lui-foreground)] hover:bg-[var(--lui-accent)]/20 transition-colors"
-                aria-label="Close sidebar"
-              >
-                <X size={16} />
-              </button>
-            ) : (
-              <button
-                onClick={onToggleCollapse}
-                title="Collapse sidebar"
-                className="p-1.5 rounded-md hover:bg-[var(--lui-accent)]/20 text-[var(--lui-muted)] hover:text-[var(--lui-foreground)] transition-colors"
-                aria-label="Collapse sidebar"
-              >
-                <PanelLeftClose size={16} />
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* View Mode Switcher: Notes vs Weekly Summary */}
-        <div className="grid grid-cols-2 gap-1 p-1 rounded-lg bg-[var(--lui-surface)] border border-[var(--lui-border)]/70 text-xs select-none">
-          <button
-            type="button"
-            onClick={() => {
-              onViewModeChange?.('note');
-              if (isMobile && onCloseMobile) onCloseMobile();
-            }}
-            className={`w-full flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-md text-xs font-medium transition-colors duration-150 border ${
-              viewMode === 'note'
-                ? 'bg-[var(--lui-card)] text-[var(--lui-foreground)] border-[var(--lui-border)]/60 shadow-xs'
-                : 'bg-transparent text-[var(--lui-muted)] border-transparent hover:text-[var(--lui-foreground)] hover:bg-[var(--lui-card)]/40'
-            }`}
-          >
-            <AudioLines size={13} className={viewMode === 'note' ? 'text-[#FF4F18]' : 'text-current'} />
-            <span>Notes</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => {
-              onViewModeChange?.('weekly-summary');
-              if (isMobile && onCloseMobile) onCloseMobile();
-            }}
-            className={`w-full flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-md text-xs font-medium transition-colors duration-150 border ${
-              viewMode === 'weekly-summary'
-                ? 'bg-[var(--lui-card)] text-[var(--lui-foreground)] border-[var(--lui-border)]/60 shadow-xs'
-                : 'bg-transparent text-[var(--lui-muted)] border-transparent hover:text-[var(--lui-foreground)] hover:bg-[var(--lui-card)]/40'
-            }`}
-          >
-            <CalendarDays size={13} className={viewMode === 'weekly-summary' ? 'text-[#FF4F18]' : 'text-current'} />
-            <span>Weekly Digest</span>
-          </button>
-        </div>
-
-        {/* Minimal Search Bar */}
-        <div className="relative">
-          <Search
-            size={13}
-            className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[var(--lui-muted)]/70 pointer-events-none"
-          />
-          <input
-            type="text"
-            placeholder="Search notes..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-8 pr-7 py-1.5 text-xs rounded-md bg-[var(--lui-background)]/80 border border-[var(--lui-border)]/60 text-[var(--lui-foreground)] placeholder:text-[var(--lui-muted)]/60 focus:outline-none focus:border-[var(--lui-primary)] transition-colors"
-          />
-          {searchQuery && (
-            <button
-              onClick={() => setSearchQuery('')}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-[var(--lui-muted)] hover:text-[var(--lui-foreground)]"
-            >
-              <X size={12} />
-            </button>
-          )}
-        </div>
-
-        {/* Category Pills - Single line with arrows on the sides to move among them */}
-        <div className="flex items-center gap-1 text-xs pt-0.5 w-full">
-          <button
-            onClick={() => scrollCategories('left')}
-            className="p-1 rounded text-[var(--lui-muted)] hover:text-[var(--lui-foreground)] hover:bg-[var(--lui-accent)]/20 transition-colors shrink-0"
-            title="Scroll categories left"
-          >
-            <ChevronLeft size={13} />
-          </button>
-
-          <div
-            ref={categoryScrollRef}
-            className="flex items-center gap-1.5 flex-nowrap overflow-x-auto no-scrollbar scroll-smooth whitespace-nowrap flex-1 py-0.5"
-          >
-            {allCategories.map((cat) => {
-              const isSelected = selectedCategory === cat;
-              return (
-                <button
-                  key={cat}
-                  onClick={() => setSelectedCategory(cat)}
-                  className={`px-2.5 py-0.5 rounded text-[11px] font-medium transition-colors shrink-0 whitespace-nowrap ${
-                    isSelected
-                      ? 'bg-[#FF4F18] text-white font-medium'
-                      : 'bg-[var(--lui-surface)]/60 text-[var(--lui-muted)] hover:text-[var(--lui-foreground)] hover:bg-[var(--lui-accent)]/20 border border-[var(--lui-border)]/40'
-                  }`}
-                >
-                  {cat === 'Starred' ? '★ Starred' : cat}
-                </button>
-              );
-            })}
-          </div>
-
-          <button
-            onClick={() => scrollCategories('right')}
-            className="p-1 rounded text-[var(--lui-muted)] hover:text-[var(--lui-foreground)] hover:bg-[var(--lui-accent)]/20 transition-colors shrink-0"
-            title="Scroll categories right"
-          >
-            <ChevronRight size={13} />
-          </button>
-        </div>
-      </div>
-
-      {/* Note List */}
-      <div className="flex-1 overflow-y-auto px-2.5 flex flex-col gap-1 pb-4">
-        {filteredSessions.length === 0 ? (
-          <div className="py-8 px-4 text-center text-[var(--lui-muted)]">
-            <p className="text-xs font-medium">No notes found</p>
-            <p className="text-[11px] mt-0.5 text-[var(--lui-muted)]/70">
-              {searchQuery ? 'Try a different keyword' : 'Create a note to start'}
-            </p>
-          </div>
-        ) : (
-          filteredSessions.map((session) => {
-            const isActive = session.id === activeSessionId;
-            return (
-              <div
-                key={session.id}
-                onClick={() => handleSelect(session.id)}
-                className={`sidebar-note-item group px-3 py-2.5 lg:px-3.5 lg:py-3 cursor-pointer relative flex flex-col gap-1 ${
-                  isActive ? 'active' : ''
-                }`}
-              >
-                <div className="flex items-center justify-between gap-1.5">
-                  <h3 className="note-title text-[13px] lg:text-[14px] font-medium tracking-tight line-clamp-1 flex-1 min-w-0 text-[var(--lui-foreground)]">
-                    {session.title || 'Untitled note'}
-                  </h3>
-
-                  {/* Actions inline */}
-                  <div className="flex items-center gap-0.5 flex-shrink-0">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onDuplicateSession(session);
-                      }}
-                      title="Duplicate note"
-                      className="p-1 text-[var(--lui-muted)] hover:text-[var(--lui-foreground)] rounded opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <Copy size={12} />
-                    </button>
-
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSessionToDelete(session);
-                      }}
-                      title="Delete note"
-                      className="p-1 text-[var(--lui-muted)] hover:text-red-500 rounded opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <Trash2 size={12} />
-                    </button>
-
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onToggleStar(session);
-                      }}
-                      title={session.is_starred ? 'Unstar' : 'Star'}
-                      className={`p-1 rounded transition-colors ${
-                        session.is_starred
-                          ? 'text-amber-500'
-                          : 'text-[var(--lui-muted)]/40 hover:text-amber-500 opacity-0 group-hover:opacity-100'
-                      }`}
-                    >
-                      <Star
-                        size={13}
-                        fill={session.is_starred ? 'currentColor' : 'none'}
-                      />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Preview text */}
-                <p className="note-preview text-[11.5px] text-[var(--lui-muted)] line-clamp-2 leading-relaxed font-normal">
-                  {session.summary || session.overview || 'No notes added yet.'}
-                </p>
-
-                {/* Metadata row */}
-                <div className="flex items-center justify-between text-[11px] text-[var(--lui-muted)]/80 pt-1 font-mono tabular-numbers">
-                  <div className="flex items-center gap-2">
-                    {session.category && (
-                      <span className="note-badge text-[10px] font-sans font-medium px-1.5 py-0.2 rounded bg-[var(--lui-background)] border border-[var(--lui-border)]/50 text-[var(--lui-foreground)]/80">
-                        {session.category}
-                      </span>
-                    )}
-                    {session.duration > 0 && (
-                      <span className="text-[10.5px]">
-                        {formatDuration(session.duration)}
-                      </span>
-                    )}
-                  </div>
-
-                  <span className="text-[10.5px]">
-                    {formatDate(session.date)}
-                  </span>
-                </div>
-              </div>
-            );
-          })
-        )}
-      </div>
-    </div>
+  className,
+}: {
+  notes: NoteSummary[];
+  matchIds: Set<string> | null;
+  query: string;
+  onQuery: (q: string) => void;
+  filter: string;
+  onFilter: (f: string) => void;
+  view: View;
+  onSelect: (id: string) => void;
+  onDigest: () => void;
+  onRecord: () => void;
+  onUpload: () => void;
+  onNewText: () => void;
+  recordingNoteId: string | null;
+  recordingMs: number;
+  engine: EngineStatus | null;
+  /** Desktop only: the sidebar folds into a narrow rail of icons. */
+  collapsed: boolean;
+  onToggleCollapse: () => void;
+  className?: string | undefined;
+}): React.JSX.Element {
+  const categories = useMemo(() => [...new Set(notes.map((n) => n.category).filter((c) => c !== ''))].sort(), [notes]);
+  const visible = notes.filter((n) => {
+    if (filter === 'starred' && !n.starred) return false;
+    if (filter.startsWith('cat:') && n.category !== filter.slice(4)) return false;
+    return matchIds === null || matchIds.has(n.id);
+  });
+  const groups: Array<{ label: string; notes: NoteSummary[] }> = [];
+  for (const n of visible) {
+    const label = dayGroup(n.date);
+    const last = groups[groups.length - 1];
+    if (last !== undefined && last.label === label) last.notes.push(n);
+    else groups.push({ label, notes: [n] });
+  }
+  const selectedId = view.kind === 'note' ? view.id : '';
+  const recording = recordingNoteId !== null;
+  const setup = engine?.setup ?? null;
+  const downloading = setup !== null && (setup.state === 'pending' || setup.state === 'downloading' || setup.state === 'installing');
+  const engineDot = cn(
+    'size-1.5 shrink-0 rounded-full',
+    engine === null
+      ? 'bg-[var(--agent-app-muted)]'
+      : downloading
+        ? 'animate-pulse bg-amber-500'
+        : engine.installed && setup?.state === 'ready'
+          ? 'bg-emerald-500'
+          : 'bg-red-500',
   );
+  let engineText = 'Checking speech engine...';
+  if (engine !== null && setup !== null) {
+    if (setup.state === 'downloading' || setup.state === 'installing') {
+      const percent = setup.total_bytes > 0 ? Math.floor((setup.done_bytes / setup.total_bytes) * 100) : 0;
+      engineText = `Downloading speech engine... ${percent}%`;
+    } else if (setup.state === 'pending') engineText = 'Preparing speech engine download...';
+    else if (setup.state === 'failed') engineText = 'Speech engine download failed';
+    else if (engine.installed && setup.state === 'ready') engineText = `${engine.model}, on this PC`;
+    else engineText = 'Speech engine not installed';
+  }
+  const railButton =
+    'inline-flex size-9 items-center justify-center rounded-[var(--agent-app-radius)] text-[var(--agent-app-muted)] transition-colors hover:bg-[var(--agent-app-hover)] hover:text-[var(--agent-app-text)]';
 
   return (
     <>
-      {/* Desktop View: Collapsed Rail vs Expanded Sidebar */}
-      {collapsed ? (
-        <aside className="hidden md:flex w-14 border-r border-[var(--lui-border)]/60 bg-[var(--lui-card)]/40 flex-col items-center py-4 justify-between transition-all duration-200 h-full flex-shrink-0 select-none">
-          <div className="flex flex-col items-center gap-3 w-full">
-            <button
-              onClick={onToggleCollapse}
-              title="Expand sidebar"
-              className="p-2 rounded-lg hover:bg-[var(--lui-accent)]/20 text-[var(--lui-muted)] hover:text-[var(--lui-foreground)] transition-colors"
-              aria-label="Expand sidebar"
-            >
-              <PanelLeft size={18} />
-            </button>
-
-            <button
-              onClick={onNewSession}
-              title="New note"
-              className="w-9 h-9 rounded-lg bg-[var(--lui-foreground)] text-[var(--lui-background)] flex items-center justify-center shadow-xs hover:opacity-90 transition-opacity"
-              aria-label="New note"
-            >
-              <Plus size={18} />
-            </button>
-
-            <div className="w-6 h-[1px] bg-[var(--lui-border)]/60 my-1" />
-
-            <button
-              onClick={() => {
-                onViewModeChange?.(viewMode === 'weekly-summary' ? 'note' : 'weekly-summary');
-              }}
-              title="Weekly Summary Digest"
-              className={`p-2 rounded-lg transition-colors ${
-                viewMode === 'weekly-summary'
-                  ? 'bg-[#FF4F18]/15 text-[#FF4F18]'
-                  : 'hover:bg-[var(--lui-accent)]/20 text-[var(--lui-muted)]'
-              }`}
-            >
-              <CalendarDays size={16} />
-            </button>
-
-            <button
-              onClick={() => {
-                setSelectedCategory(selectedCategory === 'Starred' ? 'All' : 'Starred');
-                onToggleCollapse();
-              }}
-              title="Starred notes"
-              className={`p-2 rounded-lg transition-colors ${
-                selectedCategory === 'Starred'
-                  ? 'bg-amber-500/10 text-amber-600'
-                  : 'hover:bg-[var(--lui-accent)]/20 text-[var(--lui-muted)]'
-              }`}
-            >
-              <Star size={16} fill={selectedCategory === 'Starred' ? 'currentColor' : 'none'} />
-            </button>
-          </div>
-
-          <div className="flex flex-col items-center gap-2">
-            <span className="text-[11px] text-[var(--lui-muted)] font-mono tabular-numbers">
-              {sessions.length}
-            </span>
-          </div>
-        </aside>
-      ) : (
-        <aside className="hidden md:flex w-72 lg:w-80 xl:w-84 2xl:w-88 border-r border-[var(--lui-border)]/60 bg-[var(--lui-card)]/30 flex-col h-full flex-shrink-0 transition-all duration-200 select-none">
-          {renderSidebarBody(false)}
-        </aside>
-      )}
-
-      {/* Mobile Drawer (Adaptive Overlay on screens < 768px) */}
-      {mobileOpen && (
-        <div className="fixed inset-0 z-50 md:hidden flex">
-          {/* Darkened backdrop */}
-          <div
-            className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity"
-            onClick={onCloseMobile}
-            aria-hidden="true"
-          />
-          {/* Slide-out drawer */}
-          <aside className="relative z-10 w-78 max-w-[85vw] h-full bg-[var(--lui-card)] border-r border-[var(--lui-border)] shadow-2xl flex flex-col select-none">
-            {renderSidebarBody(true)}
-          </aside>
+    {collapsed && (
+      <aside className="hidden w-14 shrink-0 flex-col items-center border-r border-[var(--agent-app-border)] bg-[var(--agent-app-surface)] md:flex" aria-label="Sidebar (collapsed)">
+        <div className="flex h-14 w-full shrink-0 items-center justify-center border-b border-[var(--agent-app-border)]">
+          <span className="flex size-7 items-center justify-center rounded-[var(--agent-app-radius)] bg-[var(--agent-app-accent)] text-[var(--agent-app-accent-contrast)]">
+            <AudioLines size={16} />
+          </span>
         </div>
+        <div className="flex flex-col items-center gap-1.5 py-3">
+          <button type="button" onClick={onToggleCollapse} aria-label="Expand sidebar" title="Expand sidebar" className={railButton}>
+            <PanelLeftOpen size={17} />
+          </button>
+          <button
+            type="button"
+            onClick={onRecord}
+            aria-label={recording ? 'Open the recording' : 'New recording'}
+            title={recording ? `Recording ${clock(recordingMs / 1000)}` : 'New recording'}
+            className="mt-1 inline-flex size-9 items-center justify-center rounded-[var(--agent-app-radius)] bg-[var(--agent-app-accent)] text-[var(--agent-app-accent-contrast)] transition-opacity hover:opacity-90"
+          >
+            <span aria-hidden className={cn('size-2.5 rounded-full bg-current', recording && 'animate-pulse')} />
+          </button>
+          <button type="button" onClick={onUpload} aria-label="Upload audio or video" title="Upload audio or video" className={railButton}>
+            <Upload size={17} />
+          </button>
+          <span className="my-1 h-px w-6 bg-[var(--agent-app-border)]" aria-hidden />
+          <button
+            type="button"
+            onClick={() => {
+              onFilter('starred');
+              onToggleCollapse();
+            }}
+            aria-label="Starred notes"
+            title="Starred notes"
+            className={railButton}
+          >
+            <Star size={17} />
+          </button>
+          <button
+            type="button"
+            onClick={onDigest}
+            aria-label="Weekly digest"
+            title="Weekly digest"
+            className={cn(railButton, view.kind === 'digest' && 'bg-[var(--agent-app-selected)] text-[var(--agent-app-accent)]')}
+          >
+            <CalendarDays size={17} />
+          </button>
+        </div>
+        <span className="mt-auto mb-4" title={engineText}>
+          <span aria-hidden className={cn(engineDot, 'block size-2')} />
+        </span>
+      </aside>
+    )}
+    <aside
+      className={cn(
+        'w-full flex-col border-r border-[var(--agent-app-border)] bg-[var(--agent-app-surface)] md:w-72 md:shrink-0',
+        className,
+        collapsed && 'md:hidden',
       )}
+    >
+      <div className="flex h-14 shrink-0 items-center gap-2.5 border-b border-[var(--agent-app-border)] pl-4 pr-2">
+        <span className="flex size-7 items-center justify-center rounded-[var(--agent-app-radius)] bg-[var(--agent-app-accent)] text-[var(--agent-app-accent-contrast)]">
+          <AudioLines size={16} />
+        </span>
+        <span className="flex-1 text-[15px] font-semibold tracking-tight">Audio Notes</span>
+        <button type="button" onClick={onToggleCollapse} aria-label="Collapse sidebar" title="Collapse sidebar" className={cn(railButton, 'hidden size-8 md:inline-flex')}>
+          <PanelLeftClose size={17} />
+        </button>
+      </div>
 
-      {/* Delete Note Confirmation Dialog */}
-      {sessionToDelete && (
-        <Dialog
-          open={Boolean(sessionToDelete)}
-          onOpenChange={(open) => {
-            if (!open) setSessionToDelete(null);
-          }}
-          title="Delete this note?"
-          description={`Are you sure you want to delete "${sessionToDelete.title || 'Untitled note'}"? All audio recordings, transcripts, and notes for this session will be permanently removed.`}
-          footer={
-            <>
-              <Button
-                variant="secondary"
-                onClick={() => setSessionToDelete(null)}
+      <div className="flex flex-col gap-2.5 px-3 pb-3 pt-3">
+        <div className="flex gap-2">
+          <Button className="flex-1 whitespace-nowrap tabular-nums" onClick={onRecord} aria-label={recording ? 'Open the recording' : 'New recording'}>
+            <span aria-hidden className={cn('size-2 rounded-full bg-current', recording && 'animate-pulse')} />
+            {recording ? `Recording ${clock(recordingMs / 1000)}` : 'Record'}
+          </Button>
+          <Button variant="secondary" size="icon" onClick={onUpload} aria-label="Upload audio or video" title="Upload audio or video">
+            <Upload size={16} />
+          </Button>
+          <DropdownMenu
+            trigger={
+              <span
+                role="button"
+                aria-label="More ways to add"
+                title="More ways to add"
+                className="inline-flex size-9 items-center justify-center rounded-[var(--agent-app-radius)] text-[var(--agent-app-muted)] transition-colors hover:bg-[var(--agent-app-hover)] hover:text-[var(--agent-app-text)]"
               >
-                Cancel
-              </Button>
-              <Button
-                variant="danger"
-                onClick={() => {
-                  if (sessionToDelete) {
-                    onDeleteSession(sessionToDelete);
-                    setSessionToDelete(null);
-                  }
-                }}
+                <MoreHorizontal size={16} />
+              </span>
+            }
+            items={[
+              { label: 'Upload audio or video', icon: <Upload size={14} />, onSelect: onUpload },
+              { label: 'New note from text', icon: <FileText size={14} />, onSelect: onNewText },
+            ]}
+          />
+        </div>
+        <div className="relative">
+          <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--agent-app-muted)]" />
+          <input
+            value={query}
+            onChange={(e) => onQuery(e.target.value)}
+            placeholder="Search notes and transcripts"
+            aria-label="Search"
+            className="h-9 w-full rounded-[var(--agent-app-radius)] border border-[var(--agent-app-border)] bg-[var(--agent-app-surface-2)] pl-9 pr-9 text-sm outline-none transition-colors placeholder:text-[var(--agent-app-muted)]/80 hover:border-[var(--agent-app-muted)]/50 focus:border-[var(--agent-app-accent)]"
+          />
+          {query !== '' && (
+            <button
+              type="button"
+              onClick={() => onQuery('')}
+              aria-label="Clear search"
+              title="Clear search"
+              className="absolute right-1.5 top-1/2 inline-flex size-6 -translate-y-1/2 items-center justify-center rounded-full text-[var(--agent-app-muted)] transition-colors hover:bg-[var(--agent-app-hover)] hover:text-[var(--agent-app-text)]"
+            >
+              <X size={14} />
+            </button>
+          )}
+        </div>
+        <SelectField
+          ariaLabel="Filter"
+          value={filter}
+          onChange={onFilter}
+          options={[
+            { value: 'all', label: `All notes (${notes.length})` },
+            { value: 'starred', label: 'Starred' },
+            ...categories.map((c) => ({ value: `cat:${c}`, label: c })),
+          ]}
+        />
+      </div>
+
+      <nav className="min-h-0 flex-1 overflow-y-auto border-t border-[var(--agent-app-border)] px-2 pb-2" aria-label="Notes">
+        {visible.length === 0 && (
+          <p className="px-3 py-10 text-center text-[13px] text-[var(--agent-app-muted)]">{notes.length === 0 ? 'No notes yet.' : 'Nothing matches.'}</p>
+        )}
+        {groups.map((g) => (
+          <div key={g.label}>
+            <p className="px-3 pb-1.5 pt-4 text-xs font-medium text-[var(--agent-app-muted)]">{g.label}</p>
+            {g.notes.map((n) => (
+              <button
+                key={n.id}
+                type="button"
+                onClick={() => onSelect(n.id)}
+                aria-current={n.id === selectedId ? 'true' : undefined}
+                className={cn(
+                  'flex w-full items-start gap-3 rounded-[var(--agent-app-radius)] px-3 py-2.5 text-left transition-colors',
+                  n.id === selectedId ? 'bg-[var(--agent-app-selected)]' : 'hover:bg-[var(--agent-app-hover)]',
+                )}
               >
-                Delete Note
-              </Button>
-            </>
-          }
+                <span className="mt-0.5">
+                  <SourceIcon note={n} />
+                </span>
+                <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                  <span className="truncate text-sm font-medium">{n.title}</span>
+                  <span className="truncate text-xs text-[var(--agent-app-muted)]">
+                    {n.id === recordingNoteId
+                      ? 'Recording now'
+                      : [fmtDay(n.date, false), n.duration > 0 ? length(n.duration) : '', n.category].filter((x) => x !== '').join(' · ')}
+                  </span>
+                </span>
+                <span className="mt-1 flex shrink-0 items-center gap-1.5">
+                  <StatusIcon note={n} recording={n.id === recordingNoteId} />
+                  {n.starred && <Star size={13} className="text-amber-500" fill="currentColor" aria-label="Starred" />}
+                </span>
+              </button>
+            ))}
+          </div>
+        ))}
+      </nav>
+
+      <div className="flex flex-col gap-1 border-t border-[var(--agent-app-border)] p-2">
+        <button
+          type="button"
+          onClick={onDigest}
+          aria-current={view.kind === 'digest' ? 'page' : undefined}
+          className={cn(
+            'flex h-9 items-center gap-2.5 rounded-[var(--agent-app-radius)] px-3 text-sm transition-colors',
+            view.kind === 'digest' ? 'bg-[var(--agent-app-selected)] font-medium text-[var(--agent-app-accent)]' : 'hover:bg-[var(--agent-app-hover)]',
+          )}
         >
-          <span />
-        </Dialog>
-      )}
+          <CalendarDays size={16} />
+          Weekly digest
+        </button>
+        <p className="flex items-center gap-2 px-3 py-1.5 text-xs text-[var(--agent-app-muted)]">
+          <span aria-hidden className={engineDot} />
+          <span className="truncate">{engineText}</span>
+        </p>
+      </div>
+    </aside>
     </>
   );
 }

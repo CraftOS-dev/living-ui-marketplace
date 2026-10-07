@@ -6,31 +6,563 @@
       "description": "Liveness check (PocketBase built-in).",
       "system": true,
       "params": {},
-      "executor": { "type": "http", "method": "GET", "path": "/api/health" }
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/health"
+      }
     },
     {
       "name": "ops.list",
       "description": "Return this operations manifest.",
       "system": true,
       "params": {},
-      "executor": { "type": "http", "method": "GET", "path": "/api/_ops" }
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/_ops"
+      }
     },
     {
-      "name": "sessions.duplicate",
-      "description": "Duplicate a saved audio note session.",
+      "name": "notes.list",
+      "description": "List notes, newest first, with summary, status and open action count. Filters combine.",
       "params": {
-        "session_id": { "type": "string", "required": true, "description": "ID of the session to duplicate." }
+        "q": {
+          "type": "string",
+          "description": "Search title, overview, summary, transcript, my notes and attendees."
+        },
+        "category": {
+          "type": "string",
+          "description": "Exact category, e.g. Meeting, Interview, Lecture."
+        },
+        "starred": {
+          "type": "boolean",
+          "description": "true = starred notes only."
+        },
+        "from": {
+          "type": "string",
+          "description": "Earliest date, YYYY-MM-DD."
+        },
+        "to": {
+          "type": "string",
+          "description": "Latest date, YYYY-MM-DD."
+        },
+        "limit": {
+          "type": "number",
+          "description": "Max notes (1-500, default 50)."
+        }
       },
-      "executor": { "type": "http", "method": "POST", "path": "/api/ops/sessions/duplicate" }
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/notes/list"
+      }
     },
     {
-      "name": "sessions.clear-completed-actions",
-      "description": "Clear all completed action items for a session.",
+      "name": "notes.get",
+      "description": "One note in full: summary, key points, decisions, action items (with ids), attendees, my notes, transcript and timed segments (each with its speaker once detected: Person 1, Person 2, ...), plus pipeline status (live = recording now, finishing = transcribing its last seconds). peak_db at -91 means the audio is pure silence (nothing was recorded).",
+      "params": {
+        "note_id": {
+          "type": "string",
+          "required": true,
+          "description": "Note id, or the note's exact title."
+        },
+        "include_transcript": {
+          "type": "boolean",
+          "description": "Include transcript and segments (default true)."
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/notes/get"
+      }
+    },
+    {
+      "name": "notes.create",
+      "description": "Create a note from text (no audio), e.g. a pasted meeting transcript. With a transcript, CraftBot's AI writes the summary, key points, decisions and action items in the background.",
+      "params": {
+        "title": {
+          "type": "string",
+          "description": "Title. Omitted = a dated placeholder the AI replaces."
+        },
+        "date": {
+          "type": "string",
+          "description": "Date of the meeting, YYYY-MM-DD (default today)."
+        },
+        "category": {
+          "type": "string",
+          "description": "Category (default General)."
+        },
+        "transcript": {
+          "type": "string",
+          "description": "Transcript text to take notes from."
+        },
+        "my_notes": {
+          "type": "string",
+          "description": "The user's own notes; never overwritten."
+        },
+        "attendees": {
+          "type": "string",
+          "description": "JSON list of names, e.g. [\"Sarah Chen\",\"Marcus Lee\"]."
+        },
+        "generate": {
+          "type": "boolean",
+          "description": "Write AI notes from the transcript (default true)."
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/notes/create"
+      }
+    },
+    {
+      "name": "notes.import-audio",
+      "description": "Import an audio or video file from a local path as a new note. It is transcribed on this PC (Whisper), then CraftBot's AI writes the notes. Poll notes.get or engine.status for progress.",
+      "params": {
+        "path": {
+          "type": "string",
+          "required": true,
+          "description": "Absolute path to the file (mp3, wav, m4a, ogg, webm, flac, mp4, mov, mkv, ...)."
+        },
+        "title": {
+          "type": "string",
+          "description": "Title. Omitted = file name, replaced by the AI's title."
+        },
+        "date": {
+          "type": "string",
+          "description": "Date of the recording, YYYY-MM-DD (default today)."
+        },
+        "category": {
+          "type": "string",
+          "description": "Category (default General)."
+        },
+        "language": {
+          "type": "string",
+          "description": "Spoken language code (en, ja, zh, ...) or auto (default)."
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/notes/import-audio"
+      }
+    },
+    {
+      "name": "notes.update",
+      "description": "Edit a note's fields. Only the params given change. Setting title stops the AI from renaming the note.",
+      "params": {
+        "note_id": {
+          "type": "string",
+          "required": true,
+          "description": "Note id, or the note's exact title."
+        },
+        "title": {
+          "type": "string",
+          "description": "New title."
+        },
+        "date": {
+          "type": "string",
+          "description": "Date, YYYY-MM-DD."
+        },
+        "category": {
+          "type": "string",
+          "description": "Category."
+        },
+        "starred": {
+          "type": "boolean",
+          "description": "Star or unstar."
+        },
+        "overview": {
+          "type": "string",
+          "description": "Overview text."
+        },
+        "summary": {
+          "type": "string",
+          "description": "Summary text."
+        },
+        "my_notes": {
+          "type": "string",
+          "description": "The user's own notes."
+        },
+        "attendees": {
+          "type": "string",
+          "description": "JSON list of names (replaces the list; names taken off are not re-added by recognition)."
+        },
+        "key_points": {
+          "type": "string",
+          "description": "JSON list of strings (replaces the list)."
+        },
+        "decisions": {
+          "type": "string",
+          "description": "JSON list of strings (replaces the list)."
+        },
+        "language": {
+          "type": "string",
+          "description": "Spoken language for the next transcription: code or auto."
+        },
+        "action_items": {
+          "type": "string",
+          "description": "JSON list of {id, title, assignee, due, done} (replaces the list)."
+        },
+        "transcript": {
+          "type": "string",
+          "description": "Transcript text (only for notes without timed segments)."
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/notes/update"
+      }
+    },
+    {
+      "name": "notes.delete",
+      "description": "Delete a note with its audio and transcript. Stops its transcription if running.",
       "destructive": true,
       "params": {
-        "session_id": { "type": "string", "required": true, "description": "ID of the session." }
+        "note_id": {
+          "type": "string",
+          "required": true,
+          "description": "Note id, or the note's exact title."
+        }
       },
-      "executor": { "type": "http", "method": "POST", "path": "/api/ops/sessions/clear-completed-actions" }
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/notes/delete"
+      }
+    },
+    {
+      "name": "notes.duplicate",
+      "description": "Copy a note, including its audio file, transcript and notes.",
+      "params": {
+        "note_id": {
+          "type": "string",
+          "required": true,
+          "description": "Note id, or the note's exact title."
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/notes/duplicate"
+      }
+    },
+    {
+      "name": "notes.transcribe",
+      "description": "Transcribe (or re-transcribe) a note's audio on this PC. The current transcript stays until the new one is ready. Notes are written automatically only when the note has none yet; otherwise run notes.generate.",
+      "params": {
+        "note_id": {
+          "type": "string",
+          "required": true,
+          "description": "Note id, or the note's exact title."
+        },
+        "language": {
+          "type": "string",
+          "description": "Spoken language code (en, ja, zh, ...) or auto. Omitted = the note's setting."
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/notes/transcribe"
+      }
+    },
+    {
+      "name": "notes.generate",
+      "description": "Have CraftBot's AI (re)write the note from its transcript: overview, summary, key points, decisions, action items, and the title while it is automatic. Replaces those fields; attendees and my_notes are kept.",
+      "params": {
+        "note_id": {
+          "type": "string",
+          "required": true,
+          "description": "Note id, or the note's exact title."
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/notes/generate"
+      }
+    },
+    {
+      "name": "notes.attach-audio",
+      "description": "Attach an audio file to an existing note and transcribe it (multipart upload with an \"audio\" file; used by the app). To add a file from disk as a new note use notes.import-audio.",
+      "params": {
+        "note_id": {
+          "type": "string",
+          "required": true,
+          "description": "Note id, or the note's exact title."
+        },
+        "duration": {
+          "type": "number",
+          "description": "Length in seconds, if known."
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/notes/attach-audio"
+      }
+    },
+    {
+      "name": "notes.finish-live",
+      "description": "Finish a recording whose page stopped while recording (status live): transcribe the pieces already received, then write the notes. The app's own Stop button does this and also attaches the audio file.",
+      "params": {
+        "note_id": {
+          "type": "string",
+          "required": true,
+          "description": "Note id, or the note's exact title."
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/notes/finish-live"
+      }
+    },
+    {
+      "name": "notes.detect-people",
+      "description": "Tell the speakers of a recorded note apart by their voices (local speaker engine, no names guessed): each transcript segment gets its speaker (Person 1, Person 2, ... in order of first speech) and the attendees gain every speaker, including ones removed before. Runs by itself after every transcription; use this to redo it, or with speakers=N when the number of people is known and the detection got it wrong. Poll notes.get people_status (people_error says why a run failed).",
+      "params": {
+        "note_id": {
+          "type": "string",
+          "required": true,
+          "description": "Note id, or the note's exact title."
+        },
+        "speakers": {
+          "type": "number",
+          "description": "How many people speak (1-20), kept for later runs; 0 = detect the number. Omit to keep the current setting."
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/notes/detect-people"
+      }
+    },
+    {
+      "name": "notes.rename-speaker",
+      "description": "Rename a speaker (e.g. Person 1) or attendee everywhere in a note: the transcript lines they speak, the attendees, and action items assigned to them. A detected voice keeps the name through later speaker detections. Renaming to another speaker's name merges the two (fixes one voice detected as two people).",
+      "params": {
+        "note_id": {
+          "type": "string",
+          "required": true,
+          "description": "Note id, or the note's exact title."
+        },
+        "speaker": {
+          "type": "string",
+          "required": true,
+          "description": "The current name, exactly as shown (e.g. \"Person 1\")."
+        },
+        "name": {
+          "type": "string",
+          "required": true,
+          "description": "The new name (at most 80 characters)."
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/notes/rename-speaker"
+      }
+    },
+    {
+      "name": "notes.cancel",
+      "description": "Cancel a note's queued or running transcription / note writing. The note keeps whatever it already had.",
+      "params": {
+        "note_id": {
+          "type": "string",
+          "required": true,
+          "description": "Note id, or the note's exact title."
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/notes/cancel"
+      }
+    },
+    {
+      "name": "notes.export",
+      "description": "Export a note as text: md (full note), txt (timestamped transcript) or srt (subtitles). Returns {filename, mime, content}.",
+      "params": {
+        "note_id": {
+          "type": "string",
+          "required": true,
+          "description": "Note id, or the note's exact title."
+        },
+        "format": {
+          "type": "string",
+          "enum": [
+            "md",
+            "txt",
+            "srt"
+          ],
+          "description": "md (default), txt or srt."
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/notes/export"
+      }
+    },
+    {
+      "name": "actions.add",
+      "description": "Add an action item to a note.",
+      "params": {
+        "note_id": {
+          "type": "string",
+          "required": true,
+          "description": "Note id, or the note's exact title."
+        },
+        "title": {
+          "type": "string",
+          "required": true,
+          "description": "What needs doing."
+        },
+        "assignee": {
+          "type": "string",
+          "description": "Who does it."
+        },
+        "due": {
+          "type": "string",
+          "description": "Due date, YYYY-MM-DD."
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/actions/add"
+      }
+    },
+    {
+      "name": "actions.update",
+      "description": "Edit or complete an action item (ids come from notes.get or actions.open).",
+      "params": {
+        "note_id": {
+          "type": "string",
+          "required": true,
+          "description": "Note id, or the note's exact title."
+        },
+        "action_id": {
+          "type": "string",
+          "required": true,
+          "description": "Action item id."
+        },
+        "title": {
+          "type": "string",
+          "description": "New text."
+        },
+        "assignee": {
+          "type": "string",
+          "description": "Who does it (empty = nobody)."
+        },
+        "due": {
+          "type": "string",
+          "description": "Due date YYYY-MM-DD (empty = none)."
+        },
+        "done": {
+          "type": "boolean",
+          "description": "true = completed."
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/actions/update"
+      }
+    },
+    {
+      "name": "actions.delete",
+      "description": "Remove an action item from a note.",
+      "destructive": true,
+      "params": {
+        "note_id": {
+          "type": "string",
+          "required": true,
+          "description": "Note id, or the note's exact title."
+        },
+        "action_id": {
+          "type": "string",
+          "required": true,
+          "description": "Action item id."
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/actions/delete"
+      }
+    },
+    {
+      "name": "actions.clear-done",
+      "description": "Remove a note's completed action items.",
+      "destructive": true,
+      "params": {
+        "note_id": {
+          "type": "string",
+          "required": true,
+          "description": "Note id, or the note's exact title."
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/actions/clear-done"
+      }
+    },
+    {
+      "name": "actions.open",
+      "description": "Every open action item across all notes, soonest due first.",
+      "params": {
+        "assignee": {
+          "type": "string",
+          "description": "Only items for this person (exact name, any case)."
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/actions/open"
+      }
+    },
+    {
+      "name": "digest.week",
+      "description": "Weekly digest (Monday to Sunday): totals, each note's summary, decisions and action items, plus a ready-to-share markdown version.",
+      "params": {
+        "week": {
+          "type": "string",
+          "description": "Any date in the week, YYYY-MM-DD (default this week)."
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/digest/week"
+      }
+    },
+    {
+      "name": "engine.status",
+      "description": "Speech engine: installed or missing files, the first-run download (setup: state ready|pending|off|downloading|installing|failed, bytes done/total, error), the running job with progress percent, and queue sizes.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/engine/status"
+      }
+    },
+    {
+      "name": "engine.install",
+      "description": "Download the speech engine (~410 MB, once) from its official sources into the app's engine folder, checking every file's SHA-256; starts by itself on a fresh install, so use this to retry after a failed download. Returns the setup status; follow engine.status.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/engine/install"
+      }
     }
   ]
 }

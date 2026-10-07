@@ -162,9 +162,9 @@
       "id": "audio-notes",
       "livingUIVersion": 2,
       "name": "Audio Notes",
-      "description": "Record from your microphone with live transcription, or upload audio files (.mp3, .wav, .m4a, .webm, .ogg), and keep structured notes per session: attendees auto-detected from the transcript, overview, executive summary, meeting notes, key highlights, and an action-item checklist. Weekly digest across meetings, TXT/SRT/Markdown export, categories, search, and starring.",
+      "description": "Record meetings (microphone, a call's tab audio, or both) with a live transcript, or import audio and video files. Everything is transcribed on this PC by a local Whisper engine (99 languages) that also tells the speakers apart by voice; CraftBot then writes the summary, key points, decisions, and action items with owners and due dates. Weekly digest, search across transcripts, and Markdown/TXT/SRT export. Windows; the speech engine (~410 MB) downloads once on first launch.",
       "folder": "audio-notes",
-      "tags": ["audio", "notes", "transcription", "meetings", "productivity"],
+      "tags": ["audio", "notes", "transcription", "meetings", "AI", "productivity"],
       "version": "1.0.0"
     },
     {
