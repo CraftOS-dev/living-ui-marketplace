@@ -162,27 +162,9 @@
       "id": "audio-notes",
       "livingUIVersion": 2,
       "name": "Audio Notes",
-      "description": "Record from your microphone with live transcription, or upload audio files (.mp3, .wav, .m4a, .webm, .ogg), and keep structured notes per session: attendees auto-detected from the transcript, overview, executive summary, meeting notes, key highlights, and an action-item checklist. Weekly digest across meetings, TXT/SRT/Markdown export, categories, search, and starring.",
+      "description": "Record meetings (microphone, a call's tab audio, or both) with a live transcript, or import audio and video files. Everything is transcribed on this PC by a local Whisper engine (99 languages) that also tells the speakers apart by voice; CraftBot then writes the summary, key points, decisions, and action items with owners and due dates. Weekly digest, search across transcripts, and Markdown/TXT/SRT export. Windows; the speech engine (~410 MB) downloads once on first launch.",
       "folder": "audio-notes",
-      "tags": ["audio", "notes", "transcription", "meetings", "productivity"],
-      "version": "1.0.0"
-    },
-    {
-      "id": "ip-manager",
-      "livingUIVersion": 2,
-      "name": "IP Manager",
-      "description": "One register for everything an organization owns: patents, trademarks, designs, copyrights and creative works, inventions, and the agreements that license them. A rules-based deadline engine with explained dates, renewal decisions with multi-currency cost forecasts, rights availability with conflict checks, office data sync (USPTO, EPO, EUIPO, JPO) through a review inbox, and CraftBot reading documents and contracts into reviewable proposals.",
-      "folder": "ip-manager",
-      "tags": ["IP", "legal", "patents", "trademarks", "multi-user"],
-      "version": "1.0.0"
-    },
-    {
-      "id": "entertainment-ip-manager",
-      "livingUIVersion": 2,
-      "name": "Entertainment IP Manager",
-      "description": "One register for an entertainment company's IP: characters and their rights stacks, VTubers and voice talent, anime titles and production committees, songs and recordings, licences and merchandise approvals, trademarks and enforcement. A rules-based deadline engine with explained dates, a Can we? check that names who decides, and CraftBot reading contracts, statements and samples into reviewable proposals. English and Japanese.",
-      "folder": "entertainment-ip-manager",
-      "tags": ["IP", "entertainment", "licensing", "anime", "multi-user"],
+      "tags": ["audio", "notes", "transcription", "meetings", "AI", "productivity"],
       "version": "1.0.0"
     },
     {
@@ -209,7 +191,16 @@
       "name": "NetSentry", 
       "description": "Look after the server it runs on, in plain words: what runs, what to fix (each with its one button), app updates and backups, files, app settings, any app from a Compose file, disk space, programs, the firewall, SSH keys, scheduled jobs, a recorded terminal — and an agent that prepares fixes you confirm with one tap. Every change is previewed, confirmed by a person and can be undone.", 
       "folder": "netsentry", 
-      "tags": ["server", "security", "self-hosting", "monitoring", "devops", "multi-user"], 
+      "tags": ["server", "security", "self-hosting", "monitoring", "devops", "multi-user"],
+      "version": "1.0.0"
+    },
+    {
+      "id": "expenses-tracker",
+      "livingUIVersion": 2,
+      "name": "Expenses Tracker",
+      "description": "Personal expense tracker: add an expense in seconds on a keypad, then see where your money goes on a dashboard with a spending ring, daily bars, a spending calendar and a budget gauge. Monthly and per-category budgets, recurring expenses that add themselves, 12-month insights, spending in other currencies converted automatically, bank CSV import and CSV export, and CraftBot reading receipt photos and sorting uncategorized expenses for you.",
+      "folder": "expenses-tracker",
+      "tags": ["finance", "expenses", "budgeting", "receipts", "personal", "productivity"],
       "version": "1.0.0"
     }
   ]
