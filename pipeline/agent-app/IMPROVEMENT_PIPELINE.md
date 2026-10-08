@@ -4,7 +4,7 @@ The standing operating procedure for turning a human's issue list into a fixed, 
 
 Stages: **I1** parse feedback → **I2** clarify (if needed) → **I3** fix plan → **I4** implement → **I5** full re-QA → **I6** re-present. Loops with the human until `APPROVED`.
 
-Notation (README §2): `LUI = node living-ui-v2/tools/src/cli.ts`, `RUN = .../runs/<run_id>`, `APP = <RUN>/app`.
+Notation (README §2): `LUI = node agent-app-v2/tools/src/cli.ts`, `RUN = .../runs/<run_id>`, `APP = <RUN>/app`.
 
 ---
 
@@ -68,8 +68,8 @@ Scoped to the fix plan, in app-owned paths only. Additional obligations:
 
 - **Schema changes are new, additive migrations.** The human's imported copy holds *their* data — but so does `<APP>/pb/pb_data` for your own testing. Never edit an already-applied migration, never drop-and-recreate a collection that holds data. To alter a collection, write a new migration that loads it, modifies it, and saves it (`app.findCollectionByNameOrId(...)` → modify → `app.save(...)`). Relation fields still need the target's **id**, never its name.
 - **Operations stay declared.** A new or renamed route needs its `operations.json` entry updated in the same change (G1 fails ops without routes, warns about routes without ops).
-- **Update `reference/requirements.md`** whenever a round changes features, data, design, or the operations surface. It is the binding spec that travels inside the ZIP — if it drifts, the next agent to touch this app (CraftBot's `living-ui-modify`, or its launch verifier) works from a lie.
-- **Update `LIVING_UI.md`** for model/ops changes, and append a dated amendment to `DESIGN_SPEC.md` for layout/interaction feedback so the run's own specs keep matching the app.
+- **Update `reference/requirements.md`** whenever a round changes features, data, design, or the operations surface. It is the binding spec that travels inside the ZIP — if it drifts, the next agent to touch this app (CraftBot's `agent-app-modify`, or its launch verifier) works from a lie.
+- **Update `AGENT_APP.md`** for model/ops changes, and append a dated amendment to `DESIGN_SPEC.md` for layout/interaction feedback so the run's own specs keep matching the app.
 - Run `$LUI validate <APP>` as you go; one ITERATION_LOG line per issue as it lands.
 
 ## 5. Stage I5 — Re-QA
@@ -121,12 +121,12 @@ Reply **APPROVED** to finish, or list remaining/new issues. Round <n> of 5.
 - [ ] Deferrals have explicit human approval, or are presented as `needs-decision` this round.
 - [ ] Impact-matrix gate rerun evidenced in a new qa-report, ending with `G7-PASS` and a freshly built ZIP.
 - [ ] `review_round` in ITERATION_LOG matches the round number in the messages.
-- [ ] `reference/requirements.md` updated if the round changed features/data/design/operations; `LIVING_UI.md` and `DESIGN_SPEC.md` updated if the round changed model or layout.
+- [ ] `reference/requirements.md` updated if the round changed features/data/design/operations; `AGENT_APP.md` and `DESIGN_SPEC.md` updated if the round changed model or layout.
 
 ## 8. When things go wrong
 
 - **Round 5 reached without APPROVED:** stop. Present the history (rounds, what changed, what keeps bouncing) and offer: (a) park as BLOCKED for the human to take over the code, (b) human triages the remaining issues to `deferred` and approves, (c) abandon → FAILED. Do not start round 6 on your own authority.
 - **Feedback contradicts SPEC/earlier feedback:** the newest human statement wins; note the supersession in the feedback table and update SPEC §6's register and `reference/requirements.md`.
-- **Fix requires touching a system-owned file** (`frontend/src/kit/`, `main.tsx`, `config.gen.ts`, `app.css`, `index.html`, `vite.config.ts`, `tsconfig.json`, `pb/pb_hooks/_system.pb.js`, `_craftbot_bridge.js`, `manifest.json`) or anything under `living-ui-v2/`: BLOCKED — that class of fix is a platform change, not an app change. Record a `PROPOSAL:` line in LESSONS.md so it reaches the maintainer.
+- **Fix requires touching a system-owned file** (`frontend/src/kit/`, `main.tsx`, `config.gen.ts`, `app.css`, `index.html`, `vite.config.ts`, `tsconfig.json`, `pb/pb_hooks/_system.pb.js`, `_craftbot_bridge.js`, `manifest.json`) or anything under `agent-app-v2/`: BLOCKED — that class of fix is a platform change, not an app change. Record a `PROPOSAL:` line in LESSONS.md so it reaches the maintainer.
 - **A gate that was green last round is now red for an unrelated reason** (e.g. `lui validate`'s ownership step): check whether something re-vendored the kit or rewrote a hashed file. `kit-sync` re-canonizes hashes and is the *only* legitimate way that changes — if nothing ran it, an edit landed where it shouldn't have. Revert the edit; don't re-canonize to make the gate quiet.
 - **Human replies with a brand-new app idea mid-round:** that's a separate request — say so, point at [NEW_APP_PROMPT.md](NEW_APP_PROMPT.md) (start it only once the current run reaches a terminal state — one request in flight at a time), finish the current round.
