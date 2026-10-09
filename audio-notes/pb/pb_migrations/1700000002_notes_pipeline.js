@@ -11,10 +11,73 @@
  * Removed: audio_url, share_token, is_shared (never used), audio_format
  * (the stored file carries its type), key_highlights (free-form section
  * blobs; replaced by key_points + decisions as string lists), and the
- * comma-joined attendees text (replaced by a string list).
+ * comma-joined attendees text (replaced by a string list). The existing
+ * attendees and highlights are read before their columns go and written
+ * back as lists.
  */
+
+/** "Ana, Ben" -> ["Ana", "Ben"], without repeats. */
+function attendeeList(text) {
+  const out = [];
+  const seen = {};
+  for (const part of text.split(/[,;\n]/)) {
+    const name = part.trim();
+    if (name === '' || seen[name.toLowerCase()]) continue;
+    seen[name.toLowerCase()] = true;
+    out.push(name);
+  }
+  return out;
+}
+
+/** One point per line, list markers ("•", "-", "1.") dropped. */
+function points(text) {
+  const out = [];
+  for (const line of text.split(/\r?\n/)) {
+    const t = line.replace(/^\s*(?:[-*•‣◦]|\d{1,3}[.)])\s+/, '').trim();
+    if (t !== '') out.push(t);
+  }
+  return out;
+}
+
+/**
+ * key_highlights was a JSON list of sections ({ title, content }) or, in
+ * the earliest notes, plain text. A section with its own title ("Risks")
+ * prefixes its points with it; the default "Key Highlights" adds nothing.
+ */
+function keyPoints(text) {
+  if (text.trim() === '') return [];
+  let sections = null;
+  try {
+    const v = JSON.parse(text);
+    if (Array.isArray(v)) sections = v;
+  } catch {
+    /* plain text */
+  }
+  if (sections === null) return points(text);
+  let out = [];
+  for (const s of sections) {
+    if (typeof s === 'string') {
+      out = out.concat(points(s));
+      continue;
+    }
+    if (s === null || typeof s !== 'object') continue;
+    const title = typeof s.title === 'string' ? s.title.trim() : '';
+    const body = points(typeof s.content === 'string' ? s.content : '');
+    const named = title !== '' && !/^key highlights?$/i.test(title);
+    if (body.length === 0 && named) out.push(title);
+    for (const p of body) out.push(named ? title + ': ' + p : p);
+  }
+  return out;
+}
+
 migrate(
   (app) => {
+    const legacy = arrayOf(new DynamicModel({ id: '', attendees: '', key_highlights: '' }));
+    app
+      .db()
+      .newQuery("SELECT id, COALESCE(attendees, '') AS attendees, COALESCE(key_highlights, '') AS key_highlights FROM sessions")
+      .all(legacy);
+
     const notes = app.findCollectionByNameOrId('sessions');
     notes.name = 'notes';
 
@@ -65,6 +128,19 @@ migrate(
     n.fields.add(new JSONField({ name: 'decisions', maxSize: 1048576 }));
     n.fields.add(new JSONField({ name: 'attendees', maxSize: 262144 }));
     app.save(n);
+
+    // Plain SQL: the notes keep their `updated` time and no hooks run.
+    for (const row of legacy) {
+      app
+        .db()
+        .newQuery('UPDATE notes SET attendees = {:attendees}, key_points = {:key_points} WHERE id = {:id}')
+        .bind({
+          id: row.id,
+          attendees: JSON.stringify(attendeeList(row.attendees)),
+          key_points: JSON.stringify(keyPoints(row.key_highlights)),
+        })
+        .execute();
+    }
   },
   (app) => {
     const n = app.findCollectionByNameOrId('notes');

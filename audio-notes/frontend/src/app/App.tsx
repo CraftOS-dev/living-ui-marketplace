@@ -45,7 +45,7 @@ async function findNote(id: string): Promise<{ id: string; transcript_status: st
 }
 
 export function App(): React.JSX.Element {
-  const { notes, loading, error, version } = useNoteList();
+  const { notes, loading, error, version, forget } = useNoteList();
   const [view, setView] = useState<View>({ kind: 'none' });
   const [listOpen, setListOpen] = useState(true);
   const [recordOpen, setRecordOpen] = useState(false);
@@ -63,6 +63,19 @@ export function App(): React.JSX.Element {
     setView({ kind: 'note', id });
     setListOpen(false);
   }, []);
+
+  /**
+   * A deleted note leaves the list now; if it was open, the newest remaining
+   * note (or the empty state) takes its place. A view the user has moved on
+   * to meanwhile stays.
+   */
+  const removed = useCallback(
+    (id: string) => {
+      forget(id);
+      setView((v) => (v.kind === 'note' && v.id === id ? { kind: 'none' } : v));
+    },
+    [forget],
+  );
 
   const onPiece = useCallback((noteId: string, piece: Piece) => {
     let up = uploaders.current.get(noteId);
@@ -157,7 +170,7 @@ export function App(): React.JSX.Element {
       .deleteNote(id)
       .then(() => toast.success('Recording discarded'))
       .catch(() => undefined);
-    setView({ kind: 'none' });
+    removed(id);
   };
 
   /** A take recovered from this browser: back into its own note when it still exists. */
@@ -300,7 +313,7 @@ export function App(): React.JSX.Element {
             engine={engine}
             rec={rec}
             onBack={() => setListOpen(true)}
-            onDeleted={() => setView({ kind: 'none' })}
+            onDeleted={removed}
             onOpen={open}
             onDiscardRecording={discardRecording}
           />

@@ -212,6 +212,15 @@ export function TranscriptPanel({
     );
   }
 
+  // A transcript without timed lines (the app's first version kept plain text).
+  if (segments.length === 0 && live === null && note.transcript.trim() !== '') {
+    return (
+      <div className="rounded-xl border border-[var(--agent-app-border)] bg-[var(--agent-app-surface)] px-4 py-2">
+        <TextBlock value={note.transcript} onSave={(transcript) => onPatch({ transcript })} placeholder="Transcript" minRows={10} />
+      </div>
+    );
+  }
+
   if (segments.length === 0 && live === null) {
     return (
       <p className="rounded-xl border border-dashed border-[var(--agent-app-border)] px-6 py-12 text-center text-[13px] text-[var(--agent-app-muted)]">
