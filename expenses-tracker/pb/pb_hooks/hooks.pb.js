@@ -48,12 +48,19 @@ onRecordAfterCreateSuccess((e) => {
 }, 'receipts');
 
 // Every minute: re-ask about receipts whose ask was refused (trigger cooldown)
-// or lost to a restart. Touches the database only when something is pending.
+// or lost to a restart, and fail receipts the AI agent took but left
+// unrecorded. Touches the database only when something is pending.
 cronAdd('et_receipts', '* * * * *', () => {
+  const rc = require(`${__hooks}/lib_receipts.js`);
   try {
-    require(`${__hooks}/lib_receipts.js`).fireIfNeeded($app);
+    rc.fireIfNeeded($app);
   } catch (err) {
     console.error('[expenses] receipt ask failed:', err);
+  }
+  try {
+    rc.settleStale($app);
+  } catch (err) {
+    console.error('[expenses] settling stale receipts failed:', err);
   }
 });
 

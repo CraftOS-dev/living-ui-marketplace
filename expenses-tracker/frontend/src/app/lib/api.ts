@@ -30,8 +30,8 @@ function get<T>(path: string, params: Params = {}, silent = false): Promise<T> {
   return getPbClient().call((pb) => pb.send<T>(path, { method: 'GET', query }), { silent });
 }
 
-function post<T>(path: string, body: Params | Record<string, unknown>): Promise<T> {
-  return getPbClient().call((pb) => pb.send<T>(path, { method: 'POST', body }));
+function post<T>(path: string, body: Params | Record<string, unknown>, silent = false): Promise<T> {
+  return getPbClient().call((pb) => pb.send<T>(path, { method: 'POST', body }), { silent });
 }
 
 function postForm<T>(path: string, form: FormData): Promise<T> {
@@ -79,10 +79,11 @@ export const api = {
 
   categories: (month?: string): Promise<{ currency: string; categories: Category[] }> =>
     get('/api/ops/categories/list', { month }),
-  addCategory: (p: { name: string; icon: string; budget?: string }): Promise<{ category: { id: string; name: string } }> =>
-    post('/api/ops/categories/add', p),
-  updateCategory: (id: string, p: { name?: string; icon?: string; budget?: string }): Promise<unknown> =>
-    post('/api/ops/categories/update', { category_id: id, ...p }),
+  /** Quiet when `silent`: the category editor shows the error under its name field instead. */
+  addCategory: (p: { name: string; icon: string; budget?: string }, silent = false): Promise<{ category: { id: string; name: string } }> =>
+    post('/api/ops/categories/add', p, silent),
+  updateCategory: (id: string, p: { name?: string; icon?: string; budget?: string }, silent = false): Promise<unknown> =>
+    post('/api/ops/categories/update', { category_id: id, ...p }, silent),
   deleteCategory: (id: string, moveTo: string): Promise<{ moved: number }> =>
     post('/api/ops/categories/delete', { category_id: id, move_to: moveTo }),
 

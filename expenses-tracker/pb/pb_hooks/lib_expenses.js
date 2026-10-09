@@ -54,8 +54,11 @@ function categoryIndex(app) {
 
 /** Duplicate identity: same day, same amount, same note (spacing and case ignored). */
 function dedupeKey(date, amount, note) {
-  const u = require(`${__hooks}/lib_util.js`);
-  return date + '|' + amount + '|' + u.squash(note).toLowerCase();
+  // lib_util.squash inlined: this runs per CSV row, and each require costs about a millisecond.
+  const words = String(note || '')
+    .split(/\s+/)
+    .filter((x) => x !== '');
+  return date + '|' + amount + '|' + words.join(' ').toLowerCase();
 }
 
 /**

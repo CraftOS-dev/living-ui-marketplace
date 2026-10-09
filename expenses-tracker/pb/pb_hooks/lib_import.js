@@ -3,9 +3,10 @@
  * Import sessions: every CSV is stored as an `imports` record first (from a
  * local path given by the AI agent, or a file uploaded in the app), previewed
  * with lib_csv.plan(), then imported in one transaction. The mapping chosen
- * at preview is remembered, so `import.run --import_id X` imports exactly
- * what was previewed unless an option says otherwise. Undo removes every
- * expense the import added.
+ * at preview (exchange rate included) is remembered, so `import.run
+ * --import_id X` imports exactly what was previewed unless an option says
+ * otherwise. Undo removes every expense the import added; the session can
+ * then be previewed again and re-imported with the new choices.
  */
 
 const COLUMN_KEYS = ['date_column', 'amount_column', 'note_column', 'category_column'];
@@ -78,7 +79,8 @@ function readMapping(imp) {
 /**
  * Options = the mapping remembered from the last preview, then the params.
  * Choosing another date column drops the remembered date format; another
- * amount column drops the remembered decimal mark and sign rule.
+ * amount column drops the remembered decimal mark and sign rule; another
+ * currency drops the remembered exchange rate.
  */
 function options(imp, p) {
   const csv = require(`${__hooks}/lib_csv.js`);
@@ -89,9 +91,10 @@ function options(imp, p) {
   for (const k of COLUMN_KEYS) {
     if (Object.prototype.hasOwnProperty.call(saved, k)) o[k] = saved[k] === null ? 'none' : String(saved[k]);
   }
-  for (const k of ['date_format', 'decimal', 'expenses_are', 'currency', 'create_categories', 'skip_duplicates']) {
+  for (const k of ['date_format', 'decimal', 'expenses_are', 'currency', 'rate', 'create_categories', 'skip_duplicates']) {
     if (saved[k] !== undefined && saved[k] !== null) o[k] = saved[k];
   }
+  if (given.currency !== undefined && given.currency !== o.currency) delete o.rate;
   if (given.date_column !== undefined && String(given.date_column) !== String(o.date_column)) delete o.date_format;
   if (given.amount_column !== undefined && String(given.amount_column) !== String(o.amount_column)) {
     delete o.decimal;

@@ -112,11 +112,11 @@ function detectDelimiter(text) {
 
 /* ------------------------------------------------------------------ dates */
 
+/** No require() here: it runs for every cell, and each require costs about a millisecond. */
 function validDay(y, m, d) {
-  const u = require(`${__hooks}/lib_util.js`);
   if (y < 1970 || y > 2100 || m < 1 || m > 12 || d < 1) return null;
-  if (d > u.daysInMonth(y, m)) return null;
-  return y + '-' + u.pad(m) + '-' + u.pad(d);
+  if (d > new Date(Date.UTC(y, m, 0)).getUTCDate()) return null;
+  return y + '-' + (m < 10 ? '0' + m : m) + '-' + (d < 10 ? '0' + d : d);
 }
 
 function year2(yy) {
@@ -203,6 +203,22 @@ function numericChars(v) {
   return out;
 }
 
+// Short lowercase words written beside an amount: currency names and debit/credit marks.
+const AMOUNT_WORDS = ['kr', 'zł', 'zl', 'kč', 'ft', 'fr', 'rs', 'lei', 'lv', 'лв', 'din', 'cr', 'dr'];
+// Runs of anything that is not part of a written number or a currency sign.
+const WORDS = /[^\s\d.,()+\-−'’$£€¥₹₩₽₺₪฿₫₱₦₴₸₡¢]+/g;
+
+/**
+ * Whether a cell is written as an amount: a number with at most a currency
+ * sign, a currency code or a CR/DR mark beside it ("GBP 12.50", "12,50 zł",
+ * "10.00 CR"). "Bus route 88" is text, not 88.
+ */
+function amountLike(v) {
+  const words = v.match(WORDS) || [];
+  if (words.length > 2) return false;
+  return words.every((w) => w.length <= 3 && (w === w.toUpperCase() || AMOUNT_WORDS.indexOf(w.toLowerCase()) >= 0));
+}
+
 function digitsAfter(s, idx) {
   let n = 0;
   for (let i = idx + 1; i < s.length; i++) if (s.charAt(i) >= '0' && s.charAt(i) <= '9') n++;
@@ -242,6 +258,7 @@ function detectDecimal(values) {
 function parseAmount(value, decimal) {
   const v = String(value).trim();
   if (v === '') return 'empty';
+  if (!amountLike(v)) return null;
   let s = numericChars(v);
   if (!/[0-9]/.test(s)) return null;
   let neg = false;
@@ -362,7 +379,8 @@ function better(a, b) {
  * Read the file, work out the mapping (detected, then overridden by any
  * given option) and plan every row. opts: has_header, date_column,
  * amount_column, note_column, category_column, date_format, decimal,
- * expenses_are, currency, rate, create_categories, skip_duplicates.
+ * expenses_are, currency, rate ('' = look it up), create_categories,
+ * skip_duplicates.
  */
 function plan(app, path, opts) {
   const u = require(`${__hooks}/lib_util.js`);
@@ -586,6 +604,8 @@ function plan(app, path, opts) {
       decimal: decimal,
       expenses_are: expensesAre,
       currency: currency,
+      // The rate the caller gave (null = the day's rate is looked up), kept so the import converts as previewed.
+      rate: currency === home ? null : explicitRate,
       create_categories: createCategories,
       skip_duplicates: skipDuplicates,
     },
@@ -619,8 +639,11 @@ function optsFromParams(p) {
   if (ea !== '') o.expenses_are = ea;
   const cur = u.str(p, 'currency', '');
   if (cur !== '') o.currency = cur.toUpperCase();
-  const rate = u.str(p, 'rate', '');
-  if (rate !== '') o.rate = rate;
+  // "" or "auto" clears a rate given earlier: the day's rate is looked up again.
+  if (u.has(p, 'rate')) {
+    const rate = u.str(p, 'rate', '');
+    o.rate = rate.toLowerCase() === 'auto' ? '' : rate;
+  }
   if (u.str(p, 'create_categories', '') !== '') o.create_categories = u.bool(p, 'create_categories', true);
   if (u.str(p, 'skip_duplicates', '') !== '') o.skip_duplicates = u.bool(p, 'skip_duplicates', true);
   return o;

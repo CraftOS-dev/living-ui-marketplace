@@ -33,12 +33,18 @@ function IconPicker({ value, onChange }: { value: string; onChange: (v: string) 
   );
 }
 
+/** How the app compares category names: spaces collapsed, case ignored. */
+function nameKey(s: string): string {
+  return s.trim().split(/\s+/).join(' ').toLowerCase();
+}
+
 function Editor({ category, creating, onClose }: { category: Category | null; creating: boolean; onClose: () => void }): React.JSX.Element {
   const { categories } = useApp();
   const [name, setName] = useState('');
   const [icon, setIcon] = useState('tag');
   const [moveTo, setMoveTo] = useState('');
   const [busy, setBusy] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [confirmEl, confirm] = useConfirm();
   const open = creating || category !== null;
   useEffect(() => {
@@ -46,18 +52,24 @@ function Editor({ category, creating, onClose }: { category: Category | null; cr
     setName(category?.name ?? '');
     setIcon(category?.icon ?? 'tag');
     setMoveTo('');
+    setSaveError(null);
   }, [open, category]);
 
+  const taken = name.trim() === '' ? undefined : categories.find((c) => c.id !== category?.id && nameKey(c.name) === nameKey(name));
+  const nameError = taken !== undefined ? `You already have a category called "${taken.name}". Choose a different name.` : saveError;
+
   const save = async (): Promise<void> => {
-    if (name.trim() === '') return;
+    if (name.trim() === '' || taken !== undefined) return;
     setBusy(true);
     try {
-      if (category === null) await api.addCategory({ name: name.trim(), icon });
-      else await api.updateCategory(category.id, { name: name.trim(), icon });
+      if (category === null) await api.addCategory({ name: name.trim(), icon }, true);
+      else await api.updateCategory(category.id, { name: name.trim(), icon }, true);
       toast.success('Saved');
       onClose();
-    } catch {
-      /* toasted */
+    } catch (err) {
+      // Shown under the name, not as a toast: the dialog stays open, so say why.
+      const message = (err as { message?: unknown } | null)?.message;
+      setSaveError(typeof message === 'string' && message !== '' ? message : 'Could not save. Try again.');
     } finally {
       setBusy(false);
     }
@@ -91,20 +103,40 @@ function Editor({ category, creating, onClose }: { category: Category | null; cr
           <PillButton variant="light" onClick={onClose}>
             Cancel
           </PillButton>
-          <PillButton variant="dark" loading={busy} disabled={name.trim() === ''} onClick={() => void save()}>
+          <PillButton variant="dark" loading={busy} disabled={name.trim() === '' || taken !== undefined} onClick={() => void save()}>
             Save
           </PillButton>
         </>
       }
     >
       <div className="flex flex-col gap-5">
-        <div className="flex items-end gap-3">
-          <CategoryBadge icon={icon} size={44} tone="dark" />
-          <div className="flex-1">
-            <Field label="Name">
-              <input value={name} onChange={(e) => setName(e.target.value)} maxLength={40} placeholder="Coffee" className={softInput} autoFocus onKeyDown={(e) => e.key === 'Enter' && void save()} />
-            </Field>
+        <div className="flex flex-col gap-2">
+          <div className="flex items-end gap-3">
+            <CategoryBadge icon={icon} size={44} tone="dark" />
+            <div className="flex-1">
+              <Field label="Name">
+                <input
+                  value={name}
+                  onChange={(e) => {
+                    setName(e.target.value);
+                    setSaveError(null);
+                  }}
+                  maxLength={40}
+                  placeholder="Coffee"
+                  aria-invalid={nameError !== null}
+                  aria-describedby={nameError !== null ? 'category-name-error' : undefined}
+                  className={cn(softInput, nameError !== null && 'ring-2 ring-[var(--et-red-text)]')}
+                  autoFocus
+                  onKeyDown={(e) => e.key === 'Enter' && void save()}
+                />
+              </Field>
+            </div>
           </div>
+          {nameError !== null && (
+            <p id="category-name-error" role="alert" className="pl-[60px] text-[12px] font-medium text-[var(--et-red-text)]">
+              {nameError}
+            </p>
+          )}
         </div>
         <Field label="Icon">
           <IconPicker value={icon} onChange={setIcon} />

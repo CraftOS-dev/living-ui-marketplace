@@ -11,10 +11,21 @@
  * cooldown, so a fire refused for timing is retried by a minute cron; an
  * in-memory flag means the cron touches the database only when something
  * actually needs asking (never a blind poll).
+ *
+ * Settling: a receipt the AI agent took (reading) always ends done or
+ * failed. The same minute cron fails one the agent left behind: once the
+ * agent has not called the app for QUIET_MINUTES (its run is over, whatever
+ * its last chat message said), or after STALE_MINUTES in any case. The app
+ * never looks at the agent's request queue for this; that is the agent's
+ * surface. A receipts.complete that arrives later still records it.
  */
 
 const DIRTY = 'et_receipts_dirty';
 const FIRED_AT = 'et_receipts_fired_at';
+const READING = 'et_receipts_reading';
+const QUIET_MINUTES = 3;
+const STALE_MINUTES = 15;
+const STOPPED_REASON = 'Your AI agent stopped without recording this receipt. Try again, or type it in.';
 
 /** Absolute path of the stored file (the agent reads it from disk). */
 function filePath(app, rec) {
@@ -126,6 +137,62 @@ function fireIfNeeded(app) {
   return { fired: false, reason: (res && res.message) || 'refused' };
 }
 
+/** Note that a receipt is being read (checked by settleStale). */
+function markReading(app) {
+  app.store().set(READING, true);
+}
+
+/** PocketBase datetime text, comparable with `created` / `updated` in filters. */
+function pbTime(ms) {
+  return new Date(ms).toISOString().replace('T', ' ');
+}
+
+/**
+ * Fail a receipt that is still reading and has no expense. Checked inside
+ * the transaction, so a receipts.complete that lands first always wins.
+ */
+function failIfReading(app, id, reason) {
+  let changed = false;
+  app.runInTransaction((tx) => {
+    const r = tx.findRecordById('receipts', id);
+    if (r.getString('status') !== 'reading') return;
+    if (tx.findRecordsByFilter('expenses', 'receipt = {:r}', '', 1, 0, { r: id }).length > 0) return;
+    r.set('status', 'failed');
+    r.set('error', reason);
+    tx.save(r);
+    changed = true;
+  });
+  return changed;
+}
+
+/**
+ * Fail receipts the AI agent left reading: taken at least QUIET_MINUTES ago
+ * while the agent has not called the app since (its run ended without
+ * recording them), or taken STALE_MINUTES ago whatever the agent is doing.
+ * Safe to call every minute: it reads the database only while a receipt is
+ * being read, and once after a start.
+ */
+function settleStale(app) {
+  const u = require(`${__hooks}/lib_util.js`);
+  if (app.store().get('et_receipts_reading_boot') !== true) {
+    app.store().set('et_receipts_reading_boot', true);
+    app.store().set(READING, true);
+  }
+  if (app.store().get(READING) !== true) return 0;
+  const now = Date.now();
+  const quiet = now - Number(app.store().get(u.AGENT_SEEN) || 0) >= QUIET_MINUTES * 60 * 1000;
+  const quietCut = pbTime(now - QUIET_MINUTES * 60 * 1000);
+  const staleCut = pbTime(now - STALE_MINUTES * 60 * 1000);
+  const reading = app.findRecordsByFilter('receipts', "status = 'reading'", '', 0, 0);
+  let n = 0;
+  for (const r of reading) {
+    const taken = r.getString('updated');
+    if ((taken < staleCut || (quiet && taken < quietCut)) && failIfReading(app, r.id, STOPPED_REASON)) n++;
+  }
+  if (n === reading.length) app.store().set(READING, false);
+  return n;
+}
+
 module.exports = {
   filePath: filePath,
   serialize: serialize,
@@ -135,4 +202,6 @@ module.exports = {
   store: store,
   markDirty: markDirty,
   fireIfNeeded: fireIfNeeded,
+  markReading: markReading,
+  settleStale: settleStale,
 };
