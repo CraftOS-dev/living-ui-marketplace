@@ -202,6 +202,15 @@
       "folder": "expenses-tracker",
       "tags": ["finance", "expenses", "budgeting", "receipts", "personal", "productivity"],
       "version": "1.0.0"
+    },
+    {
+      "id": "inventory",
+      "livingUIVersion": 2,
+      "name": "Inventory",
+      "description": "Inventory for a small stockroom: know what you have, where it is and when to reorder. Scan stock in and out with a USB or Bluetooth barcode scanner, see every place on a 3D stockroom map, run shelf counts, print barcode and QR labels, track suppliers and purchase orders, and import or export CSV. A ledger behind every quantity makes each change one-step undoable, and CraftBot drafts purchase orders and reads packing slips for you.",
+      "folder": "inventory",
+      "tags": ["inventory", "stock", "warehouse", "barcode", "purchasing", "small-business"],
+      "version": "1.0.0"
     }
   ]
 }
