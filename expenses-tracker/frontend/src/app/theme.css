@@ -259,6 +259,11 @@ textarea::placeholder {
 }
 
 /* The kit's toasts in the app's language: dark pills above the phone bar. */
+/* Above the dialogs (z-60/61) and the entry bar (z-70): an error raised while
+ * a dialog is open must not hide behind its backdrop. */
+html .pointer-events-none.fixed.bottom-4.right-4 {
+  z-index: 80;
+}
 html .pointer-events-none.fixed.bottom-4.right-4 > button {
   border: 0;
   border-radius: 20px;

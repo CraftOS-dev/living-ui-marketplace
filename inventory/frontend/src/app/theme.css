@@ -1,0 +1,385 @@
+/*
+ * Inventory visual system (the same family as the Expenses tracker).
+ *
+ * A warm, soft dashboard: a canvas holding one app shell with large rounded
+ * corners, light and sand cards, one dark card, ink primary pills and the
+ * theme's accent. No borders on cards, generous radii, Manrope.
+ *
+ * One type scale: 12 caption, 13 secondary, 14 UI, 15 card titles and
+ * reading, 26 page titles and headline numbers. Hierarchy comes from weight
+ * and color. Spacing on a 4px grid.
+ *
+ * Every color follows the host theme. lib/themeColors.ts reads the kit's
+ * theme tokens (--agent-app-bg, -surface, -text, -muted, -border, -accent,
+ * -accent-contrast), derives the --iv-* tokens with contrast checks, and
+ * re-derives them whenever the host switches the theme pack, light or dark
+ * mode, or custom colors. Only the stock state colors (green in stock, amber
+ * low, red out) are fixed, because they carry meaning; their text variants
+ * are derived so they read on every theme.
+ */
+
+/* Shape and type are the app's own (themes never set them); this selector
+ * out-ranks the kit's :root[data-theme] defaults. */
+html:root,
+html:root[data-theme='light'],
+html:root[data-theme='dark'] {
+  --agent-app-radius: 14px;
+  --agent-app-font: 'Manrope Variable', Manrope, system-ui, sans-serif;
+}
+
+html:root {
+  /* The accent and muted text as they read on ordinary surfaces. */
+  --iv-accent: var(--iv-accent-base);
+  --iv-on-accent: var(--iv-on-accent-base);
+  --iv-muted: var(--iv-muted-base);
+  --iv-red-text: var(--iv-red-text-base);
+  --iv-track: var(--iv-line);
+
+  /* Fixed state colors (fills); their text variants are derived. */
+  --iv-red: #de4b33;
+  --iv-green: #4f9a6c;
+  --iv-amber: #e2a43a;
+
+  /* Label previews show the printed label: black on white paper. */
+  --iv-paper: #ffffff;
+  --iv-paper-ink: #111111;
+
+  --iv-shadow: 0 24px 48px -28px rgba(0, 0, 0, 0.35);
+}
+
+html:root,
+html:root[data-theme='light'] {
+  color-scheme: light;
+}
+
+html:root[data-theme='dark'] {
+  color-scheme: dark;
+  --iv-shadow: 0 24px 48px -28px rgba(0, 0, 0, 0.8);
+}
+
+/* Surface scopes: inside them the accent and muted text switch to the
+ * variants derived for that background, so nothing sits on its own color. */
+.iv-on-sand {
+  --iv-muted: var(--iv-muted-sand);
+  --iv-track: var(--iv-track-sand);
+}
+.iv-on-dark {
+  --iv-accent: var(--iv-accent-dark);
+  --iv-on-accent: var(--iv-on-accent-dark);
+  --iv-muted: var(--iv-on-dark-muted);
+  --iv-red-text: var(--iv-red-on-dark);
+}
+.iv-on-ink {
+  --iv-accent: var(--iv-accent-ink);
+  --iv-on-accent: var(--iv-on-accent-ink);
+}
+.iv-on-card {
+  --iv-accent: var(--iv-accent-base);
+  --iv-on-accent: var(--iv-on-accent-base);
+  --iv-muted: var(--iv-muted-base);
+  --iv-red-text: var(--iv-red-text-base);
+  --iv-track: var(--iv-line);
+}
+
+html,
+body {
+  background: var(--iv-canvas);
+  color: var(--iv-ink);
+  font-family: 'Manrope Variable', Manrope, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Base text size on body only: the root stays 16px so rem spacing is true. */
+body {
+  font-size: 14px;
+  line-height: 20px;
+}
+
+/* The kit's 16px and 18px steps fold into the scale. */
+html .text-base,
+html .text-lg {
+  font-size: 15px;
+  line-height: 22px;
+}
+
+/* Everything that reacts to the mouse shows the pointer. */
+@layer base {
+  button:not(:disabled),
+  a[href],
+  [role='button'],
+  [role='tab'],
+  [role='radio'],
+  [role='checkbox'],
+  [role='menuitem'],
+  [role='switch'],
+  [role='option'],
+  select:not(:disabled),
+  summary,
+  label:has(input),
+  label[for],
+  input[type='checkbox'],
+  input[type='radio'],
+  input[type='date'],
+  input[type='file'],
+  input[type='date']::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+  }
+  button:disabled,
+  select:disabled {
+    cursor: not-allowed;
+  }
+  /* Text that is edited in place shows the pointer until it has focus. */
+  .editable:not(:focus) {
+    cursor: pointer;
+  }
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Stockroom map: in arrange mode a place's label is a handle that moves it. */
+.iv-map-label.iv-map-arrange {
+  cursor: move;
+}
+/* A narrow map labels its platforms by name only. */
+.iv-map-compact .iv-map-label {
+  padding: 4px 10px;
+}
+.iv-map-compact .iv-map-meta {
+  display: none;
+}
+
+/* Native <select> popups paint their options with these. */
+select option {
+  background-color: var(--iv-card);
+  color: var(--iv-ink);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--iv-muted);
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--iv-line);
+  border-radius: 999px;
+}
+
+/* Entrances. */
+@keyframes iv-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.iv-rise {
+  animation: iv-rise 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.iv-d1 {
+  animation-delay: 60ms;
+}
+.iv-d2 {
+  animation-delay: 120ms;
+}
+.iv-d3 {
+  animation-delay: 180ms;
+}
+.iv-d4 {
+  animation-delay: 240ms;
+}
+.iv-d5 {
+  animation-delay: 300ms;
+}
+
+@keyframes iv-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+.iv-pop {
+  animation: iv-pop 200ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes iv-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+.iv-pulse {
+  animation: iv-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes iv-caret {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+.iv-caret {
+  animation: iv-caret 1s steps(1) infinite;
+}
+
+@keyframes iv-grow {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+.iv-grow {
+  transform-origin: bottom;
+  animation: iv-grow 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes iv-draw {
+  from {
+    opacity: 0;
+    transform: rotate(-12deg) scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(0) scale(1);
+  }
+}
+.iv-draw {
+  transform-origin: center;
+  animation: iv-draw 640ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .iv-rise,
+  .iv-pop,
+  .iv-pulse,
+  .iv-caret,
+  .iv-grow,
+  .iv-draw {
+    animation: none;
+  }
+}
+
+/* The kit's toasts in the app's language: dark pills above the phone bar. */
+html .pointer-events-none.fixed.bottom-4.right-4 > button {
+  border: 0;
+  border-radius: 20px;
+  background: var(--iv-ink);
+  color: var(--iv-shell);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 12px 20px;
+  box-shadow: 0 18px 40px -18px rgba(29, 28, 26, 0.6);
+}
+html .pointer-events-none.fixed.bottom-4.right-4 > button.text-red-700 {
+  background: var(--iv-red);
+  color: #ffffff;
+}
+@media (max-width: 767px) {
+  html .pointer-events-none.fixed.bottom-4.right-4 {
+    bottom: 96px;
+    right: 16px;
+    left: 16px;
+    width: auto;
+  }
+}
+
+/* A scan landed: the row it touched glows once. */
+@keyframes iv-flash {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--iv-accent) 70%, transparent);
+  }
+  100% {
+    box-shadow: 0 0 0 10px color-mix(in srgb, var(--iv-accent) 0%, transparent);
+  }
+}
+.iv-flash {
+  animation: iv-flash 700ms ease-out 1;
+}
+
+/* A scan that matched nothing: a short shake. */
+@keyframes iv-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20%,
+  60% {
+    transform: translateX(-6px);
+  }
+  40%,
+  80% {
+    transform: translateX(6px);
+  }
+}
+.iv-shake {
+  animation: iv-shake 360ms ease-in-out 1;
+}
+
+@keyframes iv-sweep {
+  from {
+    transform: translateY(-100%);
+  }
+  to {
+    transform: translateY(100%);
+  }
+}
+.iv-sweep {
+  animation: iv-sweep 1.8s ease-in-out infinite alternate;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .iv-flash,
+  .iv-shake,
+  .iv-sweep {
+    animation: none;
+  }
+}
+
+/* Printing labels: only the label sheet goes to paper. */
+.iv-print-only {
+  display: none;
+}
+@media print {
+  html,
+  body {
+    background: #ffffff !important;
+  }
+  body * {
+    visibility: hidden !important;
+  }
+  .iv-print-only,
+  .iv-print-only * {
+    visibility: visible !important;
+  }
+  .iv-print-only {
+    display: block !important;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+}

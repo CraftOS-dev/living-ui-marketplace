@@ -601,7 +601,7 @@
     },
     {
       "name": "receipts.start",
-      "description": "Mark a receipt as being read (state reading).",
+      "description": "Mark a receipt as being read (state reading). Always finish it with receipts.complete or receipts.fail: one left reading is marked failed once you stop calling the app.",
       "params": {
         "receipt_id": {
           "type": "string",
@@ -786,7 +786,7 @@
         },
         "rate": {
           "type": "string",
-          "description": "Home currency per 1 unit of `currency`, only when no rate can be had from the rate services"
+          "description": "Home currency per 1 unit of `currency`, only when no rate can be had from the rate services. Remembered with the preview, so import.run converts at it too; auto = look the day rate up again"
         },
         "create_categories": {
           "type": "boolean",
@@ -883,7 +883,7 @@
         },
         "rate": {
           "type": "string",
-          "description": "Home currency per 1 unit of `currency`, only when no rate can be had from the rate services"
+          "description": "Home currency per 1 unit of `currency`, only when no rate can be had from the rate services. Remembered with the preview, so import.run converts at it too; auto = look the day rate up again"
         },
         "create_categories": {
           "type": "boolean",

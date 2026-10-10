@@ -72,7 +72,7 @@ export function NoteView({
   engine: EngineStatus | null;
   rec: Recorder;
   onBack: () => void;
-  onDeleted: () => void;
+  onDeleted: (id: string) => void;
   onOpen: (id: string) => void;
   onDiscardRecording: () => void;
 }): React.JSX.Element {
@@ -133,7 +133,7 @@ export function NoteView({
         .deleteNote(note.id)
         .then(() => {
           toast.success('Note deleted');
-          onDeleted();
+          onDeleted(note.id);
         })
         .catch(() => undefined);
     });

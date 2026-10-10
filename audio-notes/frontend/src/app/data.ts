@@ -8,14 +8,28 @@ import { LIST_FIELDS, type EngineStatus, type NoteSummary } from './types.ts';
  * The sidebar list: live, but only the light fields. (The kit's
  * useCollection loads whole records, and every worker save would re-download
  * every transcript.) `version` bumps on every refresh so views derived from
- * the notes (the digest) know to reload.
+ * the notes (the digest) know to reload. A deleted note leaves the list at
+ * once (forget), not at the next refresh.
  */
-export function useNoteList(): { notes: NoteSummary[]; loading: boolean; error: string | null; version: number } {
+export function useNoteList(): {
+  notes: NoteSummary[];
+  loading: boolean;
+  error: string | null;
+  version: number;
+  forget: (id: string) => void;
+} {
   const [notes, setNotes] = useState<NoteSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [version, setVersion] = useState(0);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Deleted ids: a list fetched before the delete went through must not bring the note back.
+  const gone = useRef(new Set<string>());
+
+  const forget = useCallback((id: string) => {
+    gone.current.add(id);
+    setNotes((list) => list.filter((n) => n.id !== id));
+  }, []);
 
   const fetchAll = useCallback(async () => {
     try {
@@ -23,7 +37,7 @@ export function useNoteList(): { notes: NoteSummary[]; loading: boolean; error: 
         (pb) => pb.collection('notes').getFullList<NoteSummary>({ sort: '-date,-created', fields: LIST_FIELDS }),
         { silent: true },
       );
-      setNotes(list);
+      setNotes(list.filter((n) => !gone.current.has(n.id)));
       setError(null);
       setVersion((v) => v + 1);
     } catch (err) {
@@ -40,7 +54,8 @@ export function useNoteList(): { notes: NoteSummary[]; loading: boolean; error: 
     void getPbClient()
       .call(
         (pb) =>
-          pb.collection('notes').subscribe('*', () => {
+          pb.collection('notes').subscribe('*', (e) => {
+            if (e.action === 'delete') forget(e.record.id);
             if (timer.current !== null) clearTimeout(timer.current);
             timer.current = setTimeout(() => void fetchAll(), 150);
           }),
@@ -56,9 +71,9 @@ export function useNoteList(): { notes: NoteSummary[]; loading: boolean; error: 
       if (timer.current !== null) clearTimeout(timer.current);
       if (unsubscribe !== null) void unsubscribe();
     };
-  }, [fetchAll]);
+  }, [fetchAll, forget]);
 
-  return { notes, loading, error, version };
+  return { notes, loading, error, version, forget };
 }
 
 /** The engine download is in progress (or about to start). */

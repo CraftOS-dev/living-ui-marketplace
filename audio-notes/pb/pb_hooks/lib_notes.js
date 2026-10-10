@@ -116,14 +116,15 @@ function actionList(v) {
     if (a === null || typeof a !== 'object' || typeof a.id !== 'string' || a.id === '' || typeof a.title !== 'string') {
       throw new OpError(400, 'each action item needs an id and a title');
     }
-    const due = typeof a.due === 'string' ? a.due : '';
+    // completed / dueDate: the first version's names, still accepted.
+    const due = typeof a.due === 'string' ? a.due : typeof a.dueDate === 'string' ? a.dueDate : '';
     if (due !== '' && !isDay(due)) throw new OpError(400, 'action item due date must be YYYY-MM-DD');
     return {
       id: a.id,
       title: a.title,
       assignee: typeof a.assignee === 'string' ? a.assignee : '',
       due: due,
-      done: a.done === true,
+      done: typeof a.done === 'boolean' ? a.done : a.completed === true,
     };
   });
 }

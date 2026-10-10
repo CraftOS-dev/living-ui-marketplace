@@ -187,6 +187,7 @@ routerAdd('POST', '/api/ops/receipts/start', (e) =>
     rec.set('status', 'reading');
     rec.set('error', '');
     app.save(rec);
+    rc.markReading(app);
     return rc.serialize(app, rec, null);
   }),
 );
@@ -286,9 +287,13 @@ routerAdd('POST', '/api/ops/import/preview', (e) =>
     const opts = im.options(imp, p);
     const csv = require(`${__hooks}/lib_csv.js`);
     const pl = csv.plan(app, im.filePath(app, imp), opts);
-    imp.set('rows', pl.counts.rows);
-    if (imp.getString('status') === 'previewed') imp.set('mapping', im.savedMapping(pl));
-    app.save(imp);
+    // Remember these choices for the import, unless the file is already in
+    // (its record describes what was imported). An undone file can be re-imported.
+    if (imp.getString('status') !== 'imported') {
+      imp.set('rows', pl.counts.rows);
+      imp.set('mapping', im.savedMapping(pl));
+      app.save(imp);
+    }
     return im.previewOut(imp, pl, u.int(p, 'show', 50, 1, 500));
   }),
 );

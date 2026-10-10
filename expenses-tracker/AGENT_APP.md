@@ -75,7 +75,7 @@ Routes live in `pb/pb_hooks/ops.pb.js` and `ops_more.pb.js`; logic in the
 
 | Trigger | Fired when | What the agent does |
 |---------|------------|--------------------|
-| `receipts_waiting` | A receipt is uploaded with status waiting (hook), or retried; a minute cron re-asks when a fire was refused by the cooldown or lost to a restart | Reads every waiting receipt and records it with `receipts.complete`, or `receipts.fail` with a reason |
+| `receipts_waiting` | A receipt is uploaded with status waiting (hook), or retried; a minute cron re-asks when a fire was refused by the cooldown or lost to a restart | Reads every waiting receipt and records it with `receipts.complete`, or `receipts.fail` with a reason. A receipt it took but left `reading` is marked failed by `et_receipts` (below), so a run that only reports in chat never leaves one busy |
 | `categorize_requested` | The user presses "Ask your AI agent to sort them" on the Expenses page | Puts uncategorized expenses into existing categories with `expenses.set-category` |
 
 ## External data
@@ -87,13 +87,18 @@ Routes live in `pb/pb_hooks/ops.pb.js` and `ops_more.pb.js`; logic in the
 
 ## Background jobs
 
-- `et_receipts` (every minute): asks the agent about waiting receipts only when an ask is outstanding (in-memory flag; no blind polling).
+- `et_receipts` (every minute): asks the agent about waiting receipts only when an ask is outstanding, and marks failed any receipt the agent left `reading`: taken 3+ minutes ago while the agent has made no op call for 3 minutes (`lib_util.handle` stamps every agent call), or taken 15+ minutes ago regardless. A later `receipts.complete` still records it. Both use in-memory flags; no blind polling. App hooks never read the `agent_requests` queue (the validate gate rejects any mention): it is the agent's surface.
 - `et_recurring` (hourly at :07) and `et_recurring_boot` (once after start): add due recurring expenses.
 
 ## Gotchas
 
 - Hooks do not hot-reload (`--hooksWatch=false`): restart the app after any hook change.
 - `getString('mapping')` reads the imports json field; never parse a raw byte slice.
+- The import mapping includes an explicit `rate` (cleared by another `currency` or `rate=auto`), and every preview of a file that is not currently imported (previewed or undone) saves it, so `import.run --import_id` converts and maps exactly as last previewed. The Import page sends mapping changes one at a time for the same reason.
+- `require()` costs about a millisecond per call in the hooks VM: never call it inside per-row or per-cell helpers (`lib_csv.validDay`, `lib_expenses.dedupeKey` stay require-free). With it there, a 1,000-row CSV preview took 12 s; without, about 1 s.
+- `lib_util.list` keeps a one-item list a list (`["id"]`, not `"id"`); only `scalar()` unwraps multipart one-element values.
+- CSV amounts must be written as amounts (`lib_csv.amountLike`): a number with at most a currency sign or code or a CR/DR mark. Text such as "Bus route 88" is a description, not 88.
+- The kit's toasts are lifted above the app's dialogs in `theme.css`; forms inside a dialog still show their own errors in place (the category editor checks names as you type).
 - Receipts `file_path` is absolute so the agent can read the file from disk.
 - The UI subscribes to all collections once at startup (`lib/live.ts`): the SDK drops subscriptions made while its first connection is being set up.
 - The base font size sits on `body` only; putting it on `html` shrinks every rem-based size.

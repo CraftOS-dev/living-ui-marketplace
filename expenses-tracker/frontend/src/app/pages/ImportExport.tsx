@@ -3,7 +3,7 @@
  * exactly what will be added before anything is written, skips what is
  * already there, and can be undone.
  */
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Download, FileUp, RotateCcw, Sparkles } from 'lucide-react';
 import { cn, toast } from '../../kit/index.ts';
 import { DropZone } from '../components/DropZone.tsx';
@@ -47,42 +47,65 @@ function lastDay(month: string): string {
   return `${month}-${String(d).padStart(2, '0')}`;
 }
 
+type Choice = string | boolean;
+
 function ImportBox(): React.JSX.Element {
   const { currency } = useApp();
   const [preview, setPreview] = useState<ImportPreview | null>(null);
   const [busy, setBusy] = useState(false);
+  // Choices made but not yet reflected in a preview, shown in their controls meanwhile.
+  const [pending, setPending] = useState<Record<string, Choice>>({});
+  const queue = useRef<Promise<void>>(Promise.resolve());
+  const seq = useRef(0);
+  const session = useRef<string | null>(null);
+  const settling = Object.keys(pending).length > 0;
 
+  const show = (next: ImportPreview | null): void => {
+    session.current = next?.import_id ?? null;
+    seq.current += 1;
+    setPending({});
+    setPreview(next);
+  };
   const start = async (files: File[]): Promise<void> => {
     const f = files[0];
     if (f === undefined) return;
     setBusy(true);
     try {
-      setPreview(await api.previewUpload(f));
+      show(await api.previewUpload(f));
     } catch {
       /* toasted */
     } finally {
       setBusy(false);
     }
   };
-  // Only the changed choice is sent; the app remembers the rest from the last preview.
-  const change = async (key: string, value: string | boolean): Promise<void> => {
-    if (preview === null) return;
-    setBusy(true);
-    try {
-      setPreview(await api.preview(preview.import_id, { [key]: value }));
-    } catch {
-      /* toasted */
-    } finally {
-      setBusy(false);
-    }
+  // Only the changed choice is sent; the app remembers the rest from the last
+  // preview. Changes go one at a time, in the order made, so each starts from
+  // the choices the one before saved and a slow reply never undoes a later one.
+  const change = (key: string, value: Choice): void => {
+    const id = session.current;
+    if (id === null) return;
+    const mine = ++seq.current;
+    setPending((p) => ({ ...p, [key]: value }));
+    queue.current = queue.current.then(async () => {
+      let next: ImportPreview | null = null;
+      try {
+        next = await api.preview(id, { [key]: value });
+      } catch {
+        /* toasted */
+      }
+      if (session.current !== id) return;
+      if (next !== null) setPreview(next);
+      // The last change answered: every choice is in the preview now (or, after an error, back to what the app has).
+      if (mine === seq.current) setPending({});
+    });
   };
   const run = async (): Promise<void> => {
-    if (preview === null) return;
+    if (preview === null || settling) return;
     setBusy(true);
     try {
       const r = await api.runImport(preview.import_id, {});
       toast.success(r.message);
-      setPreview(null);
+      show(null);
     } catch {
       /* toasted */
     } finally {
@@ -103,6 +126,11 @@ function ImportBox(): React.JSX.Element {
 
   const m = preview.mapping;
   const col = (v: number | null): string => (v === null ? 'none' : String(v));
+  const shown = (key: string, saved: string): string => {
+    const v = pending[key];
+    return typeof v === 'string' ? v : saved;
+  };
+  const header = typeof pending['has_header'] === 'boolean' ? pending['has_header'] : preview.has_header;
   const columns = (optional: boolean): { value: string; label: string }[] => [
     ...(optional ? [{ value: 'none', label: 'None' }] : []),
     ...preview.columns.map((c) => ({ value: String(c.index), label: preview.has_header || c.samples[0] === undefined ? c.name : `${c.name}: ${c.samples[0].slice(0, 14)}` })),
@@ -114,28 +142,28 @@ function ImportBox(): React.JSX.Element {
     <div className="flex flex-col gap-5">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="min-w-0 truncate text-[14px] font-bold">{preview.filename}</p>
-        <TextLink tone="muted" onClick={() => setPreview(null)}>
+        <TextLink tone="muted" onClick={() => show(null)}>
           Choose another file
         </TextLink>
       </div>
 
       <div className={cn('grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4', busy && 'opacity-60')}>
-        <PillSelect soft label="Date" value={col(m.date_column)} onChange={(v) => void change('date_column', v)} options={columns(false)} />
-        <PillSelect soft label="Amount spent" value={col(m.amount_column)} onChange={(v) => void change('amount_column', v)} options={columns(false)} />
-        <PillSelect soft label="Description" value={col(m.note_column)} onChange={(v) => void change('note_column', v)} options={columns(true)} />
-        <PillSelect soft label="Category" value={col(m.category_column)} onChange={(v) => void change('category_column', v)} options={columns(true)} />
+        <PillSelect soft label="Date" value={shown('date_column', col(m.date_column))} onChange={(v) => change('date_column', v)} options={columns(false)} />
+        <PillSelect soft label="Amount spent" value={shown('amount_column', col(m.amount_column))} onChange={(v) => change('amount_column', v)} options={columns(false)} />
+        <PillSelect soft label="Description" value={shown('note_column', col(m.note_column))} onChange={(v) => change('note_column', v)} options={columns(true)} />
+        <PillSelect soft label="Category" value={shown('category_column', col(m.category_column))} onChange={(v) => change('category_column', v)} options={columns(true)} />
         <PillSelect
           soft
           label="Date format"
-          value={m.date_format ?? ''}
-          onChange={(v) => void change('date_format', v)}
+          value={shown('date_format', m.date_format ?? '')}
+          onChange={(v) => change('date_format', v)}
           options={formats.length > 0 ? formats.map((f) => ({ value: f, label: FORMAT_WORDS[f] ?? f })) : [{ value: '', label: 'No dates found' }]}
         />
         <PillSelect
           soft
           label="Spending is"
-          value={m.expenses_are}
-          onChange={(v) => void change('expenses_are', v)}
+          value={shown('expenses_are', m.expenses_are)}
+          onChange={(v) => change('expenses_are', v)}
           options={[
             { value: 'negative', label: 'Negative amounts' },
             { value: 'positive', label: 'Positive amounts' },
@@ -145,8 +173,8 @@ function ImportBox(): React.JSX.Element {
         <PillSelect
           soft
           label="Decimal mark"
-          value={m.decimal}
-          onChange={(v) => void change('decimal', v)}
+          value={shown('decimal', m.decimal)}
+          onChange={(v) => change('decimal', v)}
           options={[
             { value: '.', label: '1,234.50' },
             { value: ',', label: '1.234,50' },
@@ -155,63 +183,65 @@ function ImportBox(): React.JSX.Element {
         <div className="flex flex-col gap-2">
           <span className="px-1 text-[13px] font-semibold text-[var(--et-ink-2)]">First row is names</span>
           <div className="flex h-11 items-center px-1">
-            <Toggle checked={preview.has_header} onChange={(v) => void change('has_header', v)} label="First row is column names" />
+            <Toggle checked={header} onChange={(v) => change('has_header', v)} label="First row is column names" />
           </div>
         </div>
       </div>
 
-      {preview.date_format_ambiguous && (
-        <p className="rounded-[18px] bg-[var(--et-accent)]/30 px-4 py-3 text-[13px] font-semibold">
-          Dates like 03/04 can be read either way. Check the dates below and change the date format if they are wrong.
-        </p>
-      )}
+      <div className={cn('flex flex-col gap-5 transition-opacity', settling && 'opacity-60')} aria-busy={settling}>
+        {preview.date_format_ambiguous && (
+          <p className="rounded-[18px] bg-[var(--et-accent)]/30 px-4 py-3 text-[13px] font-semibold">
+            Dates like 03/04 can be read either way. Check the dates below and change the date format if they are wrong.
+          </p>
+        )}
 
-      <div className="flex flex-wrap items-center gap-2">
-        <StatusPill tone="good">
-          {c.new} new · {money(preview.total_minor, currency)}
-        </StatusPill>
-        {c.duplicate > 0 && <StatusPill tone="neutral">{c.duplicate} already here</StatusPill>}
-        {c.not_expense > 0 && <StatusPill tone="neutral">{c.not_expense} money in, skipped</StatusPill>}
-        {c.empty > 0 && <StatusPill tone="neutral">{c.empty} without an amount</StatusPill>}
-        {c.invalid > 0 && <StatusPill tone="bad">{c.invalid} unreadable</StatusPill>}
-        {preview.new_categories.length > 0 && <span className="text-[12px] text-[var(--et-ink-2)]">New categories: {preview.new_categories.join(', ')}</span>}
-      </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <StatusPill tone="good">
+            {c.new} new · {money(preview.total_minor, currency)}
+          </StatusPill>
+          {c.duplicate > 0 && <StatusPill tone="neutral">{c.duplicate} already here</StatusPill>}
+          {c.not_expense > 0 && <StatusPill tone="neutral">{c.not_expense} money in, skipped</StatusPill>}
+          {c.empty > 0 && <StatusPill tone="neutral">{c.empty} without an amount</StatusPill>}
+          {c.invalid > 0 && <StatusPill tone="bad">{c.invalid} unreadable</StatusPill>}
+          {preview.new_categories.length > 0 && <span className="text-[12px] text-[var(--et-ink-2)]">New categories: {preview.new_categories.join(', ')}</span>}
+        </div>
 
-      <div className="overflow-x-auto rounded-[20px] bg-[var(--et-row)]">
-        <table className="w-full min-w-[36rem] text-left text-[13px]">
-          <thead>
-            <tr className="text-[12px] text-[var(--et-muted)]">
-              <th className="px-4 pb-2 pt-3 font-semibold">Line</th>
-              <th className="px-4 pb-2 pt-3 font-semibold">Date</th>
-              <th className="px-4 pb-2 pt-3 font-semibold">Description</th>
-              <th className="px-4 pb-2 pt-3 font-semibold">Category</th>
-              <th className="px-4 pb-2 pt-3 text-right font-semibold">Amount</th>
-              <th className="px-4 pb-2 pt-3 font-semibold">Result</th>
-            </tr>
-          </thead>
-          <tbody>
-            {preview.rows.slice(0, 30).map((r) => (
-              <tr key={r.line} className={cn('border-t border-[var(--et-line)]', r.status !== 'new' && 'text-[var(--et-muted)]')}>
-                <td className="num px-4 py-2">{r.line}</td>
-                <td className="num whitespace-nowrap px-4 py-2">{r.date ?? ''}</td>
-                <td className="max-w-[16rem] truncate px-4 py-2 font-semibold">{r.note}</td>
-                <td className="px-4 py-2">{r.category ?? ''}</td>
-                <td className="num px-4 py-2 text-right font-semibold">{r.amount ?? ''}</td>
-                <td className="px-4 py-2" title={r.problem}>
-                  <StatusPill tone={STATUS[r.status].tone}>{STATUS[r.status].label}</StatusPill>
-                </td>
+        <div className="overflow-x-auto rounded-[20px] bg-[var(--et-row)]">
+          <table className="w-full min-w-[36rem] text-left text-[13px]">
+            <thead>
+              <tr className="text-[12px] text-[var(--et-muted)]">
+                <th className="px-4 pb-2 pt-3 font-semibold">Line</th>
+                <th className="px-4 pb-2 pt-3 font-semibold">Date</th>
+                <th className="px-4 pb-2 pt-3 font-semibold">Description</th>
+                <th className="px-4 pb-2 pt-3 font-semibold">Category</th>
+                <th className="px-4 pb-2 pt-3 text-right font-semibold">Amount</th>
+                <th className="px-4 pb-2 pt-3 font-semibold">Result</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {preview.rows.slice(0, 30).map((r) => (
+                <tr key={r.line} className={cn('border-t border-[var(--et-line)]', r.status !== 'new' && 'text-[var(--et-muted)]')}>
+                  <td className="num px-4 py-2">{r.line}</td>
+                  <td className="num whitespace-nowrap px-4 py-2">{r.date ?? ''}</td>
+                  <td className="max-w-[16rem] truncate px-4 py-2 font-semibold">{r.note}</td>
+                  <td className="px-4 py-2">{r.category ?? ''}</td>
+                  <td className="num px-4 py-2 text-right font-semibold">{r.amount ?? ''}</td>
+                  <td className="px-4 py-2" title={r.problem}>
+                    <StatusPill tone={STATUS[r.status].tone}>{STATUS[r.status].label}</StatusPill>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        {preview.rows.length > 30 && <p className="px-1 text-[12px] text-[var(--et-muted)]">Showing the first 30 of {c.rows} rows.</p>}
       </div>
-      {preview.rows.length > 30 && <p className="px-1 text-[12px] text-[var(--et-muted)]">Showing the first 30 of {c.rows} rows.</p>}
 
       <div className="flex flex-wrap justify-end gap-2">
-        <PillButton variant="light" className="bg-[var(--et-row)]" onClick={() => setPreview(null)}>
+        <PillButton variant="light" className="bg-[var(--et-row)]" onClick={() => show(null)}>
           Cancel
         </PillButton>
-        <PillButton variant="dark" icon={FileUp} dot loading={busy} disabled={c.new === 0} onClick={() => void run()}>
+        <PillButton variant="dark" icon={FileUp} dot loading={busy || settling} disabled={c.new === 0} onClick={() => void run()}>
           {c.new === 0 ? 'Nothing new to import' : `Import ${c.new} ${c.new === 1 ? 'expense' : 'expenses'}`}
         </PillButton>
       </div>

@@ -138,6 +138,8 @@ export interface ImportMapping {
   decimal: '.' | ',';
   expenses_are: 'negative' | 'positive' | 'all';
   currency: string;
+  /** Exchange rate given for the import; null = the day's rate is looked up. */
+  rate: number | null;
   create_categories: boolean;
   skip_duplicates: boolean;
 }

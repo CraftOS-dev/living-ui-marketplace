@@ -8,6 +8,9 @@
  * valid example, so the caller can fix the call in one step.
  */
 
+/** app.store() key: when the AI agent last called an op (ms), see lib_receipts.settleStale. */
+const AGENT_SEEN = 'et_agent_seen';
+
 function fail(status, message) {
   const err = new Error(message);
   err.status = status;
@@ -23,6 +26,7 @@ function handle(e, fn) {
     for (const k of Object.keys(query)) params[k] = query[k];
     const body = info.body || {};
     for (const k of Object.keys(body)) params[k] = body[k];
+    if (fromAgent(e)) e.app.store().set(AGENT_SEEN, Date.now());
     const out = fn(params, e.app, e);
     return e.json(200, out === undefined ? { ok: true } : out);
   } catch (err) {
@@ -95,10 +99,15 @@ function oneOf(p, name, values, dflt) {
   return v;
 }
 
-/** A list: a real array, or (from the CLI) a JSON array string. */
+/**
+ * A list: a real array, or (from the CLI) a JSON array string. Not scalar():
+ * a one-item list ["id"] is a list, never the bare "id". Only a multipart
+ * field holding one JSON array string is unwrapped.
+ */
 function list(p, name) {
   if (!has(p, name)) return undefined;
-  let v = scalar(p[name]);
+  let v = p[name];
+  if (Array.isArray(v) && v.length === 1 && typeof v[0] === 'string' && v[0].trim().charAt(0) === '[') v = v[0];
   if (typeof v === 'string') {
     try {
       v = JSON.parse(v);
@@ -194,6 +203,7 @@ function squash(s) {
 }
 
 module.exports = {
+  AGENT_SEEN: AGENT_SEEN,
   fail: fail,
   handle: handle,
   fromAgent: fromAgent,
