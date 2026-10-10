@@ -1,0 +1,2270 @@
+{
+  "opsVersion": 1,
+  "operations": [
+    {
+      "name": "health",
+      "description": "Liveness check (PocketBase built-in).",
+      "system": true,
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/health"
+      }
+    },
+    {
+      "name": "ops.list",
+      "description": "Return this operations manifest.",
+      "system": true,
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/_ops"
+      }
+    },
+    {
+      "name": "app.guide",
+      "description": "START HERE: conventions (items, locations, quantities, costs, statuses), the locations and categories, and ready-to-run recipes for deliveries, reorders, counts, imports and history.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/app/guide"
+      }
+    },
+    {
+      "name": "settings.get",
+      "description": "Currency, whether stock may go below zero, and whether the AI agent drafts reorders on its own.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/settings/get"
+      }
+    },
+    {
+      "name": "settings.update",
+      "description": "Change settings. Switching currency relabels costs without converting them.",
+      "params": {
+        "currency": {
+          "type": "string",
+          "description": "3-letter ISO currency code, e.g. EUR"
+        },
+        "currency_confirmed": {
+          "type": "boolean",
+          "description": "Mark the currency as chosen by the user"
+        },
+        "allow_negative": {
+          "type": "boolean",
+          "description": "Allow stock to go below zero"
+        },
+        "auto_restock": {
+          "type": "boolean",
+          "description": "Ask the AI agent to draft purchase orders whenever an item newly runs low"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/settings/update"
+      }
+    },
+    {
+      "name": "dashboard.summary",
+      "description": "Home overview: stock value and units, item counts per status, the last 30 days of stock in and out, what needs attention, most used items, idle stock, recent history, incoming orders, stock per top-level place.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/dashboard/summary"
+      }
+    },
+    {
+      "name": "lookup.code",
+      "description": "What a scanned or typed code is: an item (by barcode or SKU, with full details), a location (by its code), or none yet (type none).",
+      "params": {
+        "code": {
+          "type": "string",
+          "description": "The scanned or typed code",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/lookup/code"
+      }
+    },
+    {
+      "name": "categories.list",
+      "description": "Categories with how many active items each has, and the icons a category can use.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/categories/list"
+      }
+    },
+    {
+      "name": "categories.add",
+      "description": "Add a category.",
+      "params": {
+        "name": {
+          "type": "string",
+          "description": "Category name",
+          "required": true
+        },
+        "icon": {
+          "type": "string",
+          "description": "Icon name from categories.list icons (default package)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/categories/add"
+      }
+    },
+    {
+      "name": "categories.update",
+      "description": "Rename a category, change its icon or its position.",
+      "params": {
+        "category": {
+          "type": "string",
+          "description": "Category name or id",
+          "required": true
+        },
+        "name": {
+          "type": "string",
+          "description": "New name"
+        },
+        "icon": {
+          "type": "string",
+          "description": "Icon name from the curated set"
+        },
+        "sort": {
+          "type": "number",
+          "description": "Position (lower comes first)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/categories/update"
+      }
+    },
+    {
+      "name": "categories.delete",
+      "description": "Delete a category; its items become uncategorized. preview=true shows how many items that affects.",
+      "destructive": true,
+      "params": {
+        "category": {
+          "type": "string",
+          "description": "Category name or id",
+          "required": true
+        },
+        "preview": {
+          "type": "boolean",
+          "description": "Only show what would change"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/categories/delete"
+      }
+    },
+    {
+      "name": "map.get",
+      "description": "The Home stockroom map: every place (kind, parent, depth, map layout {x, z, w, d} or null for automatic, own items, units and value), the items stored anywhere plus out-of-stock items with a home place (status, on hand, reorder point, target), stock by place, and status counts.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/map/get"
+      }
+    },
+    {
+      "name": "locations.list",
+      "description": "Every location as a tree with code, kind, path, and the items, units and value stored in it (its own and including the places inside it).",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/locations/list"
+      }
+    },
+    {
+      "name": "locations.get",
+      "description": "One location: where it sits, the places inside it, and every item stored in it or inside it with quantities.",
+      "params": {
+        "location": {
+          "type": "string",
+          "description": "Location id, code (LOC-001), exact name or path (\"Main stockroom / Shelf A\")",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/locations/get"
+      }
+    },
+    {
+      "name": "locations.add",
+      "description": "Add a location (a site, room, shelf, bin...). It gets a scannable code (LOC-002...) unless one is given. Places nest by size (app.guide place_holds): a place must fit inside its parent, e.g. no vehicle inside a box.",
+      "params": {
+        "name": {
+          "type": "string",
+          "description": "Name, e.g. \"Shelf A\"",
+          "required": true
+        },
+        "parent": {
+          "type": "string",
+          "description": "The location it sits inside (empty for top level)"
+        },
+        "kind": {
+          "type": "string",
+          "description": "What kind of place",
+          "enum": [
+            "site",
+            "room",
+            "area",
+            "container",
+            "vehicle",
+            "rack",
+            "shelf",
+            "cabinet",
+            "fridge",
+            "drawer",
+            "pallet",
+            "bin",
+            "box",
+            "other"
+          ]
+        },
+        "code": {
+          "type": "string",
+          "description": "Scannable code (no spaces, unique); leave out for automatic LOC-001 numbering"
+        },
+        "notes": {
+          "type": "string",
+          "description": "Notes"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/locations/add"
+      }
+    },
+    {
+      "name": "locations.update",
+      "description": "Rename or move a location, or change its kind, code or notes. The nesting rules apply both ways: it must fit its parent, and a new kind must still hold what is inside it.",
+      "params": {
+        "location": {
+          "type": "string",
+          "description": "Location id, code (LOC-001), exact name or path (\"Main stockroom / Shelf A\")",
+          "required": true
+        },
+        "name": {
+          "type": "string",
+          "description": "New name"
+        },
+        "parent": {
+          "type": "string",
+          "description": "New parent location (empty for top level)"
+        },
+        "kind": {
+          "type": "string",
+          "description": "What kind of place",
+          "enum": [
+            "site",
+            "room",
+            "area",
+            "container",
+            "vehicle",
+            "rack",
+            "shelf",
+            "cabinet",
+            "fridge",
+            "drawer",
+            "pallet",
+            "bin",
+            "box",
+            "other"
+          ]
+        },
+        "code": {
+          "type": "string",
+          "description": "New scannable code"
+        },
+        "notes": {
+          "type": "string",
+          "description": "Notes"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/locations/update"
+      }
+    },
+    {
+      "name": "locations.place",
+      "description": "Set where a place stands on the Home stockroom map and how big it is (map units of about a metre), or reset it to the automatic layout. x, z: the centre (top-level: on the floor; inside another place: from that place's far corner). w, d: width and depth (left out: kept; empty: automatic, as big as its contents need). Refused, with the reason, when it would overlap a sized place in the same space, stand outside a sized space, or sit inside furniture. all=true with reset=true resets every place.",
+      "params": {
+        "location": {
+          "type": "string",
+          "description": "Location to place (not needed with all=true)"
+        },
+        "x": {
+          "type": "string",
+          "description": "Centre across, a plain number like 4 or -2.5"
+        },
+        "z": {
+          "type": "string",
+          "description": "Centre deep, a plain number like 0 or 6.5"
+        },
+        "w": {
+          "type": "string",
+          "description": "Width (empty: the size its contents need)"
+        },
+        "d": {
+          "type": "string",
+          "description": "Depth (empty: automatic)"
+        },
+        "reset": {
+          "type": "boolean",
+          "description": "Back to the automatic layout"
+        },
+        "all": {
+          "type": "boolean",
+          "description": "With reset=true: every place"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/locations/place"
+      }
+    },
+    {
+      "name": "locations.arrange",
+      "description": "Set the map layout of several places at once, all or nothing (what arrange mode saves): positions is a JSON list of {location, x, z, w?, d?} or {location, reset: true}, with x, z, w, d as in locations.place. Refused as a whole, with the reason, when two sized places would overlap in the same space, a place would stand outside a sized space, or a place sits inside furniture.",
+      "params": {
+        "positions": {
+          "type": "string",
+          "description": "JSON list, e.g. [{\"location\":\"LOC-001\",\"x\":6,\"z\":4,\"w\":10,\"d\":6}]",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/locations/arrange"
+      }
+    },
+    {
+      "name": "locations.delete",
+      "description": "Delete an empty location. Places inside it move up a level; its history entries are removed. Refused while it holds stock. preview=true shows the effect.",
+      "destructive": true,
+      "params": {
+        "location": {
+          "type": "string",
+          "description": "Location id, code (LOC-001), exact name or path (\"Main stockroom / Shelf A\")",
+          "required": true
+        },
+        "preview": {
+          "type": "boolean",
+          "description": "Only show what would change"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/locations/delete"
+      }
+    },
+    {
+      "name": "suppliers.list",
+      "description": "Suppliers with contact details, lead time, how many items they supply, open orders and the last order date.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/suppliers/list"
+      }
+    },
+    {
+      "name": "suppliers.get",
+      "description": "One supplier with the items it supplies (with stock figures) and its latest orders.",
+      "params": {
+        "supplier": {
+          "type": "string",
+          "description": "Supplier name or id",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/suppliers/get"
+      }
+    },
+    {
+      "name": "suppliers.add",
+      "description": "Add a supplier.",
+      "params": {
+        "name": {
+          "type": "string",
+          "description": "Supplier name",
+          "required": true
+        },
+        "contact": {
+          "type": "string",
+          "description": "Contact person"
+        },
+        "email": {
+          "type": "string",
+          "description": "Email address for orders"
+        },
+        "phone": {
+          "type": "string",
+          "description": "Phone"
+        },
+        "website": {
+          "type": "string",
+          "description": "Website"
+        },
+        "lead_time_days": {
+          "type": "string",
+          "description": "Usual days from ordering to delivery"
+        },
+        "notes": {
+          "type": "string",
+          "description": "Notes"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/suppliers/add"
+      }
+    },
+    {
+      "name": "suppliers.update",
+      "description": "Change a supplier's details.",
+      "params": {
+        "supplier": {
+          "type": "string",
+          "description": "Supplier name or id",
+          "required": true
+        },
+        "name": {
+          "type": "string",
+          "description": "New name"
+        },
+        "contact": {
+          "type": "string",
+          "description": "Contact person"
+        },
+        "email": {
+          "type": "string",
+          "description": "Email address"
+        },
+        "phone": {
+          "type": "string",
+          "description": "Phone"
+        },
+        "website": {
+          "type": "string",
+          "description": "Website"
+        },
+        "lead_time_days": {
+          "type": "string",
+          "description": "Usual days from ordering to delivery"
+        },
+        "notes": {
+          "type": "string",
+          "description": "Notes"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/suppliers/update"
+      }
+    },
+    {
+      "name": "suppliers.delete",
+      "description": "Delete a supplier. Its items and orders stay, without a supplier. preview=true shows the effect.",
+      "destructive": true,
+      "params": {
+        "supplier": {
+          "type": "string",
+          "description": "Supplier name or id",
+          "required": true
+        },
+        "preview": {
+          "type": "boolean",
+          "description": "Only show what would change"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/suppliers/delete"
+      }
+    },
+    {
+      "name": "items.list",
+      "description": "Items with on hand, incoming, status, value, usage, days left and reorder suggestion, plus counts per status. Filters combine.",
+      "params": {
+        "q": {
+          "type": "string",
+          "description": "Search name, SKU, barcode or description"
+        },
+        "status": {
+          "type": "string",
+          "description": "Only this status",
+          "enum": [
+            "ok",
+            "low",
+            "out",
+            "over",
+            "reorder"
+          ]
+        },
+        "category": {
+          "type": "string",
+          "description": "Category name or id; none for uncategorized"
+        },
+        "location": {
+          "type": "string",
+          "description": "Only items stored here (and inside it)"
+        },
+        "include_sub": {
+          "type": "boolean",
+          "description": "With location: include places inside it (default true)"
+        },
+        "supplier": {
+          "type": "string",
+          "description": "Supplier name or id; none for no supplier"
+        },
+        "archived": {
+          "type": "string",
+          "description": "Which items",
+          "enum": [
+            "active",
+            "archived",
+            "all"
+          ]
+        },
+        "sort": {
+          "type": "string",
+          "description": "Sort by",
+          "enum": [
+            "name",
+            "qty",
+            "value",
+            "updated",
+            "status",
+            "days_left"
+          ]
+        },
+        "desc": {
+          "type": "boolean",
+          "description": "Sort descending"
+        },
+        "limit": {
+          "type": "number",
+          "description": "Page size 1 to 1000 (default 100)"
+        },
+        "offset": {
+          "type": "number",
+          "description": "Skip this many (paging)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/items/list"
+      }
+    },
+    {
+      "name": "items.get",
+      "description": "One item in full: stock per location, barcodes, open order lines, the last 25 history entries, 90 days of on-hand levels, usage and reorder figures.",
+      "params": {
+        "item": {
+          "type": "string",
+          "description": "Item id, SKU, barcode or exact name",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/items/get"
+      }
+    },
+    {
+      "name": "items.add",
+      "description": "Add an item, with barcodes and opening stock in one go. Returns the item.",
+      "params": {
+        "name": {
+          "type": "string",
+          "description": "Item name",
+          "required": true
+        },
+        "qty": {
+          "type": "string",
+          "description": "Opening quantity on hand"
+        },
+        "location": {
+          "type": "string",
+          "description": "Where the opening quantity is (required with qty unless default_location is given)"
+        },
+        "sku": {
+          "type": "string",
+          "description": "SKU (no spaces). Leave out for automatic SKU-0001 numbering"
+        },
+        "category": {
+          "type": "string",
+          "description": "Category name or id; empty for none"
+        },
+        "unit": {
+          "type": "string",
+          "description": "Unit it is counted in, e.g. pcs, box, roll, kg (default pcs)"
+        },
+        "fractional": {
+          "type": "boolean",
+          "description": "Counted in part units (kg, m, L) instead of whole units"
+        },
+        "description": {
+          "type": "string",
+          "description": "Free text description (max 2000 characters)"
+        },
+        "min_qty": {
+          "type": "string",
+          "description": "Reorder point: at or below this it is low and needs reordering (0 = no alert)"
+        },
+        "max_qty": {
+          "type": "string",
+          "description": "Target level, above the reorder point: reorders fill up to this (0, or not above min_qty: twice the reorder point)"
+        },
+        "unit_cost": {
+          "type": "string",
+          "description": "Cost per unit in the app currency, up to 4 decimals, e.g. 2.35"
+        },
+        "supplier": {
+          "type": "string",
+          "description": "Usual supplier name or id; empty for none"
+        },
+        "lead_time_days": {
+          "type": "string",
+          "description": "Days from ordering to delivery (overrides the supplier lead time)"
+        },
+        "default_location": {
+          "type": "string",
+          "description": "Home location (where stock goes by default): id, code, name or path"
+        },
+        "barcode": {
+          "type": "string",
+          "description": "One barcode to add (EAN, UPC, Code 128 or QR text)"
+        },
+        "barcodes": {
+          "type": "string",
+          "description": "Several barcodes to add, JSON list of strings"
+        },
+        "photo_path": {
+          "type": "string",
+          "description": "Absolute path of a photo file to use as the item photo"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/items/add"
+      }
+    },
+    {
+      "name": "items.update",
+      "description": "Change an item's details (not its quantity: use the stock operations). barcode/barcodes add codes; remove_photo clears the photo.",
+      "params": {
+        "item": {
+          "type": "string",
+          "description": "Item id, SKU, barcode or exact name",
+          "required": true
+        },
+        "name": {
+          "type": "string",
+          "description": "New name"
+        },
+        "archived": {
+          "type": "boolean",
+          "description": "Archive (hide) or restore the item"
+        },
+        "remove_photo": {
+          "type": "boolean",
+          "description": "Remove the photo"
+        },
+        "sku": {
+          "type": "string",
+          "description": "SKU (no spaces). Leave out for automatic SKU-0001 numbering"
+        },
+        "category": {
+          "type": "string",
+          "description": "Category name or id; empty for none"
+        },
+        "unit": {
+          "type": "string",
+          "description": "Unit it is counted in, e.g. pcs, box, roll, kg (default pcs)"
+        },
+        "fractional": {
+          "type": "boolean",
+          "description": "Counted in part units (kg, m, L) instead of whole units"
+        },
+        "description": {
+          "type": "string",
+          "description": "Free text description (max 2000 characters)"
+        },
+        "min_qty": {
+          "type": "string",
+          "description": "Reorder point: at or below this it is low and needs reordering (0 = no alert)"
+        },
+        "max_qty": {
+          "type": "string",
+          "description": "Target level, above the reorder point: reorders fill up to this (0, or not above min_qty: twice the reorder point)"
+        },
+        "unit_cost": {
+          "type": "string",
+          "description": "Cost per unit in the app currency, up to 4 decimals, e.g. 2.35"
+        },
+        "supplier": {
+          "type": "string",
+          "description": "Usual supplier name or id; empty for none"
+        },
+        "lead_time_days": {
+          "type": "string",
+          "description": "Days from ordering to delivery (overrides the supplier lead time)"
+        },
+        "default_location": {
+          "type": "string",
+          "description": "Home location (where stock goes by default): id, code, name or path"
+        },
+        "barcode": {
+          "type": "string",
+          "description": "One barcode to add (EAN, UPC, Code 128 or QR text)"
+        },
+        "barcodes": {
+          "type": "string",
+          "description": "Several barcodes to add, JSON list of strings"
+        },
+        "photo_path": {
+          "type": "string",
+          "description": "Absolute path of a photo file to use as the item photo"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/items/update"
+      }
+    },
+    {
+      "name": "items.delete",
+      "description": "Delete an item with its stock, history, barcodes and order lines. preview=true shows what that removes.",
+      "destructive": true,
+      "params": {
+        "item": {
+          "type": "string",
+          "description": "Item id, SKU, barcode or exact name",
+          "required": true
+        },
+        "preview": {
+          "type": "boolean",
+          "description": "Only show what would be removed"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/items/delete"
+      }
+    },
+    {
+      "name": "items.delete-many",
+      "description": "Delete several items with their stock, history and barcodes.",
+      "destructive": true,
+      "params": {
+        "ids": {
+          "type": "string",
+          "description": "JSON list of item ids or SKUs",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/items/delete-many"
+      }
+    },
+    {
+      "name": "items.set-category",
+      "description": "Put several items in one category.",
+      "params": {
+        "ids": {
+          "type": "string",
+          "description": "JSON list of item ids or SKUs",
+          "required": true
+        },
+        "category": {
+          "type": "string",
+          "description": "Category name or id; \"\" (empty) for none",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/items/set-category"
+      }
+    },
+    {
+      "name": "items.set-archived",
+      "description": "Archive (hide from lists and reorders) or restore several items.",
+      "params": {
+        "ids": {
+          "type": "string",
+          "description": "JSON list of item ids or SKUs",
+          "required": true
+        },
+        "archived": {
+          "type": "boolean",
+          "description": "true to archive, false to restore",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/items/set-archived"
+      }
+    },
+    {
+      "name": "items.add-barcode",
+      "description": "Give an item another scannable barcode (must not belong to anything else).",
+      "params": {
+        "item": {
+          "type": "string",
+          "description": "Item id, SKU, barcode or exact name",
+          "required": true
+        },
+        "code": {
+          "type": "string",
+          "description": "The barcode text",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/items/add-barcode"
+      }
+    },
+    {
+      "name": "items.remove-barcode",
+      "description": "Remove one of an item's barcodes.",
+      "params": {
+        "item": {
+          "type": "string",
+          "description": "Item id, SKU, barcode or exact name",
+          "required": true
+        },
+        "code": {
+          "type": "string",
+          "description": "The barcode text",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/items/remove-barcode"
+      }
+    },
+    {
+      "name": "stock.in",
+      "description": "Stock coming in that is not on a purchase order. Location defaults to the item's home location.",
+      "params": {
+        "item": {
+          "type": "string",
+          "description": "Item id, SKU, barcode or exact name",
+          "required": true
+        },
+        "qty": {
+          "type": "string",
+          "description": "Quantity, a plain number like 12 or 2.5",
+          "required": true
+        },
+        "location": {
+          "type": "string",
+          "description": "Location id, code (LOC-001), exact name or path (\"Main stockroom / Shelf A\")"
+        },
+        "reason": {
+          "type": "string",
+          "description": "Why (default received)",
+          "enum": [
+            "received",
+            "returned",
+            "found",
+            "produced",
+            "opening"
+          ]
+        },
+        "unit_cost": {
+          "type": "string",
+          "description": "Cost per unit of this delivery; moves the average cost"
+        },
+        "note": {
+          "type": "string",
+          "description": "Note"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/stock/in"
+      }
+    },
+    {
+      "name": "stock.out",
+      "description": "Stock going out (used, sold, damaged...). Location defaults to the only place holding the item, or its home location when that holds some.",
+      "params": {
+        "item": {
+          "type": "string",
+          "description": "Item id, SKU, barcode or exact name",
+          "required": true
+        },
+        "qty": {
+          "type": "string",
+          "description": "Quantity, a plain number like 12 or 2.5",
+          "required": true
+        },
+        "location": {
+          "type": "string",
+          "description": "Location id, code (LOC-001), exact name or path (\"Main stockroom / Shelf A\")"
+        },
+        "reason": {
+          "type": "string",
+          "description": "Why (default used)",
+          "enum": [
+            "sold",
+            "used",
+            "damaged",
+            "lost",
+            "expired",
+            "sample",
+            "returned"
+          ]
+        },
+        "note": {
+          "type": "string",
+          "description": "Note"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/stock/out"
+      }
+    },
+    {
+      "name": "stock.move",
+      "description": "Move stock from one location to another.",
+      "params": {
+        "item": {
+          "type": "string",
+          "description": "Item id, SKU, barcode or exact name",
+          "required": true
+        },
+        "qty": {
+          "type": "string",
+          "description": "Quantity, a plain number like 12 or 2.5",
+          "required": true
+        },
+        "from": {
+          "type": "string",
+          "description": "Where it is now (defaults to the only place holding it, or its home location when that holds some)"
+        },
+        "to": {
+          "type": "string",
+          "description": "Where it goes",
+          "required": true
+        },
+        "note": {
+          "type": "string",
+          "description": "Note"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/stock/move"
+      }
+    },
+    {
+      "name": "stock.set",
+      "description": "Set the quantity at a location to what is really there (records the difference as a correction).",
+      "params": {
+        "item": {
+          "type": "string",
+          "description": "Item id, SKU, barcode or exact name",
+          "required": true
+        },
+        "qty": {
+          "type": "string",
+          "description": "The quantity that is really there",
+          "required": true
+        },
+        "location": {
+          "type": "string",
+          "description": "Location id, code (LOC-001), exact name or path (\"Main stockroom / Shelf A\")"
+        },
+        "reason": {
+          "type": "string",
+          "description": "Why (default correction)",
+          "enum": [
+            "correction",
+            "found",
+            "damaged",
+            "lost",
+            "expired"
+          ]
+        },
+        "note": {
+          "type": "string",
+          "description": "Note"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/stock/set"
+      }
+    },
+    {
+      "name": "stock.batch",
+      "description": "Several stock changes as one action (one history batch, one undo). Each line: kind in|out|move|set, item, qty, and location / from / to / reason / unit_cost / note as for the single operations.",
+      "params": {
+        "lines": {
+          "type": "string",
+          "description": "JSON list of {kind, item, qty, location?, from?, to?, reason?, unit_cost?, note?} (max 500)",
+          "required": true
+        },
+        "note": {
+          "type": "string",
+          "description": "Note for every line"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/stock/batch"
+      }
+    },
+    {
+      "name": "movements.list",
+      "description": "History of stock changes, newest first, 25 at a time (limit up to 500; more=true means there are older ones). Each entry has its batch id (undo with movements.undo).",
+      "params": {
+        "item": {
+          "type": "string",
+          "description": "Item id, SKU, barcode or name"
+        },
+        "location": {
+          "type": "string",
+          "description": "Only changes here (and inside it)"
+        },
+        "include_sub": {
+          "type": "boolean",
+          "description": "With location: include places inside it (default true)"
+        },
+        "kind": {
+          "type": "string",
+          "description": "Kind",
+          "enum": [
+            "in",
+            "out",
+            "move",
+            "adjust",
+            "count"
+          ]
+        },
+        "reason": {
+          "type": "string",
+          "description": "Reason",
+          "enum": [
+            "received",
+            "returned",
+            "found",
+            "produced",
+            "sold",
+            "used",
+            "damaged",
+            "lost",
+            "expired",
+            "sample",
+            "correction",
+            "move",
+            "count",
+            "opening",
+            "undo"
+          ]
+        },
+        "actor": {
+          "type": "string",
+          "description": "Who",
+          "enum": [
+            "you",
+            "agent",
+            "system"
+          ]
+        },
+        "batch": {
+          "type": "string",
+          "description": "One batch"
+        },
+        "ref_type": {
+          "type": "string",
+          "description": "Source",
+          "enum": [
+            "order",
+            "count",
+            "import"
+          ]
+        },
+        "ref": {
+          "type": "string",
+          "description": "Source id (with ref_type)"
+        },
+        "from": {
+          "type": "string",
+          "description": "From day YYYY-MM-DD"
+        },
+        "to": {
+          "type": "string",
+          "description": "To day YYYY-MM-DD"
+        },
+        "q": {
+          "type": "string",
+          "description": "Search item name, SKU or note"
+        },
+        "limit": {
+          "type": "number",
+          "description": "Page size 1 to 500 (default 100)"
+        },
+        "offset": {
+          "type": "number",
+          "description": "Skip this many (paging)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/movements/list"
+      }
+    },
+    {
+      "name": "movements.undo",
+      "description": "Undo a change: posts the opposite of a batch (both stay in the history). Order receipts and counts follow automatically.",
+      "params": {
+        "batch": {
+          "type": "string",
+          "description": "Batch id from movements.list",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/movements/undo"
+      }
+    },
+    {
+      "name": "movements.delete",
+      "description": "Delete a batch from the history (and its undo, if any); stock goes back as if it never happened. preview=true shows the effect.",
+      "destructive": true,
+      "params": {
+        "batch": {
+          "type": "string",
+          "description": "Batch id from movements.list",
+          "required": true
+        },
+        "preview": {
+          "type": "boolean",
+          "description": "Only show what would change"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/movements/delete"
+      }
+    },
+    {
+      "name": "reorder.list",
+      "description": "Items that need reordering, grouped by supplier: on hand, incoming, reorder point, target, usage, days left, the suggested quantity with a plain-words \"why\", and drafts they are already on.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/reorder/list"
+      }
+    },
+    {
+      "name": "reorder.create-orders",
+      "description": "Put items on draft purchase orders, one per supplier (an existing draft for that supplier is reused; lines are set, never doubled). With no items, every suggestion is used.",
+      "params": {
+        "items": {
+          "type": "string",
+          "description": "JSON list of {item, qty?, supplier?}; qty defaults to the suggestion"
+        },
+        "note": {
+          "type": "string",
+          "description": "Why these orders (shown on the order as the AI agent's note)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/reorder/create-orders"
+      }
+    },
+    {
+      "name": "orders.list",
+      "description": "Purchase orders with lines, totals and progress, plus counts per status.",
+      "params": {
+        "status": {
+          "type": "string",
+          "description": "Which orders (default open = draft, ordered, partial)",
+          "enum": [
+            "open",
+            "all",
+            "draft",
+            "ordered",
+            "partial",
+            "received",
+            "cancelled"
+          ]
+        },
+        "supplier": {
+          "type": "string",
+          "description": "Supplier name or id"
+        },
+        "item": {
+          "type": "string",
+          "description": "Orders containing this item"
+        },
+        "q": {
+          "type": "string",
+          "description": "Search number, supplier or note"
+        },
+        "limit": {
+          "type": "number",
+          "description": "Page size 1 to 500"
+        },
+        "offset": {
+          "type": "number",
+          "description": "Skip this many (paging)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/orders/list"
+      }
+    },
+    {
+      "name": "orders.get",
+      "description": "One purchase order with its lines (ordered, received, remaining, cost), documents and receipt history.",
+      "params": {
+        "order": {
+          "type": "string",
+          "description": "Purchase order id or number (PO-0001)",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/orders/get"
+      }
+    },
+    {
+      "name": "orders.text",
+      "description": "A purchase order as plain text with the supplier email and a subject, ready to send.",
+      "params": {
+        "order": {
+          "type": "string",
+          "description": "Purchase order id or number (PO-0001)",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/orders/text"
+      }
+    },
+    {
+      "name": "orders.create",
+      "description": "Create a draft purchase order, optionally with lines.",
+      "params": {
+        "supplier": {
+          "type": "string",
+          "description": "Supplier name or id"
+        },
+        "location": {
+          "type": "string",
+          "description": "Where it will be delivered (default the first top-level place)"
+        },
+        "expected_on": {
+          "type": "string",
+          "description": "Expected delivery YYYY-MM-DD"
+        },
+        "note": {
+          "type": "string",
+          "description": "Note for the supplier"
+        },
+        "agent_note": {
+          "type": "string",
+          "description": "The AI agent's note on why"
+        },
+        "lines": {
+          "type": "string",
+          "description": "JSON list of {item, qty, unit_cost?}"
+        },
+        "origin": {
+          "type": "string",
+          "description": "Who started it",
+          "enum": [
+            "you",
+            "agent",
+            "reorder"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/orders/create"
+      }
+    },
+    {
+      "name": "orders.update",
+      "description": "Change a purchase order's supplier, delivery location, expected date or notes.",
+      "params": {
+        "order": {
+          "type": "string",
+          "description": "Purchase order id or number (PO-0001)",
+          "required": true
+        },
+        "supplier": {
+          "type": "string",
+          "description": "Supplier name or id; empty for none"
+        },
+        "location": {
+          "type": "string",
+          "description": "Delivery location"
+        },
+        "expected_on": {
+          "type": "string",
+          "description": "Expected delivery YYYY-MM-DD; empty to clear"
+        },
+        "note": {
+          "type": "string",
+          "description": "Note"
+        },
+        "agent_note": {
+          "type": "string",
+          "description": "The AI agent's note"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/orders/update"
+      }
+    },
+    {
+      "name": "orders.add-line",
+      "description": "Add an item to an open purchase order (raises the quantity if it is already on it; mode=set replaces it).",
+      "params": {
+        "order": {
+          "type": "string",
+          "description": "Purchase order id or number (PO-0001)",
+          "required": true
+        },
+        "item": {
+          "type": "string",
+          "description": "Item id, SKU, barcode or exact name",
+          "required": true
+        },
+        "qty": {
+          "type": "string",
+          "description": "Quantity, a plain number like 12 or 2.5",
+          "required": true
+        },
+        "unit_cost": {
+          "type": "string",
+          "description": "Cost per unit (default the item cost)"
+        },
+        "mode": {
+          "type": "string",
+          "description": "add (default) or set",
+          "enum": [
+            "add",
+            "set"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/orders/add-line"
+      }
+    },
+    {
+      "name": "orders.update-line",
+      "description": "Change a line's quantity or cost.",
+      "params": {
+        "line": {
+          "type": "string",
+          "description": "Line id from orders.get",
+          "required": true
+        },
+        "qty": {
+          "type": "string",
+          "description": "Quantity, a plain number like 12 or 2.5"
+        },
+        "unit_cost": {
+          "type": "string",
+          "description": "Cost per unit"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/orders/update-line"
+      }
+    },
+    {
+      "name": "orders.remove-line",
+      "description": "Remove a line nothing has arrived for.",
+      "destructive": true,
+      "params": {
+        "line": {
+          "type": "string",
+          "description": "Line id from orders.get",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/orders/remove-line"
+      }
+    },
+    {
+      "name": "orders.mark-ordered",
+      "description": "Mark a draft as sent to the supplier: its quantities now count as incoming. Expected date defaults from the supplier lead time.",
+      "params": {
+        "order": {
+          "type": "string",
+          "description": "Purchase order id or number (PO-0001)",
+          "required": true
+        },
+        "expected_on": {
+          "type": "string",
+          "description": "Expected delivery YYYY-MM-DD"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/orders/mark-ordered"
+      }
+    },
+    {
+      "name": "orders.back-to-draft",
+      "description": "Put an ordered purchase order back to draft while nothing has arrived.",
+      "params": {
+        "order": {
+          "type": "string",
+          "description": "Purchase order id or number (PO-0001)",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/orders/back-to-draft"
+      }
+    },
+    {
+      "name": "orders.receive",
+      "description": "Record what arrived for an order (one history batch). Short deliveries leave it partial.",
+      "params": {
+        "order": {
+          "type": "string",
+          "description": "Purchase order id or number (PO-0001)",
+          "required": true
+        },
+        "lines": {
+          "type": "string",
+          "description": "JSON list of {line, qty} or {item, qty}"
+        },
+        "all": {
+          "type": "boolean",
+          "description": "Receive everything still to come"
+        },
+        "location": {
+          "type": "string",
+          "description": "Where it goes (default the order's delivery location)"
+        },
+        "note": {
+          "type": "string",
+          "description": "Note"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/orders/receive"
+      }
+    },
+    {
+      "name": "orders.close",
+      "description": "Close a partly received order: the rest is not coming and stops counting as incoming.",
+      "params": {
+        "order": {
+          "type": "string",
+          "description": "Purchase order id or number (PO-0001)",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/orders/close"
+      }
+    },
+    {
+      "name": "orders.cancel",
+      "description": "Cancel an order nothing has arrived for.",
+      "destructive": true,
+      "params": {
+        "order": {
+          "type": "string",
+          "description": "Purchase order id or number (PO-0001)",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/orders/cancel"
+      }
+    },
+    {
+      "name": "orders.reopen",
+      "description": "Reopen a cancelled order (as a draft) or a closed-short order.",
+      "params": {
+        "order": {
+          "type": "string",
+          "description": "Purchase order id or number (PO-0001)",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/orders/reopen"
+      }
+    },
+    {
+      "name": "orders.delete",
+      "description": "Delete a purchase order and its lines; stock it already brought in stays in the history. preview=true shows the effect.",
+      "destructive": true,
+      "params": {
+        "order": {
+          "type": "string",
+          "description": "Purchase order id or number (PO-0001)",
+          "required": true
+        },
+        "preview": {
+          "type": "boolean",
+          "description": "Only show what would change"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/orders/delete"
+      }
+    },
+    {
+      "name": "counts.list",
+      "description": "Stock counts with progress and, once completed, their summary.",
+      "params": {
+        "status": {
+          "type": "string",
+          "description": "Only this status",
+          "enum": [
+            "counting",
+            "completed",
+            "cancelled"
+          ]
+        },
+        "limit": {
+          "type": "number",
+          "description": "Page size 1 to 500"
+        },
+        "offset": {
+          "type": "number",
+          "description": "Skip this many (paging)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/counts/list"
+      }
+    },
+    {
+      "name": "counts.get",
+      "description": "One stock count with every line (expected, counted, difference). Blind counts hide expected numbers unless reveal=true.",
+      "params": {
+        "count": {
+          "type": "string",
+          "description": "Stock count id or number (C-0001)",
+          "required": true
+        },
+        "reveal": {
+          "type": "boolean",
+          "description": "Show expected numbers of a blind count (for the review)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/counts/get"
+      }
+    },
+    {
+      "name": "counts.start",
+      "description": "Start a stock count of a location (and the places inside it), or of everything. Takes a snapshot of what is expected.",
+      "params": {
+        "location": {
+          "type": "string",
+          "description": "What to count (empty for everything)"
+        },
+        "include_sub": {
+          "type": "boolean",
+          "description": "Include places inside it (default true)"
+        },
+        "blind": {
+          "type": "boolean",
+          "description": "Hide expected numbers while counting"
+        },
+        "items": {
+          "type": "string",
+          "description": "JSON list of items to count only these"
+        },
+        "note": {
+          "type": "string",
+          "description": "Note"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/counts/start"
+      }
+    },
+    {
+      "name": "counts.set-line",
+      "description": "Record a line: counted (the total counted) or add (one more, e.g. 1), or clear=true to un-count it.",
+      "params": {
+        "line": {
+          "type": "string",
+          "description": "Line id from counts.get",
+          "required": true
+        },
+        "counted": {
+          "type": "string",
+          "description": "Total counted"
+        },
+        "add": {
+          "type": "string",
+          "description": "Add this many to what was counted"
+        },
+        "clear": {
+          "type": "boolean",
+          "description": "Mark the line as not counted"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/counts/set-line"
+      }
+    },
+    {
+      "name": "counts.scan",
+      "description": "A scanned barcode or SKU counts one more of its item (adds a line if it was found somewhere unexpected).",
+      "params": {
+        "count": {
+          "type": "string",
+          "description": "Stock count id or number (C-0001)",
+          "required": true
+        },
+        "code": {
+          "type": "string",
+          "description": "The scanned code",
+          "required": true
+        },
+        "qty": {
+          "type": "string",
+          "description": "How many this scan counts (default 1)"
+        },
+        "location": {
+          "type": "string",
+          "description": "Where it was counted (default the count location or the item home)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/counts/scan"
+      }
+    },
+    {
+      "name": "counts.add-item",
+      "description": "Add a line for an item found where it was not expected.",
+      "params": {
+        "count": {
+          "type": "string",
+          "description": "Stock count id or number (C-0001)",
+          "required": true
+        },
+        "item": {
+          "type": "string",
+          "description": "Item id, SKU, barcode or exact name",
+          "required": true
+        },
+        "location": {
+          "type": "string",
+          "description": "Location id, code (LOC-001), exact name or path (\"Main stockroom / Shelf A\")"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/counts/add-item"
+      }
+    },
+    {
+      "name": "counts.remove-line",
+      "description": "Remove a line from a count in progress.",
+      "params": {
+        "line": {
+          "type": "string",
+          "description": "Line id from counts.get",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/counts/remove-line"
+      }
+    },
+    {
+      "name": "counts.complete",
+      "description": "Finish a count: every counted line sets the stock to what was counted (one history batch). Lines not counted are kept, or set to zero with uncounted=zero.",
+      "params": {
+        "count": {
+          "type": "string",
+          "description": "Stock count id or number (C-0001)",
+          "required": true
+        },
+        "uncounted": {
+          "type": "string",
+          "description": "What to do with lines nobody counted",
+          "enum": [
+            "keep",
+            "zero"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/counts/complete"
+      }
+    },
+    {
+      "name": "counts.cancel",
+      "description": "Cancel a count in progress (nothing changes).",
+      "params": {
+        "count": {
+          "type": "string",
+          "description": "Stock count id or number (C-0001)",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/counts/cancel"
+      }
+    },
+    {
+      "name": "counts.reopen",
+      "description": "Reopen a completed count (its adjustments are undone) or a cancelled one.",
+      "params": {
+        "count": {
+          "type": "string",
+          "description": "Stock count id or number (C-0001)",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/counts/reopen"
+      }
+    },
+    {
+      "name": "counts.delete",
+      "description": "Delete a count and its lines; adjustments it made stay in the history. preview=true shows the effect.",
+      "destructive": true,
+      "params": {
+        "count": {
+          "type": "string",
+          "description": "Stock count id or number (C-0001)",
+          "required": true
+        },
+        "preview": {
+          "type": "boolean",
+          "description": "Only show what would change"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/counts/delete"
+      }
+    },
+    {
+      "name": "documents.list",
+      "description": "Packing slips and invoices handed to the AI agent, with status (waiting, reading, done, failed), the file path to read, and summaries.",
+      "params": {
+        "status": {
+          "type": "string",
+          "description": "Only this status",
+          "enum": [
+            "waiting",
+            "reading",
+            "done",
+            "failed"
+          ]
+        },
+        "limit": {
+          "type": "number",
+          "description": "How many (default 50)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/documents/list"
+      }
+    },
+    {
+      "name": "documents.add",
+      "description": "Store a packing slip, delivery note or invoice (photo or PDF) for reading. Status waiting.",
+      "params": {
+        "path": {
+          "type": "string",
+          "description": "Absolute path of the image or PDF",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/documents/add"
+      }
+    },
+    {
+      "name": "documents.start",
+      "description": "Mark a document as being read.",
+      "params": {
+        "document": {
+          "type": "string",
+          "description": "Document id",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/documents/start"
+      }
+    },
+    {
+      "name": "documents.complete",
+      "description": "Mark a document as recorded, with a summary the user sees.",
+      "params": {
+        "document": {
+          "type": "string",
+          "description": "Document id",
+          "required": true
+        },
+        "summary": {
+          "type": "string",
+          "description": "What was recorded, e.g. \"Received 3 lines on PO-0004\"",
+          "required": true
+        },
+        "order": {
+          "type": "string",
+          "description": "The purchase order it belonged to"
+        },
+        "batch": {
+          "type": "string",
+          "description": "The history batch it created"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/documents/complete"
+      }
+    },
+    {
+      "name": "documents.fail",
+      "description": "Mark a document as not recordable, with a reason the user can act on.",
+      "params": {
+        "document": {
+          "type": "string",
+          "description": "Document id",
+          "required": true
+        },
+        "reason": {
+          "type": "string",
+          "description": "Why, in a short sentence",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/documents/fail"
+      }
+    },
+    {
+      "name": "documents.retry",
+      "description": "Ask the AI agent to read a failed document again.",
+      "params": {
+        "document": {
+          "type": "string",
+          "description": "Document id",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/documents/retry"
+      }
+    },
+    {
+      "name": "documents.delete",
+      "description": "Delete a document (stock it recorded stays).",
+      "destructive": true,
+      "params": {
+        "document": {
+          "type": "string",
+          "description": "Document id",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/documents/delete"
+      }
+    },
+    {
+      "name": "import.preview",
+      "description": "Read a CSV of items: which column each field uses, counts (create, update, invalid, empty) and the rows with problems. Re-run with import_id and options to adjust.",
+      "params": {
+        "path": {
+          "type": "string",
+          "description": "Absolute path of the CSV file"
+        },
+        "import_id": {
+          "type": "string",
+          "description": "An import already previewed"
+        },
+        "map_name": {
+          "type": "string",
+          "description": "Column for Name: a number (the first column is 0), the header text, or none"
+        },
+        "map_sku": {
+          "type": "string",
+          "description": "Column for SKU"
+        },
+        "map_barcode": {
+          "type": "string",
+          "description": "Column for Barcode"
+        },
+        "map_category": {
+          "type": "string",
+          "description": "Column for Category"
+        },
+        "map_unit": {
+          "type": "string",
+          "description": "Column for Unit"
+        },
+        "map_quantity": {
+          "type": "string",
+          "description": "Column for Quantity"
+        },
+        "map_location": {
+          "type": "string",
+          "description": "Column for Location"
+        },
+        "map_min_qty": {
+          "type": "string",
+          "description": "Column for Reorder point"
+        },
+        "map_max_qty": {
+          "type": "string",
+          "description": "Column for Target level"
+        },
+        "map_unit_cost": {
+          "type": "string",
+          "description": "Column for Unit cost"
+        },
+        "map_supplier": {
+          "type": "string",
+          "description": "Column for Supplier"
+        },
+        "map_description": {
+          "type": "string",
+          "description": "Column for Description"
+        },
+        "quantities": {
+          "type": "string",
+          "description": "set: quantities are what is on the shelf; add: they are a delivery",
+          "enum": [
+            "set",
+            "add"
+          ]
+        },
+        "create_missing": {
+          "type": "boolean",
+          "description": "Create categories, suppliers and locations that do not exist (default true)"
+        },
+        "show": {
+          "type": "number",
+          "description": "How many rows to show (default 50)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/import/preview"
+      }
+    },
+    {
+      "name": "import.run",
+      "description": "Import a previewed CSV (valid rows; rows with problems are skipped and listed). Same options as import.preview.",
+      "params": {
+        "import_id": {
+          "type": "string",
+          "description": "Import id from import.preview",
+          "required": true
+        },
+        "map_name": {
+          "type": "string",
+          "description": "Column for Name: a number (the first column is 0), the header text, or none"
+        },
+        "map_sku": {
+          "type": "string",
+          "description": "Column for SKU"
+        },
+        "map_barcode": {
+          "type": "string",
+          "description": "Column for Barcode"
+        },
+        "map_category": {
+          "type": "string",
+          "description": "Column for Category"
+        },
+        "map_unit": {
+          "type": "string",
+          "description": "Column for Unit"
+        },
+        "map_quantity": {
+          "type": "string",
+          "description": "Column for Quantity"
+        },
+        "map_location": {
+          "type": "string",
+          "description": "Column for Location"
+        },
+        "map_min_qty": {
+          "type": "string",
+          "description": "Column for Reorder point"
+        },
+        "map_max_qty": {
+          "type": "string",
+          "description": "Column for Target level"
+        },
+        "map_unit_cost": {
+          "type": "string",
+          "description": "Column for Unit cost"
+        },
+        "map_supplier": {
+          "type": "string",
+          "description": "Column for Supplier"
+        },
+        "map_description": {
+          "type": "string",
+          "description": "Column for Description"
+        },
+        "quantities": {
+          "type": "string",
+          "description": "set or add",
+          "enum": [
+            "set",
+            "add"
+          ]
+        },
+        "create_missing": {
+          "type": "boolean",
+          "description": "Create missing categories, suppliers and locations"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/import/run"
+      }
+    },
+    {
+      "name": "import.list",
+      "description": "Past imports with how many items each added, changed and skipped.",
+      "params": {
+        "limit": {
+          "type": "number",
+          "description": "How many (default 50)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/import/list"
+      }
+    },
+    {
+      "name": "import.undo",
+      "description": "Undo an import: delete the items it created, restore the ones it changed, reverse its stock changes.",
+      "destructive": true,
+      "params": {
+        "import_id": {
+          "type": "string",
+          "description": "Import id from import.list",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/import/undo"
+      }
+    },
+    {
+      "name": "import.delete",
+      "description": "Delete an import record that was undone or never run.",
+      "destructive": true,
+      "params": {
+        "import_id": {
+          "type": "string",
+          "description": "Import id",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/import/delete"
+      }
+    },
+    {
+      "name": "export.items",
+      "description": "CSV of every item: details (importable back to bulk-edit them) and figures (on hand, incoming, value, status, stock by location).",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/export/items"
+      }
+    },
+    {
+      "name": "export.stock",
+      "description": "CSV of stock per item and location; importing it back sets the stock to those numbers.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/export/stock"
+      }
+    },
+    {
+      "name": "export.movements",
+      "description": "CSV of the history between two days (default the last 30 days).",
+      "params": {
+        "from": {
+          "type": "string",
+          "description": "From day YYYY-MM-DD"
+        },
+        "to": {
+          "type": "string",
+          "description": "To day YYYY-MM-DD"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/export/movements"
+      }
+    },
+    {
+      "name": "export.template",
+      "description": "An empty CSV with the columns import understands.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/export/template"
+      }
+    }
+  ]
+}

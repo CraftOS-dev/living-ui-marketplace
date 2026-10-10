@@ -1,0 +1,26 @@
+{
+  "id": "{{PROJECT_ID}}",
+  "name": "{{PROJECT_NAME}}",
+  "description": "{{PROJECT_DESCRIPTION}}",
+  "agentAppVersion": 2,
+  "createdAt": "{{CREATED_AT}}",
+  "authMode": "none",
+  "port": "{{PORT}}",
+  "pbVersion": "0.39.7",
+  "kitVersion": "0.6.0",
+  "craftbotVersion": "1.4.3",
+  "pipeline": {
+    "install": "npm install --ignore-scripts --prefix frontend",
+    "build": "npm run build --prefix frontend",
+    "start": "pocketbase serve --http=127.0.0.1:{{PORT}} --dir pb/pb_data --hooksDir pb/pb_hooks --migrationsDir pb/pb_migrations --publicDir pb/pb_public",
+    "health": "/api/health"
+  },
+  "capabilities": {
+    "triggers": [
+      "documents_waiting",
+      "order_send_requested",
+      "restock_review"
+    ]
+  },
+  "adapterVersion": "1.9.0"
+}
