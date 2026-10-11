@@ -211,6 +211,24 @@
       "folder": "inventory",
       "tags": ["inventory", "stock", "warehouse", "barcode", "purchasing", "small-business"],
       "version": "1.0.0"
+    },
+    {
+      "id": "advance-pos",
+      "livingUIVersion": 2,
+      "name": "Advance POS",
+      "description": "Full point of sale for a shop or cafe. Ring up sales from product tiles, search or a barcode scanner, then take cash, card, gift cards, store credit and loyalty points, split any way, with tips; returns and exchanges come back onto the same screen. Behind the register: products with variants and option groups, stock with history, customers with points and credit, promotions (automatic, coupon codes, buy X get Y), gift cards, a cash drawer with X and Z reports, staff PINs with roles, manager approvals and a time clock, an audit log, reports with CSV export, 58 and 80 mm receipts, and a customer-facing display. CraftBot sends receipts, reviews each closed drawer, drafts restock lists and answers questions about the business.",
+      "folder": "advance-pos",
+      "tags": ["POS", "retail", "sales", "payments", "stock", "small-business"],
+      "version": "1.0.0"
+    },
+    {
+      "id": "pos",
+      "livingUIVersion": 2,
+      "name": "POS",
+      "description": "Point of sale for cafes, restaurants and shops: a fast touch-first register with sizes and options, dine-in, takeaway and delivery orders, split payments by cash, card or QR, returns and exchanges, and open tickets for tabs and tables. Around it: a kitchen screen with an order board, a customer display, stock with low-stock marks, customers, shifts with blind cash-ups and X and Z reports, staff PINs with roles and manager approvals, a training mode, gapless receipt numbers, and tax presets for Malaysia, Singapore, Japan, Australia, New Zealand, the UK and the US. CraftBot imports menus from a photo, PDF or spreadsheet, emails receipts and writes the daily brief.",
+      "folder": "pos",
+      "tags": ["POS", "cafe", "restaurant", "sales", "kitchen", "small-business"],
+      "version": "1.0.0"
     }
   ]
 }

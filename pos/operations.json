@@ -1,0 +1,2635 @@
+{
+  "opsVersion": 1,
+  "operations": [
+    {
+      "name": "health",
+      "description": "Liveness check (PocketBase built-in).",
+      "system": true,
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/health"
+      }
+    },
+    {
+      "name": "ops.list",
+      "description": "Return this operations manifest.",
+      "system": true,
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/_ops"
+      }
+    },
+    {
+      "name": "app.guide",
+      "description": "START HERE: conventions (money as text in major units, ids or names), today's trading day, the currency, tax classes, categories, registers, what your AI agent may and may not do, and ready-to-run recipes.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/app/guide"
+      }
+    },
+    {
+      "name": "app.status",
+      "description": "At a glance: set up or not, registers and their open shifts, open tickets (and how many your AI agent saved), products to review, imports waiting, kitchen orders open, products running low.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/app/status"
+      }
+    },
+    {
+      "name": "setup.regions",
+      "description": "The country presets the first-run setup offers: currency, tax classes and rates, price mode, cash rounding.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/setup/regions"
+      }
+    },
+    {
+      "name": "setup.complete",
+      "description": "First run: the business, its country preset and the owner with their PIN. Runs once. Owner only, at the counter; your AI agent is refused.",
+      "params": {
+        "business_name": {
+          "type": "string",
+          "description": "The business name on receipts",
+          "required": true
+        },
+        "region": {
+          "type": "string",
+          "description": "Country preset",
+          "required": true,
+          "enum": [
+            "MY",
+            "SG",
+            "JP",
+            "AU",
+            "NZ",
+            "GB",
+            "US",
+            "OTHER"
+          ]
+        },
+        "currency": {
+          "type": "string",
+          "description": "3-letter currency code (default: the preset's)"
+        },
+        "owner_name": {
+          "type": "string",
+          "description": "The owner's name",
+          "required": true
+        },
+        "pin": {
+          "type": "string",
+          "description": "The owner's PIN, 4 to 6 digits",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/setup/complete"
+      }
+    },
+    {
+      "name": "auth.me",
+      "description": "Who is signed in on this page (from its session), or null.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/auth/me"
+      }
+    },
+    {
+      "name": "auth.login",
+      "description": "Sign in with a PIN; returns a session token the page sends as X-Pos-Session. Counter only: needs a person signed in with their PIN; your AI agent is refused.",
+      "params": {
+        "staff": {
+          "type": "string",
+          "description": "Staff id or name",
+          "required": true
+        },
+        "pin": {
+          "type": "string",
+          "description": "Their PIN",
+          "required": true
+        },
+        "register": {
+          "type": "string",
+          "description": "Register id or code"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/auth/login"
+      }
+    },
+    {
+      "name": "auth.logout",
+      "description": "End this page's session (lock the register).",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/auth/logout"
+      }
+    },
+    {
+      "name": "auth.first-pin",
+      "description": "Someone without a PIN (new, or cleared) chooses one and is signed in. Counter only: needs a person signed in with their PIN; your AI agent is refused.",
+      "params": {
+        "staff": {
+          "type": "string",
+          "description": "Staff id or name",
+          "required": true
+        },
+        "pin": {
+          "type": "string",
+          "description": "The new PIN, 4 to 6 digits",
+          "required": true
+        },
+        "register": {
+          "type": "string",
+          "description": "Register id or code"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/auth/first-pin"
+      }
+    },
+    {
+      "name": "auth.change-pin",
+      "description": "The signed-in person changes their own PIN. Counter only: needs a person signed in with their PIN; your AI agent is refused.",
+      "params": {
+        "current": {
+          "type": "string",
+          "description": "Their current PIN",
+          "required": true
+        },
+        "pin": {
+          "type": "string",
+          "description": "The new PIN",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/auth/change-pin"
+      }
+    },
+    {
+      "name": "auth.approve",
+      "description": "A manager approves an action for the person at the counter with their PIN; returns a one-time approval (30 minutes) to pass as approval (or in approvals at finalize). Counter only: needs a person signed in with their PIN; your AI agent is refused.",
+      "params": {
+        "staff": {
+          "type": "string",
+          "description": "The approving manager or owner (id or name)",
+          "required": true
+        },
+        "pin": {
+          "type": "string",
+          "description": "Their PIN",
+          "required": true
+        },
+        "action": {
+          "type": "string",
+          "description": "What is approved",
+          "required": true,
+          "enum": [
+            "discount_over",
+            "price_override",
+            "refund",
+            "refund_blind",
+            "void_ticket",
+            "cash_move"
+          ]
+        },
+        "scope": {
+          "type": "string",
+          "description": "What it is for (shown in the audit trail)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/auth/approve"
+      }
+    },
+    {
+      "name": "staff.list",
+      "description": "Staff with role, color, training mode and whether they have a PIN (PINs are never shown), plus what each role may do.",
+      "params": {
+        "include_inactive": {
+          "type": "boolean",
+          "description": "Include staff who were turned off"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/staff/list"
+      }
+    },
+    {
+      "name": "staff.add",
+      "description": "Add a person with a role and their PIN. Owner only, at the counter; your AI agent is refused.",
+      "params": {
+        "name": {
+          "type": "string",
+          "description": "Name",
+          "required": true
+        },
+        "role": {
+          "type": "string",
+          "description": "Role",
+          "required": true,
+          "enum": [
+            "owner",
+            "manager",
+            "cashier"
+          ]
+        },
+        "pin": {
+          "type": "string",
+          "description": "Their PIN, 4 to 6 digits",
+          "required": true
+        },
+        "color": {
+          "type": "string",
+          "description": "Color slot 1 to 8"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/staff/add"
+      }
+    },
+    {
+      "name": "staff.update",
+      "description": "Change a person's name, role, color, training mode or turn them off. Owner only, at the counter; your AI agent is refused.",
+      "params": {
+        "staff": {
+          "type": "string",
+          "description": "Staff id or name",
+          "required": true
+        },
+        "name": {
+          "type": "string",
+          "description": "New name"
+        },
+        "role": {
+          "type": "string",
+          "description": "Role",
+          "enum": [
+            "owner",
+            "manager",
+            "cashier"
+          ]
+        },
+        "color": {
+          "type": "string",
+          "description": "Color slot 1 to 8"
+        },
+        "active": {
+          "type": "boolean",
+          "description": "false turns them off (they cannot sign in)"
+        },
+        "training": {
+          "type": "boolean",
+          "description": "Training mode: their sales are practice (not counted)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/staff/update"
+      }
+    },
+    {
+      "name": "staff.set-pin",
+      "description": "Set someone's PIN. Owner only, at the counter; your AI agent is refused.",
+      "params": {
+        "staff": {
+          "type": "string",
+          "description": "Staff id or name",
+          "required": true
+        },
+        "pin": {
+          "type": "string",
+          "description": "The new PIN",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/staff/set-pin"
+      }
+    },
+    {
+      "name": "staff.reset-pin",
+      "description": "Clear a forgotten PIN when the owner asks: the person chooses a new one at their next sign-in. Ends their sessions.",
+      "params": {
+        "staff": {
+          "type": "string",
+          "description": "Staff id or name",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/staff/reset-pin"
+      }
+    },
+    {
+      "name": "settings.get",
+      "description": "The shop's settings: business details, currency and decimals, price mode, tax rounding, cash rounding, order types, service charge, receipt options, kitchen, lock time, cashier discount limit, trading-day cutoff.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/settings/get"
+      }
+    },
+    {
+      "name": "settings.update",
+      "description": "Change settings. Your AI agent may change only the business details and receipt wording (business_name, address, phone, email, website, receipt_header, receipt_footer); the rest is for the owner.",
+      "params": {
+        "business_name": {
+          "type": "string",
+          "description": "Business name"
+        },
+        "address": {
+          "type": "string",
+          "description": "Address (several lines)"
+        },
+        "phone": {
+          "type": "string",
+          "description": "Phone"
+        },
+        "email": {
+          "type": "string",
+          "description": "Email"
+        },
+        "website": {
+          "type": "string",
+          "description": "Website"
+        },
+        "receipt_header": {
+          "type": "string",
+          "description": "Text printed at the top of receipts"
+        },
+        "receipt_footer": {
+          "type": "string",
+          "description": "Text printed at the bottom of receipts"
+        },
+        "tax_reg_label": {
+          "type": "string",
+          "description": "Owner: label of the tax registration number (e.g. SST No.)"
+        },
+        "tax_reg_no": {
+          "type": "string",
+          "description": "Owner: tax registration number"
+        },
+        "company_reg_no": {
+          "type": "string",
+          "description": "Owner: company registration number"
+        },
+        "region": {
+          "type": "string",
+          "description": "Owner: country preset label",
+          "enum": [
+            "MY",
+            "SG",
+            "JP",
+            "AU",
+            "NZ",
+            "GB",
+            "US",
+            "OTHER"
+          ]
+        },
+        "currency": {
+          "type": "string",
+          "description": "Owner: currency (only before the first sale)"
+        },
+        "price_mode": {
+          "type": "string",
+          "description": "Owner: prices include tax or not",
+          "enum": [
+            "inclusive",
+            "exclusive"
+          ]
+        },
+        "tax_rounding": {
+          "type": "string",
+          "description": "Owner: how per-rate tax rounds",
+          "enum": [
+            "half_up",
+            "floor",
+            "ceil"
+          ]
+        },
+        "cash_rounding": {
+          "type": "string",
+          "description": "Owner: smallest coin cash totals round to, e.g. 0.05 (0 is off)"
+        },
+        "order_types": {
+          "type": "string",
+          "description": "Owner: JSON list of dine_in, takeaway, delivery"
+        },
+        "default_order_type": {
+          "type": "string",
+          "description": "Owner: the order type a new sale starts with"
+        },
+        "service_charge": {
+          "type": "string",
+          "description": "Owner: service charge percent, e.g. 10 (0 is off)"
+        },
+        "service_charge_scope": {
+          "type": "string",
+          "description": "Owner: on dine-in orders or all",
+          "enum": [
+            "dine_in",
+            "all"
+          ]
+        },
+        "service_charge_tax": {
+          "type": "string",
+          "description": "Owner: tax class of the service charge (empty: untaxed)"
+        },
+        "receipt_width": {
+          "type": "string",
+          "description": "Owner: paper width in mm",
+          "enum": [
+            "80",
+            "58"
+          ]
+        },
+        "receipt_barcode": {
+          "type": "boolean",
+          "description": "Owner: print the receipt number as a barcode (scan it to find the sale)"
+        },
+        "after_sale": {
+          "type": "string",
+          "description": "Owner: after payment, ask about a receipt, print one, or none",
+          "enum": [
+            "ask",
+            "print",
+            "none"
+          ]
+        },
+        "kitchen_enabled": {
+          "type": "boolean",
+          "description": "Owner: send kitchen items to the kitchen screen"
+        },
+        "order_numbers": {
+          "type": "boolean",
+          "description": "Owner: give each sale a daily order number"
+        },
+        "show_tile_prices": {
+          "type": "boolean",
+          "description": "Owner: show each product's price under its name on the register's tiles"
+        },
+        "lock_minutes": {
+          "type": "string",
+          "description": "Owner: lock the register after this many idle minutes (0 is never)"
+        },
+        "cashier_discount": {
+          "type": "string",
+          "description": "Owner: biggest discount percent a cashier gives without a manager"
+        },
+        "day_cutoff_hour": {
+          "type": "string",
+          "description": "Owner: hour (0 to 12) the trading day ends the next morning"
+        },
+        "clear_logo": {
+          "type": "boolean",
+          "description": "Owner: remove the receipt logo"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/settings/update"
+      }
+    },
+    {
+      "name": "tax.list",
+      "description": "Tax classes with their rate, the rate when eaten in (if different), receipt mark, default, and how many products use each.",
+      "params": {
+        "include_archived": {
+          "type": "boolean",
+          "description": "Include archived classes"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/tax/list"
+      }
+    },
+    {
+      "name": "tax.add",
+      "description": "Add a tax class. Owner only, at the counter; your AI agent is refused.",
+      "params": {
+        "name": {
+          "type": "string",
+          "description": "Name, e.g. SST 6%",
+          "required": true
+        },
+        "rate": {
+          "type": "string",
+          "description": "Rate percent, e.g. 6",
+          "required": true
+        },
+        "dine_in_rate": {
+          "type": "string",
+          "description": "Rate when eaten in, if different"
+        },
+        "mark": {
+          "type": "string",
+          "description": "Mark printed next to items, e.g. ※"
+        },
+        "is_default": {
+          "type": "boolean",
+          "description": "The class new products get"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/tax/add"
+      }
+    },
+    {
+      "name": "tax.update",
+      "description": "Change a tax class (past sales keep the rate they were sold at). Owner only, at the counter; your AI agent is refused.",
+      "params": {
+        "tax_class": {
+          "type": "string",
+          "description": "Tax class id or name",
+          "required": true
+        },
+        "name": {
+          "type": "string",
+          "description": "Name"
+        },
+        "rate": {
+          "type": "string",
+          "description": "Rate percent"
+        },
+        "dine_in_rate": {
+          "type": "string",
+          "description": "Rate when eaten in (empty: same)"
+        },
+        "mark": {
+          "type": "string",
+          "description": "Mark"
+        },
+        "is_default": {
+          "type": "boolean",
+          "description": "Make it the default"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/tax/update"
+      }
+    },
+    {
+      "name": "tax.archive",
+      "description": "Archive (or restore) a tax class no product uses. Owner only, at the counter; your AI agent is refused.",
+      "params": {
+        "tax_class": {
+          "type": "string",
+          "description": "Tax class id or name",
+          "required": true
+        },
+        "archived": {
+          "type": "boolean",
+          "description": "false restores it"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/tax/archive"
+      }
+    },
+    {
+      "name": "tenders.list",
+      "description": "Payment methods (cash, card, QR, other) with their QR image when they have one.",
+      "params": {
+        "include_inactive": {
+          "type": "boolean",
+          "description": "Include methods that are turned off"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/tenders/list"
+      }
+    },
+    {
+      "name": "tenders.add",
+      "description": "Add a payment method. Owner only, at the counter; your AI agent is refused.",
+      "params": {
+        "name": {
+          "type": "string",
+          "description": "Name, e.g. DuitNow QR",
+          "required": true
+        },
+        "kind": {
+          "type": "string",
+          "description": "Kind",
+          "required": true,
+          "enum": [
+            "cash",
+            "card",
+            "qr",
+            "other"
+          ]
+        },
+        "ask_reference": {
+          "type": "boolean",
+          "description": "Ask for a reference (last 4 digits, approval code)"
+        },
+        "qr_path": {
+          "type": "string",
+          "description": "Absolute path of the QR image customers scan"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/tenders/add"
+      }
+    },
+    {
+      "name": "tenders.update",
+      "description": "Change a payment method (name, on or off, order, QR image). Owner only, at the counter; your AI agent is refused.",
+      "params": {
+        "tender": {
+          "type": "string",
+          "description": "Payment method id or name",
+          "required": true
+        },
+        "name": {
+          "type": "string",
+          "description": "Name"
+        },
+        "active": {
+          "type": "boolean",
+          "description": "On or off"
+        },
+        "ask_reference": {
+          "type": "boolean",
+          "description": "Ask for a reference"
+        },
+        "sort": {
+          "type": "string",
+          "description": "Position"
+        },
+        "qr_path": {
+          "type": "string",
+          "description": "Absolute path of a QR image"
+        },
+        "clear_qr": {
+          "type": "boolean",
+          "description": "Remove the QR image"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/tenders/update"
+      }
+    },
+    {
+      "name": "registers.list",
+      "description": "Registers with their open shift, if any.",
+      "params": {
+        "include_archived": {
+          "type": "boolean",
+          "description": "Include archived registers"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/registers/list"
+      }
+    },
+    {
+      "name": "registers.add",
+      "description": "Add a register (code R2, R3... by default). Owner only, at the counter; your AI agent is refused.",
+      "params": {
+        "name": {
+          "type": "string",
+          "description": "Name, e.g. Bar",
+          "required": true
+        },
+        "code": {
+          "type": "string",
+          "description": "Code, up to 8 letters or digits"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/registers/add"
+      }
+    },
+    {
+      "name": "registers.update",
+      "description": "Rename or archive a register. Owner only, at the counter; your AI agent is refused.",
+      "params": {
+        "register": {
+          "type": "string",
+          "description": "Register id or code (R1)",
+          "required": true
+        },
+        "name": {
+          "type": "string",
+          "description": "Name"
+        },
+        "archived": {
+          "type": "boolean",
+          "description": "Archive it (it must be closed)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/registers/update"
+      }
+    },
+    {
+      "name": "catalog.register",
+      "description": "Everything the register sells, in one call: categories, active products with variants, barcodes, stock and modifier groups, the modifier groups with options, and preset discounts.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/catalog/register"
+      }
+    },
+    {
+      "name": "categories.list",
+      "description": "Categories with color, icon, kitchen flag and product count, plus the icons a category can use.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/categories/list"
+      }
+    },
+    {
+      "name": "categories.add",
+      "description": "Add a category.",
+      "params": {
+        "name": {
+          "type": "string",
+          "description": "Name",
+          "required": true
+        },
+        "icon": {
+          "type": "string",
+          "description": "Line icon name (see categories.list icons)"
+        },
+        "color": {
+          "type": "string",
+          "description": "Color slot 1 to 8"
+        },
+        "kitchen": {
+          "type": "boolean",
+          "description": "Its products go to the kitchen screen"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/categories/add"
+      }
+    },
+    {
+      "name": "categories.update",
+      "description": "Change a category.",
+      "params": {
+        "category": {
+          "type": "string",
+          "description": "Category id or name",
+          "required": true
+        },
+        "name": {
+          "type": "string",
+          "description": "Name"
+        },
+        "icon": {
+          "type": "string",
+          "description": "Line icon name"
+        },
+        "color": {
+          "type": "string",
+          "description": "Color slot 1 to 8"
+        },
+        "kitchen": {
+          "type": "boolean",
+          "description": "Kitchen items"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/categories/update"
+      }
+    },
+    {
+      "name": "categories.delete",
+      "description": "Delete a category; its products stay, without a category.",
+      "params": {
+        "category": {
+          "type": "string",
+          "description": "Category id or name",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/categories/delete"
+      },
+      "destructive": true
+    },
+    {
+      "name": "categories.reorder",
+      "description": "Put categories in a new order.",
+      "params": {
+        "categories": {
+          "type": "string",
+          "description": "JSON list of category ids or names, in order",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/categories/reorder"
+      }
+    },
+    {
+      "name": "products.list",
+      "description": "Products: search by name, SKU or barcode; filter by category, status and availability.",
+      "params": {
+        "q": {
+          "type": "string",
+          "description": "Part of a name, SKU or barcode"
+        },
+        "category": {
+          "type": "string",
+          "description": "Category id or name, or none"
+        },
+        "status": {
+          "type": "string",
+          "description": "Default active",
+          "enum": [
+            "active",
+            "draft",
+            "archived",
+            "all"
+          ]
+        },
+        "availability": {
+          "type": "string",
+          "description": "Filter",
+          "enum": [
+            "any",
+            "available",
+            "sold_out",
+            "low_stock"
+          ]
+        },
+        "limit": {
+          "type": "string",
+          "description": "At most this many (0 for all)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/products/list"
+      }
+    },
+    {
+      "name": "products.get",
+      "description": "One product with variants, barcodes, modifier groups, stock and the last 30 days of sales.",
+      "params": {
+        "product": {
+          "type": "string",
+          "description": "Product id, SKU, barcode or exact name",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/products/get"
+      }
+    },
+    {
+      "name": "products.add",
+      "description": "Add a product (with variants, barcodes, modifier groups, stock tracking).",
+      "params": {
+        "name": {
+          "type": "string",
+          "description": "Name",
+          "required": true
+        },
+        "stock": {
+          "type": "string",
+          "description": "Opening stock when tracking stock"
+        },
+        "category": {
+          "type": "string",
+          "description": "Category id or name (empty for none)"
+        },
+        "price": {
+          "type": "string",
+          "description": "An amount in the shop currency with \".\" as the decimal point, e.g. 4.50 (no decimals for JPY)"
+        },
+        "open_price": {
+          "type": "boolean",
+          "description": "The price is typed at the counter each time"
+        },
+        "tax_class": {
+          "type": "string",
+          "description": "Tax class id or name (default: the default class)"
+        },
+        "sku": {
+          "type": "string",
+          "description": "SKU (scannable, unique)"
+        },
+        "description": {
+          "type": "string",
+          "description": "Description"
+        },
+        "variants": {
+          "type": "string",
+          "description": "JSON list replacing the variants, e.g. [{\"name\":\"Regular\",\"price\":\"4.50\"},{\"name\":\"Large\",\"price\":\"5.50\",\"sku\":\"LAT-L\"}]"
+        },
+        "barcodes": {
+          "type": "string",
+          "description": "JSON list replacing the barcodes, e.g. [\"9555001234567\"] or [{\"code\":\"...\",\"variant\":\"Large\"}]"
+        },
+        "modifier_groups": {
+          "type": "string",
+          "description": "JSON list of modifier group names or ids offered with it"
+        },
+        "cost": {
+          "type": "string",
+          "description": "Cost per unit (for profit in reports)"
+        },
+        "color": {
+          "type": "string",
+          "description": "Tile color slot 1 to 8 (0: the category's)"
+        },
+        "available": {
+          "type": "boolean",
+          "description": "false: sold out"
+        },
+        "favorite": {
+          "type": "boolean",
+          "description": "Show it under Favorites"
+        },
+        "track_stock": {
+          "type": "boolean",
+          "description": "Count its stock"
+        },
+        "low_stock": {
+          "type": "string",
+          "description": "Alert when stock is at or below this"
+        },
+        "photo_path": {
+          "type": "string",
+          "description": "Absolute path of a photo"
+        },
+        "clear_photo": {
+          "type": "boolean",
+          "description": "Remove the photo"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/products/add"
+      }
+    },
+    {
+      "name": "products.update",
+      "description": "Change a product; lists given (variants, barcodes, modifier groups) replace the current ones.",
+      "params": {
+        "product": {
+          "type": "string",
+          "description": "Product id, SKU, barcode or exact name",
+          "required": true
+        },
+        "name": {
+          "type": "string",
+          "description": "Name"
+        },
+        "category": {
+          "type": "string",
+          "description": "Category id or name (empty for none)"
+        },
+        "price": {
+          "type": "string",
+          "description": "An amount in the shop currency with \".\" as the decimal point, e.g. 4.50 (no decimals for JPY)"
+        },
+        "open_price": {
+          "type": "boolean",
+          "description": "The price is typed at the counter each time"
+        },
+        "tax_class": {
+          "type": "string",
+          "description": "Tax class id or name (default: the default class)"
+        },
+        "sku": {
+          "type": "string",
+          "description": "SKU (scannable, unique)"
+        },
+        "description": {
+          "type": "string",
+          "description": "Description"
+        },
+        "variants": {
+          "type": "string",
+          "description": "JSON list replacing the variants, e.g. [{\"name\":\"Regular\",\"price\":\"4.50\"},{\"name\":\"Large\",\"price\":\"5.50\",\"sku\":\"LAT-L\"}]"
+        },
+        "barcodes": {
+          "type": "string",
+          "description": "JSON list replacing the barcodes, e.g. [\"9555001234567\"] or [{\"code\":\"...\",\"variant\":\"Large\"}]"
+        },
+        "modifier_groups": {
+          "type": "string",
+          "description": "JSON list of modifier group names or ids offered with it"
+        },
+        "cost": {
+          "type": "string",
+          "description": "Cost per unit (for profit in reports)"
+        },
+        "color": {
+          "type": "string",
+          "description": "Tile color slot 1 to 8 (0: the category's)"
+        },
+        "available": {
+          "type": "boolean",
+          "description": "false: sold out"
+        },
+        "favorite": {
+          "type": "boolean",
+          "description": "Show it under Favorites"
+        },
+        "track_stock": {
+          "type": "boolean",
+          "description": "Count its stock"
+        },
+        "low_stock": {
+          "type": "string",
+          "description": "Alert when stock is at or below this"
+        },
+        "photo_path": {
+          "type": "string",
+          "description": "Absolute path of a photo"
+        },
+        "clear_photo": {
+          "type": "boolean",
+          "description": "Remove the photo"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/products/update"
+      }
+    },
+    {
+      "name": "products.set-available",
+      "description": "Mark a product sold out (or back). Anyone signed in may do this at the counter.",
+      "params": {
+        "product": {
+          "type": "string",
+          "description": "Product id, SKU, barcode or exact name",
+          "required": true
+        },
+        "available": {
+          "type": "boolean",
+          "description": "false: sold out",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/products/set-available"
+      }
+    },
+    {
+      "name": "products.archive",
+      "description": "Archive a product (it stops selling; history keeps it).",
+      "params": {
+        "product": {
+          "type": "string",
+          "description": "Product id, SKU, barcode or exact name",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/products/archive"
+      }
+    },
+    {
+      "name": "products.restore",
+      "description": "Bring an archived product back.",
+      "params": {
+        "product": {
+          "type": "string",
+          "description": "Product id, SKU, barcode or exact name",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/products/restore"
+      }
+    },
+    {
+      "name": "products.reorder",
+      "description": "Put products in a new order (on the register within their category, or within Favorites).",
+      "params": {
+        "products": {
+          "type": "string",
+          "description": "JSON list of product ids, in order",
+          "required": true
+        },
+        "favorites": {
+          "type": "boolean",
+          "description": "Order Favorites instead"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/products/reorder"
+      }
+    },
+    {
+      "name": "products.approve",
+      "description": "Approve imported products (to review) so they sell. A person does this on the Products page; your AI agent is refused.",
+      "params": {
+        "products": {
+          "type": "string",
+          "description": "JSON list of product ids",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/products/approve"
+      }
+    },
+    {
+      "name": "products.discard",
+      "description": "Throw away imported products that are still to review.",
+      "params": {
+        "products": {
+          "type": "string",
+          "description": "JSON list of product ids",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/products/discard"
+      },
+      "destructive": true
+    },
+    {
+      "name": "products.import",
+      "description": "Add many products at once. Rows: [{\"name\",\"category\",\"price\",\"sku\",\"barcode\",\"cost\",\"description\",\"tax_class\",\"variants\":[{\"name\",\"price\"}],\"track_stock\",\"stock\"}]. Missing categories are created. What your AI agent imports waits for a person's review. All or nothing.",
+      "params": {
+        "rows": {
+          "type": "string",
+          "description": "JSON list of rows",
+          "required": true
+        },
+        "import": {
+          "type": "string",
+          "description": "The import (file) these came from"
+        },
+        "status": {
+          "type": "string",
+          "description": "A person's import: active (default) or draft",
+          "enum": [
+            "active",
+            "draft"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/products/import"
+      }
+    },
+    {
+      "name": "modifiers.list",
+      "description": "Modifier groups (Milk, Size, Add-ons...) with their rules (min, max) and options with prices.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/modifiers/list"
+      }
+    },
+    {
+      "name": "modifiers.add-group",
+      "description": "Add a modifier group with its options.",
+      "params": {
+        "name": {
+          "type": "string",
+          "description": "Name, e.g. Milk",
+          "required": true
+        },
+        "min": {
+          "type": "string",
+          "description": "How many must be picked (0: optional)"
+        },
+        "max": {
+          "type": "string",
+          "description": "How many may be picked (0: no limit)"
+        },
+        "options": {
+          "type": "string",
+          "description": "JSON list, e.g. [{\"name\":\"Oat\",\"price\":\"1.00\"},{\"name\":\"Full\",\"price\":\"0\",\"is_default\":true}] (prices may be negative)",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/modifiers/add-group"
+      }
+    },
+    {
+      "name": "modifiers.update-group",
+      "description": "Change a modifier group; options given replace the current ones.",
+      "params": {
+        "group": {
+          "type": "string",
+          "description": "Group id or name",
+          "required": true
+        },
+        "name": {
+          "type": "string",
+          "description": "Name"
+        },
+        "min": {
+          "type": "string",
+          "description": "Must pick"
+        },
+        "max": {
+          "type": "string",
+          "description": "May pick (0: no limit)"
+        },
+        "options": {
+          "type": "string",
+          "description": "JSON list of options"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/modifiers/update-group"
+      }
+    },
+    {
+      "name": "modifiers.delete-group",
+      "description": "Delete a modifier group (it is removed from its products).",
+      "params": {
+        "group": {
+          "type": "string",
+          "description": "Group id or name",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/modifiers/delete-group"
+      },
+      "destructive": true
+    },
+    {
+      "name": "modifiers.set-available",
+      "description": "Mark an option sold out (or back), e.g. oat milk. Anyone signed in may do this.",
+      "params": {
+        "option": {
+          "type": "string",
+          "description": "Option id, or its name with group",
+          "required": true
+        },
+        "group": {
+          "type": "string",
+          "description": "Group id or name (when option is a name)"
+        },
+        "available": {
+          "type": "boolean",
+          "description": "false: sold out",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/modifiers/set-available"
+      }
+    },
+    {
+      "name": "discounts.list",
+      "description": "Preset discounts offered at the counter.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/discounts/list"
+      }
+    },
+    {
+      "name": "discounts.add",
+      "description": "Add a preset discount.",
+      "params": {
+        "name": {
+          "type": "string",
+          "description": "Name, e.g. Staff",
+          "required": true
+        },
+        "kind": {
+          "type": "string",
+          "description": "Kind",
+          "required": true,
+          "enum": [
+            "percent",
+            "amount"
+          ]
+        },
+        "value": {
+          "type": "string",
+          "description": "A percent like 10, or an amount like 2.00",
+          "required": true
+        },
+        "scope": {
+          "type": "string",
+          "description": "On the whole order or one item",
+          "enum": [
+            "order",
+            "item"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/discounts/add"
+      }
+    },
+    {
+      "name": "discounts.update",
+      "description": "Change a preset discount.",
+      "params": {
+        "discount": {
+          "type": "string",
+          "description": "Discount id or name",
+          "required": true
+        },
+        "name": {
+          "type": "string",
+          "description": "Name"
+        },
+        "kind": {
+          "type": "string",
+          "description": "Kind",
+          "enum": [
+            "percent",
+            "amount"
+          ]
+        },
+        "value": {
+          "type": "string",
+          "description": "Percent or amount"
+        },
+        "scope": {
+          "type": "string",
+          "description": "Scope",
+          "enum": [
+            "order",
+            "item"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/discounts/update"
+      }
+    },
+    {
+      "name": "discounts.delete",
+      "description": "Delete a preset discount.",
+      "params": {
+        "discount": {
+          "type": "string",
+          "description": "Discount id or name",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/discounts/delete"
+      },
+      "destructive": true
+    },
+    {
+      "name": "lookup.code",
+      "description": "What a scanned or typed code is: a product (and variant), a receipt, or nothing.",
+      "params": {
+        "code": {
+          "type": "string",
+          "description": "Barcode, SKU or receipt number",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/lookup/code"
+      }
+    },
+    {
+      "name": "stock.list",
+      "description": "Products that track stock, with what is on hand per variant; low and out counts.",
+      "params": {
+        "q": {
+          "type": "string",
+          "description": "Part of a name or SKU"
+        },
+        "only": {
+          "type": "string",
+          "description": "Filter",
+          "enum": [
+            "all",
+            "low",
+            "out"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/stock/list"
+      }
+    },
+    {
+      "name": "stock.history",
+      "description": "A product's stock moves (sold, refunded, received, adjusted, counted), newest first.",
+      "params": {
+        "product": {
+          "type": "string",
+          "description": "Product id, SKU, barcode or exact name",
+          "required": true
+        },
+        "limit": {
+          "type": "string",
+          "description": "How many (default 50)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/stock/history"
+      }
+    },
+    {
+      "name": "stock.receive",
+      "description": "Stock in (a delivery).",
+      "params": {
+        "product": {
+          "type": "string",
+          "description": "Product id, SKU, barcode or exact name",
+          "required": true
+        },
+        "variant": {
+          "type": "string",
+          "description": "Variant name or id (required when the product has variants)"
+        },
+        "qty": {
+          "type": "string",
+          "description": "How many came in",
+          "required": true
+        },
+        "reason": {
+          "type": "string",
+          "description": "e.g. Delivery from <supplier>"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/stock/receive"
+      }
+    },
+    {
+      "name": "stock.adjust",
+      "description": "Correct stock up or down with a reason (broken, expired, found).",
+      "params": {
+        "product": {
+          "type": "string",
+          "description": "Product id, SKU, barcode or exact name",
+          "required": true
+        },
+        "variant": {
+          "type": "string",
+          "description": "Variant name or id (required when the product has variants)"
+        },
+        "qty": {
+          "type": "string",
+          "description": "The change, e.g. -2",
+          "required": true
+        },
+        "reason": {
+          "type": "string",
+          "description": "Why",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/stock/adjust"
+      }
+    },
+    {
+      "name": "stock.count",
+      "description": "Set what is on hand to what was counted.",
+      "params": {
+        "product": {
+          "type": "string",
+          "description": "Product id, SKU, barcode or exact name",
+          "required": true
+        },
+        "variant": {
+          "type": "string",
+          "description": "Variant name or id (required when the product has variants)"
+        },
+        "counted": {
+          "type": "string",
+          "description": "How many are there",
+          "required": true
+        },
+        "reason": {
+          "type": "string",
+          "description": "Note"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/stock/count"
+      }
+    },
+    {
+      "name": "imports.list",
+      "description": "Menu and price-list files for your AI agent to read, with their status and how many products wait for review.",
+      "params": {
+        "status": {
+          "type": "string",
+          "description": "Filter",
+          "enum": [
+            "all",
+            "waiting",
+            "reading",
+            "done",
+            "failed"
+          ]
+        },
+        "limit": {
+          "type": "string",
+          "description": "How many"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/imports/list"
+      }
+    },
+    {
+      "name": "imports.add",
+      "description": "Add a menu photo, PDF or spreadsheet for your AI agent to read (it is asked at once).",
+      "params": {
+        "path": {
+          "type": "string",
+          "description": "Absolute path of the file",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/imports/add"
+      }
+    },
+    {
+      "name": "imports.start",
+      "description": "Your AI agent takes a waiting import.",
+      "params": {
+        "import": {
+          "type": "string",
+          "description": "Import id",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/imports/start"
+      }
+    },
+    {
+      "name": "imports.complete",
+      "description": "Finish an import with a summary of what was added for review.",
+      "params": {
+        "import": {
+          "type": "string",
+          "description": "Import id",
+          "required": true
+        },
+        "summary": {
+          "type": "string",
+          "description": "What was added and what was left out",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/imports/complete"
+      }
+    },
+    {
+      "name": "imports.fail",
+      "description": "Mark an import as not readable, with a reason the user can act on.",
+      "params": {
+        "import": {
+          "type": "string",
+          "description": "Import id",
+          "required": true
+        },
+        "reason": {
+          "type": "string",
+          "description": "Why",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/imports/fail"
+      }
+    },
+    {
+      "name": "imports.retry",
+      "description": "Ask your AI agent to read a failed import again.",
+      "params": {
+        "import": {
+          "type": "string",
+          "description": "Import id",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/imports/retry"
+      }
+    },
+    {
+      "name": "imports.delete",
+      "description": "Delete an import file (products it added stay).",
+      "params": {
+        "import": {
+          "type": "string",
+          "description": "Import id",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/imports/delete"
+      },
+      "destructive": true
+    },
+    {
+      "name": "tickets.list",
+      "description": "Open tickets (saved carts: tabs, orders to collect, orders your AI agent took), newest first.",
+      "params": {
+        "status": {
+          "type": "string",
+          "description": "Default open",
+          "enum": [
+            "open",
+            "done",
+            "void",
+            "all"
+          ]
+        },
+        "limit": {
+          "type": "string",
+          "description": "How many"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/tickets/list"
+      }
+    },
+    {
+      "name": "tickets.get",
+      "description": "One ticket with its lines.",
+      "params": {
+        "ticket": {
+          "type": "string",
+          "description": "Ticket id or ref",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/tickets/get"
+      }
+    },
+    {
+      "name": "tickets.park",
+      "description": "Save the counter's cart as a ticket. Counter only: needs a person signed in with their PIN; your AI agent is refused.",
+      "params": {
+        "ref": {
+          "type": "string",
+          "description": "The ticket's ref",
+          "required": true
+        },
+        "register": {
+          "type": "string",
+          "description": "Register id or code"
+        },
+        "name": {
+          "type": "string",
+          "description": "Ticket name (table, customer)"
+        },
+        "lines": {
+          "type": "string",
+          "description": "JSON cart lines",
+          "required": true
+        },
+        "discount": {
+          "type": "string",
+          "description": "JSON order discount"
+        },
+        "order_type": {
+          "type": "string",
+          "description": "Order type"
+        },
+        "customer": {
+          "type": "string",
+          "description": "Customer id"
+        },
+        "note": {
+          "type": "string",
+          "description": "Note"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/tickets/park"
+      }
+    },
+    {
+      "name": "tickets.resume",
+      "description": "Open a ticket on a register. Counter only: needs a person signed in with their PIN; your AI agent is refused.",
+      "params": {
+        "ticket": {
+          "type": "string",
+          "description": "Ticket id or ref",
+          "required": true
+        },
+        "register": {
+          "type": "string",
+          "description": "Register id or code"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/tickets/resume"
+      }
+    },
+    {
+      "name": "tickets.release",
+      "description": "Put an opened ticket back to waiting, unchanged. Counter only: needs a person signed in with their PIN; your AI agent is refused.",
+      "params": {
+        "ticket": {
+          "type": "string",
+          "description": "Ticket id or ref",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/tickets/release"
+      }
+    },
+    {
+      "name": "tickets.void",
+      "description": "Void a ticket with a reason (a cashier needs a manager's approval). Counter only: needs a person signed in with their PIN; your AI agent is refused.",
+      "params": {
+        "ticket": {
+          "type": "string",
+          "description": "Ticket id or ref",
+          "required": true
+        },
+        "reason": {
+          "type": "string",
+          "description": "Why",
+          "required": true
+        },
+        "approval": {
+          "type": "string",
+          "description": "A manager's approval (auth.approve)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/tickets/void"
+      },
+      "destructive": true
+    },
+    {
+      "name": "tickets.draft",
+      "description": "Save an order you took (phone, chat) as a ticket for staff to check and take payment. Lines name products by id, SKU, barcode or exact name, a variant and options by name; default options apply when none are named.",
+      "params": {
+        "name": {
+          "type": "string",
+          "description": "Ticket name, e.g. Phone order: Sam",
+          "required": true
+        },
+        "lines": {
+          "type": "string",
+          "description": "JSON list, e.g. [{\"product\":\"Latte\",\"variant\":\"Large\",\"qty\":2,\"modifiers\":[\"Oat\"],\"note\":\"Extra hot\"}]",
+          "required": true
+        },
+        "order_type": {
+          "type": "string",
+          "description": "Order type (default: the shop's)"
+        },
+        "customer": {
+          "type": "string",
+          "description": "Customer id, phone, email or exact name"
+        },
+        "note": {
+          "type": "string",
+          "description": "Note, e.g. Pick up 12:30"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/tickets/draft"
+      }
+    },
+    {
+      "name": "sales.finalize",
+      "description": "Record a paid sale, refund or exchange: re-prices every line, checks the total, takes the payments and assigns the receipt number. Counter only: needs a person signed in with their PIN; your AI agent is refused.",
+      "params": {
+        "ref": {
+          "type": "string",
+          "description": "A unique ref for this sale, reused on retries",
+          "required": true
+        },
+        "register": {
+          "type": "string",
+          "description": "Register id or code (R1)",
+          "required": true
+        },
+        "lines": {
+          "type": "string",
+          "description": "JSON cart lines",
+          "required": true
+        },
+        "payments": {
+          "type": "string",
+          "description": "JSON payments [{\"tender\",\"amount\",\"tendered\",\"reference\"}] in minor units",
+          "required": true
+        },
+        "discount": {
+          "type": "string",
+          "description": "JSON order discount {\"kind\":\"percent\"|\"amount\",\"value\"}"
+        },
+        "order_type": {
+          "type": "string",
+          "description": "Order type"
+        },
+        "customer": {
+          "type": "string",
+          "description": "Customer id"
+        },
+        "name": {
+          "type": "string",
+          "description": "Ticket name"
+        },
+        "note": {
+          "type": "string",
+          "description": "Note"
+        },
+        "expected_total": {
+          "type": "string",
+          "description": "The total the cashier showed, in minor units"
+        },
+        "approvals": {
+          "type": "string",
+          "description": "JSON list of manager approvals"
+        },
+        "cart": {
+          "type": "string",
+          "description": "The ticket this sale pays"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/sales/finalize"
+      }
+    },
+    {
+      "name": "sales.preview",
+      "description": "Price a cart without saving anything: lines, discounts, service charge, tax per rate and the total. Use it to quote an order.",
+      "params": {
+        "lines": {
+          "type": "string",
+          "description": "JSON cart lines: [{\"product\":\"<id>\",\"variant\":\"<id>\",\"qty\":1,\"modifiers\":[\"<option id>\"]}] (ids from catalog.register)",
+          "required": true
+        },
+        "discount": {
+          "type": "string",
+          "description": "JSON order discount"
+        },
+        "order_type": {
+          "type": "string",
+          "description": "Order type"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/sales/preview"
+      }
+    },
+    {
+      "name": "sales.list",
+      "description": "Sales, newest first: search by receipt number, ticket name, customer or order number; filter by days, kind, register, staff, customer, payment kind.",
+      "params": {
+        "q": {
+          "type": "string",
+          "description": "Receipt number, ticket name, customer name or phone, or order number"
+        },
+        "from": {
+          "type": "string",
+          "description": "A trading day, YYYY-MM-DD"
+        },
+        "to": {
+          "type": "string",
+          "description": "A trading day, YYYY-MM-DD"
+        },
+        "kind": {
+          "type": "string",
+          "description": "Kind",
+          "enum": [
+            "all",
+            "sale",
+            "refund",
+            "exchange"
+          ]
+        },
+        "register": {
+          "type": "string",
+          "description": "Register id or code"
+        },
+        "staff": {
+          "type": "string",
+          "description": "Staff id or name"
+        },
+        "customer": {
+          "type": "string",
+          "description": "Customer id, phone, email or name"
+        },
+        "tender_kind": {
+          "type": "string",
+          "description": "Paid by",
+          "enum": [
+            "cash",
+            "card",
+            "qr",
+            "other"
+          ]
+        },
+        "training": {
+          "type": "boolean",
+          "description": "Training sales instead of real ones"
+        },
+        "limit": {
+          "type": "string",
+          "description": "How many (default 50)"
+        },
+        "offset": {
+          "type": "string",
+          "description": "Skip this many"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/sales/list"
+      }
+    },
+    {
+      "name": "sales.get",
+      "description": "One sale with lines, taxes, payments, returns against it and the sale it returns from.",
+      "params": {
+        "sale": {
+          "type": "string",
+          "description": "Sale id or receipt number (R1-000123)",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/sales/get"
+      }
+    },
+    {
+      "name": "sales.refundable",
+      "description": "What can still be returned from a sale, line by line.",
+      "params": {
+        "sale": {
+          "type": "string",
+          "description": "Sale id or receipt number (R1-000123)",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/sales/refundable"
+      }
+    },
+    {
+      "name": "sales.receipt-text",
+      "description": "A sale's receipt as plain text with an email subject.",
+      "params": {
+        "sale": {
+          "type": "string",
+          "description": "Sale id or receipt number (R1-000123)",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/sales/receipt-text"
+      }
+    },
+    {
+      "name": "receipts.email",
+      "description": "Email a receipt to a customer: asks your AI agent (receipt_email_requested) to send it from the user's email account.",
+      "params": {
+        "sale": {
+          "type": "string",
+          "description": "Sale id or receipt number (R1-000123)",
+          "required": true
+        },
+        "email": {
+          "type": "string",
+          "description": "Email address",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/receipts/email"
+      }
+    },
+    {
+      "name": "receipts.reprint",
+      "description": "Record a reprint and return the sale to print. Counter only: needs a person signed in with their PIN; your AI agent is refused.",
+      "params": {
+        "sale": {
+          "type": "string",
+          "description": "Sale id or receipt number (R1-000123)",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/receipts/reprint"
+      }
+    },
+    {
+      "name": "shifts.current",
+      "description": "A register's open shift with its live X report (sales, tenders, expected cash), or null.",
+      "params": {
+        "register": {
+          "type": "string",
+          "description": "Register id or code (R1)",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/shifts/current"
+      }
+    },
+    {
+      "name": "shifts.list",
+      "description": "Shifts, newest first, with totals and the cash count of closed ones.",
+      "params": {
+        "register": {
+          "type": "string",
+          "description": "Register id or code"
+        },
+        "status": {
+          "type": "string",
+          "description": "Filter",
+          "enum": [
+            "all",
+            "open",
+            "closed"
+          ]
+        },
+        "limit": {
+          "type": "string",
+          "description": "How many"
+        },
+        "offset": {
+          "type": "string",
+          "description": "Skip this many"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/shifts/list"
+      }
+    },
+    {
+      "name": "shifts.report",
+      "description": "The X report of an open shift (live) or the Z report of a closed one (frozen at close).",
+      "params": {
+        "shift": {
+          "type": "string",
+          "description": "Shift id",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/shifts/report"
+      }
+    },
+    {
+      "name": "shifts.open",
+      "description": "Open a register with its counted float. Counter only: needs a person signed in with their PIN; your AI agent is refused.",
+      "params": {
+        "register": {
+          "type": "string",
+          "description": "Register id or code (R1)",
+          "required": true
+        },
+        "float": {
+          "type": "string",
+          "description": "The float: An amount in the shop currency with \".\" as the decimal point, e.g. 4.50 (no decimals for JPY)"
+        },
+        "counts": {
+          "type": "string",
+          "description": "Or the float counted by note and coin: JSON {\"<value in minor units>\": count}"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/shifts/open"
+      }
+    },
+    {
+      "name": "shifts.close",
+      "description": "Close a register: the counted cash (or counts), the expected cash and the difference; writes the Z report and asks your AI agent for the day's brief. Counter only: needs a person signed in with their PIN; your AI agent is refused.",
+      "params": {
+        "register": {
+          "type": "string",
+          "description": "Register id or code (R1)",
+          "required": true
+        },
+        "counted": {
+          "type": "string",
+          "description": "Cash counted: An amount in the shop currency with \".\" as the decimal point, e.g. 4.50 (no decimals for JPY)"
+        },
+        "counts": {
+          "type": "string",
+          "description": "Or counted by note and coin"
+        },
+        "note": {
+          "type": "string",
+          "description": "Why the cash is over or short"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/shifts/close"
+      }
+    },
+    {
+      "name": "cash.move",
+      "description": "Put cash in, take it out (paid out) or drop it to the safe, with a reason (a cashier needs a manager's approval). Counter only: needs a person signed in with their PIN; your AI agent is refused.",
+      "params": {
+        "register": {
+          "type": "string",
+          "description": "Register id or code (R1)",
+          "required": true
+        },
+        "kind": {
+          "type": "string",
+          "description": "Kind",
+          "required": true,
+          "enum": [
+            "pay_in",
+            "pay_out",
+            "drop"
+          ]
+        },
+        "amount": {
+          "type": "string",
+          "description": "An amount in the shop currency with \".\" as the decimal point, e.g. 4.50 (no decimals for JPY)",
+          "required": true
+        },
+        "reason": {
+          "type": "string",
+          "description": "Why",
+          "required": true
+        },
+        "approval": {
+          "type": "string",
+          "description": "A manager's approval"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/cash/move"
+      }
+    },
+    {
+      "name": "kitchen.list",
+      "description": "Kitchen tickets being made and ready (or the last collected), with the all-day count of items to make.",
+      "params": {
+        "view": {
+          "type": "string",
+          "description": "Default active",
+          "enum": [
+            "active",
+            "done"
+          ]
+        },
+        "limit": {
+          "type": "string",
+          "description": "How many collected tickets"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/kitchen/list"
+      }
+    },
+    {
+      "name": "kitchen.board",
+      "description": "The customer board: order numbers being made and ready.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/kitchen/board"
+      }
+    },
+    {
+      "name": "kitchen.bump",
+      "description": "Move a kitchen ticket on: new to ready (called), ready to done (collected). Counter only: needs a person signed in with their PIN; your AI agent is refused.",
+      "params": {
+        "ticket": {
+          "type": "string",
+          "description": "Kitchen ticket id",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/kitchen/bump"
+      }
+    },
+    {
+      "name": "kitchen.recall",
+      "description": "Move a kitchen ticket back one step. Counter only: needs a person signed in with their PIN; your AI agent is refused.",
+      "params": {
+        "ticket": {
+          "type": "string",
+          "description": "Kitchen ticket id",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/kitchen/recall"
+      }
+    },
+    {
+      "name": "customers.list",
+      "description": "Customers: search by name, phone or email; with visits, spend and last visit.",
+      "params": {
+        "q": {
+          "type": "string",
+          "description": "Part of a name, phone or email"
+        },
+        "archived": {
+          "type": "boolean",
+          "description": "Archived customers instead"
+        },
+        "limit": {
+          "type": "string",
+          "description": "How many"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/customers/list"
+      }
+    },
+    {
+      "name": "customers.get",
+      "description": "One customer with their recent sales and favourite products.",
+      "params": {
+        "customer": {
+          "type": "string",
+          "description": "Customer id, phone, email or exact name",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/customers/get"
+      }
+    },
+    {
+      "name": "customers.add",
+      "description": "Add a customer.",
+      "params": {
+        "name": {
+          "type": "string",
+          "description": "Name",
+          "required": true
+        },
+        "phone": {
+          "type": "string",
+          "description": "Phone"
+        },
+        "email": {
+          "type": "string",
+          "description": "Email"
+        },
+        "notes": {
+          "type": "string",
+          "description": "Notes"
+        },
+        "marketing": {
+          "type": "boolean",
+          "description": "Agreed to marketing"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/customers/add"
+      }
+    },
+    {
+      "name": "customers.update",
+      "description": "Change a customer.",
+      "params": {
+        "customer": {
+          "type": "string",
+          "description": "Customer id",
+          "required": true
+        },
+        "name": {
+          "type": "string",
+          "description": "Name"
+        },
+        "phone": {
+          "type": "string",
+          "description": "Phone"
+        },
+        "email": {
+          "type": "string",
+          "description": "Email"
+        },
+        "notes": {
+          "type": "string",
+          "description": "Notes"
+        },
+        "marketing": {
+          "type": "boolean",
+          "description": "Agreed to marketing"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/customers/update"
+      }
+    },
+    {
+      "name": "customers.archive",
+      "description": "Archive (or restore) a customer.",
+      "params": {
+        "customer": {
+          "type": "string",
+          "description": "Customer id",
+          "required": true
+        },
+        "archived": {
+          "type": "boolean",
+          "description": "false restores them"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/customers/archive"
+      }
+    },
+    {
+      "name": "reports.summary",
+      "description": "Sales over trading days: net sales, collected, orders, average, items, discounts, returns, tax, gross profit; by day and hour; top products, categories, payment methods, staff, order types, discounts, taxes; and the previous period.",
+      "params": {
+        "from": {
+          "type": "string",
+          "description": "A trading day, YYYY-MM-DD (default today)"
+        },
+        "to": {
+          "type": "string",
+          "description": "A trading day, YYYY-MM-DD (default today)"
+        },
+        "register": {
+          "type": "string",
+          "description": "One register only"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/reports/summary"
+      }
+    },
+    {
+      "name": "reports.export",
+      "description": "CSV of sales, sale lines or payments over trading days (returned as text with a file name).",
+      "params": {
+        "what": {
+          "type": "string",
+          "description": "Rows",
+          "enum": [
+            "sales",
+            "lines",
+            "payments"
+          ]
+        },
+        "from": {
+          "type": "string",
+          "description": "A trading day, YYYY-MM-DD"
+        },
+        "to": {
+          "type": "string",
+          "description": "A trading day, YYYY-MM-DD"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/reports/export"
+      }
+    },
+    {
+      "name": "audit.list",
+      "description": "The audit trail: sales, refunds, overrides, voids, cash, shifts, failed PINs and changes, with who did and approved them.",
+      "params": {
+        "group": {
+          "type": "string",
+          "description": "Filter",
+          "enum": [
+            "all",
+            "money",
+            "exceptions",
+            "changes",
+            "agent"
+          ]
+        },
+        "kind": {
+          "type": "string",
+          "description": "One kind"
+        },
+        "from": {
+          "type": "string",
+          "description": "A trading day, YYYY-MM-DD"
+        },
+        "to": {
+          "type": "string",
+          "description": "A trading day, YYYY-MM-DD"
+        },
+        "staff": {
+          "type": "string",
+          "description": "Staff id or name"
+        },
+        "q": {
+          "type": "string",
+          "description": "Text in the summary or reference"
+        },
+        "limit": {
+          "type": "string",
+          "description": "How many"
+        },
+        "offset": {
+          "type": "string",
+          "description": "Skip this many"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/audit/list"
+      }
+    }
+  ]
+}
