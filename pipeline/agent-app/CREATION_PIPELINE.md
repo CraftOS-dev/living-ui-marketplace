@@ -1,4 +1,4 @@
-# Creation Pipeline — handed-off research to a delivered Living UI V2 app
+# Creation Pipeline — handed-off research to a delivered Agent App V2 app
 
 The standing operating procedure for mode **CREATE** (runner: **Claude Code**; `AUTO` is a deprecated alias): take one handed-off request from claim to an importable ZIP the human can run in CraftBot. Read [README.md](README.md) (rules, platform contract, paths, state machine) and [LESSONS.md](LESSONS.md) first — this doc assumes both.
 
@@ -6,7 +6,7 @@ Research and design happen **before** this pipeline, in [RESEARCH_PIPELINE.md](R
 
 Stages: **C1** claim → **C2** handoff validation & spec review → **C3** scaffold & compile the binding spec → **C4** build → **C5** self-QA → **C6** human review gate → **C7** package & deliver → **C8** retrospective.
 
-Notation (README §2): `LUI = node living-ui-v2/tools/src/cli.ts`, `RUN = agent_file_system/workspace/pipeline/living-ui/runs/<run_id>`, `APP = <RUN>/app`. Every command runs with the working directory at `CRAFTBOT_ROOT`.
+Notation (README §2): `LUI = node agent-app-v2/tools/src/cli.ts`, `RUN = agent_file_system/workspace/pipeline/agent-app/runs/<run_id>`, `APP = <RUN>/app`. Every command runs with the working directory at `CRAFTBOT_ROOT`.
 
 ---
 
@@ -14,7 +14,7 @@ Notation (README §2): `LUI = node living-ui-v2/tools/src/cli.ts`, `RUN = agent_
 
 1. **Stage order is fixed.** No stage starts before the previous one's exit condition is met and logged. In particular: no scaffold before C2's bundle validation passes, no review request before all QA gates are green, no packaging as final before `APPROVED`.
 2. **Track progress with TodoWrite**: one item per stage at C1, expanded with one item per feature at C4. The todo list and ITERATION_LOG must agree.
-3. **The V2 ownership rule is absolute and mechanically enforced.** Edit only `frontend/src/app/`, `pb/pb_migrations/`, `pb/pb_hooks/ops.pb.js` (+ new `*.pb.js`), `operations.json` (non-`system` entries), `LIVING_UI.md`, `reference/`. Everything else in the project is hashed at scaffold time and fails `lui validate`'s ownership step if touched. Never edit anything under `living-ui-v2/` itself (README rule 4).
+3. **The V2 ownership rule is absolute and mechanically enforced.** Edit only `frontend/src/app/`, `pb/pb_migrations/`, `pb/pb_hooks/ops.pb.js` (+ new `*.pb.js`), `operations.json` (non-`system` entries), `AGENT_APP.md`, `reference/`. Everything else in the project is hashed at scaffold time and fails `lui validate`'s ownership step if touched. Never edit anything under `agent-app-v2/` itself (README rule 4).
 4. **All README hard rules remain in force** — especially rule 3 (per-pipeline state ownership), rule 6 (human contact only at C6/BLOCKED), rule 9 (everything under `runs/<run_id>/`), and rule 10 (the human only ever receives an audited ZIP).
 5. **Iteration bounds are absolute**: QA loop ≤5 iterations + 2-strike (C5). Bound hit → BLOCKED, never "one more try".
 6. **Research-owned statuses are off-limits.** `RESEARCHING` and `SPEC_READY` belong to the research runner (CraftBot). Never advance a run whose ITERATION_LOG last status is one of those. If nothing under `runs/` shows `HANDOFF` or a creation-owned status, report "nothing handed off yet" and stop.
@@ -24,7 +24,7 @@ Notation (README §2): `LUI = node living-ui-v2/tools/src/cli.ts`, `RUN = agent_
 ## 1. Stage C1 — Claim
 
 1. Apply the README §7 pre-run self-check, including the Node/`lui`/Playwright preflight. The in-flight scan covers **creation-owned states only**: `HANDOFF` (with no live launcher session working it), `BUILDING`, `SELF_QA`, `IMPROVING`, `PACKAGING` — resume beats claim (README §8).
-2. Otherwise find the run under `runs/` whose ITERATION_LOG last status is `HANDOFF`. None → report "nothing handed off yet" and stop (hard rule 6). (There's at most one — README rule 3.) **Same-session direct continuation is a valid, expected way to arrive here**: when a Claude Code session did its own research (RESEARCH_PIPELINE_CLAUDE.md), R8 has it continue straight into C1 in that same session rather than launching a separate process — there's no external `HANDOFF` to "find" in that case, just a status you logged yourself moments ago. Still perform every other step below (folders, `GLOBAL_LIVING_UI.md`, preflight) — this is a shortcut around the process boundary, not around the claim steps.
+2. Otherwise find the run under `runs/` whose ITERATION_LOG last status is `HANDOFF`. None → report "nothing handed off yet" and stop (hard rule 6). (There's at most one — README rule 3.) **Same-session direct continuation is a valid, expected way to arrive here**: when a Claude Code session did its own research (RESEARCH_PIPELINE_CLAUDE.md), R8 has it continue straight into C1 in that same session rather than launching a separate process — there's no external `HANDOFF` to "find" in that case, just a status you logged yourself moments ago. Still perform every other step below (folders, `GLOBAL_AGENT_APP.md`, preflight) — this is a shortcut around the process boundary, not around the claim steps.
 3. The run folder `runs/<run_id>/` already exists — the research runner created it, and its ITERATION_LOG header carries the original `app_name`/`slug`/`tags`/`auth_mode`/requirement verbatim (there's no separate request file). **Do not log a new status yet** — C2 does that, so a stuck handoff (launch died before Claude started) stays distinguishable from a claimed one.
 4. Create the folders this pipeline will fill and append to the existing ITERATION_LOG:
    ```sh
@@ -33,7 +33,7 @@ Notation (README §2): `LUI = node living-ui-v2/tools/src/cli.ts`, `RUN = agent_
    ```
    <timestamp> | HANDOFF | CLAIMED (creation) by <session label>; resuming from research handoff | next: C2 validate bundle
    ```
-5. Read [GLOBAL_LIVING_UI.md](../../../GLOBAL_LIVING_UI.md) now — its palette and enabled rules bind everything downstream (README rule 7: take its palette and rules, not its V1 mechanisms).
+5. Read [GLOBAL_AGENT_APP.md](../../../GLOBAL_AGENT_APP.md) now — its palette and enabled rules bind everything downstream (README rule 7: take its palette and rules, not its V1 mechanisms).
 
 **Exit:** claim logged; status still `HANDOFF`.
 
@@ -48,7 +48,7 @@ The research was done by a much weaker model. Your job here: verify the bundle i
 Same manifest the research runner ran at R8 — all lines must PASS:
 
 ```powershell
-$r='agent_file_system/workspace/pipeline/living-ui/runs/<run_id>'
+$r='agent_file_system/workspace/pipeline/agent-app/runs/<run_id>'
 foreach ($f in 'SPEC.md','DESIGN_SPEC.md','ITERATION_LOG.md','research/decomposition.md','research/features.md','research/competitors.md','research/ux-patterns.md','research/data-model.md','research/questionnaire.md') {
   if (Test-Path "$r/$f") { "PASS $f" } else { "FAIL $f" } }
 $png=(Get-ChildItem "$r/reference-shots" -Filter *.png -ErrorAction SilentlyContinue).Count
@@ -68,7 +68,7 @@ Read the original requirement (verbatim in the ITERATION_LOG header), SPEC.md, a
 - **Platform legality** — nothing spec'd as client-side-only or localStorage-backed; no inbound webhooks or callback URLs; no OAuth flow, token entry, or API-key prompt (external data comes through the CraftBot bridge); no feature that depends on a browser permission prompt; nothing that would require editing a system-owned file.
 - **Auth coherence** — the `auth_mode` in the log header matches what the spec assumes; if the spec describes per-user data, `multi-user` must be the mode and owner-scoped rules must be specified.
 - **Assumption plausibility** — SPEC §6 rows are sane and their fallbacks concrete.
-- **Internal consistency** — build notes don't contradict the entities; DESIGN_SPEC screens cover every Must; no visual-identity leakage (hex colors/fonts) in DESIGN_SPEC; component mapping names components that actually exist in `living-ui-v2/kit/src/index.ts`.
+- **Internal consistency** — build notes don't contradict the entities; DESIGN_SPEC screens cover every Must; no visual-identity leakage (hex colors/fonts) in DESIGN_SPEC; component mapping names components that actually exist in `agent-app-v2/kit/src/index.ts`.
 
 **Repairs are amendments, never silent fixes.** Append a section to SPEC.md:
 
@@ -90,12 +90,12 @@ Status is already `BUILDING`. Nothing is written by hand here — the tooling ow
 
 1. **Scaffold.** Pick a free port (8090 is the tool default; step up if something already listens). `--auth` comes from the log header's `auth_mode`, and it is not casually changeable later because every collection rule depends on it.
    ```sh
-   node living-ui-v2/tools/src/cli.ts create "<App Name>" \
+   node agent-app-v2/tools/src/cli.ts create "<App Name>" \
      --dir <RUN> --folder app --port <PORT> --auth <none|multi-user> --json
    ```
    This copies the blueprint, vendors the kit, substitutes identity placeholders, bootstraps the machine superuser (which also initializes `pb_data` and applies the starter migration), and writes the ownership hash canon. It prints one JSON line — record `id`, `slug`, and `port` in ITERATION_LOG.
 
-   **Never call the `living_ui_scaffold` action** — that is CraftBot's tool for direct chat-driven builds. It registers a project in CraftBot's own list *and dispatches a build to that project's separate session*, which would race this run and put the app outside `runs/<run_id>/`.
+   **Never call the `agent_app_scaffold` action** — that is CraftBot's tool for direct chat-driven builds. It registers a project in CraftBot's own list *and dispatches a build to that project's separate session*, which would race this run and put the app outside `runs/<run_id>/`.
 
    Mechanical check — must print the project's own files, not an error:
    ```sh
@@ -103,7 +103,7 @@ Status is already `BUILDING`. Nothing is written by hand here — the tooling ow
      && echo scaffold-ok || echo "SCAFFOLD FAILED — do not proceed"
    ```
 
-2. **Compile `reference/requirements.md`** — this is V2's **binding spec contract**. CraftBot's own creation wizard writes this file, and everything downstream reads it: the launch verifier walks the app against it, and `living-ui-modify` reads it whenever the human later asks CraftBot to change the app. A delivered app without it is a dead end for its own future.
+2. **Compile `reference/requirements.md`** — this is V2's **binding spec contract**. CraftBot's own creation wizard writes this file, and everything downstream reads it: the launch verifier walks the app against it, and `agent-app-modify` reads it whenever the human later asks CraftBot to change the app. A delivered app without it is a dead end for its own future.
 
    Write `<APP>/reference/requirements.md` with **exactly these six sections**, compiled from SPEC.md (§9 amendments outrank §1–8) and DESIGN_SPEC.md:
 
@@ -141,7 +141,7 @@ Status is already `BUILDING`. Nothing is written by hand here — the tooling ow
 
    Rules: every statement concrete and checkable; no filler ("user-friendly", "modern", "polished"); preserve every decision the SPEC made; where the SPEC is silent, decide here and say so. This file and SPEC.md must not disagree — if compiling surfaces a contradiction, that's an amendment row in SPEC §9.
 
-3. **Mirror into `LIVING_UI.md`.** Fill the project's own `LIVING_UI.md` — what the app does, the feature checklist (unchecked), the entities table (replacing the blueprint's `items` row), the ownership map. Keep it current after every feature; it is the plan/context/index a future session reads first.
+3. **Mirror into `AGENT_APP.md`.** Fill the project's own `AGENT_APP.md` — what the app does, the feature checklist (unchecked), the entities table (replacing the blueprint's `items` row), the ownership map. Keep it current after every feature; it is the plan/context/index a future session reads first.
 
 4. **Install dependencies.**
    ```sh
@@ -149,32 +149,32 @@ Status is already `BUILDING`. Nothing is written by hand here — the tooling ow
    ```
    `--ignore-scripts` is mandatory: any npm package is allowed in `dependencies`, so lifecycle scripts must never run.
 
-5. **Baseline gate.** Run `node living-ui-v2/tools/src/cli.ts validate <APP>` on the untouched scaffold. It must print `✓ Gate: all steps passed`. A red baseline is an environment problem (Node version, missing PocketBase binary, broken install), **not** an app problem — resolve it before writing a single line of app code, or you will spend the whole build debugging the wrong layer.
+5. **Baseline gate.** Run `node agent-app-v2/tools/src/cli.ts validate <APP>` on the untouched scaffold. It must print `✓ Gate: all steps passed`. A red baseline is an environment problem (Node version, missing PocketBase binary, broken install), **not** an app problem — resolve it before writing a single line of app code, or you will spend the whole build debugging the wrong layer.
 
-**Exit:** `scaffold-ok`; `reference/requirements.md` written with all six sections; `LIVING_UI.md` seeded; deps installed; baseline `lui validate` green and quoted in ITERATION_LOG.
+**Exit:** `scaffold-ok`; `reference/requirements.md` written with all six sections; `AGENT_APP.md` seeded; deps installed; baseline `lui validate` green and quoted in ITERATION_LOG.
 
 ---
 
 ## 4. Stage C4 — Build
 
-Follow [living-ui-v2/docs/agent-guide.md](../../../../living-ui-v2/docs/agent-guide.md) — it is the ground truth for build mechanics. Its §2 loop, per feature, in this order:
+Follow [agent-app-v2/docs/agent-guide.md](../../../../agent-app-v2/docs/agent-guide.md) — it is the ground truth for build mechanics. Its §2 loop, per feature, in this order:
 
 1. **Schema** — a new migration in `pb/pb_migrations/`; never edit an applied one. Follow the starter migration's pattern for field types and `autodate` created/updated. Rules match `manifest.json`'s `authMode`. Relation fields use the target collection's **id** (`app.findCollectionByNameOrId('words').id`) — save the target collection first. This is the #1 migration mistake.
 2. **Operations** (only if the feature needs a verb beyond CRUD) — a `routerAdd` route in `pb/pb_hooks/ops.pb.js` **plus** a matching `operations.json` entry. Read bodies with `e.requestInfo().body`. Mark data-deleting ops `"destructive": true`. Pick the kebab-case names once, before writing any of the three call sites (op name ↔ route path ↔ frontend fetch).
 3. **UI** — in `frontend/src/app/`, importing only from `../kit/index.ts`. Reach for the presets before hand-rolling: `EntityForm`/`EntityTable` for CRUD surfaces, `useConfirm()` for destructive confirmations, `DropdownMenu`/`Drawer`/`Tooltip`, `SearchInput`/`TagInput`/`DateInput`/`NumberInput`, `SortableList` + `reorderAndSave`, `FileUpload`/`ImageInput`, `Sparkline`/`MiniBarChart`. Data through `useCollection` (realtime — never poll, never reload), writes through `getPbClient().call(...)`.
-4. **Gate** — `node living-ui-v2/tools/src/cli.ts validate <APP>` after every meaningful change. Fix, repeat.
+4. **Gate** — `node agent-app-v2/tools/src/cli.ts validate <APP>` after every meaningful change. Fix, repeat.
 
 Pipeline-specific amendments to the guide — these are the only deltas; everything else is the guide, unmodified:
 
 | The guide says | In this pipeline |
 |---|---|
-| Read `reference/requirements.md` and `LIVING_UI.md` | Both exist already (C3). `reference/requirements.md` is binding; where you need more depth than it carries, consult SPEC.md (**§9 amendments outrank §1–8**) and DESIGN_SPEC.md |
+| Read `reference/requirements.md` and `AGENT_APP.md` | Both exist already (C3). `reference/requirements.md` is binding; where you need more depth than it carries, consult SPEC.md (**§9 amendments outrank §1–8**) and DESIGN_SPEC.md |
 | "Ask the user" / a wizard interviewed them | **Never ask** (README rule 6). Consult SPEC §9 → SPEC → DESIGN_SPEC. If all three are silent, apply a Safe Assumption from [RESEARCH_PIPELINE.md](RESEARCH_PIPELINE.md) §5.6, add it to SPEC §6's register, and log it |
 | Build the features in `requirements.md` | Feature order = SPEC §4 Musts in dependency order. Shoulds queue after — built only if **all** Musts are done and QA-stable |
 | Layout is up to you | Layout, navigation, and interactions come from DESIGN_SPEC (wireframes + component mapping). Visual identity from kit tokens only |
 | `lui validate` is the gate | True during the build. **Full verification is Stage C5** — [QA_GATES.md](QA_GATES.md) is a strict superset; don't declare done on a green `lui validate` alone |
-| `living_ui_notify_ready` / `living_ui_walk_verify` finish the build | **Not available here** — those are CraftBot actions, and this session is a standalone Claude Code run. Their equivalents are QA_GATES G2/G3 (`lui verify`) and G5 (the browser walk) |
-| Keep `LIVING_UI.md` current | Unchanged, and enforced: G6 checks it for leftover blueprint placeholders |
+| `agent_app_notify_ready` / `agent_app_walk_verify` finish the build | **Not available here** — those are CraftBot actions, and this session is a standalone Claude Code run. Their equivalents are QA_GATES G2/G3 (`lui verify`) and G5 (the browser walk) |
+| Keep `AGENT_APP.md` current | Unchanged, and enforced: G6 checks it for leftover blueprint placeholders |
 
 ### 4.1 Visual polish
 
@@ -196,7 +196,7 @@ Either way, first paint must never be gated on a slow external fetch with no fee
 
 Log one ITERATION_LOG line per completed feature (schema applied + ops declared + UI wired + gate green counts as complete; not before). This is the stage where a run most often goes dark for over an hour — apply the README §4 heartbeat rule (a line at least every 10 minutes even mid-feature) so a human checking in can tell the run is alive.
 
-**Exit:** all Must features built with a green `lui validate`; `reference/requirements.md` still matches what was built; `LIVING_UI.md` filled in (entities, ops, checklist — no blueprint placeholder rows, quote the G6 §3.18 grep in the log line); log shows every feature.
+**Exit:** all Must features built with a green `lui validate`; `reference/requirements.md` still matches what was built; `AGENT_APP.md` filled in (entities, ops, checklist — no blueprint placeholder rows, quote the G6 §3.18 grep in the log line); log shows every feature.
 
 ---
 
@@ -228,10 +228,10 @@ Import this ZIP into CraftBot:
 
     <RUN>/deliverable/<slug>.zip   (<size>, <file count> files)
 
-Use the Living UI panel's import button, or ask CraftBot to run
-`living_ui_import_zip`. The import registers it as a NEW project with a fresh
+Use the Agent App panel's import button, or ask CraftBot to run
+`agent_app_import_zip`. The import registers it as a NEW project with a fresh
 id and port, strips shipped credentials, and re-vendors the kit; it lands
-STOPPED, then launches from the panel (or via `living_ui_notify_ready`).
+STOPPED, then launches from the panel (or via `agent_app_notify_ready`).
 Auth mode: <none | multi-user>.
 G7 audit: G7-PASS — manifest v2 at root, kit vendored, no node_modules/pb_data/logs.
 
@@ -263,7 +263,7 @@ improvement round. Round limit: 5.
 
 Set `status: PACKAGING`. The heavy lifting already happened: G7 has produced an audited ZIP after every QA cycle, so this stage is a final re-assertion plus the handover message. Steps in order:
 
-1. **Final gate.** `node living-ui-v2/tools/src/cli.ts validate <APP>` — must print `✓ Gate: all steps passed`. If deps were removed since the last run, reinstall first (`npm install --ignore-scripts --prefix <APP>/frontend`).
+1. **Final gate.** `node agent-app-v2/tools/src/cli.ts validate <APP>` — must print `✓ Gate: all steps passed`. If deps were removed since the last run, reinstall first (`npm install --ignore-scripts --prefix <APP>/frontend`).
 2. **Re-run G7** (QA_GATES §7): stop every process, thumbnail out, `scripts/package.py`, then `scripts/audit.py` — must print `G7-PASS`. Never ship a ZIP produced before the last code change.
 3. **Confirm the run folder is complete** — `SPEC.md`, `DESIGN_SPEC.md`, `research/`, `reference-shots/`, `qa/qa-report-*.md`, `REVIEW_REQUEST.md`, `thumbnail.png`, `deliverable/<slug>.zip`. `runs/` is git-ignored, so the ZIP plus LESSONS.md are the only durable outputs; anything not in one of them is lost.
 4. **Close out the run:** final ITERATION_LOG line, status `DONE`, with the deliverable path and round count stated inline.

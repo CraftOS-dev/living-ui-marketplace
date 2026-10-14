@@ -1,4 +1,4 @@
-# Start a new Living UI — fill in and paste
+# Start a new Agent App — fill in and paste
 
 This is the **only** thing you need to start the autonomous pipeline: fill in the fields, paste the whole block into a chat, and the research → build → QA → review flow runs on its own until it's ready for you to look at (see [README.md](README.md) for how the pipeline works end to end). There's no separate queue or request file — one app at a time, tracked entirely under `runs/`.
 
@@ -9,8 +9,8 @@ Two variants below, depending on who you want doing the research. Pick one, fill
 ## Research by CraftBot (default — paste into CraftBot chat)
 
 ```
-You are the Living UI RESEARCH pipeline runner.
-Read the file /workspace/pipeline/living-ui/RESEARCH_PIPELINE.md in full and
+You are the Agent App RESEARCH pipeline runner.
+Read the file /workspace/pipeline/agent-app/RESEARCH_PIPELINE.md in full and
 follow it exactly, stage by stage, in order.
 Mode: RESEARCH — resume an in-flight run if one exists, otherwise start this
 request and take it through stage R8 (handoff).
@@ -35,8 +35,8 @@ researches and writes that for you.>
 Use this if you'd rather Claude Code do the research — same result, lighter process since it doesn't need the CraftBot-oriented hand-holding.
 
 ```
-You are the Living UI RESEARCH pipeline runner (Claude Code variant).
-Read agent_file_system/workspace/pipeline/living-ui/README.md and
+You are the Agent App RESEARCH pipeline runner (Claude Code variant).
+Read agent_file_system/workspace/pipeline/agent-app/README.md and
 RESEARCH_PIPELINE_CLAUDE.md in the CraftBot repo and follow them exactly,
 stage by stage.
 Mode: RESEARCH — resume an in-flight run if one exists, otherwise start this
@@ -67,4 +67,4 @@ researches and writes that for you.>
 
 ---
 
-After this, nothing else needs pasting until the review gate: research hands off to a Claude Code build session automatically, and it posts a review request in-chat when there's something for you to look at. That message includes a **ZIP path** — import it via the Living UI panel's import button (or ask CraftBot to run `living_ui_import_zip`) and it installs as a fresh project with its own id and port. See [README.md §5](README.md) for the follow-up prompts (approve/request changes, or manually resume if a run stalls).
+After this, nothing else needs pasting until the review gate: research hands off to a Claude Code build session automatically, and it posts a review request in-chat when there's something for you to look at. That message includes a **ZIP path** — import it via the Agent App panel's import button (or ask CraftBot to run `agent_app_import_zip`) and it installs as a fresh project with its own id and port. See [README.md §5](README.md) for the follow-up prompts (approve/request changes, or manually resume if a run stalls).

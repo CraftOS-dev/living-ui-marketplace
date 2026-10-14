@@ -1,6 +1,6 @@
-"""Package a built V2 app as an importable Living UI ZIP.
+"""Package a built V2 app as an importable Agent App ZIP.
 Mirrors CraftBot's own export_project_zip skip rules, so the result is
-guaranteed round-trippable through living_ui_import_zip.
+guaranteed round-trippable through agent_app_import_zip.
 Usage: python package.py <app_dir> <out_zip>
 
 Nothing is deleted from disk — excluded paths are simply left out of the
@@ -13,7 +13,7 @@ if len(sys.argv) != 3:
     sys.exit("usage: python package.py <app_dir> <out_zip>")
 app, out = Path(sys.argv[1]).resolve(), Path(sys.argv[2]).resolve()
 if not (app / "manifest.json").is_file():
-    sys.exit(f"not a Living UI project (no manifest.json): {app}")
+    sys.exit(f"not an Agent App project (no manifest.json): {app}")
 SKIP_DIRS = {"node_modules", "__pycache__", ".git", "dist", "build", "logs",
              ".venv", "venv", "pb_data", "pb_public"}
 SKIP_SUFFIXES = {".pyc", ".pyo", ".log", ".db", ".sqlite", ".sqlite3", ".tsbuildinfo"}

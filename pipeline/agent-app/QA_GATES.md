@@ -5,8 +5,8 @@ The gate list every build must pass before a human ever sees it. Executed by the
 Notation, as resolved in [README.md](README.md) §2 — every command runs with the working directory at `CRAFTBOT_ROOT`:
 
 ```
-LUI  = node living-ui-v2/tools/src/cli.ts
-RUN  = agent_file_system/workspace/pipeline/living-ui/runs/<run_id>
+LUI  = node agent-app-v2/tools/src/cli.ts
+RUN  = agent_file_system/workspace/pipeline/agent-app/runs/<run_id>
 APP  = <RUN>/app
 PORT = the "port" value in <APP>/manifest.json
 ```
@@ -38,7 +38,7 @@ Read `PORT` out of `<APP>/manifest.json` and log it in ITERATION_LOG. Server sta
 
 ```sh
 # resolve the pinned binary once
-node living-ui-v2/tools/src/cli.ts pb path
+node agent-app-v2/tools/src/cli.ts pb path
 
 # start (background), after G1 has produced pb/pb_public:
 <pb> serve --http=127.0.0.1:<PORT> --dir <APP>/pb/pb_data --hooksDir <APP>/pb/pb_hooks \
@@ -73,11 +73,11 @@ node living-ui-v2/tools/src/cli.ts pb path
 Playwright is resolved from the V2 workspace (README §2). ESM resolves bare specifiers relative to the **importing file's** location, so a `.mjs` sitting in `runs/` can never find it — the G5 harness is therefore **CommonJS (`.cjs`)** and run with `NODE_PATH` pointing at the workspace's `node_modules`:
 
 ```sh
-NODE_PATH="$PWD/living-ui-v2/node_modules" node <RUN>/qa/g5.cjs http://127.0.0.1:<PORT> <RUN>/qa
+NODE_PATH="$PWD/agent-app-v2/node_modules" node <RUN>/qa/g5.cjs http://127.0.0.1:<PORT> <RUN>/qa
 ```
 
 ```powershell
-$env:NODE_PATH = "$PWD\living-ui-v2\node_modules"
+$env:NODE_PATH = "$PWD\agent-app-v2\node_modules"
 node <RUN>\qa\g5.cjs http://127.0.0.1:<PORT> <RUN>\qa
 ```
 
@@ -93,7 +93,7 @@ Start from the §9 skeleton — don't design the harness from scratch each run. 
 - **(f) Console clean** — zero console errors, zero page errors, zero ≥400 responses across the whole session.
 - **(g) Contrast spot-check** — primary text/background and button/label combinations ≥ 4.5:1. Kit tokens make this near-automatic; check anything custom.
 
-**Never `waitUntil: 'networkidle'`.** A Living UI holds a permanent realtime (SSE) subscription, so the network is *never* idle — the wait hangs until timeout and the gate fails for a reason that has nothing to do with the app. Use `waitUntil: 'load'` plus an explicit `waitForTimeout`.
+**Never `waitUntil: 'networkidle'`.** An Agent App holds a permanent realtime (SSE) subscription, so the network is *never* idle — the wait hangs until timeout and the gate fails for a reason that has nothing to do with the app. Use `waitUntil: 'load'` plus an explicit `waitForTimeout`.
 
 **Never select a plain-text field with `input[type="text"]`.** The kit's `Input` component renders a native `<input>` with no explicit `type` attribute for ordinary text fields (it only shows up for `type="number"`, `type="email"`, etc.) — the selector silently matches nothing and the script hangs on a 30s timeout. Select on the field's `placeholder` or `label` text instead (the §9 skeleton already does this correctly; this note exists because a run wrote the broken selector anyway, from habit).
 
@@ -133,9 +133,9 @@ Fresh-eyes pass. Adopt the persona: *a strict product manager who did not build 
 
 **Documentation**
 
-18. **`LIVING_UI.md` is current and placeholder-free** — entities table reflects the real collections (not the blueprint's `items` row), operations section lists the real ops, feature checklist is filled. Mechanical check, must print nothing:
+18. **`AGENT_APP.md` is current and placeholder-free** — entities table reflects the real collections (not the blueprint's `items` row), operations section lists the real ops, feature checklist is filled. Mechanical check, must print nothing:
     ```sh
-    grep -n "features land here as they are planned/built\|Example starter collection\|Replace or extend via pb_migrations" <APP>/LIVING_UI.md
+    grep -n "features land here as they are planned/built\|Example starter collection\|Replace or extend via pb_migrations" <APP>/AGENT_APP.md
     ```
 19. **Visual polish spot-check** — every functional gate can pass on a build that still reads as a generic prototype; this item exists specifically to catch that. Walk the running app screen by screen: is every discrete content section visually contained (`Card` or a clear boundary — not bare stacked text)? Do interactive affordances use real icon components, not Unicode glyph characters (★☆▲▼✕ etc.)? Does imagery match DESIGN_SPEC's stated treatment (large/central art where specified, not a shrunken icon)? A build that's functionally correct but generic-looking is still a finding (name the specific screens) — MINOR at minimum, MAJOR if a screen is materially thinner than DESIGN_SPEC's own stated density for it.
 
@@ -172,9 +172,9 @@ all gates green → write final QA report → capture thumbnail (§6) → G7 (§
 | Migration / collection schema | G1, G2, G3, G4, G5, G7 |
 | `pb_hooks/*.pb.js` or `operations.json` | G1, G3, G4, G7 |
 | Frontend `app/` only | G1, G3, G5, G6 delta-check on affected criteria, G7 |
-| `LIVING_UI.md` / `reference/` only | G7 |
+| `AGENT_APP.md` / `reference/` only | G7 |
 
-A QA-script bug (the harness, not the app) is not an app iteration — fix the script and re-run only the script; don't count it against the 5-iteration bound, but do log it. **If a bug traces to platform-owned code** (`living-ui-v2/` kit, blueprint, or tools), fixing it locally is forbidden by README rule 4 — append a `PROPOSAL:` line to [LESSONS.md](LESSONS.md) in the same iteration describing the bug and the fix, and work around it inside app-owned paths if you can. Skipping the `PROPOSAL:` means the same bug silently resurfaces in the next app.
+A QA-script bug (the harness, not the app) is not an app iteration — fix the script and re-run only the script; don't count it against the 5-iteration bound, but do log it. **If a bug traces to platform-owned code** (`agent-app-v2/` kit, blueprint, or tools), fixing it locally is forbidden by README rule 4 — append a `PROPOSAL:` line to [LESSONS.md](LESSONS.md) in the same iteration describing the bug and the fix, and work around it inside app-owned paths if you can. Skipping the `PROPOSAL:` means the same bug silently resurfaces in the next app.
 
 Every iteration writes `runs/<run_id>/qa/qa-report-<n>.md` (§5) and one ITERATION_LOG line (`SELF_QA | iteration 2: G1 failed (tsc: Item.due possibly undefined), fixed guard | next: rerun G1, G3, G5`).
 
@@ -235,7 +235,7 @@ During the final green G3/G5 run (app healthy, fresh DB):
 
 ## 7. G7 — Package the importable ZIP + audit
 
-The human tests by **importing the ZIP into CraftBot** (Living UI panel → import, or asking CraftBot to run `living_ui_import_zip`). The import registers a *new* project: it reassigns `id` and `port`, strips any shipped `.superuser`, re-vendors the kit, and re-canonizes the ownership hashes. So the deliverable needs to be a clean source tree — nothing to "restore", nothing to substitute.
+The human tests by **importing the ZIP into CraftBot** (Agent App panel → import, or asking CraftBot to run `agent_app_import_zip`). The import registers a *new* project: it reassigns `id` and `port`, strips any shipped `.superuser`, re-vendors the kit, and re-canonizes the ownership hashes. So the deliverable needs to be a clean source tree — nothing to "restore", nothing to substitute.
 
 ### Procedure
 
@@ -243,14 +243,14 @@ The human tests by **importing the ZIP into CraftBot** (Living UI panel → impo
 2. **Thumbnail out first** (§6) — copy `<APP>/logs/verify/home.png` to `<RUN>/thumbnail.png` before packaging, since `logs/` is excluded from the ZIP.
 3. **Run the packager.** It walks the app and applies the same skip rules CraftBot's own exporter uses, so the result is guaranteed round-trippable:
    ```sh
-   python agent_file_system/workspace/pipeline/living-ui/scripts/package.py <APP> <RUN>/deliverable/<slug>.zip
+   python agent_file_system/workspace/pipeline/agent-app/scripts/package.py <APP> <RUN>/deliverable/<slug>.zip
    ```
    Skipped: `node_modules`, `pb_data`, `pb_public`, `dist`, `build`, `logs`, `__pycache__`, `.git`, `.venv`/`venv`; suffixes `.pyc .pyo .log .db .sqlite .sqlite3 .tsbuildinfo`; names `.env*`, `.superuser`, `credentials.json`, `token.json`, `.jwt_secret`, `.last_launch`.
 4. **Run the audit.** It must print `G7-PASS` and exit 0:
    ```sh
-   python agent_file_system/workspace/pipeline/living-ui/scripts/audit.py <RUN>/deliverable/<slug>.zip
+   python agent_file_system/workspace/pipeline/agent-app/scripts/audit.py <RUN>/deliverable/<slug>.zip
    ```
-   It asserts: forward-slash entry names; `manifest.json` at the ZIP root with `livingUIVersion: 2` and `id`/`name`/`port`/`authMode`/`pipeline` present; `.lui/system-hashes.json` present; `frontend/src/kit/` vendored; `pb/pb_migrations/` present; `reference/requirements.md` present; zero runtime artifacts.
+   It asserts: forward-slash entry names; `manifest.json` at the ZIP root with `agentAppVersion: 2` and `id`/`name`/`port`/`authMode`/`pipeline` present; `.lui/system-hashes.json` present; `frontend/src/kit/` vendored; `pb/pb_migrations/` present; `reference/requirements.md` present; zero runtime artifacts.
 **Nothing is deleted from disk.** The packager *excludes* paths from the archive; `<APP>` keeps its `node_modules`, `pb_data`, and `pb_public`, so the next `lui validate` or server start still works and a later improvement round doesn't have to reinstall. That is deliberate — the V1 ancestor of this gate mutated the app folder in place and needed a documented restore procedure to undo itself.
 
 **Do not build the ZIP with PowerShell.** `Compress-Archive` and `[IO.Compression.ZipFile]::CreateFromDirectory` under Windows PowerShell 5.1 write **backslash** path separators into the archive (49 of 52 entries in a measured blueprint export), which violates the ZIP spec and is a round-trip hazard for any non-Windows consumer. `scripts/audit.py` fails the gate on backslash entries for exactly this reason.
@@ -276,7 +276,7 @@ Copy this, then replace the app-specific block with one CRUD flow per collection
 
 ```js
 /** G5 browser walk. Run from CRAFTBOT_ROOT:
- *   NODE_PATH="$PWD/living-ui-v2/node_modules" node <RUN>/qa/g5.cjs <baseUrl> <outDir>
+ *   NODE_PATH="$PWD/agent-app-v2/node_modules" node <RUN>/qa/g5.cjs <baseUrl> <outDir>
  * CommonJS on purpose: ESM would resolve 'playwright' relative to THIS file. */
 const { chromium } = require('playwright');
 const BASE = process.argv[2];
