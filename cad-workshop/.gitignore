@@ -1,0 +1,14 @@
+.superuser
+.agent-token
+pb/pb_data/
+pb/pb_public/
+frontend/node_modules/
+logs/
+.agent-app/
+.factory/
+__pycache__/
+*.pyc
+engine/python/
+engine/site-packages/
+engine/.download/
+engine/.unpacking-*

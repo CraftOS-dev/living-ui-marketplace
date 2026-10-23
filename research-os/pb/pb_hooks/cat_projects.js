@@ -1,0 +1,135 @@
+/**
+ * Catalog: projects, reading lists, the claims map (nodes and relations),
+ * boards and notes.
+ */
+const S = (desc, extra) => Object.assign({ type: 'string', desc: desc }, extra || {});
+const N = (desc, extra) => Object.assign({ type: 'number', desc: desc }, extra || {});
+const B = (desc, extra) => Object.assign({ type: 'boolean', desc: desc }, extra || {});
+
+const COLORS = ['ink', 'accent', 'blue', 'green', 'amber', 'red', 'violet', 'teal'];
+const STATUS = ['agent_proposed', 'researcher_confirmed', 'researcher_rejected', 'superseded'];
+const BLOCKS_DOC = 'JSON list of blocks: {"type":"paragraph","text":".."}, heading (level 1-3), bullet, numbered, todo (checked), quote (anchor), node (node), cite (work, locator), divider, image ({"type":"image","file":"<picture from notes.add-image>","caption":"..","width":100,"align":"center"}), table ({"type":"table","rows":[["Sample","Yield"],["A","72"]],"header":true,"align":["left","right"]})';
+const PASSAGE_DOC = 'JSON {"work":"<paper>","page":3,"lines":"12-14"} (or "file", "start"/"end", "from_char"/"to_char")';
+
+module.exports = [
+  { name: 'projects.list', method: 'GET', fn: 'lib_projects.list', effect: 'read', desc: 'Projects with their numbers (open, late and done tasks among them), the next task to do, and journey (collect, read, map, synthesize, write).', params: { state: S('Which', { enum: ['active', 'archived', 'all'] }) } },
+  { name: 'projects.get', method: 'GET', fn: 'lib_projects.get', effect: 'read', desc: 'One project: question, numbers, the next task to do, journey with the next step, recent changes.', params: { project: S('Project id or name', { required: true }) } },
+  {
+    name: 'projects.create',
+    method: 'POST',
+    fn: 'lib_projects.create',
+    effect: 'capture',
+    desc: 'Start a project around a research question.',
+    params: { name: S('Name', { required: true }), question: S('The research question'), description: S('Notes on scope'), color: S('Color', { enum: COLORS }), confidentiality: S('People only: confidential keeps your AI agent out', { enum: ['normal', 'confidential'] }) },
+  },
+  {
+    name: 'projects.update',
+    method: 'POST',
+    fn: 'lib_projects.update',
+    effect: 'capture',
+    desc: 'Rename a project, change its question, color, pin, archive it, or (people only) make it confidential.',
+    params: { project: S('Project', { required: true }), name: S('Name'), question: S('Question'), description: S('Description'), color: S('Color', { enum: COLORS }), pinned: B('Pinned'), state: S('State', { enum: ['active', 'archived'] }), confidentiality: S('Confidentiality', { enum: ['normal', 'confidential'] }) },
+  },
+  { name: 'projects.opened', method: 'POST', fn: 'lib_projects.opened', effect: 'capture', agent: 'deny', desc: 'Remember that a project was opened.', params: { project: S('Project', { required: true }) } },
+  { name: 'projects.delete', method: 'POST', fn: 'lib_projects.remove', effect: 'change', agent: 'deny', destructive: true, desc: 'Delete a project and what was made in it (claims, boards, experiments, manuscripts, reviews, notes, tasks); its papers stay in the library.', params: { project: S('Project', { required: true }), preview: B('Only say what would go') } },
+  { name: 'projects.works', method: 'GET', fn: 'lib_projects.works', effect: 'read', desc: "A project's reading list: papers with their status (to_read, reading, read, excluded), role and claims made from them.", params: { project: S('Project', { required: true }), status: S('Status', { enum: ['to_read', 'reading', 'read', 'excluded'] }) } },
+  { name: 'projects.add-works', method: 'POST', fn: 'lib_projects.addWorks', effect: 'capture', desc: "Add library papers to a project's reading list.", params: { project: S('Project', { required: true }), works: S('Paper ids', { required: true }), role: S('Role', { enum: ['core', 'background'] }) } },
+  { name: 'projects.remove-works', method: 'POST', fn: 'lib_projects.removeWorks', effect: 'capture', desc: 'Take papers off a reading list (claims made from them stay).', params: { project: S('Project', { required: true }), works: S('Paper ids', { required: true }) } },
+  { name: 'projects.set-work', method: 'POST', fn: 'lib_projects.setWork', effect: 'capture', desc: "A paper's status, role or note in a project.", params: { project: S('Project', { required: true }), works: S('Paper ids', { required: true }), status: S('Status', { enum: ['to_read', 'reading', 'read', 'excluded'] }), role: S('Role', { enum: ['core', 'background'] }), note: S('Note') } },
+
+  {
+    name: 'nodes.create',
+    method: 'POST',
+    fn: 'lib_graph.create',
+    effect: 'judge',
+    desc: 'Add a question, claim or evidence to a project. Evidence needs its passage (--passage). --link_to and --link_kind link it in the same step (evidence or claim supports/opposes a claim; informs a question). Yours are agent_proposed.',
+    params: {
+      project: S('Project', { required: true }),
+      kind: S('Kind', { required: true, enum: ['question', 'claim', 'evidence'] }),
+      title: S('The question, the claim in one sentence, or what the evidence shows', { required: true }),
+      body: S('More detail'),
+      claim_basis: S('For a claim: what it rests on', { enum: ['data_result', 'literature_finding', 'interpretation', 'hypothesis'] }),
+      confidence: S('For a claim', { enum: ['low', 'medium', 'high'] }),
+      anchors: S('Existing passage ids (JSON list)'),
+      passage: S('One passage: ' + PASSAGE_DOC),
+      passages: S('Several passages: a JSON list of passage objects'),
+      link_to: S('Node to link to'),
+      link_kind: S('Link', { enum: ['supports', 'opposes', 'informs'] }),
+      reason: S('Why the link holds'),
+      why: S('Your AI agent: why you propose it'),
+    },
+  },
+  {
+    name: 'nodes.create-many',
+    method: 'POST',
+    fn: 'lib_graph.createMany',
+    effect: 'judge',
+    desc: 'Add many nodes in one call: --nodes is a JSON list of {ref, kind, title, body, claim_basis, passage | passages | anchors, link_to (a node id or the ref of one earlier in the list), link_kind, reason, why}. Each succeeds or fails on its own.',
+    params: { project: S('Project', { required: true }), nodes: S('JSON list of nodes', { required: true }) },
+  },
+  {
+    name: 'nodes.update',
+    method: 'POST',
+    fn: 'lib_graph.update',
+    effect: 'judge',
+    desc: "Edit a node's wording, basis, confidence or place on the map. Your AI agent edits only its own undecided proposals (it may move any).",
+    params: { node: S('Node', { required: true }), title: S('Title'), body: S('Detail'), claim_basis: S('Basis', { enum: ['data_result', 'literature_finding', 'interpretation', 'hypothesis'] }), confidence: S('Confidence', { enum: ['low', 'medium', 'high'] }), x: N('Map x'), y: N('Map y'), placed: B('Placed by hand') },
+  },
+  { name: 'nodes.move', method: 'POST', fn: 'lib_graph.move', effect: 'capture', desc: 'Places on the map for many nodes: JSON [{"node":"..","x":0,"y":0}].', params: { positions: S('JSON list', { required: true }) } },
+  { name: 'graph.tidy', method: 'POST', fn: 'lib_graph.tidy', effect: 'capture', desc: 'Hand nodes placed by hand back to the automatic layout of the claims map (all of a project, or --nodes).', params: { project: S('Project', { required: true }), nodes: S('Node ids (default all)') } },
+  { name: 'nodes.decide', method: 'POST', fn: 'lib_graph.decide', effect: 'confirm', agent: 'deny', desc: 'Confirm, reject or supersede nodes (their proposed links follow unless --links false); agent_proposed reopens your AI agent\'s proposals.', params: { nodes: S('Node ids', { required: true }), status: S('Decision', { required: true, enum: STATUS }), links: B('Decide their proposed links too (default true)') } },
+  { name: 'nodes.delete', method: 'POST', fn: 'lib_graph.remove', effect: 'judge', destructive: true, desc: 'Remove a node and its links. Your AI agent removes only its own undecided proposals.', params: { node: S('Node', { required: true }), preview: B('Only say what would go') } },
+  { name: 'nodes.add-passage', method: 'POST', fn: 'lib_graph.addPassage', effect: 'judge', desc: 'Another passage for a node.', params: { node: S('Node', { required: true }), anchors: S('Passage ids'), passage: S('One passage: ' + PASSAGE_DOC), passages: S('JSON list of passages') } },
+  { name: 'nodes.remove-passage', method: 'POST', fn: 'lib_graph.removePassage', effect: 'judge', desc: 'Take a passage off a node (evidence keeps at least one).', params: { node: S('Node', { required: true }), anchor: S('Passage id', { required: true }) } },
+  {
+    name: 'nodes.list',
+    method: 'GET',
+    fn: 'lib_graph.list',
+    effect: 'read',
+    desc: "A project's nodes (with their passages unless --passages false), filtered by kind, status, paper or who made them.",
+    params: { project: S('Project'), kind: S('Kind', { enum: ['question', 'claim', 'evidence'] }), status: S('Status', { enum: STATUS }), work: S('Paper'), actor: S('Who', { enum: ['person', 'agent'] }), passages: B('Include passages (default true)'), limit: N('Rows'), offset: N('Skip') },
+  },
+  { name: 'nodes.get', method: 'GET', fn: 'lib_graph.get', effect: 'read', desc: 'One node with its passages, its links grouped (supported by, opposed by, informs) and the boards it is on.', params: { node: S('Node', { required: true }) } },
+  { name: 'graph.map', method: 'GET', fn: 'lib_graph.map', effect: 'read', desc: "A project's claims map: every node with its first passage and its balance (supports, opposes, proposed), and every link.", params: { project: S('Project', { required: true }), rejected: B('Include rejected') } },
+  { name: 'relations.create', method: 'POST', fn: 'lib_graph.relCreate', effect: 'judge', desc: 'Link two nodes: evidence or claim supports/opposes a claim, or informs a question.', params: { from: S('From node', { required: true }), to: S('To node', { required: true }), kind: S('Link', { required: true, enum: ['supports', 'opposes', 'informs'] }), reason: S('Why it holds') } },
+  { name: 'relations.decide', method: 'POST', fn: 'lib_graph.relDecide', effect: 'confirm', agent: 'deny', desc: 'Confirm or reject links.', params: { relations: S('Link ids', { required: true }), status: S('Decision', { required: true, enum: ['researcher_confirmed', 'researcher_rejected'] }) } },
+  { name: 'relations.update', method: 'POST', fn: 'lib_graph.relUpdate', effect: 'judge', desc: "Change a link's kind or reason.", params: { relation: S('Link', { required: true }), kind: S('Link', { enum: ['supports', 'opposes', 'informs'] }), reason: S('Reason') } },
+  { name: 'relations.delete', method: 'POST', fn: 'lib_graph.relDelete', effect: 'judge', destructive: true, desc: 'Remove a link.', params: { relation: S('Link', { required: true }) } },
+
+  { name: 'boards.list', method: 'GET', fn: 'lib_boards.list', effect: 'read', desc: "A project's boards.", params: { project: S('Project', { required: true }) } },
+  { name: 'boards.get', method: 'GET', fn: 'lib_boards.get', effect: 'read', desc: 'A board with every card (what it shows) and the links between its nodes.', params: { board: S('Board', { required: true }) } },
+  { name: 'boards.create', method: 'POST', fn: 'lib_boards.create', effect: 'capture', desc: 'Make a board in a project.', params: { project: S('Project', { required: true }), name: S('Name') } },
+  { name: 'boards.update', method: 'POST', fn: 'lib_boards.update', effect: 'capture', desc: 'Rename a board or remember its view.', params: { board: S('Board', { required: true }), name: S('Name'), viewport: S('JSON {"x":0,"y":0,"zoom":1}') } },
+  { name: 'boards.delete', method: 'POST', fn: 'lib_boards.remove', effect: 'change', agent: 'deny', destructive: true, desc: 'Delete a board (the records on it stay).', params: { board: S('Board', { required: true }) } },
+  { name: 'boards.place', method: 'POST', fn: 'lib_boards.place', effect: 'capture', desc: 'Put records on a board (a record already there moves): JSON [{"ref_kind":"node","id":"..","x":0,"y":0}]; ref_kind node, anchor, work, note, text (with "text") or section.', params: { board: S('Board', { required: true }), items: S('JSON list of cards', { required: true }) } },
+  { name: 'boards.update-item', method: 'POST', fn: 'lib_boards.updateItem', effect: 'capture', desc: "A card's text, color, place or size.", params: { item: S('Card', { required: true }), text: S('Text'), color: S('Color', { enum: ['plain', 'accent', 'blue', 'green', 'amber', 'red', 'violet', 'teal'] }), x: N('x'), y: N('y'), w: N('Width'), h: N('Height') } },
+  { name: 'boards.move', method: 'POST', fn: 'lib_boards.move', effect: 'capture', desc: 'New places for many cards: JSON [{"item":"..","x":0,"y":0}].', params: { board: S('Board', { required: true }), positions: S('JSON list', { required: true }) } },
+  { name: 'boards.remove-items', method: 'POST', fn: 'lib_boards.removeItems', effect: 'capture', desc: 'Take cards off a board (the records stay).', params: { board: S('Board', { required: true }), items: S('Card ids', { required: true }) } },
+
+  { name: 'notes.list', method: 'GET', fn: 'lib_notes.list', effect: 'read', desc: 'Notes (literature, project, free), pinned first, newest first; search with --q.', params: { kind: S('Kind', { enum: ['literature', 'project', 'free'] }), work: S('Paper'), project: S('Project'), pinned: B('Pinned only'), q: S('Words'), limit: N('Rows'), offset: N('Skip') } },
+  { name: 'notes.get', method: 'GET', fn: 'lib_notes.get', effect: 'read', desc: 'One note with its blocks and their embeds resolved.', params: { note: S('Note', { required: true }) } },
+  {
+    name: 'notes.create',
+    method: 'POST',
+    fn: 'lib_notes.create',
+    effect: 'judge',
+    desc: 'Write a note. Blocks: paragraph, heading (level), bullet, numbered, todo (checked), quote (anchor), node (node), cite (work, locator), divider, image (a picture of the note: add pictures after the note exists, with notes.add-image), table (rows of cell texts). Yours are kept only when a person keeps them.',
+    params: { kind: S('Kind', { enum: ['literature', 'project', 'free'] }), title: S('Title'), work: S('Paper (literature notes)'), project: S('Project (project notes)'), blocks: S(BLOCKS_DOC) },
+  },
+  { name: 'notes.for-work', method: 'POST', fn: 'lib_notes.forWork', effect: 'capture', desc: "A paper's literature note (made when it has none).", params: { work: S('Paper', { required: true }) } },
+  { name: 'notes.update', method: 'POST', fn: 'lib_notes.update', effect: 'judge', desc: "Change a note's title, blocks or pin. Your AI agent edits only its own notes not yet kept (notes.append adds to any).", params: { note: S('Note', { required: true }), title: S('Title'), blocks: S(BLOCKS_DOC), pinned: B('Pinned') } },
+  { name: 'notes.append', method: 'POST', fn: 'lib_notes.append', effect: 'judge', desc: 'Add blocks to a note (at the end, or at --at).', params: { note: S('Note', { required: true }), blocks: S(BLOCKS_DOC, { required: true }), at: N('Insert before this block number') } },
+  {
+    name: 'notes.add-image',
+    method: 'POST',
+    fn: 'lib_notes.addImage',
+    effect: 'capture',
+    files: ['files'],
+    bodyLimit: 20 * 26214400 + 1048576,
+    desc: 'Add pictures to a note (PNG, JPEG, GIF, WebP, AVIF, BMP; up to 25 MB each, 20 at a time). Gives each picture an id for an image block; --append true puts the image blocks at the end (or at --at) now. People paste, drop or choose; your AI agent gives --paths.',
+    params: { note: S('Note', { required: true }), paths: S('JSON list of absolute paths of pictures on this machine (your AI agent)'), append: B('Put the image blocks in the note now'), caption: S('Caption for the appended pictures'), at: N('Insert before this block number (with --append)') },
+  },
+  { name: 'notes.image', method: 'GET', fn: 'lib_notes.image', effect: 'read', desc: "A note's picture (your AI agent gets disk_path, where it is on this machine).", params: { file: S('Picture id', { required: true }), download: B('As a download') } },
+  { name: 'notes.keep', method: 'POST', fn: 'lib_notes.keep', effect: 'confirm', agent: 'deny', desc: 'Keep notes your AI agent wrote.', params: { notes: S('Note ids', { required: true }) } },
+  { name: 'notes.delete', method: 'POST', fn: 'lib_notes.remove', effect: 'judge', destructive: true, desc: 'Delete a note. Your AI agent deletes only its own notes not yet kept.', params: { note: S('Note', { required: true }) } },
+];

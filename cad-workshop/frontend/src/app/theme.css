@@ -1,0 +1,329 @@
+/*
+ * CAD Workshop visual system: a compact, detailed workspace.
+ *
+ * A full-height app: a slim icon rail, then the page. Panels are flat
+ * surfaces with a hairline border and small corners; controls are 28px
+ * tall with 6px corners; lists are dense rows split by hairlines. Round
+ * shapes are kept for what is round by nature: status dots, color
+ * swatches, switches, slider knobs and count badges.
+ *
+ * One type scale: 12 captions, labels and dense data; 13 UI text; 14 and
+ * 15 titles; 26 headline numbers. Hierarchy comes from weight and color.
+ * Spacing on a 4px grid.
+ *
+ * Every color follows the host theme: lib/themeColors.ts derives the --cw-*
+ * tokens from the kit's --agent-app-* tokens with contrast checks and
+ * re-derives them when the host switches theme pack, mode or custom colors.
+ */
+
+html:root,
+html:root[data-theme='light'],
+html:root[data-theme='dark'] {
+  --agent-app-radius: 6px;
+  --agent-app-font: 'Manrope Variable', Manrope, system-ui, sans-serif;
+}
+
+html:root {
+  --cw-accent: var(--cw-accent-base);
+  --cw-on-accent: var(--cw-on-accent-base);
+  --cw-muted: var(--cw-muted-base);
+  --cw-red-text: var(--cw-red-text-base);
+  --cw-track: var(--cw-line);
+
+  /* Corners: chips and badges, controls, panels and menus, dialogs. */
+  --cw-r-sm: 4px;
+  --cw-r: 6px;
+  --cw-r-md: 8px;
+  --cw-r-lg: 10px;
+
+  /* Fixed state colors (fills); their text variants are derived. */
+  --cw-red: #de4b33;
+  --cw-green: #4f9a6c;
+  --cw-amber: #e2a43a;
+
+  --cw-shadow: 0 8px 24px -12px rgba(0, 0, 0, 0.28);
+  --cw-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
+  --cw-mono: ui-monospace, 'Cascadia Mono', 'SF Mono', Consolas, monospace;
+}
+
+html:root,
+html:root[data-theme='light'] {
+  color-scheme: light;
+}
+
+html:root[data-theme='dark'] {
+  color-scheme: dark;
+  --cw-shadow: 0 8px 24px -12px rgba(0, 0, 0, 0.7);
+  --cw-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Surface scopes: inside them the accent and muted text switch to the
+ * variants derived for that background. */
+.cw-on-sand {
+  --cw-muted: var(--cw-muted-sand);
+  --cw-track: var(--cw-track-sand);
+}
+.cw-on-dark {
+  --cw-accent: var(--cw-accent-dark);
+  --cw-on-accent: var(--cw-on-accent-dark);
+  --cw-muted: var(--cw-on-dark-muted);
+  --cw-red-text: var(--cw-red-on-dark);
+}
+.cw-on-ink {
+  --cw-accent: var(--cw-accent-ink);
+  --cw-on-accent: var(--cw-on-accent-ink);
+}
+.cw-on-card {
+  --cw-accent: var(--cw-accent-base);
+  --cw-on-accent: var(--cw-on-accent-base);
+  --cw-muted: var(--cw-muted-base);
+  --cw-red-text: var(--cw-red-text-base);
+  --cw-track: var(--cw-line);
+}
+
+html,
+body {
+  background: var(--cw-shell);
+  color: var(--cw-ink);
+  font-family: 'Manrope Variable', Manrope, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  font-size: 13px;
+  line-height: 18px;
+}
+
+html .text-base,
+html .text-lg {
+  font-size: 14px;
+  line-height: 20px;
+}
+
+/* Everything that reacts to the mouse shows the pointer. */
+@layer base {
+  button:not(:disabled),
+  a[href],
+  [role='button'],
+  [role='tab'],
+  [role='radio'],
+  [role='checkbox'],
+  [role='menuitem'],
+  [role='switch'],
+  [role='option'],
+  select:not(:disabled),
+  summary,
+  label:has(input),
+  label[for],
+  input[type='checkbox'],
+  input[type='radio'],
+  input[type='range'],
+  input[type='file'] {
+    cursor: pointer;
+  }
+  button:disabled,
+  select:disabled {
+    cursor: not-allowed;
+  }
+  .editable:not(:focus) {
+    cursor: pointer;
+  }
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+.mono {
+  font-family: var(--cw-mono);
+  font-size: 12px;
+}
+
+/* Dense tables: hairline rows, sticky header. */
+.cw-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+.cw-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  height: 32px;
+  padding: 0 8px;
+  background: var(--cw-card);
+  border-bottom: 1px solid var(--cw-line);
+  color: var(--cw-muted);
+  font-size: 12px;
+  font-weight: 600;
+  text-align: left;
+  white-space: nowrap;
+}
+.cw-table td {
+  height: 40px;
+  padding: 0 8px;
+  border-bottom: 1px solid var(--cw-hair);
+  font-size: 13px;
+  vertical-align: middle;
+}
+.cw-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+.cw-table tbody tr:hover td {
+  background: var(--cw-row);
+}
+
+/* The viewer: the canvas takes the pointer; the default arrow there, the
+ * pointer over something pickable (set by the viewer). */
+.cw-viewport canvas {
+  display: block;
+  touch-action: none;
+  outline: none;
+}
+.cw-viewport.cw-pick canvas {
+  cursor: pointer;
+}
+.cw-viewport.cw-drag canvas {
+  cursor: grabbing;
+}
+
+select option {
+  background-color: var(--cw-card);
+  color: var(--cw-ink);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--cw-muted);
+}
+
+/* Sliders in the theme's colors. */
+input[type='range'].cw-range {
+  appearance: none;
+  height: 16px;
+  background: transparent;
+}
+input[type='range'].cw-range::-webkit-slider-runnable-track {
+  height: 3px;
+  border-radius: 2px;
+  background: var(--cw-track);
+}
+input[type='range'].cw-range::-webkit-slider-thumb {
+  appearance: none;
+  margin-top: -5px;
+  width: 13px;
+  height: 13px;
+  border-radius: 999px;
+  background: var(--cw-ink);
+  border: 2px solid var(--cw-card);
+}
+input[type='range'].cw-range::-moz-range-track {
+  height: 3px;
+  border-radius: 2px;
+  background: var(--cw-track);
+}
+input[type='range'].cw-range::-moz-range-thumb {
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  background: var(--cw-ink);
+  border: 2px solid var(--cw-card);
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--cw-line);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+/* Entrances. */
+@keyframes cw-rise {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.cw-rise {
+  animation: cw-rise 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes cw-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.98) translateY(2px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+.cw-pop {
+  animation: cw-pop 140ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes cw-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+.cw-pulse {
+  animation: cw-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes cw-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.cw-spin {
+  animation: cw-spin 0.9s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cw-rise,
+  .cw-pop,
+  .cw-pulse,
+  .cw-spin {
+    animation: none;
+  }
+}
+
+/* The kit's toasts in the app's language: compact ink notes above the phone bar. */
+html .pointer-events-none.fixed.bottom-4.right-4 > button {
+  border: 0;
+  border-radius: var(--cw-r-md);
+  background: var(--cw-ink);
+  color: var(--cw-shell);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 12px;
+  box-shadow: var(--cw-shadow);
+}
+html .pointer-events-none.fixed.bottom-4.right-4 > button.text-red-700 {
+  background: var(--cw-red);
+  color: var(--cw-on-red);
+}
+@media (max-width: 767px) {
+  html .pointer-events-none.fixed.bottom-4.right-4 {
+    bottom: 68px;
+    right: 12px;
+    left: 12px;
+    width: auto;
+  }
+}

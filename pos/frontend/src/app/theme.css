@@ -1,0 +1,438 @@
+/*
+ * POS visual system (the Expenses tracker family).
+ *
+ * A warm, soft counter: a canvas holding one app shell with large rounded
+ * corners; white, sand and one dark card per screen; ink pills with an
+ * accent dot for the main action; round icon buttons; pill fields. No
+ * borders on cards, generous radii, Manrope. What a cashier presses all day
+ * (tiles, keypad keys, the pay button) is large and round.
+ *
+ * One type scale: 12 captions; 13 secondary; 14 UI; 15 card titles and
+ * reading; 26 page titles and headline numbers (totals, amount due, change).
+ * Hierarchy comes from weight and color. Spacing on a 4px grid.
+ *
+ * Every color follows the host theme: lib/themeColors.ts derives the --ps-*
+ * tokens from the kit's --agent-app-* tokens with contrast checks and
+ * re-derives them when the host switches theme pack, mode or custom colors.
+ * Only state colors are fixed (green, amber, red) and the eight category
+ * hues, each with derived tint and text variants. Receipts print black on
+ * white whatever the theme.
+ */
+
+/* Shape and type are the app's own (themes never set them); this selector
+ * out-ranks the kit's :root[data-theme] defaults. */
+html:root,
+html:root[data-theme='light'],
+html:root[data-theme='dark'] {
+  --agent-app-radius: 14px;
+  --agent-app-font: 'Manrope Variable', Manrope, system-ui, sans-serif;
+}
+
+html:root {
+  /* The accent and muted text as they read on ordinary surfaces. */
+  --ps-accent: var(--ps-accent-base);
+  --ps-on-accent: var(--ps-on-accent-base);
+  --ps-accent-fill: var(--ps-accent-fill-base);
+  --ps-dot: var(--ps-dot-base);
+  --ps-on-dot: var(--ps-on-dot-base);
+  --ps-muted: var(--ps-muted-base);
+  --ps-red-text: var(--ps-red-text-base);
+  --ps-track: var(--ps-line);
+
+  /* Fixed state colors (fills); their text variants are derived. */
+  --ps-red: #de4b33;
+  --ps-green: #4f9a6c;
+  --ps-amber: #e2a43a;
+
+  /* Receipts: black on white paper. */
+  --ps-paper: #ffffff;
+  --ps-paper-ink: #111111;
+
+  --ps-shadow-float: 0 18px 40px -18px rgba(29, 28, 26, 0.55);
+  --ps-mono: ui-monospace, 'Cascadia Mono', 'SF Mono', Consolas, monospace;
+}
+
+html:root,
+html:root[data-theme='light'] {
+  color-scheme: light;
+}
+
+html:root[data-theme='dark'] {
+  color-scheme: dark;
+  --ps-shadow-float: 0 18px 40px -18px rgba(0, 0, 0, 0.85);
+}
+
+/* Surface scopes: inside them the accent and muted text switch to the
+ * variants derived for that background, so nothing sits on its own color.
+ * --ps-accent is for marks and text; --ps-accent-fill for fills that carry
+ * --ps-on-accent text; --ps-dot for round icon badges (--ps-on-dot icon). */
+.ps-on-sand {
+  --ps-muted: var(--ps-muted-sand);
+  --ps-track: var(--ps-track-sand);
+}
+.ps-on-dark {
+  --ps-accent: var(--ps-accent-dark);
+  --ps-on-accent: var(--ps-on-accent-dark);
+  --ps-accent-fill: var(--ps-accent-fill-dark);
+  --ps-dot: var(--ps-dot-dark);
+  --ps-on-dot: var(--ps-on-dot-dark);
+  --ps-muted: var(--ps-on-dark-muted);
+  --ps-red-text: var(--ps-red-on-dark);
+}
+.ps-on-ink {
+  --ps-accent: var(--ps-accent-ink);
+  --ps-on-accent: var(--ps-on-accent-ink);
+  --ps-accent-fill: var(--ps-accent-ink);
+  --ps-dot: var(--ps-dot-ink);
+  --ps-on-dot: var(--ps-on-dot-ink);
+}
+.ps-on-card {
+  --ps-accent: var(--ps-accent-base);
+  --ps-on-accent: var(--ps-on-accent-base);
+  --ps-accent-fill: var(--ps-accent-fill-base);
+  --ps-dot: var(--ps-dot-base);
+  --ps-on-dot: var(--ps-on-dot-base);
+  --ps-muted: var(--ps-muted-base);
+  --ps-red-text: var(--ps-red-text-base);
+  --ps-track: var(--ps-line);
+}
+
+html,
+body {
+  background: var(--ps-canvas);
+  color: var(--ps-ink);
+  font-family: 'Manrope Variable', Manrope, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Base text size on body only: the root stays 16px so rem spacing is true. */
+body {
+  font-size: 14px;
+  line-height: 20px;
+}
+
+/* The kit's 16px and 18px steps fold into the scale. */
+html .text-base,
+html .text-lg {
+  font-size: 15px;
+  line-height: 22px;
+}
+
+/* Everything that reacts to the mouse shows the pointer. */
+@layer base {
+  button:not(:disabled),
+  a[href],
+  [role='button'],
+  [role='tab'],
+  [role='radio'],
+  [role='checkbox'],
+  [role='menuitem'],
+  [role='switch'],
+  [role='option'],
+  select:not(:disabled),
+  summary,
+  label:has(input),
+  label[for],
+  input[type='checkbox'],
+  input[type='radio'],
+  input[type='date'],
+  input[type='file'],
+  input[type='date']::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+  }
+  button:disabled,
+  select:disabled {
+    cursor: not-allowed;
+  }
+  .editable:not(:focus) {
+    cursor: pointer;
+  }
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+.mono {
+  font-family: var(--ps-mono);
+  font-size: 12px;
+}
+
+/* Native <select> popups paint their options with these. */
+select option {
+  background-color: var(--ps-card);
+  color: var(--ps-ink);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--ps-muted);
+}
+
+/* Number fields keep the keypad's look: no browser spinners. */
+input[type='number']::-webkit-outer-spin-button,
+input[type='number']::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type='number'] {
+  -moz-appearance: textfield;
+}
+input[type='search']::-webkit-search-cancel-button {
+  display: none;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--ps-line);
+  border-radius: 999px;
+}
+.ps-no-scrollbar {
+  scrollbar-width: none;
+}
+.ps-no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Tiles and keys are pressed hard and fast: no text selection, no
+ * double-tap zoom, a visible press. */
+.ps-press {
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background-color 120ms,
+    transform 120ms;
+}
+.ps-press:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+/* Entrances. A block's entrance fills backwards only: once it has played the
+ * block is no longer a layer of its own, so a menu that opens out of it sits
+ * above the blocks that follow. */
+@keyframes ps-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.ps-rise {
+  animation: ps-rise 420ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+.ps-d1 {
+  animation-delay: 60ms;
+}
+.ps-d2 {
+  animation-delay: 120ms;
+}
+.ps-d3 {
+  animation-delay: 180ms;
+}
+.ps-d4 {
+  animation-delay: 240ms;
+}
+.ps-d5 {
+  animation-delay: 300ms;
+}
+
+@keyframes ps-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+.ps-pop {
+  animation: ps-pop 200ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes ps-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+.ps-pulse {
+  animation: ps-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes ps-caret {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+.ps-caret {
+  animation: ps-caret 1s steps(1) infinite;
+}
+
+@keyframes ps-grow {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+.ps-grow {
+  transform-origin: bottom;
+  animation: ps-grow 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes ps-draw {
+  from {
+    opacity: 0;
+    transform: rotate(-12deg) scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(0) scale(1);
+  }
+}
+.ps-draw {
+  transform-origin: center;
+  animation: ps-draw 640ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* A line that was just added glows once. */
+@keyframes ps-flash {
+  0% {
+    background: var(--ps-accent-soft);
+  }
+  100% {
+    background: var(--ps-row);
+  }
+}
+.ps-flash {
+  animation: ps-flash 800ms ease-out 1;
+}
+
+/* A scan that matched nothing, a wrong PIN: a short shake. */
+@keyframes ps-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20%,
+  60% {
+    transform: translateX(-5px);
+  }
+  40%,
+  80% {
+    transform: translateX(5px);
+  }
+}
+.ps-shake {
+  animation: ps-shake 320ms ease-in-out 1;
+}
+
+/* A name too long for its tile rolls through it (RollingText): a short hold,
+ * then the text leaves and its next copy arrives where the first began. */
+@keyframes ps-roll {
+  0%,
+  14% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(var(--ps-roll-by));
+  }
+}
+.ps-roll {
+  animation: ps-roll 8s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ps-roll,
+  .ps-rise,
+  .ps-pop,
+  .ps-pulse,
+  .ps-caret,
+  .ps-grow,
+  .ps-draw,
+  .ps-flash,
+  .ps-shake {
+    animation: none;
+  }
+  .ps-press:active:not(:disabled) {
+    transform: none;
+  }
+}
+
+/* The kit's toasts in the app's language: dark pills, at the bottom left so
+ * they never cover the pay button; above the bar on phones. */
+@media (min-width: 768px) {
+  html .pointer-events-none.fixed.bottom-4.right-4 {
+    right: auto;
+    left: 136px;
+    bottom: 32px;
+  }
+}
+html .pointer-events-none.fixed.bottom-4.right-4 > button {
+  border: 0;
+  border-radius: 20px;
+  background: var(--ps-ink);
+  color: var(--ps-shell);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 12px 20px;
+  box-shadow: var(--ps-shadow-float);
+}
+html .pointer-events-none.fixed.bottom-4.right-4 > button.text-red-700 {
+  background: var(--ps-red);
+  color: var(--ps-on-red);
+}
+@media (max-width: 767px) {
+  html .pointer-events-none.fixed.bottom-4.right-4 {
+    bottom: 96px;
+    right: 16px;
+    left: 16px;
+    width: auto;
+  }
+}
+
+/* Printing: only the receipt (or report) goes to paper. */
+.ps-print-only {
+  display: none;
+}
+@media print {
+  html,
+  body {
+    background: #ffffff !important;
+  }
+  body * {
+    visibility: hidden !important;
+  }
+  .ps-print-only,
+  .ps-print-only * {
+    visibility: visible !important;
+  }
+  .ps-print-only {
+    display: block !important;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+}
