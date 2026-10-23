@@ -1,0 +1,2705 @@
+{
+  "opsVersion": 1,
+  "operations": [
+    {
+      "name": "health",
+      "description": "Liveness check (PocketBase built-in).",
+      "system": true,
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/health"
+      }
+    },
+    {
+      "name": "ops.list",
+      "description": "Return this operations manifest.",
+      "system": true,
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/_ops"
+      }
+    },
+    {
+      "name": "app.guide",
+      "description": "START HERE: conventions (money in minor units, sessions, permissions of the agent role), the sale lifecycle, error codes and recipes for each request your AI agent gets.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/app/guide"
+      }
+    },
+    {
+      "name": "app.status",
+      "description": "Today at a glance: sales count and total today, open drawers, open tickets, low stock count, open requests.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/app/status"
+      }
+    },
+    {
+      "name": "setup.status",
+      "description": "Whether the store is set up, its name, currency, active registers and whether staff exist (the lock screen reads it).",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/setup/status"
+      }
+    },
+    {
+      "name": "setup.complete",
+      "description": "First run only: the store (business_name, currency, prices_include_tax, tax_name, tax_rate), the owner (owner_name, owner_pin) and the first register. Answers an owner session.",
+      "params": {
+        "business_name": {
+          "type": "string",
+          "description": "Store name",
+          "required": true
+        },
+        "currency": {
+          "type": "string",
+          "description": "ISO code like USD, EUR, JPY, MYR",
+          "required": true
+        },
+        "currency_digits": {
+          "type": "number",
+          "description": "Minor digits (default from the currency)"
+        },
+        "prices_include_tax": {
+          "type": "boolean",
+          "description": "Prices already include tax (VAT/GST style)"
+        },
+        "tax_name": {
+          "type": "string",
+          "description": "Default tax name, like Sales tax"
+        },
+        "tax_rate": {
+          "type": "number",
+          "description": "Default tax rate in percent, like 8.875"
+        },
+        "owner_name": {
+          "type": "string",
+          "description": "The owner's name",
+          "required": true
+        },
+        "owner_pin": {
+          "type": "string",
+          "description": "The owner's PIN (4 to 8 digits)",
+          "required": true
+        },
+        "register_name": {
+          "type": "string",
+          "description": "First register name (default Register 1)"
+        },
+        "address": {
+          "type": "string",
+          "description": "Store address (receipts)"
+        },
+        "phone": {
+          "type": "string",
+          "description": "Store phone (receipts)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/setup/complete"
+      }
+    },
+    {
+      "name": "auth.unlock",
+      "description": "Sign a person in at a register with their PIN: answers the session (till), staff, register and permissions. People only.",
+      "params": {
+        "pin": {
+          "type": "string",
+          "description": "PIN",
+          "required": true
+        },
+        "register": {
+          "type": "string",
+          "description": "Register id or name",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/auth/unlock"
+      }
+    },
+    {
+      "name": "auth.session",
+      "description": "Who is acting (staff and register, or the agent) and the permissions in force.",
+      "params": {
+        "till": {
+          "type": "string",
+          "description": "The app's signed-in session (the app sends it; the agent never needs it)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/auth/session"
+      }
+    },
+    {
+      "name": "settings.get",
+      "description": "Store settings: business details, receipt, currency, tax mode, cash rounding, tips, tenders, loyalty, locking, permissions matrix.",
+      "params": {
+        "till": {
+          "type": "string",
+          "description": "The app's signed-in session (the app sends it; the agent never needs it)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/settings/get"
+      }
+    },
+    {
+      "name": "settings.update",
+      "description": "Change settings (manage_settings): business_name, address, phone, email, website, tax_number, receipt_header/footer/width/prefix, prices_include_tax, cash_round_to, denominations, tips_enabled, tip_presets, tip_basis, card_reference, tenders, loyalty_*, require_shift, allow_negative_stock, low_stock_default, lock_*, auto_shift_review, show_tile_prices, logo.",
+      "params": {
+        "business_name": {
+          "type": "string",
+          "description": "Store name"
+        },
+        "address": {
+          "type": "string",
+          "description": "Address (several lines)"
+        },
+        "phone": {
+          "type": "string",
+          "description": "Phone"
+        },
+        "email": {
+          "type": "string",
+          "description": "Email"
+        },
+        "website": {
+          "type": "string",
+          "description": "Website"
+        },
+        "tax_number": {
+          "type": "string",
+          "description": "Tax registration number (printed)"
+        },
+        "receipt_header": {
+          "type": "string",
+          "description": "Text above the receipt lines"
+        },
+        "receipt_footer": {
+          "type": "string",
+          "description": "Text at the end of the receipt"
+        },
+        "receipt_width": {
+          "type": "string",
+          "description": "Paper width in mm",
+          "enum": [
+            "58",
+            "80"
+          ]
+        },
+        "receipt_prefix": {
+          "type": "string",
+          "description": "Text before receipt numbers"
+        },
+        "next_receipt": {
+          "type": "number",
+          "description": "Next receipt number (only forward once there are sales)"
+        },
+        "currency": {
+          "type": "string",
+          "description": "ISO code (only before the first sale)"
+        },
+        "currency_digits": {
+          "type": "number",
+          "description": "Minor digits (only before the first sale)"
+        },
+        "prices_include_tax": {
+          "type": "boolean",
+          "description": "Prices include tax"
+        },
+        "cash_round_to": {
+          "type": "string",
+          "description": "Cash rounding step, like 0.05 (0 for none)"
+        },
+        "denominations": {
+          "type": "string",
+          "description": "JSON list of notes and coins for counting, like [\"100\",\"50\",\"20\",\"10\",\"5\",\"1\",\"0.25\"]"
+        },
+        "tips_enabled": {
+          "type": "boolean",
+          "description": "Ask for tips"
+        },
+        "tip_presets": {
+          "type": "string",
+          "description": "JSON list of up to 5 percentages, like [10, 15, 20]"
+        },
+        "tip_basis": {
+          "type": "string",
+          "description": "Tip on the amount before or after tax",
+          "enum": [
+            "before_tax",
+            "after_tax"
+          ]
+        },
+        "card_reference": {
+          "type": "string",
+          "description": "Ask for the card terminal approval code",
+          "enum": [
+            "off",
+            "optional",
+            "required"
+          ]
+        },
+        "tenders": {
+          "type": "string",
+          "description": "JSON list of the store's own tenders: [{\"label\": \"Bank transfer\"}] (keep ids to keep them)"
+        },
+        "loyalty_enabled": {
+          "type": "boolean",
+          "description": "Customers earn and spend points"
+        },
+        "points_per_unit": {
+          "type": "number",
+          "description": "Points earned per 1 unit of currency spent"
+        },
+        "point_value": {
+          "type": "string",
+          "description": "What 1 point is worth when spent, like 0.01"
+        },
+        "points_min_redeem": {
+          "type": "number",
+          "description": "Fewest points that can pay"
+        },
+        "require_shift": {
+          "type": "boolean",
+          "description": "Selling needs an open drawer"
+        },
+        "allow_negative_stock": {
+          "type": "boolean",
+          "description": "Sell items even when stock says none"
+        },
+        "low_stock_default": {
+          "type": "number",
+          "description": "Low stock level for items without their own"
+        },
+        "lock_idle_minutes": {
+          "type": "number",
+          "description": "Lock the register after this many idle minutes (0 never)"
+        },
+        "lock_after_sale": {
+          "type": "boolean",
+          "description": "Lock after every sale"
+        },
+        "auto_shift_review": {
+          "type": "boolean",
+          "description": "Ask your AI agent to review each closed drawer"
+        },
+        "show_tile_prices": {
+          "type": "boolean",
+          "description": "Show each product's price under its name on the sell screen's tiles"
+        },
+        "remove_logo": {
+          "type": "boolean",
+          "description": "Remove the logo"
+        },
+        "till": {
+          "type": "string",
+          "description": "The app's signed-in session (the app sends it; the agent never needs it)"
+        },
+        "approve_pin": {
+          "type": "string",
+          "description": "A manager's PIN approving one action the actor may not do (people only)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/settings/update"
+      }
+    },
+    {
+      "name": "permissions.update",
+      "description": "The owner changes what each role may do: permissions='{\"cashier\": {\"return\": true, \"max_discount\": 15}, \"agent\": {\"adjust_balances\": false}}'. The owner role always has everything.",
+      "params": {
+        "permissions": {
+          "type": "string",
+          "description": "JSON object role -> {permission: true/false, max_discount: 0-100}",
+          "required": true
+        },
+        "till": {
+          "type": "string",
+          "description": "The app's signed-in session (the app sends it; the agent never needs it)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/permissions/update"
+      }
+    },
+    {
+      "name": "registers.list",
+      "description": "Registers with their open drawer (if any) and the sale on screen.",
+      "params": {
+        "till": {
+          "type": "string",
+          "description": "The app's signed-in session (the app sends it; the agent never needs it)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/registers/list"
+      }
+    },
+    {
+      "name": "registers.save",
+      "description": "Add a register (name) or change one (id, name, active). manage_settings.",
+      "params": {
+        "id": {
+          "type": "string",
+          "description": "Register id (empty to add)"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name"
+        },
+        "active": {
+          "type": "boolean",
+          "description": "Turned on"
+        },
+        "till": {
+          "type": "string",
+          "description": "The app's signed-in session (the app sends it; the agent never needs it)"
+        },
+        "approve_pin": {
+          "type": "string",
+          "description": "A manager's PIN approving one action the actor may not do (people only)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/registers/save"
+      }
+    },
+    {
+      "name": "registers.focus",
+      "description": "Which sale a register shows (for its customer display), with an optional message after payment.",
+      "params": {
+        "order": {
+          "type": "string",
+          "description": "Sale id ('' for none)"
+        },
+        "message": {
+          "type": "string",
+          "description": "JSON, like {\"kind\": \"thanks\", \"change\": 500}"
+        },
+        "register": {
+          "type": "string",
+          "description": "Register id or name (the app's session names it)"
+        },
+        "till": {
+          "type": "string",
+          "description": "The app's signed-in session (the app sends it; the agent never needs it)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/registers/focus"
+      }
+    },
+    {
+      "name": "display.get",
+      "description": "What a register's customer display shows: the store, the sale's lines and totals, the message. No sign-in.",
+      "params": {
+        "register": {
+          "type": "string",
+          "description": "Register id or name",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/display/get"
+      }
+    },
+    {
+      "name": "staff.list",
+      "description": "Staff with role, color, active and whether clocked in (contact details with manage_staff).",
+      "params": {
+        "till": {
+          "type": "string",
+          "description": "The app's signed-in session (the app sends it; the agent never needs it)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/staff/list"
+      }
+    },
+    {
+      "name": "staff.save",
+      "description": "Add or change a staff member (manage_staff; owners only by an owner): name, role, pin, active, color, email, phone. Anyone may change their own PIN with current_pin.",
+      "params": {
+        "id": {
+          "type": "string",
+          "description": "Staff id (empty to add)"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name"
+        },
+        "role": {
+          "type": "string",
+          "description": "Role",
+          "enum": [
+            "owner",
+            "manager",
+            "cashier"
+          ]
+        },
+        "pin": {
+          "type": "string",
+          "description": "New PIN, 4 to 8 digits (unique)"
+        },
+        "current_pin": {
+          "type": "string",
+          "description": "Your current PIN (changing your own)"
+        },
+        "active": {
+          "type": "boolean",
+          "description": "Can sign in"
+        },
+        "color": {
+          "type": "string",
+          "description": "Avatar color",
+          "enum": [
+            "neutral",
+            "accent",
+            "blue",
+            "green",
+            "amber",
+            "red",
+            "violet",
+            "graphite"
+          ]
+        },
+        "email": {
+          "type": "string",
+          "description": "Email"
+        },
+        "phone": {
+          "type": "string",
+          "description": "Phone"
+        },
+        "till": {
+          "type": "string",
+          "description": "The app's signed-in session (the app sends it; the agent never needs it)"
+        },
+        "approve_pin": {
+          "type": "string",
+          "description": "A manager's PIN approving one action the actor may not do (people only)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/staff/save"
+      }
+    },
+    {
+      "name": "staff.clock",
+      "description": "Clock in or out: the signed-in person, or whoever's pin is given (the lock screen).",
+      "params": {
+        "pin": {
+          "type": "string",
+          "description": "PIN of the person clocking"
+        },
+        "action": {
+          "type": "string",
+          "description": "in, out or toggle (default)",
+          "enum": [
+            "in",
+            "out",
+            "toggle"
+          ]
+        },
+        "till": {
+          "type": "string",
+          "description": "The app's signed-in session (the app sends it; the agent never needs it)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/staff/clock"
+      }
+    },
+    {
+      "name": "timeclock.list",
+      "description": "Time entries with minutes and totals per person (your own without manage_staff).",
+      "params": {
+        "staff": {
+          "type": "string",
+          "description": "Only this staff id"
+        },
+        "from": {
+          "type": "string",
+          "description": "First local day, YYYY-MM-DD"
+        },
+        "to": {
+          "type": "string",
+          "description": "Last local day, YYYY-MM-DD (default today)"
+        },
+        "till": {
+          "type": "string",
+          "description": "The app's signed-in session (the app sends it; the agent never needs it)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/timeclock/list"
+      }
+    },
+    {
+      "name": "timeclock.save",
+      "description": "Add or correct a time entry (manage_staff): staff, clock_in, clock_out (ISO times), note.",
+      "params": {
+        "id": {
+          "type": "string",
+          "description": "Entry id (empty to add)"
+        },
+        "staff": {
+          "type": "string",
+          "description": "Staff id (new entries)"
+        },
+        "clock_in": {
+          "type": "string",
+          "description": "Start, like 2026-10-10T09:00:00"
+        },
+        "clock_out": {
+          "type": "string",
+          "description": "End ('' while still working)"
+        },
+        "note": {
+          "type": "string",
+          "description": "Note"
+        },
+        "till": {
+          "type": "string",
+          "description": "The app's signed-in session (the app sends it; the agent never needs it)"
+        },
+        "approve_pin": {
+          "type": "string",
+          "description": "A manager's PIN approving one action the actor may not do (people only)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/timeclock/save"
+      }
+    },
+    {
+      "name": "catalog.register",
+      "description": "Everything the register sells in one answer: categories, active products with variants and options, option groups, tax rates.",
+      "params": {
+        "till": {
+          "type": "string",
+          "description": "The app's signed-in session (the app sends it; the agent never needs it)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/catalog/register"
+      }
+    },
+    {
+      "name": "categories.list",
+      "description": "Categories with their product counts.",
+      "params": {
+        "till": {
+          "type": "string",
+          "description": "The app's signed-in session (the app sends it; the agent never needs it)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/categories/list"
+      }
+    },
+    {
+      "name": "categories.save",
+      "description": "Add or change a category (manage_catalog): name, color, sort.",
+      "params": {
+        "id": {
+          "type": "string",
+          "description": "Category id (empty to add)"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name"
+        },
+        "color": {
+          "type": "string",
+          "description": "Color",
+          "enum": [
+            "neutral",
+            "accent",
+            "blue",
+            "green",
+            "amber",
+            "red",
+            "violet",
+            "graphite"
+          ]
+        },
+        "sort": {
+          "type": "number",
+          "description": "Order"
+        },
+        "till": {
+          "type": "string",
+          "description": "The app's signed-in session (the app sends it; the agent never needs it)"
+        },
+        "approve_pin": {
+          "type": "string",
+          "description": "A manager's PIN approving one action the actor may not do (people only)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/categories/save"
+      }
+    },
+    {
+      "name": "taxes.list",
+      "description": "Tax rates; one is the default for products without their own.",
+      "params": {
+        "till": {
+          "type": "string",
+          "description": "The app's signed-in session (the app sends it; the agent never needs it)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/taxes/list"
+      }
+    },
+    {
+      "name": "taxes.save",
+      "description": "Add or change a tax rate (manage_settings): name, rate (percent), is_default.",
+      "params": {
+        "id": {
+          "type": "string",
+          "description": "Tax id (empty to add)"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name"
+        },
+        "rate": {
+          "type": "number",
+          "description": "Rate in percent, like 8.875"
+        },
+        "is_default": {
+          "type": "boolean",
+          "description": "The default rate"
+        },
+        "till": {
+          "type": "string",
+          "description": "The app's signed-in session (the app sends it; the agent never needs it)"
+        },
+        "approve_pin": {
+          "type": "string",
+          "description": "A manager's PIN approving one action the actor may not do (people only)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/taxes/save"
+      }
+    },
+    {
+      "name": "modifiers.list",
+      "description": "Option groups (like Milk, Extras) with their options and prices.",
+      "params": {
+        "till": {
+          "type": "string",
+          "description": "The app's signed-in session (the app sends it; the agent never needs it)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/modifiers/list"
+      }
+    },
+    {
+      "name": "modifiers.save",
+      "description": "Add or change an option group (manage_catalog): name, min, max (0 = any), options '[{\"name\":\"Oat\",\"price\":\"0.60\"}]' (keep ids to keep options).",
+      "params": {
+        "id": {
+          "type": "string",
+          "description": "Group id (empty to add)"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name"
+        },
+        "min": {
+          "type": "number",
+          "description": "Fewest choices"
+        },
+        "max": {
+          "type": "number",
+          "description": "Most choices (0 any)"
+        },
+        "options": {
+          "type": "string",
+          "description": "JSON list of {id?, name, price}"
+        },
+        "sort": {
+          "type": "number",
+          "description": "Order"
+        },
+        "till": {
+          "type": "string",
+          "description": "The app's signed-in session (the app sends it; the agent never needs it)"
+        },
+        "approve_pin": {
+          "type": "string",
+          "description": "A manager's PIN approving one action the actor may not do (people only)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/modifiers/save"
+      }
+    },
+    {
+      "name": "products.list",
+      "description": "Products with variants, prices, stock and status; search by name, SKU or barcode.",
+      "params": {
+        "q": {
+          "type": "string",
+          "description": "Search"
+        },
+        "category": {
+          "type": "string",
+          "description": "Category id ('none' for uncategorized)"
+        },
+        "favorites": {
+          "type": "boolean",
+          "description": "Only favorites"
+        },
+        "archived": {
+          "type": "boolean",
+          "description": "Archived instead"
+        },
+        "stock": {
+          "type": "string",
+          "description": "Stock filter",
+          "enum": [
+            "low",
+            "out",
+            "tracked"
+          ]
+        },
+        "sort": {
+          "type": "string",
+          "description": "Order",
+          "enum": [
+            "name",
+            "updated",
+            "sort"
+          ]
+        },
+        "limit": {
+          "type": "number",
+          "description": "How many"
+        },
+        "page": {
+          "type": "number",
+          "description": "Page from 1"
+        },
+        "till": {
+          "type": "string",
+          "description": "The app's signed-in session (the app sends it; the agent never needs it)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/products/list"
+      }
+    },
+    {
+      "name": "products.get",
+      "description": "One product with its variants and options.",
+      "params": {
+        "product": {
+          "type": "string",
+          "description": "Product id or exact name",
+          "required": true
+        },
+        "till": {
+          "type": "string",
+          "description": "The app's signed-in session (the app sends it; the agent never needs it)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/products/get"
+      }
+    },
+    {
+      "name": "products.lookup",
+      "description": "The product and variant a scanned or typed code (SKU or barcode) names.",
+      "params": {
+        "code": {
+          "type": "string",
+          "description": "SKU or barcode",
+          "required": true
+        },
+        "till": {
+          "type": "string",
+          "description": "The app's signed-in session (the app sends it; the agent never needs it)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/products/lookup"
+      }
+    },
+    {
+      "name": "products.save",
+      "description": "Add or change a product and its variants in one step (manage_catalog). Simple product: price, sku, barcode, cost, track_stock, low_at, stock (opening). With option_names: variants JSON. Also category, tax, tax_exempt, modifier_groups, color, favorite, sold_by, unit, description, archived, image.",
+      "params": {
+        "id": {
+          "type": "string",
+          "description": "Product id (empty to add)"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name"
+        },
+        "category": {
+          "type": "string",
+          "description": "Category id or name (created if new; '' none)"
+        },
+        "price": {
+          "type": "string",
+          "description": "Price, like 4.50 (simple product)"
+        },
+        "cost": {
+          "type": "string",
+          "description": "Unit cost (simple product)"
+        },
+        "sku": {
+          "type": "string",
+          "description": "SKU (unique)"
+        },
+        "barcode": {
+          "type": "string",
+          "description": "Barcode (unique)"
+        },
+        "track_stock": {
+          "type": "boolean",
+          "description": "Track stock"
+        },
+        "stock": {
+          "type": "number",
+          "description": "Opening stock (new variants only; later use stock.change)"
+        },
+        "low_at": {
+          "type": "number",
+          "description": "Low stock level"
+        },
+        "option_names": {
+          "type": "string",
+          "description": "JSON list of up to 3 option names, like [\"Size\",\"Color\"]"
+        },
+        "variants": {
+          "type": "string",
+          "description": "JSON list: [{\"id\"?, \"options\":[\"Large\"], \"price\":\"5.00\", \"sku\":\"X-L\", \"barcode\", \"cost\", \"track_stock\", \"low_at\", \"stock\"}]"
+        },
+        "tax": {
+          "type": "string",
+          "description": "Tax id or name ('default' for the store default)"
+        },
+        "tax_exempt": {
+          "type": "boolean",
+          "description": "Never taxed"
+        },
+        "modifier_groups": {
+          "type": "string",
+          "description": "JSON list of option group ids or names"
+        },
+        "color": {
+          "type": "string",
+          "description": "Tile color",
+          "enum": [
+            "neutral",
+            "accent",
+            "blue",
+            "green",
+            "amber",
+            "red",
+            "violet",
+            "graphite"
+          ]
+        },
+        "favorite": {
+          "type": "boolean",
+          "description": "On the register's favorites"
+        },
+        "sold_by": {
+          "type": "string",
+          "description": "each or weight",
+          "enum": [
+            "each",
+            "weight"
+          ]
+        },
+        "unit": {
+          "type": "string",
+          "description": "Unit for weight items, like kg"
+        },
+        "description": {
+          "type": "string",
+          "description": "Description"
+        },
+        "sort": {
+          "type": "number",
+          "description": "Order on the register"
+        },
+        "archived": {
+          "type": "boolean",
+          "description": "Archived (hidden from the register)"
+        },
+        "remove_image": {
+          "type": "boolean",
+          "description": "Remove the image"
+        },
+        "till": {
+          "type": "string",
+          "description": "The app's signed-in session (the app sends it; the agent never needs it)"
+        },
+        "approve_pin": {
+          "type": "string",
+          "description": "A manager's PIN approving one action the actor may not do (people only)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/products/save"
+      }
+    },
+    {
+      "name": "products.import",
+      "description": "Import products from CSV (manage_catalog): csv (text) or a file; one row per variant; dry_run=true reports what would happen. Columns: name, category, price, cost, sku, barcode, stock, low_at, tax, description, favorite, sold_by, unit, option1_name/value..option3_name/value.",
+      "params": {
+        "csv": {
+          "type": "string",
+          "description": "The CSV text"
+        },
+        "dry_run": {
+          "type": "boolean",
+          "description": "Only report"
+        },
+        "till": {
+          "type": "string",
+          "description": "The app's signed-in session (the app sends it; the agent never needs it)"
+        },
+        "approve_pin": {
+          "type": "string",
+          "description": "A manager's PIN approving one action the actor may not do (people only)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/products/import"
+      }
+    },
+    {
+      "name": "products.export",
+      "description": "All products as CSV (the same columns the import reads).",
+      "params": {
+        "archived": {
+          "type": "boolean",
+          "description": "Include archived"
+        },
+        "till": {
+          "type": "string",
+          "description": "The app's signed-in session (the app sends it; the agent never needs it)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/products/export"
+      }
+    },
+    {
+      "name": "stock.levels",
+      "description": "Stock of tracked variants with status, cost and value; totals of value and units.",
+      "params": {
+        "status": {
+          "type": "string",
+          "description": "Filter",
+          "enum": [
+            "low",
+            "out",
+            "all"
+          ]
+        },
+        "q": {
+          "type": "string",
+          "description": "Search"
+        },
+        "till": {
+          "type": "string",
+          "description": "The app's signed-in session (the app sends it; the agent never needs it)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/stock/levels"
+      }
+    },
+    {
+      "name": "stock.change",
+      "description": "Receive, adjust, count or write off stock (manage_stock): reason, lines '[{\"variant\":\"<id, SKU or barcode>\",\"qty\":12,\"cost\":\"1.10\"}]' (qty is the counted amount for count), note.",
+      "params": {
+        "reason": {
+          "type": "string",
+          "description": "Why",
+          "required": true,
+          "enum": [
+            "receive",
+            "adjust",
+            "count",
+            "damage",
+            "loss"
+          ]
+        },
+        "lines": {
+          "type": "string",
+          "description": "JSON list of {variant, qty, cost?, note?}",
+          "required": true
+        },
+        "note": {
+          "type": "string",
+          "description": "Note for every line"
+        },
+        "till": {
+          "type": "string",
+          "description": "The app's signed-in session (the app sends it; the agent never needs it)"
+        },
+        "approve_pin": {
+          "type": "string",
+          "description": "A manager's PIN approving one action the actor may not do (people only)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/stock/change"
+      }
+    },
+    {
+      "name": "stock.moves",
+      "description": "Stock history: one variant, one product, a reason, or a date range.",
+      "params": {
+        "variant": {
+          "type": "string",
+          "description": "Variant id, SKU or barcode"
+        },
+        "product": {
+          "type": "string",
+          "description": "Product id"
+        },
+        "reason": {
+          "type": "string",
+          "description": "Reason",
+          "enum": [
+            "sale",
+            "return",
+            "receive",
+            "adjust",
+            "count",
+            "damage",
+            "loss",
+            "opening"
+          ]
+        },
+        "from": {
+          "type": "string",
+          "description": "First local day, YYYY-MM-DD"
+        },
+        "to": {
+          "type": "string",
+          "description": "Last local day, YYYY-MM-DD (default today)"
+        },
+        "limit": {
+          "type": "number",
+          "description": "How many"
+        },
+        "page": {
+          "type": "number",
+          "description": "Page from 1"
+        },
+        "till": {
+          "type": "string",
+          "description": "The app's signed-in session (the app sends it; the agent never needs it)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/stock/moves"
+      }
+    },
+    {
+      "name": "customers.list",
+      "description": "Customers; search by name, phone or email.",
+      "params": {
+        "q": {
+          "type": "string",
+          "description": "Search"
+        },
+        "sort": {
+          "type": "string",
+          "description": "Order",
+          "enum": [
+            "name",
+            "recent",
+            "spent",
+            "points"
+          ]
+        },
+        "limit": {
+          "type": "number",
+          "description": "How many"
+        },
+        "page": {
+          "type": "number",
+          "description": "Page from 1"
+        },
+        "till": {
+          "type": "string",
+          "description": "The app's signed-in session (the app sends it; the agent never needs it)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/customers/list"
+      }
+    },
+    {
+      "name": "customers.get",
+      "description": "One customer with recent purchases, points and credit history and gift cards.",
+      "params": {
+        "customer": {
+          "type": "string",
+          "description": "Customer id, phone, email or exact name",
+          "required": true
+        },
+        "till": {
+          "type": "string",
+          "description": "The app's signed-in session (the app sends it; the agent never needs it)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/customers/get"
+      }
+    },
+    {
+      "name": "customers.save",
+      "description": "Add or change a customer (manage_customers): name, phone, email, notes, tags, tax_exempt (permission tax_exempt), marketing, birthday.",
+      "params": {
+        "id": {
+          "type": "string",
+          "description": "Customer id (empty to add)"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name"
+        },
+        "phone": {
+          "type": "string",
+          "description": "Phone (unique)"
+        },
+        "email": {
+          "type": "string",
+          "description": "Email (unique)"
+        },
+        "notes": {
+          "type": "string",
+          "description": "Notes"
+        },
+        "tags": {
+          "type": "string",
+          "description": "JSON list, like [\"regular\"]"
+        },
+        "tax_exempt": {
+          "type": "boolean",
+          "description": "Tax exempt"
+        },
+        "marketing": {
+          "type": "boolean",
+          "description": "Agreed to marketing"
+        },
+        "birthday": {
+          "type": "string",
+          "description": "YYYY-MM-DD or MM-DD"
+        },
+        "till": {
+          "type": "string",
+          "description": "The app's signed-in session (the app sends it; the agent never needs it)"
+        },
+        "approve_pin": {
+          "type": "string",
+          "description": "A manager's PIN approving one action the actor may not do (people only)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/customers/save"
+      }
+    },
+    {
+      "name": "customers.adjust",
+      "description": "Adjust points or store credit by hand (adjust_balances): account, delta (points whole number; credit an amount), note.",
+      "params": {
+        "customer": {
+          "type": "string",
+          "description": "Customer id, phone or email",
+          "required": true
+        },
+        "account": {
+          "type": "string",
+          "description": "Which balance",
+          "required": true,
+          "enum": [
+            "points",
+            "credit"
+          ]
+        },
+        "delta": {
+          "type": "string",
+          "description": "Change, like 50 or -10.00",
+          "required": true
+        },
+        "note": {
+          "type": "string",
+          "description": "Why",
+          "required": true
+        },
+        "till": {
+          "type": "string",
+          "description": "The app's signed-in session (the app sends it; the agent never needs it)"
+        },
+        "approve_pin": {
+          "type": "string",
+          "description": "A manager's PIN approving one action the actor may not do (people only)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/customers/adjust"
+      }
+    },
+    {
+      "name": "customers.import",
+      "description": "Import customers from CSV (manage_customers; points and credit columns need adjust_balances); matched by email, then phone. Columns: name, phone, email, notes, tags (a;b), tax_exempt, marketing, birthday, points, credit.",
+      "params": {
+        "csv": {
+          "type": "string",
+          "description": "The CSV text"
+        },
+        "dry_run": {
+          "type": "boolean",
+          "description": "Only report"
+        },
+        "till": {
+          "type": "string",
+          "description": "The app's signed-in session (the app sends it; the agent never needs it)"
+        },
+        "approve_pin": {
+          "type": "string",
+          "description": "A manager's PIN approving one action the actor may not do (people only)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/customers/import"
+      }
+    },
+    {
+      "name": "customers.export",
+      "description": "All customers as CSV.",
+      "params": {
+        "till": {
+          "type": "string",
+          "description": "The app's signed-in session (the app sends it; the agent never needs it)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/customers/export"
+      }
+    },
+    {
+      "name": "giftcards.list",
+      "description": "Gift cards and the total balance outstanding.",
+      "params": {
+        "q": {
+          "type": "string",
+          "description": "Card number (or part)"
+        },
+        "status": {
+          "type": "string",
+          "description": "Filter",
+          "enum": [
+            "active",
+            "disabled",
+            "with_balance"
+          ]
+        },
+        "limit": {
+          "type": "number",
+          "description": "How many"
+        },
+        "till": {
+          "type": "string",
+          "description": "The app's signed-in session (the app sends it; the agent never needs it)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/giftcards/list"
+      }
+    },
+    {
+      "name": "giftcards.get",
+      "description": "One gift card's balance and history.",
+      "params": {
+        "code": {
+          "type": "string",
+          "description": "Card number (or id)",
+          "required": true
+        },
+        "till": {
+          "type": "string",
+          "description": "The app's signed-in session (the app sends it; the agent never needs it)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/giftcards/get"
+      }
+    },
+    {
+      "name": "giftcards.save",
+      "description": "Issue a card without a sale with an amount (a promotion or replacement), or change status, customer, note (adjust_balances). Cards sold on a sale are issued when it is paid.",
+      "params": {
+        "id": {
+          "type": "string",
+          "description": "Card id (empty to issue)"
+        },
+        "code": {
+          "type": "string",
+          "description": "Number for a new card (default: 16 random digits)"
+        },
+        "amount": {
+          "type": "string",
+          "description": "Opening balance"
+        },
+        "status": {
+          "type": "string",
+          "description": "Status",
+          "enum": [
+            "active",
+            "disabled"
+          ]
+        },
+        "customer": {
+          "type": "string",
+          "description": "Customer ('' for none)"
+        },
+        "note": {
+          "type": "string",
+          "description": "Note"
+        },
+        "till": {
+          "type": "string",
+          "description": "The app's signed-in session (the app sends it; the agent never needs it)"
+        },
+        "approve_pin": {
+          "type": "string",
+          "description": "A manager's PIN approving one action the actor may not do (people only)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/giftcards/save"
+      }
+    },
+    {
+      "name": "giftcards.adjust",
+      "description": "Adjust a gift card balance by hand (adjust_balances).",
+      "params": {
+        "code": {
+          "type": "string",
+          "description": "Card number",
+          "required": true
+        },
+        "delta": {
+          "type": "string",
+          "description": "Change, like -5.00",
+          "required": true
+        },
+        "note": {
+          "type": "string",
+          "description": "Why",
+          "required": true
+        },
+        "till": {
+          "type": "string",
+          "description": "The app's signed-in session (the app sends it; the agent never needs it)"
+        },
+        "approve_pin": {
+          "type": "string",
+          "description": "A manager's PIN approving one action the actor may not do (people only)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/giftcards/adjust"
+      }
+    },
+    {
+      "name": "discounts.list",
+      "description": "Promotions: manual ones to give, automatic ones and coupon codes, with a summary and whether each is live now.",
+      "params": {
+        "mode": {
+          "type": "string",
+          "description": "Only this kind",
+          "enum": [
+            "manual",
+            "auto",
+            "code"
+          ]
+        },
+        "till": {
+          "type": "string",
+          "description": "The app's signed-in session (the app sends it; the agent never needs it)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/discounts/list"
+      }
+    },
+    {
+      "name": "discounts.save",
+      "description": "Add or change a promotion (manage_discounts): name, kind (percent, amount, bogo), value, scope (item or order), applies (all, categories, products) with categories/products, mode (manual, auto, code) and code, min_subtotal, min_qty, buy_qty/get_qty, days, start_time/end_time, starts_on/ends_on, manager_only, active.",
+      "params": {
+        "id": {
+          "type": "string",
+          "description": "Promotion id (empty to add)"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name"
+        },
+        "kind": {
+          "type": "string",
+          "description": "percent off, amount off, or buy X get Y",
+          "enum": [
+            "percent",
+            "amount",
+            "bogo"
+          ]
+        },
+        "value": {
+          "type": "string",
+          "description": "Percent (like 10), amount (like 2.00), or for bogo the percent off the free items (100 = free)"
+        },
+        "scope": {
+          "type": "string",
+          "description": "Items or the whole order",
+          "enum": [
+            "item",
+            "order"
+          ]
+        },
+        "applies": {
+          "type": "string",
+          "description": "Which items",
+          "enum": [
+            "all",
+            "categories",
+            "products"
+          ]
+        },
+        "categories": {
+          "type": "string",
+          "description": "JSON list of category ids or names"
+        },
+        "products": {
+          "type": "string",
+          "description": "JSON list of product ids"
+        },
+        "mode": {
+          "type": "string",
+          "description": "Given by hand, automatic, or with a code",
+          "enum": [
+            "manual",
+            "auto",
+            "code"
+          ]
+        },
+        "code": {
+          "type": "string",
+          "description": "Coupon code (mode code)"
+        },
+        "min_subtotal": {
+          "type": "string",
+          "description": "Only from this order subtotal"
+        },
+        "min_qty": {
+          "type": "number",
+          "description": "Only from this many matching items"
+        },
+        "buy_qty": {
+          "type": "number",
+          "description": "Buy this many (bogo)"
+        },
+        "get_qty": {
+          "type": "number",
+          "description": "Get this many discounted (bogo)"
+        },
+        "days": {
+          "type": "string",
+          "description": "JSON list of weekdays 0 (Sunday) to 6"
+        },
+        "start_time": {
+          "type": "string",
+          "description": "From HH:MM"
+        },
+        "end_time": {
+          "type": "string",
+          "description": "Until HH:MM"
+        },
+        "starts_on": {
+          "type": "string",
+          "description": "From day YYYY-MM-DD"
+        },
+        "ends_on": {
+          "type": "string",
+          "description": "Until day YYYY-MM-DD"
+        },
+        "manager_only": {
+          "type": "boolean",
+          "description": "Only someone allowed any discount may give it"
+        },
+        "active": {
+          "type": "boolean",
+          "description": "Turned on"
+        },
+        "till": {
+          "type": "string",
+          "description": "The app's signed-in session (the app sends it; the agent never needs it)"
+        },
+        "approve_pin": {
+          "type": "string",
+          "description": "A manager's PIN approving one action the actor may not do (people only)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/discounts/save"
+      }
+    },
+    {
+      "name": "orders.list",
+      "description": "Sales: open tickets, or paid / void sales in a date range (default 30 days); search by receipt number, ticket name or customer.",
+      "params": {
+        "status": {
+          "type": "string",
+          "description": "Which",
+          "enum": [
+            "open",
+            "paid",
+            "void",
+            "all"
+          ]
+        },
+        "q": {
+          "type": "string",
+          "description": "Search"
+        },
+        "register": {
+          "type": "string",
+          "description": "Register id"
+        },
+        "customer": {
+          "type": "string",
+          "description": "Customer id"
+        },
+        "staff": {
+          "type": "string",
+          "description": "Staff id"
+        },
+        "returns": {
+          "type": "boolean",
+          "description": "Only sales with returns"
+        },
+        "from": {
+          "type": "string",
+          "description": "First local day, YYYY-MM-DD"
+        },
+        "to": {
+          "type": "string",
+          "description": "Last local day, YYYY-MM-DD (default today)"
+        },
+        "limit": {
+          "type": "number",
+          "description": "How many"
+        },
+        "page": {
+          "type": "number",
+          "description": "Page from 1"
+        },
+        "till": {
+          "type": "string",
+          "description": "The app's signed-in session (the app sends it; the agent never needs it)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/orders/list"
+      }
+    },
+    {
+      "name": "orders.get",
+      "description": "One sale with lines, payments, taxes and, when paid, what can still be returned and the returns made.",
+      "params": {
+        "order": {
+          "type": "string",
+          "description": "Sale id or receipt number",
+          "required": true
+        },
+        "till": {
+          "type": "string",
+          "description": "The app's signed-in session (the app sends it; the agent never needs it)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/orders/get"
+      }
+    },
+    {
+      "name": "orders.add",
+      "description": "Add to a sale (opens one when order is not given): an item by variant, code (SKU or barcode) or product (one variant), with qty, modifiers and price (override); or kind custom with amount and name; or kind gift_card with amount and gift_code. Negative qty is a return without a receipt (permission return).",
+      "params": {
+        "order": {
+          "type": "string",
+          "description": "Sale id (empty to open a new sale)"
+        },
+        "kind": {
+          "type": "string",
+          "description": "What to add",
+          "enum": [
+            "item",
+            "custom",
+            "gift_card"
+          ]
+        },
+        "variant": {
+          "type": "string",
+          "description": "Variant id"
+        },
+        "code": {
+          "type": "string",
+          "description": "SKU or barcode"
+        },
+        "product": {
+          "type": "string",
+          "description": "Product id or name (one variant)"
+        },
+        "qty": {
+          "type": "number",
+          "description": "Quantity (default 1)"
+        },
+        "modifiers": {
+          "type": "string",
+          "description": "JSON list of option ids, or [{\"group\":\"Milk\",\"option\":\"Oat\"}]"
+        },
+        "price": {
+          "type": "string",
+          "description": "Unit price override (permission price_override)"
+        },
+        "reason": {
+          "type": "string",
+          "description": "Why the price changed"
+        },
+        "amount": {
+          "type": "string",
+          "description": "Amount (custom amount or gift card)"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of a custom amount"
+        },
+        "tax": {
+          "type": "string",
+          "description": "Tax of a custom amount: default, none, or a tax id/name"
+        },
+        "gift_code": {
+          "type": "string",
+          "description": "Gift card number to top up or issue (empty: a new number when paid)"
+        },
+        "note": {
+          "type": "string",
+          "description": "Line note"
+        },
+        "expected_version": {
+          "type": "number",
+          "description": "The sale's version you read; refused with code stale if it changed"
+        },
+        "till": {
+          "type": "string",
+          "description": "The app's signed-in session (the app sends it; the agent never needs it)"
+        },
+        "approve_pin": {
+          "type": "string",
+          "description": "A manager's PIN approving one action the actor may not do (people only)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/orders/add"
+      }
+    },
+    {
+      "name": "orders.line",
+      "description": "Change a line of an open sale: qty, price (override), discount '{\"kind\":\"percent\",\"value\":10,\"reason\":\"...\"}' or null, modifiers, note, restock (returned lines).",
+      "params": {
+        "line": {
+          "type": "string",
+          "description": "Line id",
+          "required": true
+        },
+        "qty": {
+          "type": "number",
+          "description": "Quantity"
+        },
+        "price": {
+          "type": "string",
+          "description": "Unit price"
+        },
+        "reason": {
+          "type": "string",
+          "description": "Why the price changed"
+        },
+        "discount": {
+          "type": "string",
+          "description": "JSON discount or null"
+        },
+        "modifiers": {
+          "type": "string",
+          "description": "JSON list of option ids"
+        },
+        "note": {
+          "type": "string",
+          "description": "Note"
+        },
+        "restock": {
+          "type": "boolean",
+          "description": "Returned item goes back to stock"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name (custom amounts)"
+        },
+        "expected_version": {
+          "type": "number",
+          "description": "The sale's version you read; refused with code stale if it changed"
+        },
+        "till": {
+          "type": "string",
+          "description": "The app's signed-in session (the app sends it; the agent never needs it)"
+        },
+        "approve_pin": {
+          "type": "string",
+          "description": "A manager's PIN approving one action the actor may not do (people only)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/orders/line"
+      }
+    },
+    {
+      "name": "orders.remove",
+      "description": "Remove a line from an open sale (recorded in the audit log).",
+      "params": {
+        "line": {
+          "type": "string",
+          "description": "Line id",
+          "required": true
+        },
+        "expected_version": {
+          "type": "number",
+          "description": "The sale's version you read; refused with code stale if it changed"
+        },
+        "till": {
+          "type": "string",
+          "description": "The app's signed-in session (the app sends it; the agent never needs it)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/orders/remove"
+      }
+    },
+    {
+      "name": "orders.update",
+      "description": "Change a sale (opens one when order is not given): customer, label (ticket name), note, discount ('{\"kind\":\"percent\",\"value\":10,\"reason\":\"Regular\"}', '{\"promotion\":\"<id>\"}' or null), code (coupon), tax_exempt, tip or tip_percent.",
+      "params": {
+        "order": {
+          "type": "string",
+          "description": "Sale id"
+        },
+        "customer": {
+          "type": "string",
+          "description": "Customer id, phone or email ('' to remove)"
+        },
+        "label": {
+          "type": "string",
+          "description": "Ticket name (parks it under that name)"
+        },
+        "note": {
+          "type": "string",
+          "description": "Note"
+        },
+        "discount": {
+          "type": "string",
+          "description": "JSON order discount or null"
+        },
+        "code": {
+          "type": "string",
+          "description": "Coupon code"
+        },
+        "tax_exempt": {
+          "type": "boolean",
+          "description": "No tax on this sale (permission tax_exempt)"
+        },
+        "reason": {
+          "type": "string",
+          "description": "Why (tax exemption)"
+        },
+        "tip": {
+          "type": "string",
+          "description": "Tip amount"
+        },
+        "tip_percent": {
+          "type": "number",
+          "description": "Tip as a percent"
+        },
+        "expected_version": {
+          "type": "number",
+          "description": "The sale's version you read; refused with code stale if it changed"
+        },
+        "till": {
+          "type": "string",
+          "description": "The app's signed-in session (the app sends it; the agent never needs it)"
+        },
+        "approve_pin": {
+          "type": "string",
+          "description": "A manager's PIN approving one action the actor may not do (people only)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/orders/update"
+      }
+    },
+    {
+      "name": "orders.return",
+      "description": "Return items from a paid sale (permission return) onto an open sale (new, or order for an exchange): from (receipt number), lines '[{\"line\":\"<id>\",\"qty\":1,\"restock\":true}]' or all=true. Refunds at the price paid.",
+      "params": {
+        "from": {
+          "type": "string",
+          "description": "Receipt number or sale id of the paid sale",
+          "required": true
+        },
+        "order": {
+          "type": "string",
+          "description": "Open sale to add to (an exchange)"
+        },
+        "lines": {
+          "type": "string",
+          "description": "JSON list of {line, qty, restock}"
+        },
+        "all": {
+          "type": "boolean",
+          "description": "Everything still returnable"
+        },
+        "till": {
+          "type": "string",
+          "description": "The app's signed-in session (the app sends it; the agent never needs it)"
+        },
+        "approve_pin": {
+          "type": "string",
+          "description": "A manager's PIN approving one action the actor may not do (people only)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/orders/return"
+      }
+    },
+    {
+      "name": "orders.void",
+      "description": "Abandon an open sale (recorded); a sale with payments taken needs them voided first.",
+      "params": {
+        "order": {
+          "type": "string",
+          "description": "Sale id",
+          "required": true
+        },
+        "reason": {
+          "type": "string",
+          "description": "Why"
+        },
+        "till": {
+          "type": "string",
+          "description": "The app's signed-in session (the app sends it; the agent never needs it)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/orders/void"
+      }
+    },
+    {
+      "name": "orders.complete",
+      "description": "Finish an open sale with nothing left to pay or refund (an even exchange).",
+      "params": {
+        "order": {
+          "type": "string",
+          "description": "Sale id",
+          "required": true
+        },
+        "till": {
+          "type": "string",
+          "description": "The app's signed-in session (the app sends it; the agent never needs it)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/orders/complete"
+      }
+    },
+    {
+      "name": "orders.receipt",
+      "description": "A sale's receipt as data and as 40-column text.",
+      "params": {
+        "order": {
+          "type": "string",
+          "description": "Sale id or receipt number",
+          "required": true
+        },
+        "till": {
+          "type": "string",
+          "description": "The app's signed-in session (the app sends it; the agent never needs it)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/orders/receipt"
+      }
+    },
+    {
+      "name": "payments.add",
+      "description": "Take a payment (or a refund when the balance is negative) on an open sale: tender, amount (default the balance), tendered (cash given), reference, gift_code, label (custom tender), client_ref (no double charge). The sale finishes when the balance reaches 0.",
+      "params": {
+        "order": {
+          "type": "string",
+          "description": "Sale id",
+          "required": true
+        },
+        "tender": {
+          "type": "string",
+          "description": "How",
+          "required": true,
+          "enum": [
+            "cash",
+            "card",
+            "gift_card",
+            "store_credit",
+            "points",
+            "other"
+          ]
+        },
+        "amount": {
+          "type": "string",
+          "description": "Amount (default: the balance)"
+        },
+        "tendered": {
+          "type": "string",
+          "description": "Cash handed over (change is given)"
+        },
+        "reference": {
+          "type": "string",
+          "description": "Card approval code or last 4 / transfer reference"
+        },
+        "gift_code": {
+          "type": "string",
+          "description": "Gift card number"
+        },
+        "label": {
+          "type": "string",
+          "description": "Custom tender label or id (tender other)"
+        },
+        "client_ref": {
+          "type": "string",
+          "description": "A unique id per attempt: a repeat with the same one never charges twice"
+        },
+        "register": {
+          "type": "string",
+          "description": "Register id or name (the app's session names it)"
+        },
+        "till": {
+          "type": "string",
+          "description": "The app's signed-in session (the app sends it; the agent never needs it)"
+        },
+        "approve_pin": {
+          "type": "string",
+          "description": "A manager's PIN approving one action the actor may not do (people only)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/payments/add"
+      }
+    },
+    {
+      "name": "payments.void",
+      "description": "Void a payment on an open sale (permission void); gift card, credit and points go back.",
+      "params": {
+        "payment": {
+          "type": "string",
+          "description": "Payment id",
+          "required": true
+        },
+        "reason": {
+          "type": "string",
+          "description": "Why"
+        },
+        "till": {
+          "type": "string",
+          "description": "The app's signed-in session (the app sends it; the agent never needs it)"
+        },
+        "approve_pin": {
+          "type": "string",
+          "description": "A manager's PIN approving one action the actor may not do (people only)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/payments/void"
+      }
+    },
+    {
+      "name": "shifts.current",
+      "description": "A register's open drawer with its live X report and cash movements, and the last closed one.",
+      "params": {
+        "register": {
+          "type": "string",
+          "description": "Register id or name (the app's session names it)"
+        },
+        "till": {
+          "type": "string",
+          "description": "The app's signed-in session (the app sends it; the agent never needs it)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/shifts/current"
+      }
+    },
+    {
+      "name": "shifts.open",
+      "description": "Open the drawer with a counted float (float, or counts by note and coin). People only.",
+      "params": {
+        "float": {
+          "type": "string",
+          "description": "Starting cash"
+        },
+        "counts": {
+          "type": "string",
+          "description": "JSON counts by note/coin, like {\"2000\": 5, \"500\": 4} (minor units) or {\"20.00\": 5}"
+        },
+        "register": {
+          "type": "string",
+          "description": "Register id or name (the app's session names it)"
+        },
+        "till": {
+          "type": "string",
+          "description": "The app's signed-in session (the app sends it; the agent never needs it)"
+        },
+        "approve_pin": {
+          "type": "string",
+          "description": "A manager's PIN approving one action the actor may not do (people only)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/shifts/open"
+      }
+    },
+    {
+      "name": "shifts.cash",
+      "description": "Pay cash in or out of the open drawer with a reason, or open it without a sale. People only.",
+      "params": {
+        "kind": {
+          "type": "string",
+          "description": "What",
+          "required": true,
+          "enum": [
+            "pay_in",
+            "pay_out",
+            "no_sale"
+          ]
+        },
+        "amount": {
+          "type": "string",
+          "description": "Amount (pay in/out)"
+        },
+        "reason": {
+          "type": "string",
+          "description": "Why"
+        },
+        "register": {
+          "type": "string",
+          "description": "Register id or name (the app's session names it)"
+        },
+        "till": {
+          "type": "string",
+          "description": "The app's signed-in session (the app sends it; the agent never needs it)"
+        },
+        "approve_pin": {
+          "type": "string",
+          "description": "A manager's PIN approving one action the actor may not do (people only)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/shifts/cash"
+      }
+    },
+    {
+      "name": "shifts.close",
+      "description": "Close the drawer: counted cash (or counts), note; records the difference and the Z report, and asks your AI agent to review it when that is on. People only.",
+      "params": {
+        "counted": {
+          "type": "string",
+          "description": "Cash counted"
+        },
+        "counts": {
+          "type": "string",
+          "description": "JSON counts by note/coin"
+        },
+        "note": {
+          "type": "string",
+          "description": "Note"
+        },
+        "register": {
+          "type": "string",
+          "description": "Register id or name (the app's session names it)"
+        },
+        "till": {
+          "type": "string",
+          "description": "The app's signed-in session (the app sends it; the agent never needs it)"
+        },
+        "approve_pin": {
+          "type": "string",
+          "description": "A manager's PIN approving one action the actor may not do (people only)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/shifts/close"
+      }
+    },
+    {
+      "name": "shifts.list",
+      "description": "Drawer sessions (view_reports).",
+      "params": {
+        "register": {
+          "type": "string",
+          "description": "Register id or name"
+        },
+        "from": {
+          "type": "string",
+          "description": "First local day, YYYY-MM-DD"
+        },
+        "to": {
+          "type": "string",
+          "description": "Last local day, YYYY-MM-DD (default today)"
+        },
+        "limit": {
+          "type": "number",
+          "description": "How many"
+        },
+        "till": {
+          "type": "string",
+          "description": "The app's signed-in session (the app sends it; the agent never needs it)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/shifts/list"
+      }
+    },
+    {
+      "name": "shifts.get",
+      "description": "One drawer session with its report and cash movements.",
+      "params": {
+        "shift": {
+          "type": "string",
+          "description": "Shift id",
+          "required": true
+        },
+        "till": {
+          "type": "string",
+          "description": "The app's signed-in session (the app sends it; the agent never needs it)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/shifts/get"
+      }
+    },
+    {
+      "name": "reports.summary",
+      "description": "Sales for a date range (view_reports): gross, returns, discounts, net, tax, tips, rounding, gift cards sold, cost, profit, margin, average sale, items, collected by tender; with the previous period.",
+      "params": {
+        "from": {
+          "type": "string",
+          "description": "First local day, YYYY-MM-DD"
+        },
+        "to": {
+          "type": "string",
+          "description": "Last local day, YYYY-MM-DD (default today)"
+        },
+        "register": {
+          "type": "string",
+          "description": "Only this register id"
+        },
+        "staff": {
+          "type": "string",
+          "description": "Only this staff id"
+        },
+        "till": {
+          "type": "string",
+          "description": "The app's signed-in session (the app sends it; the agent never needs it)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/reports/summary"
+      }
+    },
+    {
+      "name": "reports.breakdown",
+      "description": "Sales broken down by hour, day, weekday, category, product, staff, register, tender, tax, discount or customer.",
+      "params": {
+        "by": {
+          "type": "string",
+          "description": "How",
+          "required": true,
+          "enum": [
+            "hour",
+            "day",
+            "weekday",
+            "category",
+            "product",
+            "staff",
+            "register",
+            "tender",
+            "tax",
+            "discount",
+            "customer"
+          ]
+        },
+        "from": {
+          "type": "string",
+          "description": "First local day, YYYY-MM-DD"
+        },
+        "to": {
+          "type": "string",
+          "description": "Last local day, YYYY-MM-DD (default today)"
+        },
+        "register": {
+          "type": "string",
+          "description": "Only this register id"
+        },
+        "staff": {
+          "type": "string",
+          "description": "Only this staff id"
+        },
+        "limit": {
+          "type": "number",
+          "description": "How many rows"
+        },
+        "till": {
+          "type": "string",
+          "description": "The app's signed-in session (the app sends it; the agent never needs it)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/reports/breakdown"
+      }
+    },
+    {
+      "name": "reports.export",
+      "description": "A CSV (filename and text): every sold line, every sale, or one breakdown.",
+      "params": {
+        "kind": {
+          "type": "string",
+          "description": "What",
+          "enum": [
+            "lines",
+            "orders",
+            "hour",
+            "day",
+            "weekday",
+            "category",
+            "product",
+            "staff",
+            "register",
+            "tender",
+            "tax",
+            "discount",
+            "customer"
+          ]
+        },
+        "from": {
+          "type": "string",
+          "description": "First local day, YYYY-MM-DD"
+        },
+        "to": {
+          "type": "string",
+          "description": "Last local day, YYYY-MM-DD (default today)"
+        },
+        "register": {
+          "type": "string",
+          "description": "Only this register id"
+        },
+        "staff": {
+          "type": "string",
+          "description": "Only this staff id"
+        },
+        "till": {
+          "type": "string",
+          "description": "The app's signed-in session (the app sends it; the agent never needs it)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/reports/export"
+      }
+    },
+    {
+      "name": "events.list",
+      "description": "The audit log (view_reports): voids, removed lines, price changes, discounts, returns, drawer, sign-ins and wrong PINs, approvals, staff, permissions and settings changes.",
+      "params": {
+        "kind": {
+          "type": "string",
+          "description": "Only this kind"
+        },
+        "staff": {
+          "type": "string",
+          "description": "Only this staff id"
+        },
+        "order": {
+          "type": "string",
+          "description": "Only this sale id"
+        },
+        "from": {
+          "type": "string",
+          "description": "First local day, YYYY-MM-DD"
+        },
+        "to": {
+          "type": "string",
+          "description": "Last local day, YYYY-MM-DD (default today)"
+        },
+        "limit": {
+          "type": "number",
+          "description": "How many"
+        },
+        "page": {
+          "type": "number",
+          "description": "Page from 1"
+        },
+        "till": {
+          "type": "string",
+          "description": "The app's signed-in session (the app sends it; the agent never needs it)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/events/list"
+      }
+    },
+    {
+      "name": "requests.create",
+      "description": "The app asks your AI agent: kind receipt (order, contact), shift_review (shift), restock, question (body).",
+      "params": {
+        "kind": {
+          "type": "string",
+          "description": "What",
+          "required": true,
+          "enum": [
+            "receipt",
+            "shift_review",
+            "restock",
+            "question"
+          ]
+        },
+        "order": {
+          "type": "string",
+          "description": "Receipt number or sale id (receipt)"
+        },
+        "contact": {
+          "type": "string",
+          "description": "Email or phone (receipt; default the customer's)"
+        },
+        "shift": {
+          "type": "string",
+          "description": "Shift id (shift_review)"
+        },
+        "body": {
+          "type": "string",
+          "description": "The question or a note"
+        },
+        "till": {
+          "type": "string",
+          "description": "The app's signed-in session (the app sends it; the agent never needs it)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/requests/create"
+      }
+    },
+    {
+      "name": "requests.list",
+      "description": "Requests to your AI agent, newest first.",
+      "params": {
+        "status": {
+          "type": "string",
+          "description": "Only this status",
+          "enum": [
+            "sent",
+            "working",
+            "done",
+            "failed"
+          ]
+        },
+        "kind": {
+          "type": "string",
+          "description": "Only this kind",
+          "enum": [
+            "receipt",
+            "shift_review",
+            "restock",
+            "question"
+          ]
+        },
+        "limit": {
+          "type": "number",
+          "description": "How many"
+        },
+        "till": {
+          "type": "string",
+          "description": "The app's signed-in session (the app sends it; the agent never needs it)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/requests/list"
+      }
+    },
+    {
+      "name": "requests.get",
+      "description": "One request with what it needs: the receipt text, the drawer report and its events, the restock picture, or today's status.",
+      "params": {
+        "request": {
+          "type": "string",
+          "description": "Request id",
+          "required": true
+        },
+        "till": {
+          "type": "string",
+          "description": "The app's signed-in session (the app sends it; the agent never needs it)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/requests/get"
+      }
+    },
+    {
+      "name": "requests.update",
+      "description": "Report on a request: status working, done or failed, and the result the person reads.",
+      "params": {
+        "request": {
+          "type": "string",
+          "description": "Request id",
+          "required": true
+        },
+        "status": {
+          "type": "string",
+          "description": "New status",
+          "enum": [
+            "working",
+            "done",
+            "failed"
+          ]
+        },
+        "result": {
+          "type": "string",
+          "description": "What was done, the answer, or why it failed"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/requests/update"
+      }
+    },
+    {
+      "name": "records.delete",
+      "description": "Delete a record (products, variants, categories, modifier_groups, taxes, registers, discounts, customers, gift_cards, staff, timeclock, requests, open orders); preview=true shows what it affects or why it is refused. Sales, payments, drawers, ledgers and the audit log are permanent.",
+      "params": {
+        "collection": {
+          "type": "string",
+          "description": "Collection",
+          "required": true,
+          "enum": [
+            "products",
+            "variants",
+            "categories",
+            "modifier_groups",
+            "taxes",
+            "registers",
+            "discounts",
+            "customers",
+            "gift_cards",
+            "staff",
+            "timeclock",
+            "requests",
+            "orders"
+          ]
+        },
+        "id": {
+          "type": "string",
+          "description": "Record id",
+          "required": true
+        },
+        "preview": {
+          "type": "boolean",
+          "description": "Only show what it would do"
+        },
+        "till": {
+          "type": "string",
+          "description": "The app's signed-in session (the app sends it; the agent never needs it)"
+        },
+        "approve_pin": {
+          "type": "string",
+          "description": "A manager's PIN approving one action the actor may not do (people only)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/records/delete"
+      },
+      "destructive": true
+    }
+  ]
+}

@@ -1,0 +1,6388 @@
+{
+  "opsVersion": 1,
+  "operations": [
+    {
+      "name": "health",
+      "description": "Liveness check (PocketBase built-in).",
+      "system": true,
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/health"
+      }
+    },
+    {
+      "name": "ops.list",
+      "description": "Return this operations manifest.",
+      "system": true,
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/_ops"
+      }
+    },
+    {
+      "name": "demo.preview",
+      "description": "Read-only preview of a complete research-data reset: counts, a fingerprint and the four synthetic demo projects. Preserves users, settings, integrations and schema. Confidential projects block agent access.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/demo/preview"
+      }
+    },
+    {
+      "name": "demo.reset",
+      "description": "Only on an explicit user request: permanently replace research data and attachments with four labeled synthetic demo projects. Preview first. Requires exact phrase, acknowledgement, unchanged preview fingerprint and agent confirmation. No optional backup; never invoke from a trigger.",
+      "params": {
+        "phrase": {
+          "type": "string",
+          "description": "Type RESET AND LOAD DEMO exactly",
+          "required": true
+        },
+        "acknowledge": {
+          "type": "boolean",
+          "description": "Acknowledge irreversible deletion without an optional backup",
+          "required": true
+        },
+        "fingerprint": {
+          "type": "string",
+          "description": "Fingerprint from a fresh demo.preview",
+          "required": true
+        },
+        "confirm": {
+          "type": "boolean",
+          "description": "Your AI agent: true once the person asked for this deletion. Without it nothing is deleted and the answer says what would be."
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/demo/reset"
+      },
+      "destructive": true
+    },
+    {
+      "name": "app.guide",
+      "description": "START HERE: conventions, the claims grammar, highlight colors, what your AI agent may do, the error codes and ready-to-run recipes (identify PDFs, read scans, map claims, answer, search, plan and analyze experiments, draft, screen, work the to-do list, use the research repository).",
+      "params": {
+        "topic": {
+          "type": "string",
+          "description": "One recipe in full (identify, ocr, claims, answer, access, search, feeds, experiment, draft, support, responses, screening, references, tasks, repository)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/app/guide"
+      }
+    },
+    {
+      "name": "app.status",
+      "description": "Counts the frame shows: what needs a person, files being read, papers resolving, projects.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/app/status"
+      }
+    },
+    {
+      "name": "home.summary",
+      "description": "Everything Home shows: library numbers, continue reading, recently added, projects, needs-you counts, recent activity, new candidates.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/home/summary"
+      }
+    },
+    {
+      "name": "find.all",
+      "description": "Search everything at once (papers, projects, notes, claims) for the palette.",
+      "params": {
+        "q": {
+          "type": "string",
+          "description": "What to find",
+          "required": true
+        },
+        "limit": {
+          "type": "number",
+          "description": "At most this many per kind (default 6)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/find/all"
+      }
+    },
+    {
+      "name": "settings.get",
+      "description": "Highlight colors and their meanings, the citation style, the contact email for registries, your AI agent limits.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/settings/get"
+      }
+    },
+    {
+      "name": "settings.update",
+      "description": "Change settings: highlight meanings, citation style, contact email, daily limits for your AI agent, automatic identification, OCR and open-access downloads. [People only.]",
+      "params": {
+        "highlight_slots": {
+          "type": "string",
+          "description": "JSON list [{\"slot\":1,\"meaning\":\"Key point\",\"hue\":\"yellow\"}]"
+        },
+        "citation_style": {
+          "type": "string",
+          "description": "Default style",
+          "enum": [
+            "apa",
+            "chicago",
+            "harvard",
+            "ieee",
+            "vancouver",
+            "mla",
+            "nature"
+          ]
+        },
+        "contact_email": {
+          "type": "string",
+          "description": "Email sent to Crossref and OpenAlex for their polite pool (\"\" to send none)"
+        },
+        "node_cap": {
+          "type": "number",
+          "description": "Daily limit on claims, evidence and links your AI agent proposes"
+        },
+        "auto_identify": {
+          "type": "boolean",
+          "description": "Ask your AI agent to identify new PDFs"
+        },
+        "auto_ocr": {
+          "type": "boolean",
+          "description": "Ask your AI agent to read scanned pages"
+        },
+        "auto_oa": {
+          "type": "boolean",
+          "description": "Download open-access PDFs when a paper is added"
+        },
+        "welcome_done": {
+          "type": "boolean",
+          "description": "Hide the first-run card"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/settings/update"
+      }
+    },
+    {
+      "name": "activity.list",
+      "description": "What changed, newest first: who (person, agent, system), what, on which record.",
+      "params": {
+        "actor": {
+          "type": "string",
+          "description": "Who",
+          "enum": [
+            "person",
+            "agent",
+            "system"
+          ]
+        },
+        "target": {
+          "type": "string",
+          "description": "Kind of record (works, nodes, files, ...)"
+        },
+        "record": {
+          "type": "string",
+          "description": "One record id"
+        },
+        "project": {
+          "type": "string",
+          "description": "Project id"
+        },
+        "since": {
+          "type": "string",
+          "description": "Only after this timestamp"
+        },
+        "limit": {
+          "type": "number",
+          "description": "Rows (default 50)"
+        },
+        "offset": {
+          "type": "number",
+          "description": "Skip rows"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/activity/list"
+      }
+    },
+    {
+      "name": "activity.undo",
+      "description": "Undo one change (--entry) or a whole batch (--batch) when it can be undone. Your AI agent undoes only its own.",
+      "params": {
+        "entry": {
+          "type": "string",
+          "description": "Activity entry id"
+        },
+        "batch": {
+          "type": "string",
+          "description": "Batch id from an earlier answer"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/activity/undo"
+      }
+    },
+    {
+      "name": "files.engine-test",
+      "description": "Check the text engine on this machine (Node and pdf.js) and how many PDFs wait to be read.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/files/engine-test"
+      }
+    },
+    {
+      "name": "works.add",
+      "description": "Add papers by identifier: DOIs, arXiv IDs, PubMed IDs, PMC IDs, ISBNs or OpenAlex IDs, one or many (lines, spaces or commas). Each fills in from its registry; the first five right away.",
+      "params": {
+        "ids": {
+          "type": "string",
+          "description": "The identifiers",
+          "required": true
+        },
+        "source": {
+          "type": "string",
+          "description": "Where they came from",
+          "enum": [
+            "identifier",
+            "search",
+            "feed",
+            "citation_map",
+            "references"
+          ]
+        },
+        "collection": {
+          "type": "string",
+          "description": "Also put it in this collection (id)"
+        },
+        "project": {
+          "type": "string",
+          "description": "Also add it to this project's reading list (id or name)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/works/add"
+      }
+    },
+    {
+      "name": "works.manual",
+      "description": "Enter a paper by hand (no identifier), citable as entered. [People only.]",
+      "params": {
+        "type": {
+          "type": "string",
+          "description": "Kind of work",
+          "enum": [
+            "article",
+            "preprint",
+            "conference",
+            "book",
+            "chapter",
+            "thesis",
+            "report",
+            "dataset",
+            "software",
+            "webpage",
+            "other"
+          ]
+        },
+        "title": {
+          "type": "string",
+          "description": "Title"
+        },
+        "subtitle": {
+          "type": "string",
+          "description": "Subtitle"
+        },
+        "authors": {
+          "type": "string",
+          "description": "JSON list [{\"family\":\"Curie\",\"given\":\"Marie\"}] or [{\"literal\":\"World Health Organization\"}]"
+        },
+        "editors": {
+          "type": "string",
+          "description": "JSON list like authors"
+        },
+        "year": {
+          "type": "number",
+          "description": "Year"
+        },
+        "issued": {
+          "type": "string",
+          "description": "Date YYYY, YYYY-MM or YYYY-MM-DD"
+        },
+        "container": {
+          "type": "string",
+          "description": "Journal, proceedings or book title"
+        },
+        "container_short": {
+          "type": "string",
+          "description": "Abbreviated journal"
+        },
+        "volume": {
+          "type": "string",
+          "description": "Volume"
+        },
+        "issue": {
+          "type": "string",
+          "description": "Issue"
+        },
+        "pages": {
+          "type": "string",
+          "description": "Pages, e.g. 436-444"
+        },
+        "article_number": {
+          "type": "string",
+          "description": "Article number"
+        },
+        "publisher": {
+          "type": "string",
+          "description": "Publisher (or school, institution)"
+        },
+        "place": {
+          "type": "string",
+          "description": "Place of publication"
+        },
+        "edition": {
+          "type": "string",
+          "description": "Edition"
+        },
+        "isbn": {
+          "type": "string",
+          "description": "ISBN"
+        },
+        "issn": {
+          "type": "string",
+          "description": "ISSN"
+        },
+        "abstract": {
+          "type": "string",
+          "description": "Abstract"
+        },
+        "url": {
+          "type": "string",
+          "description": "URL"
+        },
+        "language": {
+          "type": "string",
+          "description": "Language code"
+        },
+        "keywords": {
+          "type": "string",
+          "description": "JSON list of keywords"
+        },
+        "citekey": {
+          "type": "string",
+          "description": "Citation key (letters, digits, _ : . -); \"\" makes one"
+        },
+        "collection": {
+          "type": "string",
+          "description": "Also put it in this collection (id)"
+        },
+        "project": {
+          "type": "string",
+          "description": "Also add it to this project's reading list (id or name)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/works/manual"
+      }
+    },
+    {
+      "name": "works.identify",
+      "description": "Give a waiting PDF its identifier (read from its first pages). The registry fills the metadata; if another paper already has that identifier, the PDF moves to it. Your AI agent's identification waits for a person to confirm.",
+      "params": {
+        "work": {
+          "type": "string",
+          "description": "The waiting paper",
+          "required": true
+        },
+        "identifier": {
+          "type": "string",
+          "description": "DOI, arXiv ID, PubMed ID, ISBN or OpenAlex ID",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/works/identify"
+      }
+    },
+    {
+      "name": "works.identify-start",
+      "description": "Say you are reading a waiting paper to identify it.",
+      "params": {
+        "work": {
+          "type": "string",
+          "description": "The paper",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/works/identify-start"
+      }
+    },
+    {
+      "name": "works.identify-fail",
+      "description": "Say a waiting paper could not be identified, and why (in words the person can act on).",
+      "params": {
+        "work": {
+          "type": "string",
+          "description": "The paper",
+          "required": true
+        },
+        "reason": {
+          "type": "string",
+          "description": "Why",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/works/identify-fail"
+      }
+    },
+    {
+      "name": "works.confirm-identity",
+      "description": "Confirm your AI agent's identification of papers. [People only.]",
+      "params": {
+        "works": {
+          "type": "string",
+          "description": "Paper ids (JSON list or one id)",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/works/confirm-identity"
+      }
+    },
+    {
+      "name": "works.update",
+      "description": "Edit a paper's metadata. Fields a person edited are kept when the registry is asked again; your AI agent cannot change them and its changes are marked for checking.",
+      "params": {
+        "work": {
+          "type": "string",
+          "description": "The paper",
+          "required": true
+        },
+        "why": {
+          "type": "string",
+          "description": "Your AI agent: where the correction comes from"
+        },
+        "type": {
+          "type": "string",
+          "description": "Kind of work",
+          "enum": [
+            "article",
+            "preprint",
+            "conference",
+            "book",
+            "chapter",
+            "thesis",
+            "report",
+            "dataset",
+            "software",
+            "webpage",
+            "other"
+          ]
+        },
+        "title": {
+          "type": "string",
+          "description": "Title"
+        },
+        "subtitle": {
+          "type": "string",
+          "description": "Subtitle"
+        },
+        "authors": {
+          "type": "string",
+          "description": "JSON list [{\"family\":\"Curie\",\"given\":\"Marie\"}] or [{\"literal\":\"World Health Organization\"}]"
+        },
+        "editors": {
+          "type": "string",
+          "description": "JSON list like authors"
+        },
+        "year": {
+          "type": "number",
+          "description": "Year"
+        },
+        "issued": {
+          "type": "string",
+          "description": "Date YYYY, YYYY-MM or YYYY-MM-DD"
+        },
+        "container": {
+          "type": "string",
+          "description": "Journal, proceedings or book title"
+        },
+        "container_short": {
+          "type": "string",
+          "description": "Abbreviated journal"
+        },
+        "volume": {
+          "type": "string",
+          "description": "Volume"
+        },
+        "issue": {
+          "type": "string",
+          "description": "Issue"
+        },
+        "pages": {
+          "type": "string",
+          "description": "Pages, e.g. 436-444"
+        },
+        "article_number": {
+          "type": "string",
+          "description": "Article number"
+        },
+        "publisher": {
+          "type": "string",
+          "description": "Publisher (or school, institution)"
+        },
+        "place": {
+          "type": "string",
+          "description": "Place of publication"
+        },
+        "edition": {
+          "type": "string",
+          "description": "Edition"
+        },
+        "isbn": {
+          "type": "string",
+          "description": "ISBN"
+        },
+        "issn": {
+          "type": "string",
+          "description": "ISSN"
+        },
+        "abstract": {
+          "type": "string",
+          "description": "Abstract"
+        },
+        "url": {
+          "type": "string",
+          "description": "URL"
+        },
+        "language": {
+          "type": "string",
+          "description": "Language code"
+        },
+        "keywords": {
+          "type": "string",
+          "description": "JSON list of keywords"
+        },
+        "citekey": {
+          "type": "string",
+          "description": "Citation key (letters, digits, _ : . -); \"\" makes one"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/works/update"
+      }
+    },
+    {
+      "name": "works.refresh",
+      "description": "Ask the registry for a paper again (person edits stay; retraction status refreshes).",
+      "params": {
+        "work": {
+          "type": "string",
+          "description": "The paper",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/works/refresh"
+      }
+    },
+    {
+      "name": "works.set-state",
+      "description": "Mark papers unread, reading or read; star them; rate them.",
+      "params": {
+        "works": {
+          "type": "string",
+          "description": "Paper ids (JSON list or one id)",
+          "required": true
+        },
+        "read_state": {
+          "type": "string",
+          "description": "Read state",
+          "enum": [
+            "unread",
+            "reading",
+            "read"
+          ]
+        },
+        "starred": {
+          "type": "boolean",
+          "description": "Starred"
+        },
+        "rating": {
+          "type": "number",
+          "description": "Rating 0 to 5"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/works/set-state"
+      }
+    },
+    {
+      "name": "works.trash",
+      "description": "Move papers to the trash (they can be restored). [Proposal: a person approves.]",
+      "params": {
+        "works": {
+          "type": "string",
+          "description": "Paper ids (JSON list or one id)",
+          "required": true
+        },
+        "why": {
+          "type": "string",
+          "description": "Your AI agent: why, in a sentence or two, for the person approving"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/works/trash"
+      }
+    },
+    {
+      "name": "works.restore",
+      "description": "Bring papers back from the trash.",
+      "params": {
+        "works": {
+          "type": "string",
+          "description": "Paper ids (JSON list or one id)",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/works/restore"
+      }
+    },
+    {
+      "name": "works.purge",
+      "description": "Delete papers for good (with their files, highlights, notes and evidence). --all_trash true empties the trash; --preview true says what would go. [People only.]",
+      "params": {
+        "works": {
+          "type": "string",
+          "description": "Paper ids"
+        },
+        "all_trash": {
+          "type": "boolean",
+          "description": "Everything in the trash"
+        },
+        "preview": {
+          "type": "boolean",
+          "description": "Only say what would be deleted"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/works/purge"
+      },
+      "destructive": true
+    },
+    {
+      "name": "works.merge",
+      "description": "Merge duplicate papers into one (the master keeps its metadata unless --fields picks another paper per field); files, highlights, notes, evidence, collections, projects and tags move to it. [Proposal: a person approves.]",
+      "params": {
+        "master": {
+          "type": "string",
+          "description": "The paper to keep",
+          "required": true
+        },
+        "works": {
+          "type": "string",
+          "description": "The duplicates (JSON list or one id)",
+          "required": true
+        },
+        "fields": {
+          "type": "string",
+          "description": "JSON {\"abstract\":\"<paper id>\"} to take a field from another paper"
+        },
+        "why": {
+          "type": "string",
+          "description": "Your AI agent: why, in a sentence or two, for the person approving"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/works/merge"
+      }
+    },
+    {
+      "name": "works.duplicates",
+      "description": "Papers that share an identifier (OpenAlex, ISBN, DOI), preprints with their published version, and merge proposals waiting.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/works/duplicates"
+      }
+    },
+    {
+      "name": "works.list",
+      "description": "The library: a view (all, unread, reading, read, recent, opened, to_identify, integrity, trash, starred, no_pdf, agent_added), filters, search (q; full_text true also searches PDF text), sort and paging.",
+      "params": {
+        "view": {
+          "type": "string",
+          "description": "Which papers",
+          "enum": [
+            "all",
+            "unread",
+            "reading",
+            "read",
+            "recent",
+            "opened",
+            "to_identify",
+            "integrity",
+            "trash",
+            "starred",
+            "no_pdf",
+            "agent_added"
+          ]
+        },
+        "q": {
+          "type": "string",
+          "description": "Words to find (title, authors, abstract, venue, keywords)"
+        },
+        "full_text": {
+          "type": "boolean",
+          "description": "Also search the text of the PDFs"
+        },
+        "collection": {
+          "type": "string",
+          "description": "Collection id"
+        },
+        "deep": {
+          "type": "boolean",
+          "description": "Include sub-collections"
+        },
+        "tag": {
+          "type": "string",
+          "description": "Tag id"
+        },
+        "project": {
+          "type": "string",
+          "description": "Project id or name"
+        },
+        "type": {
+          "type": "string",
+          "description": "Kind of work",
+          "enum": [
+            "article",
+            "preprint",
+            "conference",
+            "book",
+            "chapter",
+            "thesis",
+            "report",
+            "dataset",
+            "software",
+            "webpage",
+            "other"
+          ]
+        },
+        "year_from": {
+          "type": "number",
+          "description": "From this year"
+        },
+        "year_to": {
+          "type": "number",
+          "description": "Up to this year"
+        },
+        "has_pdf": {
+          "type": "boolean",
+          "description": "With or without a PDF"
+        },
+        "filter": {
+          "type": "string",
+          "description": "JSON list of conditions [{\"field\":\"year\",\"op\":\"gte\",\"value\":2020}]; fields: title, abstract, venue, author, publisher, year, cited_by, type, read_state, integrity, resolution, added_by, tag, collection, project, highlight_color, has_pdf, has_notes, has_highlights, has_proposed, starred, added_after, added_before"
+        },
+        "match": {
+          "type": "string",
+          "description": "Conditions combine with",
+          "enum": [
+            "all",
+            "any"
+          ]
+        },
+        "sort": {
+          "type": "string",
+          "description": "Order",
+          "enum": [
+            "added",
+            "title",
+            "year",
+            "author",
+            "opened",
+            "cited_by",
+            "updated"
+          ]
+        },
+        "dir": {
+          "type": "string",
+          "description": "Direction",
+          "enum": [
+            "asc",
+            "desc"
+          ]
+        },
+        "limit": {
+          "type": "number",
+          "description": "Rows (default 100)"
+        },
+        "offset": {
+          "type": "number",
+          "description": "Skip rows"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/works/list"
+      }
+    },
+    {
+      "name": "works.get",
+      "description": "One paper in full: metadata, identifiers, integrity, files (with file_path for reading), tags, collections, projects, counts, marks.",
+      "params": {
+        "work": {
+          "type": "string",
+          "description": "Id, DOI, arxiv:<id>, pmid:<id> or citekey",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/works/get"
+      }
+    },
+    {
+      "name": "works.counts",
+      "description": "The library's numbers: total, unread, reading, read, to identify, integrity alerts, by year and type.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/works/counts"
+      }
+    },
+    {
+      "name": "collections.list",
+      "description": "Collections as a tree (parent ids) with paper counts.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/collections/list"
+      }
+    },
+    {
+      "name": "collections.create",
+      "description": "Make a collection (inside another with --parent).",
+      "params": {
+        "name": {
+          "type": "string",
+          "description": "Name",
+          "required": true
+        },
+        "parent": {
+          "type": "string",
+          "description": "Parent collection id"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/collections/create"
+      }
+    },
+    {
+      "name": "collections.update",
+      "description": "Rename a collection, move it under another, or reorder it.",
+      "params": {
+        "collection": {
+          "type": "string",
+          "description": "Collection id",
+          "required": true
+        },
+        "name": {
+          "type": "string",
+          "description": "New name"
+        },
+        "parent": {
+          "type": "string",
+          "description": "New parent (\"\" for top level)"
+        },
+        "sort": {
+          "type": "number",
+          "description": "Order"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/collections/update"
+      }
+    },
+    {
+      "name": "collections.delete",
+      "description": "Remove a collection and the collections inside it (the papers stay in the library). [People only.]",
+      "params": {
+        "collection": {
+          "type": "string",
+          "description": "Collection id",
+          "required": true
+        },
+        "preview": {
+          "type": "boolean",
+          "description": "Only say what would go"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/collections/delete"
+      },
+      "destructive": true
+    },
+    {
+      "name": "collections.add",
+      "description": "Put papers in a collection (--from moves them out of another).",
+      "params": {
+        "collection": {
+          "type": "string",
+          "description": "Collection id",
+          "required": true
+        },
+        "works": {
+          "type": "string",
+          "description": "Paper ids",
+          "required": true
+        },
+        "from": {
+          "type": "string",
+          "description": "Collection to move them out of"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/collections/add"
+      }
+    },
+    {
+      "name": "collections.remove",
+      "description": "Take papers out of a collection.",
+      "params": {
+        "collection": {
+          "type": "string",
+          "description": "Collection id",
+          "required": true
+        },
+        "works": {
+          "type": "string",
+          "description": "Paper ids",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/collections/remove"
+      }
+    },
+    {
+      "name": "tags.list",
+      "description": "Tags with colors and counts.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/tags/list"
+      }
+    },
+    {
+      "name": "tags.create",
+      "description": "Make a tag (an existing name returns that tag).",
+      "params": {
+        "name": {
+          "type": "string",
+          "description": "Name",
+          "required": true
+        },
+        "color_slot": {
+          "type": "number",
+          "description": "Color 0 (none) to 8"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/tags/create"
+      }
+    },
+    {
+      "name": "tags.update",
+      "description": "Rename or recolor a tag.",
+      "params": {
+        "tag": {
+          "type": "string",
+          "description": "Tag id",
+          "required": true
+        },
+        "name": {
+          "type": "string",
+          "description": "New name"
+        },
+        "color_slot": {
+          "type": "number",
+          "description": "Color 0 to 8"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/tags/update"
+      }
+    },
+    {
+      "name": "tags.delete",
+      "description": "Remove a tag from every paper. [People only.]",
+      "params": {
+        "tag": {
+          "type": "string",
+          "description": "Tag id",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/tags/delete"
+      },
+      "destructive": true
+    },
+    {
+      "name": "tags.apply",
+      "description": "Tag papers (by --tag id or --name, made when new); --remove true takes the tag off.",
+      "params": {
+        "works": {
+          "type": "string",
+          "description": "Paper ids",
+          "required": true
+        },
+        "tag": {
+          "type": "string",
+          "description": "Tag id"
+        },
+        "name": {
+          "type": "string",
+          "description": "Tag name"
+        },
+        "remove": {
+          "type": "boolean",
+          "description": "Take it off"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/tags/apply"
+      }
+    },
+    {
+      "name": "import.preview",
+      "description": "Read a BibTeX, RIS or CSL-JSON file (upload, --path, or --text) and show what would be imported: new with an identifier, new without, already in the library.",
+      "params": {
+        "path": {
+          "type": "string",
+          "description": "Absolute path of the file (your AI agent)"
+        },
+        "text": {
+          "type": "string",
+          "description": "The file content pasted"
+        },
+        "filename": {
+          "type": "string",
+          "description": "Name for pasted text"
+        },
+        "kind": {
+          "type": "string",
+          "description": "Format when it cannot be told",
+          "enum": [
+            "bibtex",
+            "ris",
+            "csljson"
+          ]
+        },
+        "collection": {
+          "type": "string",
+          "description": "Put the papers in this collection"
+        },
+        "project": {
+          "type": "string",
+          "description": "Add them to this project"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/import/preview"
+      }
+    },
+    {
+      "name": "import.run",
+      "description": "Import a previewed file. Fields from the file are kept as curated; entries with identifiers fill the rest from their registries.",
+      "params": {
+        "import": {
+          "type": "string",
+          "description": "Id from import.preview",
+          "required": true
+        },
+        "skip_existing": {
+          "type": "boolean",
+          "description": "Skip entries already in the library (default true)"
+        },
+        "collection": {
+          "type": "string",
+          "description": "Collection id"
+        },
+        "project": {
+          "type": "string",
+          "description": "Project"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/import/run"
+      }
+    },
+    {
+      "name": "import.undo",
+      "description": "Remove exactly the papers an import made.",
+      "params": {
+        "import": {
+          "type": "string",
+          "description": "Import id",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/import/undo"
+      }
+    },
+    {
+      "name": "import.list",
+      "description": "Recent imports with their counts.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/import/list"
+      }
+    },
+    {
+      "name": "export.works",
+      "description": "Papers as BibTeX, RIS or CSL-JSON: chosen ones, a collection, a project, or the whole library.",
+      "params": {
+        "format": {
+          "type": "string",
+          "description": "Format",
+          "enum": [
+            "bibtex",
+            "ris",
+            "csljson"
+          ]
+        },
+        "works": {
+          "type": "string",
+          "description": "Paper ids"
+        },
+        "collection": {
+          "type": "string",
+          "description": "Collection id"
+        },
+        "project": {
+          "type": "string",
+          "description": "Project"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/export/works"
+      }
+    },
+    {
+      "name": "export.notes",
+      "description": "Notes as Markdown files (with front matter) and boards as JSON Canvas files, for a project or everything.",
+      "params": {
+        "project": {
+          "type": "string",
+          "description": "Project"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/export/notes"
+      }
+    },
+    {
+      "name": "cite.format",
+      "description": "An in-text citation and bibliography entries for papers in a style (apa, chicago, harvard, ieee, vancouver, mla, nature). Only citable papers.",
+      "params": {
+        "works": {
+          "type": "string",
+          "description": "Paper ids",
+          "required": true
+        },
+        "style": {
+          "type": "string",
+          "description": "Style",
+          "enum": [
+            "apa",
+            "chicago",
+            "harvard",
+            "ieee",
+            "vancouver",
+            "mla",
+            "nature"
+          ]
+        },
+        "locator": {
+          "type": "string",
+          "description": "Page or section, e.g. 12"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/cite/format"
+      }
+    },
+    {
+      "name": "files.upload",
+      "description": "Add PDFs. With --work it becomes that paper's PDF; otherwise each PDF becomes a paper waiting to be identified. Your AI agent gives --path (a PDF it downloaded); people upload.",
+      "params": {
+        "path": {
+          "type": "string",
+          "description": "Absolute path of a PDF on this computer (your AI agent)"
+        },
+        "work": {
+          "type": "string",
+          "description": "The paper this PDF belongs to"
+        },
+        "collection": {
+          "type": "string",
+          "description": "Put new papers in this collection"
+        },
+        "project": {
+          "type": "string",
+          "description": "Add new papers to this project's reading list"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/files/upload"
+      }
+    },
+    {
+      "name": "files.fetch-oa",
+      "description": "Download a paper's open-access PDF (arXiv or the open copy its registry lists) and attach it.",
+      "params": {
+        "work": {
+          "type": "string",
+          "description": "The paper",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/files/fetch-oa"
+      }
+    },
+    {
+      "name": "files.content",
+      "description": "The PDF itself (screens load it; your AI agent gets the file and its file_path to read).",
+      "params": {
+        "file": {
+          "type": "string",
+          "description": "File id",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/files/content"
+      }
+    },
+    {
+      "name": "files.thumb",
+      "description": "The first page's picture (your AI agent gets thumb_path, where it is on this machine).",
+      "params": {
+        "file": {
+          "type": "string",
+          "description": "File id",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/files/thumb"
+      }
+    },
+    {
+      "name": "files.set-thumb",
+      "description": "Store the first-page picture the reader drew. [People only.]",
+      "params": {
+        "file": {
+          "type": "string",
+          "description": "File id",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/files/set-thumb"
+      }
+    },
+    {
+      "name": "files.position",
+      "description": "Where the person is reading (the read state follows). [People only.]",
+      "params": {
+        "file": {
+          "type": "string",
+          "description": "File id",
+          "required": true
+        },
+        "page": {
+          "type": "number",
+          "description": "Page",
+          "required": true
+        },
+        "frac": {
+          "type": "number",
+          "description": "How far down the page, 0 to 1"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/files/position"
+      }
+    },
+    {
+      "name": "files.get",
+      "description": "One file: pages, text state, outline, PDF metadata, file_path.",
+      "params": {
+        "file": {
+          "type": "string",
+          "description": "File id",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/files/get"
+      }
+    },
+    {
+      "name": "files.delete",
+      "description": "Remove a PDF and the highlights and passages on it. [Proposal: a person approves.]",
+      "params": {
+        "file": {
+          "type": "string",
+          "description": "File id",
+          "required": true
+        },
+        "preview": {
+          "type": "boolean",
+          "description": "Only say what would go"
+        },
+        "why": {
+          "type": "string",
+          "description": "Your AI agent: why, in a sentence or two, for the person approving"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/files/delete"
+      },
+      "destructive": true
+    },
+    {
+      "name": "files.retry-text",
+      "description": "Read a file's text again after a failure.",
+      "params": {
+        "file": {
+          "type": "string",
+          "description": "File id",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/files/retry-text"
+      }
+    },
+    {
+      "name": "pages.text",
+      "description": "Read a PDF: pages as numbered lines [line, start, end, text] (10 pages per call; next_from gives the next). Anchor passages by these line numbers.",
+      "params": {
+        "file": {
+          "type": "string",
+          "description": "File id"
+        },
+        "work": {
+          "type": "string",
+          "description": "Paper (its current PDF)"
+        },
+        "from": {
+          "type": "number",
+          "description": "First page (default 1)"
+        },
+        "to": {
+          "type": "number",
+          "description": "Last page (at most 50 per call)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/pages/text"
+      }
+    },
+    {
+      "name": "pages.get",
+      "description": "Pages with their positioned text items (the reader's text layer).",
+      "params": {
+        "file": {
+          "type": "string",
+          "description": "File id"
+        },
+        "work": {
+          "type": "string",
+          "description": "Paper"
+        },
+        "from": {
+          "type": "number",
+          "description": "First page"
+        },
+        "to": {
+          "type": "number",
+          "description": "Last page (20 at most)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/pages/get"
+      }
+    },
+    {
+      "name": "pages.find",
+      "description": "Find words in one paper: matching pages with a snippet.",
+      "params": {
+        "file": {
+          "type": "string",
+          "description": "File id"
+        },
+        "work": {
+          "type": "string",
+          "description": "Paper"
+        },
+        "q": {
+          "type": "string",
+          "description": "Words",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/pages/find"
+      }
+    },
+    {
+      "name": "pages.set-ocr",
+      "description": "Store your reading of a scanned page as words with boxes (read_pdf layout mode: x0, top, x1, bottom in points). The page becomes selectable and can be anchored.",
+      "params": {
+        "file": {
+          "type": "string",
+          "description": "File id"
+        },
+        "work": {
+          "type": "string",
+          "description": "Paper"
+        },
+        "page": {
+          "type": "number",
+          "description": "Page",
+          "required": true
+        },
+        "words": {
+          "type": "string",
+          "description": "JSON list [{\"text\":\"Results\",\"x0\":72.1,\"top\":96.4,\"x1\":120.3,\"bottom\":108.0}]",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/pages/set-ocr"
+      }
+    },
+    {
+      "name": "pages.ocr-list",
+      "description": "Files with scanned pages waiting to be read (page numbers and file_path).",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/pages/ocr-list"
+      }
+    },
+    {
+      "name": "anchors.create",
+      "description": "Make a passage on a page (by lines, offsets or an area). Its quote is the page text there.",
+      "params": {
+        "file": {
+          "type": "string",
+          "description": "The file (or give --work for its current PDF)"
+        },
+        "work": {
+          "type": "string",
+          "description": "The paper (its current PDF)"
+        },
+        "page": {
+          "type": "number",
+          "description": "Page number (1-based)",
+          "required": true
+        },
+        "lines": {
+          "type": "string",
+          "description": "Lines \"a-b\" from pages.text (whole lines)"
+        },
+        "from_char": {
+          "type": "number",
+          "description": "With lines: start this many characters into the first line"
+        },
+        "to_char": {
+          "type": "number",
+          "description": "With lines: end this many characters into the last line"
+        },
+        "start": {
+          "type": "number",
+          "description": "Start offset in the page text (instead of lines)"
+        },
+        "end": {
+          "type": "number",
+          "description": "End offset in the page text"
+        },
+        "area": {
+          "type": "string",
+          "description": "An area box [x, y, width, height] in page units (figures, tables)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/anchors/create"
+      }
+    },
+    {
+      "name": "anchors.get",
+      "description": "One passage: quote, page, paper, rectangles.",
+      "params": {
+        "anchor": {
+          "type": "string",
+          "description": "Passage id",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/anchors/get"
+      }
+    },
+    {
+      "name": "annotations.create",
+      "description": "Highlight, underline, comment on or box a passage (the person's reading marks). [People only.]",
+      "params": {
+        "kind": {
+          "type": "string",
+          "description": "Kind of mark",
+          "enum": [
+            "highlight",
+            "underline",
+            "note",
+            "area"
+          ]
+        },
+        "color_slot": {
+          "type": "number",
+          "description": "Color 1 to 8 (its meaning is in Settings)"
+        },
+        "comment": {
+          "type": "string",
+          "description": "A comment"
+        },
+        "file": {
+          "type": "string",
+          "description": "The file (or give --work for its current PDF)"
+        },
+        "work": {
+          "type": "string",
+          "description": "The paper (its current PDF)"
+        },
+        "page": {
+          "type": "number",
+          "description": "Page number (1-based)",
+          "required": true
+        },
+        "lines": {
+          "type": "string",
+          "description": "Lines \"a-b\" from pages.text (whole lines)"
+        },
+        "from_char": {
+          "type": "number",
+          "description": "With lines: start this many characters into the first line"
+        },
+        "to_char": {
+          "type": "number",
+          "description": "With lines: end this many characters into the last line"
+        },
+        "start": {
+          "type": "number",
+          "description": "Start offset in the page text (instead of lines)"
+        },
+        "end": {
+          "type": "number",
+          "description": "End offset in the page text"
+        },
+        "area": {
+          "type": "string",
+          "description": "An area box [x, y, width, height] in page units (figures, tables)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/annotations/create"
+      }
+    },
+    {
+      "name": "annotations.update",
+      "description": "Change a mark's color, kind or comment. [People only.]",
+      "params": {
+        "annotation": {
+          "type": "string",
+          "description": "Mark id",
+          "required": true
+        },
+        "kind": {
+          "type": "string",
+          "description": "Kind",
+          "enum": [
+            "highlight",
+            "underline",
+            "note"
+          ]
+        },
+        "color_slot": {
+          "type": "number",
+          "description": "Color 1 to 8"
+        },
+        "comment": {
+          "type": "string",
+          "description": "Comment"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/annotations/update"
+      }
+    },
+    {
+      "name": "annotations.delete",
+      "description": "Remove a mark (Undo brings it back). [People only.]",
+      "params": {
+        "annotation": {
+          "type": "string",
+          "description": "Mark id",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/annotations/delete"
+      },
+      "destructive": true
+    },
+    {
+      "name": "annotations.list",
+      "description": "A paper's marks with their passages, by page (or every mark in a project's papers, newest first); filter by color or kind.",
+      "params": {
+        "work": {
+          "type": "string",
+          "description": "Paper"
+        },
+        "file": {
+          "type": "string",
+          "description": "File"
+        },
+        "project": {
+          "type": "string",
+          "description": "Project"
+        },
+        "color_slot": {
+          "type": "number",
+          "description": "Color 1 to 8"
+        },
+        "kind": {
+          "type": "string",
+          "description": "Kind",
+          "enum": [
+            "highlight",
+            "underline",
+            "note",
+            "area"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/annotations/list"
+      }
+    },
+    {
+      "name": "projects.list",
+      "description": "Projects with their numbers (open, late and done tasks among them), the next task to do, and journey (collect, read, map, synthesize, write).",
+      "params": {
+        "state": {
+          "type": "string",
+          "description": "Which",
+          "enum": [
+            "active",
+            "archived",
+            "all"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/projects/list"
+      }
+    },
+    {
+      "name": "projects.get",
+      "description": "One project: question, numbers, the next task to do, journey with the next step, recent changes.",
+      "params": {
+        "project": {
+          "type": "string",
+          "description": "Project id or name",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/projects/get"
+      }
+    },
+    {
+      "name": "projects.create",
+      "description": "Start a project around a research question.",
+      "params": {
+        "name": {
+          "type": "string",
+          "description": "Name",
+          "required": true
+        },
+        "question": {
+          "type": "string",
+          "description": "The research question"
+        },
+        "description": {
+          "type": "string",
+          "description": "Notes on scope"
+        },
+        "color": {
+          "type": "string",
+          "description": "Color",
+          "enum": [
+            "ink",
+            "accent",
+            "blue",
+            "green",
+            "amber",
+            "red",
+            "violet",
+            "teal"
+          ]
+        },
+        "confidentiality": {
+          "type": "string",
+          "description": "People only: confidential keeps your AI agent out",
+          "enum": [
+            "normal",
+            "confidential"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/projects/create"
+      }
+    },
+    {
+      "name": "projects.update",
+      "description": "Rename a project, change its question, color, pin, archive it, or (people only) make it confidential.",
+      "params": {
+        "project": {
+          "type": "string",
+          "description": "Project",
+          "required": true
+        },
+        "name": {
+          "type": "string",
+          "description": "Name"
+        },
+        "question": {
+          "type": "string",
+          "description": "Question"
+        },
+        "description": {
+          "type": "string",
+          "description": "Description"
+        },
+        "color": {
+          "type": "string",
+          "description": "Color",
+          "enum": [
+            "ink",
+            "accent",
+            "blue",
+            "green",
+            "amber",
+            "red",
+            "violet",
+            "teal"
+          ]
+        },
+        "pinned": {
+          "type": "boolean",
+          "description": "Pinned"
+        },
+        "state": {
+          "type": "string",
+          "description": "State",
+          "enum": [
+            "active",
+            "archived"
+          ]
+        },
+        "confidentiality": {
+          "type": "string",
+          "description": "Confidentiality",
+          "enum": [
+            "normal",
+            "confidential"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/projects/update"
+      }
+    },
+    {
+      "name": "projects.opened",
+      "description": "Remember that a project was opened. [People only.]",
+      "params": {
+        "project": {
+          "type": "string",
+          "description": "Project",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/projects/opened"
+      }
+    },
+    {
+      "name": "projects.delete",
+      "description": "Delete a project and what was made in it (claims, boards, experiments, manuscripts, reviews, notes, tasks); its papers stay in the library. [People only.]",
+      "params": {
+        "project": {
+          "type": "string",
+          "description": "Project",
+          "required": true
+        },
+        "preview": {
+          "type": "boolean",
+          "description": "Only say what would go"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/projects/delete"
+      },
+      "destructive": true
+    },
+    {
+      "name": "projects.works",
+      "description": "A project's reading list: papers with their status (to_read, reading, read, excluded), role and claims made from them.",
+      "params": {
+        "project": {
+          "type": "string",
+          "description": "Project",
+          "required": true
+        },
+        "status": {
+          "type": "string",
+          "description": "Status",
+          "enum": [
+            "to_read",
+            "reading",
+            "read",
+            "excluded"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/projects/works"
+      }
+    },
+    {
+      "name": "projects.add-works",
+      "description": "Add library papers to a project's reading list.",
+      "params": {
+        "project": {
+          "type": "string",
+          "description": "Project",
+          "required": true
+        },
+        "works": {
+          "type": "string",
+          "description": "Paper ids",
+          "required": true
+        },
+        "role": {
+          "type": "string",
+          "description": "Role",
+          "enum": [
+            "core",
+            "background"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/projects/add-works"
+      }
+    },
+    {
+      "name": "projects.remove-works",
+      "description": "Take papers off a reading list (claims made from them stay).",
+      "params": {
+        "project": {
+          "type": "string",
+          "description": "Project",
+          "required": true
+        },
+        "works": {
+          "type": "string",
+          "description": "Paper ids",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/projects/remove-works"
+      }
+    },
+    {
+      "name": "projects.set-work",
+      "description": "A paper's status, role or note in a project.",
+      "params": {
+        "project": {
+          "type": "string",
+          "description": "Project",
+          "required": true
+        },
+        "works": {
+          "type": "string",
+          "description": "Paper ids",
+          "required": true
+        },
+        "status": {
+          "type": "string",
+          "description": "Status",
+          "enum": [
+            "to_read",
+            "reading",
+            "read",
+            "excluded"
+          ]
+        },
+        "role": {
+          "type": "string",
+          "description": "Role",
+          "enum": [
+            "core",
+            "background"
+          ]
+        },
+        "note": {
+          "type": "string",
+          "description": "Note"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/projects/set-work"
+      }
+    },
+    {
+      "name": "nodes.create",
+      "description": "Add a question, claim or evidence to a project. Evidence needs its passage (--passage). --link_to and --link_kind link it in the same step (evidence or claim supports/opposes a claim; informs a question). Yours are agent_proposed.",
+      "params": {
+        "project": {
+          "type": "string",
+          "description": "Project",
+          "required": true
+        },
+        "kind": {
+          "type": "string",
+          "description": "Kind",
+          "required": true,
+          "enum": [
+            "question",
+            "claim",
+            "evidence"
+          ]
+        },
+        "title": {
+          "type": "string",
+          "description": "The question, the claim in one sentence, or what the evidence shows",
+          "required": true
+        },
+        "body": {
+          "type": "string",
+          "description": "More detail"
+        },
+        "claim_basis": {
+          "type": "string",
+          "description": "For a claim: what it rests on",
+          "enum": [
+            "data_result",
+            "literature_finding",
+            "interpretation",
+            "hypothesis"
+          ]
+        },
+        "confidence": {
+          "type": "string",
+          "description": "For a claim",
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ]
+        },
+        "anchors": {
+          "type": "string",
+          "description": "Existing passage ids (JSON list)"
+        },
+        "passage": {
+          "type": "string",
+          "description": "One passage: JSON {\"work\":\"<paper>\",\"page\":3,\"lines\":\"12-14\"} (or \"file\", \"start\"/\"end\", \"from_char\"/\"to_char\")"
+        },
+        "passages": {
+          "type": "string",
+          "description": "Several passages: a JSON list of passage objects"
+        },
+        "link_to": {
+          "type": "string",
+          "description": "Node to link to"
+        },
+        "link_kind": {
+          "type": "string",
+          "description": "Link",
+          "enum": [
+            "supports",
+            "opposes",
+            "informs"
+          ]
+        },
+        "reason": {
+          "type": "string",
+          "description": "Why the link holds"
+        },
+        "why": {
+          "type": "string",
+          "description": "Your AI agent: why you propose it"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/nodes/create"
+      }
+    },
+    {
+      "name": "nodes.create-many",
+      "description": "Add many nodes in one call: --nodes is a JSON list of {ref, kind, title, body, claim_basis, passage | passages | anchors, link_to (a node id or the ref of one earlier in the list), link_kind, reason, why}. Each succeeds or fails on its own.",
+      "params": {
+        "project": {
+          "type": "string",
+          "description": "Project",
+          "required": true
+        },
+        "nodes": {
+          "type": "string",
+          "description": "JSON list of nodes",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/nodes/create-many"
+      }
+    },
+    {
+      "name": "nodes.update",
+      "description": "Edit a node's wording, basis, confidence or place on the map. Your AI agent edits only its own undecided proposals (it may move any).",
+      "params": {
+        "node": {
+          "type": "string",
+          "description": "Node",
+          "required": true
+        },
+        "title": {
+          "type": "string",
+          "description": "Title"
+        },
+        "body": {
+          "type": "string",
+          "description": "Detail"
+        },
+        "claim_basis": {
+          "type": "string",
+          "description": "Basis",
+          "enum": [
+            "data_result",
+            "literature_finding",
+            "interpretation",
+            "hypothesis"
+          ]
+        },
+        "confidence": {
+          "type": "string",
+          "description": "Confidence",
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ]
+        },
+        "x": {
+          "type": "number",
+          "description": "Map x"
+        },
+        "y": {
+          "type": "number",
+          "description": "Map y"
+        },
+        "placed": {
+          "type": "boolean",
+          "description": "Placed by hand"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/nodes/update"
+      }
+    },
+    {
+      "name": "nodes.move",
+      "description": "Places on the map for many nodes: JSON [{\"node\":\"..\",\"x\":0,\"y\":0}].",
+      "params": {
+        "positions": {
+          "type": "string",
+          "description": "JSON list",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/nodes/move"
+      }
+    },
+    {
+      "name": "graph.tidy",
+      "description": "Hand nodes placed by hand back to the automatic layout of the claims map (all of a project, or --nodes).",
+      "params": {
+        "project": {
+          "type": "string",
+          "description": "Project",
+          "required": true
+        },
+        "nodes": {
+          "type": "string",
+          "description": "Node ids (default all)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/graph/tidy"
+      }
+    },
+    {
+      "name": "nodes.decide",
+      "description": "Confirm, reject or supersede nodes (their proposed links follow unless --links false); agent_proposed reopens your AI agent's proposals. [People only.]",
+      "params": {
+        "nodes": {
+          "type": "string",
+          "description": "Node ids",
+          "required": true
+        },
+        "status": {
+          "type": "string",
+          "description": "Decision",
+          "required": true,
+          "enum": [
+            "agent_proposed",
+            "researcher_confirmed",
+            "researcher_rejected",
+            "superseded"
+          ]
+        },
+        "links": {
+          "type": "boolean",
+          "description": "Decide their proposed links too (default true)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/nodes/decide"
+      }
+    },
+    {
+      "name": "nodes.delete",
+      "description": "Remove a node and its links. Your AI agent removes only its own undecided proposals.",
+      "params": {
+        "node": {
+          "type": "string",
+          "description": "Node",
+          "required": true
+        },
+        "preview": {
+          "type": "boolean",
+          "description": "Only say what would go"
+        },
+        "confirm": {
+          "type": "boolean",
+          "description": "Your AI agent: true once the person asked for this deletion. Without it nothing is deleted and the answer says what would be."
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/nodes/delete"
+      },
+      "destructive": true
+    },
+    {
+      "name": "nodes.add-passage",
+      "description": "Another passage for a node.",
+      "params": {
+        "node": {
+          "type": "string",
+          "description": "Node",
+          "required": true
+        },
+        "anchors": {
+          "type": "string",
+          "description": "Passage ids"
+        },
+        "passage": {
+          "type": "string",
+          "description": "One passage: JSON {\"work\":\"<paper>\",\"page\":3,\"lines\":\"12-14\"} (or \"file\", \"start\"/\"end\", \"from_char\"/\"to_char\")"
+        },
+        "passages": {
+          "type": "string",
+          "description": "JSON list of passages"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/nodes/add-passage"
+      }
+    },
+    {
+      "name": "nodes.remove-passage",
+      "description": "Take a passage off a node (evidence keeps at least one).",
+      "params": {
+        "node": {
+          "type": "string",
+          "description": "Node",
+          "required": true
+        },
+        "anchor": {
+          "type": "string",
+          "description": "Passage id",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/nodes/remove-passage"
+      }
+    },
+    {
+      "name": "nodes.list",
+      "description": "A project's nodes (with their passages unless --passages false), filtered by kind, status, paper or who made them.",
+      "params": {
+        "project": {
+          "type": "string",
+          "description": "Project"
+        },
+        "kind": {
+          "type": "string",
+          "description": "Kind",
+          "enum": [
+            "question",
+            "claim",
+            "evidence"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "description": "Status",
+          "enum": [
+            "agent_proposed",
+            "researcher_confirmed",
+            "researcher_rejected",
+            "superseded"
+          ]
+        },
+        "work": {
+          "type": "string",
+          "description": "Paper"
+        },
+        "actor": {
+          "type": "string",
+          "description": "Who",
+          "enum": [
+            "person",
+            "agent"
+          ]
+        },
+        "passages": {
+          "type": "boolean",
+          "description": "Include passages (default true)"
+        },
+        "limit": {
+          "type": "number",
+          "description": "Rows"
+        },
+        "offset": {
+          "type": "number",
+          "description": "Skip"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/nodes/list"
+      }
+    },
+    {
+      "name": "nodes.get",
+      "description": "One node with its passages, its links grouped (supported by, opposed by, informs) and the boards it is on.",
+      "params": {
+        "node": {
+          "type": "string",
+          "description": "Node",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/nodes/get"
+      }
+    },
+    {
+      "name": "graph.map",
+      "description": "A project's claims map: every node with its first passage and its balance (supports, opposes, proposed), and every link.",
+      "params": {
+        "project": {
+          "type": "string",
+          "description": "Project",
+          "required": true
+        },
+        "rejected": {
+          "type": "boolean",
+          "description": "Include rejected"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/graph/map"
+      }
+    },
+    {
+      "name": "relations.create",
+      "description": "Link two nodes: evidence or claim supports/opposes a claim, or informs a question.",
+      "params": {
+        "from": {
+          "type": "string",
+          "description": "From node",
+          "required": true
+        },
+        "to": {
+          "type": "string",
+          "description": "To node",
+          "required": true
+        },
+        "kind": {
+          "type": "string",
+          "description": "Link",
+          "required": true,
+          "enum": [
+            "supports",
+            "opposes",
+            "informs"
+          ]
+        },
+        "reason": {
+          "type": "string",
+          "description": "Why it holds"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/relations/create"
+      }
+    },
+    {
+      "name": "relations.decide",
+      "description": "Confirm or reject links. [People only.]",
+      "params": {
+        "relations": {
+          "type": "string",
+          "description": "Link ids",
+          "required": true
+        },
+        "status": {
+          "type": "string",
+          "description": "Decision",
+          "required": true,
+          "enum": [
+            "researcher_confirmed",
+            "researcher_rejected"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/relations/decide"
+      }
+    },
+    {
+      "name": "relations.update",
+      "description": "Change a link's kind or reason.",
+      "params": {
+        "relation": {
+          "type": "string",
+          "description": "Link",
+          "required": true
+        },
+        "kind": {
+          "type": "string",
+          "description": "Link",
+          "enum": [
+            "supports",
+            "opposes",
+            "informs"
+          ]
+        },
+        "reason": {
+          "type": "string",
+          "description": "Reason"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/relations/update"
+      }
+    },
+    {
+      "name": "relations.delete",
+      "description": "Remove a link.",
+      "params": {
+        "relation": {
+          "type": "string",
+          "description": "Link",
+          "required": true
+        },
+        "confirm": {
+          "type": "boolean",
+          "description": "Your AI agent: true once the person asked for this deletion. Without it nothing is deleted and the answer says what would be."
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/relations/delete"
+      },
+      "destructive": true
+    },
+    {
+      "name": "boards.list",
+      "description": "A project's boards.",
+      "params": {
+        "project": {
+          "type": "string",
+          "description": "Project",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/boards/list"
+      }
+    },
+    {
+      "name": "boards.get",
+      "description": "A board with every card (what it shows) and the links between its nodes.",
+      "params": {
+        "board": {
+          "type": "string",
+          "description": "Board",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/boards/get"
+      }
+    },
+    {
+      "name": "boards.create",
+      "description": "Make a board in a project.",
+      "params": {
+        "project": {
+          "type": "string",
+          "description": "Project",
+          "required": true
+        },
+        "name": {
+          "type": "string",
+          "description": "Name"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/boards/create"
+      }
+    },
+    {
+      "name": "boards.update",
+      "description": "Rename a board or remember its view.",
+      "params": {
+        "board": {
+          "type": "string",
+          "description": "Board",
+          "required": true
+        },
+        "name": {
+          "type": "string",
+          "description": "Name"
+        },
+        "viewport": {
+          "type": "string",
+          "description": "JSON {\"x\":0,\"y\":0,\"zoom\":1}"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/boards/update"
+      }
+    },
+    {
+      "name": "boards.delete",
+      "description": "Delete a board (the records on it stay). [People only.]",
+      "params": {
+        "board": {
+          "type": "string",
+          "description": "Board",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/boards/delete"
+      },
+      "destructive": true
+    },
+    {
+      "name": "boards.place",
+      "description": "Put records on a board (a record already there moves): JSON [{\"ref_kind\":\"node\",\"id\":\"..\",\"x\":0,\"y\":0}]; ref_kind node, anchor, work, note, text (with \"text\") or section.",
+      "params": {
+        "board": {
+          "type": "string",
+          "description": "Board",
+          "required": true
+        },
+        "items": {
+          "type": "string",
+          "description": "JSON list of cards",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/boards/place"
+      }
+    },
+    {
+      "name": "boards.update-item",
+      "description": "A card's text, color, place or size.",
+      "params": {
+        "item": {
+          "type": "string",
+          "description": "Card",
+          "required": true
+        },
+        "text": {
+          "type": "string",
+          "description": "Text"
+        },
+        "color": {
+          "type": "string",
+          "description": "Color",
+          "enum": [
+            "plain",
+            "accent",
+            "blue",
+            "green",
+            "amber",
+            "red",
+            "violet",
+            "teal"
+          ]
+        },
+        "x": {
+          "type": "number",
+          "description": "x"
+        },
+        "y": {
+          "type": "number",
+          "description": "y"
+        },
+        "w": {
+          "type": "number",
+          "description": "Width"
+        },
+        "h": {
+          "type": "number",
+          "description": "Height"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/boards/update-item"
+      }
+    },
+    {
+      "name": "boards.move",
+      "description": "New places for many cards: JSON [{\"item\":\"..\",\"x\":0,\"y\":0}].",
+      "params": {
+        "board": {
+          "type": "string",
+          "description": "Board",
+          "required": true
+        },
+        "positions": {
+          "type": "string",
+          "description": "JSON list",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/boards/move"
+      }
+    },
+    {
+      "name": "boards.remove-items",
+      "description": "Take cards off a board (the records stay).",
+      "params": {
+        "board": {
+          "type": "string",
+          "description": "Board",
+          "required": true
+        },
+        "items": {
+          "type": "string",
+          "description": "Card ids",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/boards/remove-items"
+      }
+    },
+    {
+      "name": "notes.list",
+      "description": "Notes (literature, project, free), pinned first, newest first; search with --q.",
+      "params": {
+        "kind": {
+          "type": "string",
+          "description": "Kind",
+          "enum": [
+            "literature",
+            "project",
+            "free"
+          ]
+        },
+        "work": {
+          "type": "string",
+          "description": "Paper"
+        },
+        "project": {
+          "type": "string",
+          "description": "Project"
+        },
+        "pinned": {
+          "type": "boolean",
+          "description": "Pinned only"
+        },
+        "q": {
+          "type": "string",
+          "description": "Words"
+        },
+        "limit": {
+          "type": "number",
+          "description": "Rows"
+        },
+        "offset": {
+          "type": "number",
+          "description": "Skip"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/notes/list"
+      }
+    },
+    {
+      "name": "notes.get",
+      "description": "One note with its blocks and their embeds resolved.",
+      "params": {
+        "note": {
+          "type": "string",
+          "description": "Note",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/notes/get"
+      }
+    },
+    {
+      "name": "notes.create",
+      "description": "Write a note. Blocks: paragraph, heading (level), bullet, numbered, todo (checked), quote (anchor), node (node), cite (work, locator), divider, image (a picture of the note: add pictures after the note exists, with notes.add-image), table (rows of cell texts). Yours are kept only when a person keeps them.",
+      "params": {
+        "kind": {
+          "type": "string",
+          "description": "Kind",
+          "enum": [
+            "literature",
+            "project",
+            "free"
+          ]
+        },
+        "title": {
+          "type": "string",
+          "description": "Title"
+        },
+        "work": {
+          "type": "string",
+          "description": "Paper (literature notes)"
+        },
+        "project": {
+          "type": "string",
+          "description": "Project (project notes)"
+        },
+        "blocks": {
+          "type": "string",
+          "description": "JSON list of blocks: {\"type\":\"paragraph\",\"text\":\"..\"}, heading (level 1-3), bullet, numbered, todo (checked), quote (anchor), node (node), cite (work, locator), divider, image ({\"type\":\"image\",\"file\":\"<picture from notes.add-image>\",\"caption\":\"..\",\"width\":100,\"align\":\"center\"}), table ({\"type\":\"table\",\"rows\":[[\"Sample\",\"Yield\"],[\"A\",\"72\"]],\"header\":true,\"align\":[\"left\",\"right\"]})"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/notes/create"
+      }
+    },
+    {
+      "name": "notes.for-work",
+      "description": "A paper's literature note (made when it has none).",
+      "params": {
+        "work": {
+          "type": "string",
+          "description": "Paper",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/notes/for-work"
+      }
+    },
+    {
+      "name": "notes.update",
+      "description": "Change a note's title, blocks or pin. Your AI agent edits only its own notes not yet kept (notes.append adds to any).",
+      "params": {
+        "note": {
+          "type": "string",
+          "description": "Note",
+          "required": true
+        },
+        "title": {
+          "type": "string",
+          "description": "Title"
+        },
+        "blocks": {
+          "type": "string",
+          "description": "JSON list of blocks: {\"type\":\"paragraph\",\"text\":\"..\"}, heading (level 1-3), bullet, numbered, todo (checked), quote (anchor), node (node), cite (work, locator), divider, image ({\"type\":\"image\",\"file\":\"<picture from notes.add-image>\",\"caption\":\"..\",\"width\":100,\"align\":\"center\"}), table ({\"type\":\"table\",\"rows\":[[\"Sample\",\"Yield\"],[\"A\",\"72\"]],\"header\":true,\"align\":[\"left\",\"right\"]})"
+        },
+        "pinned": {
+          "type": "boolean",
+          "description": "Pinned"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/notes/update"
+      }
+    },
+    {
+      "name": "notes.append",
+      "description": "Add blocks to a note (at the end, or at --at).",
+      "params": {
+        "note": {
+          "type": "string",
+          "description": "Note",
+          "required": true
+        },
+        "blocks": {
+          "type": "string",
+          "description": "JSON list of blocks: {\"type\":\"paragraph\",\"text\":\"..\"}, heading (level 1-3), bullet, numbered, todo (checked), quote (anchor), node (node), cite (work, locator), divider, image ({\"type\":\"image\",\"file\":\"<picture from notes.add-image>\",\"caption\":\"..\",\"width\":100,\"align\":\"center\"}), table ({\"type\":\"table\",\"rows\":[[\"Sample\",\"Yield\"],[\"A\",\"72\"]],\"header\":true,\"align\":[\"left\",\"right\"]})",
+          "required": true
+        },
+        "at": {
+          "type": "number",
+          "description": "Insert before this block number"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/notes/append"
+      }
+    },
+    {
+      "name": "notes.add-image",
+      "description": "Add pictures to a note (PNG, JPEG, GIF, WebP, AVIF, BMP; up to 25 MB each, 20 at a time). Gives each picture an id for an image block; --append true puts the image blocks at the end (or at --at) now. People paste, drop or choose; your AI agent gives --paths.",
+      "params": {
+        "note": {
+          "type": "string",
+          "description": "Note",
+          "required": true
+        },
+        "paths": {
+          "type": "string",
+          "description": "JSON list of absolute paths of pictures on this machine (your AI agent)"
+        },
+        "append": {
+          "type": "boolean",
+          "description": "Put the image blocks in the note now"
+        },
+        "caption": {
+          "type": "string",
+          "description": "Caption for the appended pictures"
+        },
+        "at": {
+          "type": "number",
+          "description": "Insert before this block number (with --append)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/notes/add-image"
+      }
+    },
+    {
+      "name": "notes.image",
+      "description": "A note's picture (your AI agent gets disk_path, where it is on this machine).",
+      "params": {
+        "file": {
+          "type": "string",
+          "description": "Picture id",
+          "required": true
+        },
+        "download": {
+          "type": "boolean",
+          "description": "As a download"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/notes/image"
+      }
+    },
+    {
+      "name": "notes.keep",
+      "description": "Keep notes your AI agent wrote. [People only.]",
+      "params": {
+        "notes": {
+          "type": "string",
+          "description": "Note ids",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/notes/keep"
+      }
+    },
+    {
+      "name": "notes.delete",
+      "description": "Delete a note. Your AI agent deletes only its own notes not yet kept.",
+      "params": {
+        "note": {
+          "type": "string",
+          "description": "Note",
+          "required": true
+        },
+        "confirm": {
+          "type": "boolean",
+          "description": "Your AI agent: true once the person asked for this deletion. Without it nothing is deleted and the answer says what would be."
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/notes/delete"
+      },
+      "destructive": true
+    },
+    {
+      "name": "agent.request",
+      "description": "A person asks your AI agent for one piece of work from a screen (the matching trigger fires). [People only.]",
+      "params": {
+        "kind": {
+          "type": "string",
+          "description": "What to do",
+          "required": true,
+          "enum": [
+            "papers_waiting",
+            "ocr_requested",
+            "claims_requested",
+            "access_requested",
+            "search_requested",
+            "feed_review",
+            "draft_requested",
+            "support_check_requested",
+            "responses_requested",
+            "screening_requested",
+            "references_requested",
+            "experiment_requested"
+          ]
+        },
+        "project": {
+          "type": "string",
+          "description": "Project (claims)"
+        },
+        "works": {
+          "type": "string",
+          "description": "Papers (claims)"
+        },
+        "work": {
+          "type": "string",
+          "description": "Paper (full text, references)"
+        },
+        "search": {
+          "type": "string",
+          "description": "Search (deep search)"
+        },
+        "manuscript": {
+          "type": "string",
+          "description": "Manuscript (draft, support check)"
+        },
+        "brief": {
+          "type": "string",
+          "description": "What to draft"
+        },
+        "review": {
+          "type": "string",
+          "description": "Review (responses: a received review; screening: a systematic review)"
+        },
+        "stage": {
+          "type": "string",
+          "description": "Screening stage",
+          "enum": [
+            "title_abstract",
+            "full_text"
+          ]
+        },
+        "experiment": {
+          "type": "string",
+          "description": "Experiment (plan or analyze)"
+        },
+        "ask": {
+          "type": "string",
+          "description": "What to do with the experiment",
+          "enum": [
+            "plan",
+            "analyze"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/agent/request"
+      }
+    },
+    {
+      "name": "agent.needs-you",
+      "description": "Everything waiting for a person: proposed claims, evidence, links and notes; proposals; identifications to confirm; papers to identify; retractions; files that failed to read.",
+      "params": {
+        "limit": {
+          "type": "number",
+          "description": "Items per kind (default 6)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/agent/needs-you"
+      }
+    },
+    {
+      "name": "agent.scorecard",
+      "description": "How much of what your AI agent proposed was kept, edited or rejected, per kind of work.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/agent/scorecard"
+      }
+    },
+    {
+      "name": "asks.create",
+      "description": "Ask your AI agent a question about a paper, a collection, a project or the library. [People only.]",
+      "params": {
+        "question": {
+          "type": "string",
+          "description": "The question",
+          "required": true
+        },
+        "scope": {
+          "type": "string",
+          "description": "About",
+          "enum": [
+            "work",
+            "collection",
+            "project",
+            "library"
+          ]
+        },
+        "work": {
+          "type": "string",
+          "description": "Paper"
+        },
+        "collection": {
+          "type": "string",
+          "description": "Collection"
+        },
+        "project": {
+          "type": "string",
+          "description": "Project"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/asks/create"
+      }
+    },
+    {
+      "name": "asks.list",
+      "description": "Questions and their answers.",
+      "params": {
+        "status": {
+          "type": "string",
+          "description": "Status",
+          "enum": [
+            "waiting",
+            "working",
+            "answered",
+            "failed"
+          ]
+        },
+        "work": {
+          "type": "string",
+          "description": "Paper"
+        },
+        "project": {
+          "type": "string",
+          "description": "Project"
+        },
+        "limit": {
+          "type": "number",
+          "description": "Rows"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/asks/list"
+      }
+    },
+    {
+      "name": "asks.get",
+      "description": "One question with its answer.",
+      "params": {
+        "ask": {
+          "type": "string",
+          "description": "Question id",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/asks/get"
+      }
+    },
+    {
+      "name": "asks.working",
+      "description": "Say you are answering a question.",
+      "params": {
+        "ask": {
+          "type": "string",
+          "description": "Question id",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/asks/working"
+      }
+    },
+    {
+      "name": "asks.answer",
+      "description": "Answer a question with blocks: {\"type\":\"paragraph\",\"text\":...}, {\"type\":\"quote\",\"passage\":{\"work\":..,\"page\":3,\"lines\":\"4-6\"}} (or \"anchor\"), {\"type\":\"node\",\"node\":..}, {\"type\":\"cite\",\"work\":..}. Quotes make passages the person can open.",
+      "params": {
+        "ask": {
+          "type": "string",
+          "description": "Question id",
+          "required": true
+        },
+        "answer": {
+          "type": "string",
+          "description": "JSON list of blocks"
+        },
+        "text": {
+          "type": "string",
+          "description": "A short plain answer (when no blocks)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/asks/answer"
+      }
+    },
+    {
+      "name": "asks.fail",
+      "description": "Say a question cannot be answered from the app, and why.",
+      "params": {
+        "ask": {
+          "type": "string",
+          "description": "Question id",
+          "required": true
+        },
+        "reason": {
+          "type": "string",
+          "description": "Why",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/asks/fail"
+      }
+    },
+    {
+      "name": "asks.delete",
+      "description": "Delete a question. [People only.]",
+      "params": {
+        "ask": {
+          "type": "string",
+          "description": "Question id",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/asks/delete"
+      },
+      "destructive": true
+    },
+    {
+      "name": "proposals.list",
+      "description": "Proposals by status (waiting by default) with their previews.",
+      "params": {
+        "status": {
+          "type": "string",
+          "description": "Status",
+          "enum": [
+            "waiting",
+            "approved",
+            "rejected",
+            "returned",
+            "withdrawn",
+            "stale",
+            "all"
+          ]
+        },
+        "limit": {
+          "type": "number",
+          "description": "Rows"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/proposals/list"
+      }
+    },
+    {
+      "name": "proposals.approve",
+      "description": "Approve a proposal: it runs as the person (refused as stale when its target changed since). [People only.]",
+      "params": {
+        "proposal": {
+          "type": "string",
+          "description": "Proposal id",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/proposals/approve"
+      }
+    },
+    {
+      "name": "proposals.reject",
+      "description": "Reject a proposal. [People only.]",
+      "params": {
+        "proposal": {
+          "type": "string",
+          "description": "Proposal id",
+          "required": true
+        },
+        "note": {
+          "type": "string",
+          "description": "Why"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/proposals/reject"
+      }
+    },
+    {
+      "name": "proposals.return",
+      "description": "Return a proposal to your AI agent with what to change. [People only.]",
+      "params": {
+        "proposal": {
+          "type": "string",
+          "description": "Proposal id",
+          "required": true
+        },
+        "note": {
+          "type": "string",
+          "description": "What to change",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/proposals/return"
+      }
+    },
+    {
+      "name": "proposals.withdraw",
+      "description": "Withdraw your own proposal.",
+      "params": {
+        "proposal": {
+          "type": "string",
+          "description": "Proposal id",
+          "required": true
+        },
+        "note": {
+          "type": "string",
+          "description": "Why"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/proposals/withdraw"
+      }
+    },
+    {
+      "name": "marks.set",
+      "description": "Mark a field you filled (works, nodes, ms_blocks) as sure (high) or to check, with the reason.",
+      "params": {
+        "target": {
+          "type": "string",
+          "description": "Kind of record",
+          "required": true,
+          "enum": [
+            "works",
+            "nodes",
+            "ms_blocks"
+          ]
+        },
+        "record": {
+          "type": "string",
+          "description": "Record id",
+          "required": true
+        },
+        "field": {
+          "type": "string",
+          "description": "Field",
+          "required": true
+        },
+        "confidence": {
+          "type": "string",
+          "description": "How sure",
+          "enum": [
+            "high",
+            "check"
+          ]
+        },
+        "reason": {
+          "type": "string",
+          "description": "Why"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/marks/set"
+      }
+    },
+    {
+      "name": "marks.clear",
+      "description": "Remove a mark.",
+      "params": {
+        "target": {
+          "type": "string",
+          "description": "Kind of record",
+          "required": true
+        },
+        "record": {
+          "type": "string",
+          "description": "Record id",
+          "required": true
+        },
+        "field": {
+          "type": "string",
+          "description": "Field",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/marks/clear"
+      }
+    },
+    {
+      "name": "search.run",
+      "description": "Search the registries now (a new query, or a saved search again with --search). The run records each executed query, counts per registry and why it stopped; results become candidates.",
+      "params": {
+        "search": {
+          "type": "string",
+          "description": "A saved search to run again"
+        },
+        "query": {
+          "type": "string",
+          "description": "What to search for"
+        },
+        "name": {
+          "type": "string",
+          "description": "A name to keep it under"
+        },
+        "save": {
+          "type": "boolean",
+          "description": "Keep it as a saved search"
+        },
+        "project": {
+          "type": "string",
+          "description": "The project it is for"
+        },
+        "sources": {
+          "type": "string",
+          "description": "Registries, comma-separated: crossref, arxiv, openalex, pubmed (default crossref, arxiv, openalex)"
+        },
+        "from_year": {
+          "type": "number",
+          "description": "From this year"
+        },
+        "to_year": {
+          "type": "number",
+          "description": "Up to this year"
+        },
+        "type": {
+          "type": "string",
+          "description": "Kind",
+          "enum": [
+            "article",
+            "preprint",
+            "book",
+            "conference"
+          ]
+        },
+        "oa": {
+          "type": "boolean",
+          "description": "Open access only"
+        },
+        "rows": {
+          "type": "number",
+          "description": "Results per registry (default 20)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/search/run"
+      }
+    },
+    {
+      "name": "search.list",
+      "description": "Saved searches (or every recent search with --saved false), with their last run and new candidates.",
+      "params": {
+        "saved": {
+          "type": "boolean",
+          "description": "Only saved ones (default true)"
+        },
+        "limit": {
+          "type": "number",
+          "description": "Rows"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/search/list"
+      }
+    },
+    {
+      "name": "search.get",
+      "description": "One search with its runs (executed queries and counts).",
+      "params": {
+        "search": {
+          "type": "string",
+          "description": "Search",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/search/get"
+      }
+    },
+    {
+      "name": "search.update",
+      "description": "Name a search, keep it, set an alert (off, daily, weekly) or change its query and filters.",
+      "params": {
+        "search": {
+          "type": "string",
+          "description": "Search",
+          "required": true
+        },
+        "name": {
+          "type": "string",
+          "description": "Name"
+        },
+        "saved": {
+          "type": "boolean",
+          "description": "Keep it"
+        },
+        "alert": {
+          "type": "string",
+          "description": "Alert",
+          "enum": [
+            "off",
+            "daily",
+            "weekly"
+          ]
+        },
+        "query": {
+          "type": "string",
+          "description": "Query"
+        },
+        "sources": {
+          "type": "string",
+          "description": "Registries, comma-separated: crossref, arxiv, openalex, pubmed (default crossref, arxiv, openalex)"
+        },
+        "from_year": {
+          "type": "number",
+          "description": "From this year"
+        },
+        "to_year": {
+          "type": "number",
+          "description": "Up to this year"
+        },
+        "type": {
+          "type": "string",
+          "description": "Kind",
+          "enum": [
+            "article",
+            "preprint",
+            "book",
+            "conference"
+          ]
+        },
+        "oa": {
+          "type": "boolean",
+          "description": "Open access only"
+        },
+        "rows": {
+          "type": "number",
+          "description": "Results per registry (default 20)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/search/update"
+      }
+    },
+    {
+      "name": "search.delete",
+      "description": "Delete a search and its candidates (papers added from it stay). [People only.]",
+      "params": {
+        "search": {
+          "type": "string",
+          "description": "Search",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/search/delete"
+      },
+      "destructive": true
+    },
+    {
+      "name": "candidates.list",
+      "description": "Candidates of a search (or all), by triage (new, relevant, not_relevant, added, dismissed; comma-separated), sorted by rank, citations, year or newest.",
+      "params": {
+        "search": {
+          "type": "string",
+          "description": "Search"
+        },
+        "triage": {
+          "type": "string",
+          "description": "Triage states"
+        },
+        "sort": {
+          "type": "string",
+          "description": "Order",
+          "enum": [
+            "rank",
+            "cited_by",
+            "year",
+            "newest"
+          ]
+        },
+        "limit": {
+          "type": "number",
+          "description": "Rows"
+        },
+        "offset": {
+          "type": "number",
+          "description": "Skip"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/candidates/list"
+      }
+    },
+    {
+      "name": "candidates.triage",
+      "description": "Mark candidates relevant, not relevant, dismissed, or new again. [People only.]",
+      "params": {
+        "candidates": {
+          "type": "string",
+          "description": "Candidate ids",
+          "required": true
+        },
+        "triage": {
+          "type": "string",
+          "description": "Triage",
+          "required": true,
+          "enum": [
+            "new",
+            "relevant",
+            "not_relevant",
+            "dismissed"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/candidates/triage"
+      }
+    },
+    {
+      "name": "candidates.add",
+      "description": "Add candidates to the library (by their identifiers). [People only.]",
+      "params": {
+        "candidates": {
+          "type": "string",
+          "description": "Candidate ids",
+          "required": true
+        },
+        "collection": {
+          "type": "string",
+          "description": "Collection"
+        },
+        "project": {
+          "type": "string",
+          "description": "Project"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/candidates/add"
+      }
+    },
+    {
+      "name": "candidates.file",
+      "description": "File papers you found with your own searching as candidates of a search: JSON [{\"identifier\":\"10.x/..\",\"title\":\"..\",\"year\":2024,\"venue\":\"..\",\"relevance\":\"high\",\"reason\":\"..\"}]. Each needs an identifier.",
+      "params": {
+        "search": {
+          "type": "string",
+          "description": "Search",
+          "required": true
+        },
+        "items": {
+          "type": "string",
+          "description": "JSON list",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/candidates/file"
+      }
+    },
+    {
+      "name": "candidates.assess",
+      "description": "Your relevance (high, medium, low) and reason for candidates: JSON [{\"candidate\":\"..\",\"relevance\":\"high\",\"reason\":\"..\"}].",
+      "params": {
+        "items": {
+          "type": "string",
+          "description": "JSON list",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/candidates/assess"
+      }
+    },
+    {
+      "name": "citations.map",
+      "description": "The citation network around seed papers (--works, --collection or --project): their references and the papers citing them, with Top cited (shared references) and Top citing (follow-on work). From OpenAlex.",
+      "params": {
+        "works": {
+          "type": "string",
+          "description": "Seed papers"
+        },
+        "collection": {
+          "type": "string",
+          "description": "Collection"
+        },
+        "project": {
+          "type": "string",
+          "description": "Project"
+        },
+        "citing": {
+          "type": "boolean",
+          "description": "Include citing papers (default true)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/citations/map"
+      }
+    },
+    {
+      "name": "references.list",
+      "description": "A paper's reference list (Crossref or OpenAlex), each marked when it is in the library.",
+      "params": {
+        "work": {
+          "type": "string",
+          "description": "Paper",
+          "required": true
+        },
+        "fetch": {
+          "type": "boolean",
+          "description": "Look it up when not stored yet (default true)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/references/list"
+      }
+    },
+    {
+      "name": "citations.citing",
+      "description": "Papers citing a paper, most cited first (OpenAlex).",
+      "params": {
+        "work": {
+          "type": "string",
+          "description": "Paper",
+          "required": true
+        },
+        "limit": {
+          "type": "number",
+          "description": "How many (default 25)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/citations/citing"
+      }
+    },
+    {
+      "name": "ms.list",
+      "description": "Manuscripts (of a project).",
+      "params": {
+        "project": {
+          "type": "string",
+          "description": "Project"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/ms/list"
+      }
+    },
+    {
+      "name": "ms.get",
+      "description": "A manuscript: blocks, citations rendered in its style, bibliography, cited sources, proposed changes, the ready checks, what was typed, pasted or kept from your AI agent, the disclosure statement, the numbers of its sections, equations, figures and tables, the repository files its figures show and its style folder.",
+      "params": {
+        "manuscript": {
+          "type": "string",
+          "description": "Manuscript",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/ms/get"
+      }
+    },
+    {
+      "name": "ms.text",
+      "description": "A manuscript as plain text per block, with [cite:<paper ids>] where citations are, $..$ for inline maths and [ref:<block>] for cross-references; figures, tables and LaTeX blocks carry their data (for reading and proposing changes).",
+      "params": {
+        "manuscript": {
+          "type": "string",
+          "description": "Manuscript",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/ms/text"
+      }
+    },
+    {
+      "name": "ms.latex",
+      "description": "The LaTeX the PDF is built from (main.tex, references.bib, the figures and style files it uses, which lines each block wrote) and the venue's own preamble.",
+      "params": {
+        "manuscript": {
+          "type": "string",
+          "description": "Manuscript",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/ms/latex"
+      }
+    },
+    {
+      "name": "ms.build",
+      "description": "Typeset the manuscript as a PDF with LaTeX, in the background (the first build on a computer fetches the engine and its packages, a few minutes; later ones take seconds). One build runs at a time; a second call answers the running one. Follow it with ms.build-status.",
+      "params": {
+        "manuscript": {
+          "type": "string",
+          "description": "Manuscript",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/ms/build"
+      }
+    },
+    {
+      "name": "ms.build-status",
+      "description": "A PDF build (or the latest of a manuscript): running, done or failed, its phase, pages, the errors and warnings LaTeX gave with the block each line came from, whether the manuscript changed since (current), and the latest build that has a PDF (pdf_build).",
+      "params": {
+        "build": {
+          "type": "string",
+          "description": "Build"
+        },
+        "manuscript": {
+          "type": "string",
+          "description": "Manuscript (its latest build)"
+        },
+        "log": {
+          "type": "boolean",
+          "description": "Add the engine's log"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/ms/build-status"
+      }
+    },
+    {
+      "name": "ms.pdf",
+      "description": "A build's PDF (your AI agent gets its path on disk).",
+      "params": {
+        "build": {
+          "type": "string",
+          "description": "Build",
+          "required": true
+        },
+        "download": {
+          "type": "boolean",
+          "description": "Download instead of showing it"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/ms/pdf"
+      }
+    },
+    {
+      "name": "ms.create",
+      "description": "Start a manuscript in a project (outline empty, imrad or review). Your AI agent's outline counts as its text in the AI-use disclosure; write in it with ms.propose.",
+      "params": {
+        "project": {
+          "type": "string",
+          "description": "Project",
+          "required": true
+        },
+        "title": {
+          "type": "string",
+          "description": "Title"
+        },
+        "style": {
+          "type": "string",
+          "description": "Citation style",
+          "enum": [
+            "apa",
+            "chicago",
+            "harvard",
+            "ieee",
+            "vancouver",
+            "mla",
+            "nature"
+          ]
+        },
+        "template": {
+          "type": "string",
+          "description": "Venue (its LaTeX class, front matter and disclosure)",
+          "enum": [
+            "generic",
+            "elsevier",
+            "nature",
+            "science",
+            "acl",
+            "iclr",
+            "neurips",
+            "ieee"
+          ]
+        },
+        "outline": {
+          "type": "string",
+          "description": "Starting outline",
+          "enum": [
+            "empty",
+            "imrad",
+            "review"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/ms/create"
+      }
+    },
+    {
+      "name": "ms.update",
+      "description": "Change a manuscript's title, citation style, venue (its LaTeX class and front matter), authors, own LaTeX preamble or style folder. [Proposal: a person approves.]",
+      "params": {
+        "manuscript": {
+          "type": "string",
+          "description": "Manuscript",
+          "required": true
+        },
+        "title": {
+          "type": "string",
+          "description": "Title"
+        },
+        "style": {
+          "type": "string",
+          "description": "Style",
+          "enum": [
+            "apa",
+            "chicago",
+            "harvard",
+            "ieee",
+            "vancouver",
+            "mla",
+            "nature"
+          ]
+        },
+        "template": {
+          "type": "string",
+          "description": "Venue",
+          "enum": [
+            "generic",
+            "elsevier",
+            "nature",
+            "science",
+            "acl",
+            "iclr",
+            "neurips",
+            "ieee"
+          ]
+        },
+        "authors": {
+          "type": "string",
+          "description": "JSON list: [{\"name\":\"..\",\"affiliation\":\"..\",\"email\":\"..\"}]"
+        },
+        "preamble": {
+          "type": "string",
+          "description": "Your own LaTeX from \\documentclass to before the title (\"\" uses the venue's)"
+        },
+        "style_folder": {
+          "type": "string",
+          "description": "A repository folder with the venue's style files (.cls, .sty, .bst); \"\" for none"
+        },
+        "why": {
+          "type": "string",
+          "description": "Your AI agent: why, in a sentence or two, for the person approving"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/ms/update"
+      }
+    },
+    {
+      "name": "ms.delete",
+      "description": "Delete a manuscript. [People only.]",
+      "params": {
+        "manuscript": {
+          "type": "string",
+          "description": "Manuscript",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/ms/delete"
+      },
+      "destructive": true
+    },
+    {
+      "name": "ms.save-block",
+      "description": "Save one block (new when no --block, placed after --after). Citations must name citable papers. [People only.]",
+      "params": {
+        "manuscript": {
+          "type": "string",
+          "description": "Manuscript",
+          "required": true
+        },
+        "block": {
+          "type": "string",
+          "description": "Block"
+        },
+        "after": {
+          "type": "string",
+          "description": "New block goes after this one (\"start\" for the top)"
+        },
+        "type": {
+          "type": "string",
+          "description": "Type",
+          "enum": [
+            "h1",
+            "h2",
+            "h3",
+            "paragraph",
+            "quote",
+            "bullet",
+            "numbered",
+            "equation",
+            "abstract",
+            "figure",
+            "table",
+            "latex"
+          ]
+        },
+        "content": {
+          "type": "string",
+          "description": "JSON segments: [{\"t\":\"text\",\"v\":\"As shown by \"},{\"t\":\"cite\",\"works\":[\"<paper id>\"],\"locator\":\"p. 4\"},{\"t\":\"text\",\"v\":\".\"}] (text may carry \"b\" or \"i\": true; {\"t\":\"claim\",\"node\":\"<id>\"} links a claim; {\"t\":\"math\",\"v\":\"x^2\"} is inline LaTeX maths; {\"t\":\"ref\",\"block\":\"<heading, equation, figure or table>\"} reads \"Figure 2\", with \"bare\":true \"2\"). An equation holds its LaTeX as text; a figure or table holds its caption."
+        },
+        "data": {
+          "type": "string",
+          "description": "What a figure, table or LaTeX block holds beyond its text, JSON: figure {\"file\":\"<repository file: png, jpg or pdf>\",\"width\":80} (width in % of the text width); table {\"rows\":[[\"Strain\",\"OD600\"],[\"WT\",\"1.12\"]],\"header\":true,\"align\":[\"left\",\"right\"]}; latex {\"code\":\"\\\\begin{tabular}...\"}"
+        },
+        "typed": {
+          "type": "number",
+          "description": "Characters typed since the last save"
+        },
+        "pasted": {
+          "type": "number",
+          "description": "Characters pasted since the last save"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/ms/save-block"
+      }
+    },
+    {
+      "name": "ms.delete-block",
+      "description": "Delete a block. [People only.]",
+      "params": {
+        "block": {
+          "type": "string",
+          "description": "Block",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/ms/delete-block"
+      }
+    },
+    {
+      "name": "ms.move-block",
+      "description": "Move a block after another (\"start\" for the top). [People only.]",
+      "params": {
+        "block": {
+          "type": "string",
+          "description": "Block",
+          "required": true
+        },
+        "after": {
+          "type": "string",
+          "description": "After this block",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/ms/move-block"
+      }
+    },
+    {
+      "name": "ms.propose",
+      "description": "Propose a tracked change: insert a block (after --after or at the start), replace a block, or delete one. The person keeps or undoes it. Citations must name citable papers.",
+      "params": {
+        "manuscript": {
+          "type": "string",
+          "description": "Manuscript",
+          "required": true
+        },
+        "kind": {
+          "type": "string",
+          "description": "Change",
+          "required": true,
+          "enum": [
+            "insert",
+            "replace",
+            "delete"
+          ]
+        },
+        "block": {
+          "type": "string",
+          "description": "Block to replace or delete"
+        },
+        "after": {
+          "type": "string",
+          "description": "Insert after this block (\"start\" for the top)"
+        },
+        "type": {
+          "type": "string",
+          "description": "Block type",
+          "enum": [
+            "h1",
+            "h2",
+            "h3",
+            "paragraph",
+            "quote",
+            "bullet",
+            "numbered",
+            "equation",
+            "abstract",
+            "figure",
+            "table",
+            "latex"
+          ]
+        },
+        "content": {
+          "type": "string",
+          "description": "JSON segments: [{\"t\":\"text\",\"v\":\"As shown by \"},{\"t\":\"cite\",\"works\":[\"<paper id>\"],\"locator\":\"p. 4\"},{\"t\":\"text\",\"v\":\".\"}] (text may carry \"b\" or \"i\": true; {\"t\":\"claim\",\"node\":\"<id>\"} links a claim; {\"t\":\"math\",\"v\":\"x^2\"} is inline LaTeX maths; {\"t\":\"ref\",\"block\":\"<heading, equation, figure or table>\"} reads \"Figure 2\", with \"bare\":true \"2\"). An equation holds its LaTeX as text; a figure or table holds its caption."
+        },
+        "data": {
+          "type": "string",
+          "description": "What a figure, table or LaTeX block holds beyond its text, JSON: figure {\"file\":\"<repository file: png, jpg or pdf>\",\"width\":80} (width in % of the text width); table {\"rows\":[[\"Strain\",\"OD600\"],[\"WT\",\"1.12\"]],\"header\":true,\"align\":[\"left\",\"right\"]}; latex {\"code\":\"\\\\begin{tabular}...\"}"
+        },
+        "why": {
+          "type": "string",
+          "description": "Why this change"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/ms/propose"
+      }
+    },
+    {
+      "name": "ms.keep",
+      "description": "Keep your AI agent's changes (a change to a block edited since is stale). [People only.]",
+      "params": {
+        "changes": {
+          "type": "string",
+          "description": "Change ids",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/ms/keep"
+      }
+    },
+    {
+      "name": "ms.undo",
+      "description": "Undo (discard) proposed changes. [People only.]",
+      "params": {
+        "changes": {
+          "type": "string",
+          "description": "Change ids",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/ms/undo"
+      }
+    },
+    {
+      "name": "ms.snapshot",
+      "description": "Save a labelled snapshot of the text as it is (your AI agent: before proposing large changes).",
+      "params": {
+        "manuscript": {
+          "type": "string",
+          "description": "Manuscript",
+          "required": true
+        },
+        "label": {
+          "type": "string",
+          "description": "Label"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/ms/snapshot"
+      }
+    },
+    {
+      "name": "ms.snapshots",
+      "description": "Snapshots of a manuscript.",
+      "params": {
+        "manuscript": {
+          "type": "string",
+          "description": "Manuscript",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/ms/snapshots"
+      }
+    },
+    {
+      "name": "ms.restore",
+      "description": "Go back to a snapshot (the current version is snapshotted first). [People only.]",
+      "params": {
+        "snapshot": {
+          "type": "string",
+          "description": "Snapshot",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/ms/restore"
+      }
+    },
+    {
+      "name": "ms.set-status",
+      "description": "Mark a manuscript ready (refused while sources are unresolved, unconfirmed or retracted, unless --acknowledge_retracted) or back to draft. [People only.]",
+      "params": {
+        "manuscript": {
+          "type": "string",
+          "description": "Manuscript",
+          "required": true
+        },
+        "status": {
+          "type": "string",
+          "description": "Status",
+          "required": true,
+          "enum": [
+            "draft",
+            "ready"
+          ]
+        },
+        "acknowledge_retracted": {
+          "type": "boolean",
+          "description": "Cite a retracted paper knowingly"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/ms/set-status"
+      }
+    },
+    {
+      "name": "ms.export",
+      "description": "Export: LaTeX (main.tex and references.bib, with the figures and style files to put beside them as assets), Markdown with references.bib and its figures, plain text, or the model a Word file is built from. The PDF comes from ms.build.",
+      "params": {
+        "manuscript": {
+          "type": "string",
+          "description": "Manuscript",
+          "required": true
+        },
+        "format": {
+          "type": "string",
+          "description": "Format",
+          "enum": [
+            "latex",
+            "markdown",
+            "docx",
+            "text"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/ms/export"
+      }
+    },
+    {
+      "name": "responses.list",
+      "description": "Reviews received for a manuscript, each with its comments (type, strategy, status, response, linked change).",
+      "params": {
+        "manuscript": {
+          "type": "string",
+          "description": "Manuscript",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/responses/list"
+      }
+    },
+    {
+      "name": "responses.add-review",
+      "description": "Paste a review received. [People only.]",
+      "params": {
+        "manuscript": {
+          "type": "string",
+          "description": "Manuscript",
+          "required": true
+        },
+        "label": {
+          "type": "string",
+          "description": "Reviewer label"
+        },
+        "body": {
+          "type": "string",
+          "description": "The review text"
+        },
+        "received_on": {
+          "type": "string",
+          "description": "Date YYYY-MM-DD"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/responses/add-review"
+      }
+    },
+    {
+      "name": "responses.update-review",
+      "description": "Change a review's label or text. [People only.]",
+      "params": {
+        "review": {
+          "type": "string",
+          "description": "Review",
+          "required": true
+        },
+        "label": {
+          "type": "string",
+          "description": "Label"
+        },
+        "body": {
+          "type": "string",
+          "description": "Text"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/responses/update-review"
+      }
+    },
+    {
+      "name": "responses.delete-review",
+      "description": "Delete a review and its comments. [People only.]",
+      "params": {
+        "review": {
+          "type": "string",
+          "description": "Review",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/responses/delete-review"
+      },
+      "destructive": true
+    },
+    {
+      "name": "responses.add-items",
+      "description": "Comments of a review: JSON [{\"comment\":\"..\",\"kind\":\"major\",\"strategy\":\"accept\",\"response\":\"..\"}] (kinds: major, minor, typo, misunderstanding, praise; strategies: accept, defend, clarify, experiment). Yours wait for a person.",
+      "params": {
+        "review": {
+          "type": "string",
+          "description": "Review",
+          "required": true
+        },
+        "items": {
+          "type": "string",
+          "description": "JSON list",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/responses/add-items"
+      }
+    },
+    {
+      "name": "responses.update",
+      "description": "A comment's type, strategy, response, linked change (a manuscript block) and status; addressed needs a linked change.",
+      "params": {
+        "item": {
+          "type": "string",
+          "description": "Comment",
+          "required": true
+        },
+        "comment": {
+          "type": "string",
+          "description": "Comment text"
+        },
+        "kind": {
+          "type": "string",
+          "description": "Type",
+          "enum": [
+            "major",
+            "minor",
+            "typo",
+            "misunderstanding",
+            "praise"
+          ]
+        },
+        "strategy": {
+          "type": "string",
+          "description": "Strategy",
+          "enum": [
+            "accept",
+            "defend",
+            "clarify",
+            "experiment"
+          ]
+        },
+        "response": {
+          "type": "string",
+          "description": "Response"
+        },
+        "change_block": {
+          "type": "string",
+          "description": "The block that changed for it"
+        },
+        "change_note": {
+          "type": "string",
+          "description": "Where or what changed"
+        },
+        "status": {
+          "type": "string",
+          "description": "Status",
+          "enum": [
+            "open",
+            "addressed",
+            "declined",
+            "unresolved"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/responses/update"
+      }
+    },
+    {
+      "name": "responses.delete-item",
+      "description": "Delete a comment (your AI agent: only its own unconfirmed ones).",
+      "params": {
+        "item": {
+          "type": "string",
+          "description": "Comment",
+          "required": true
+        },
+        "confirm": {
+          "type": "boolean",
+          "description": "Your AI agent: true once the person asked for this deletion. Without it nothing is deleted and the answer says what would be."
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/responses/delete-item"
+      },
+      "destructive": true
+    },
+    {
+      "name": "responses.letter",
+      "description": "The response letter as Markdown.",
+      "params": {
+        "manuscript": {
+          "type": "string",
+          "description": "Manuscript",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/responses/letter"
+      }
+    },
+    {
+      "name": "screen.list",
+      "description": "A project's systematic reviews with their PRISMA counts.",
+      "params": {
+        "project": {
+          "type": "string",
+          "description": "Project",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/screen/list"
+      }
+    },
+    {
+      "name": "screen.summary",
+      "description": "A review: protocol, PRISMA 2020 counts, agreement between the person and your AI agent (Cohen kappa).",
+      "params": {
+        "review": {
+          "type": "string",
+          "description": "Review",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/screen/summary"
+      }
+    },
+    {
+      "name": "screen.create",
+      "description": "Start a systematic review in a project: question, criteria, exclusion reasons, dual screening with your AI agent as the blinded second screener. [People only.]",
+      "params": {
+        "project": {
+          "type": "string",
+          "description": "Project",
+          "required": true
+        },
+        "title": {
+          "type": "string",
+          "description": "Title"
+        },
+        "question": {
+          "type": "string",
+          "description": "Review question"
+        },
+        "criteria": {
+          "type": "string",
+          "description": "JSON {\"include\":[..],\"exclude\":[..]}"
+        },
+        "reasons": {
+          "type": "string",
+          "description": "JSON [{\"key\":\"population\",\"label\":\"Wrong population\"}]"
+        },
+        "dual": {
+          "type": "boolean",
+          "description": "Two screeners (default true)"
+        },
+        "blind": {
+          "type": "boolean",
+          "description": "Hide the other decision until you decide (default true)"
+        },
+        "agent_seat": {
+          "type": "boolean",
+          "description": "Your AI agent is the second screener (default true)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/screen/create"
+      }
+    },
+    {
+      "name": "screen.update",
+      "description": "Change a review's protocol or settings. [People only.]",
+      "params": {
+        "review": {
+          "type": "string",
+          "description": "Review",
+          "required": true
+        },
+        "title": {
+          "type": "string",
+          "description": "Title"
+        },
+        "question": {
+          "type": "string",
+          "description": "Question"
+        },
+        "criteria": {
+          "type": "string",
+          "description": "JSON criteria"
+        },
+        "reasons": {
+          "type": "string",
+          "description": "JSON reasons"
+        },
+        "dual": {
+          "type": "boolean",
+          "description": "Dual"
+        },
+        "blind": {
+          "type": "boolean",
+          "description": "Blind"
+        },
+        "agent_seat": {
+          "type": "boolean",
+          "description": "Agent seat"
+        },
+        "stage": {
+          "type": "string",
+          "description": "Stage",
+          "enum": [
+            "setup",
+            "title_abstract",
+            "full_text",
+            "done"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/screen/update"
+      }
+    },
+    {
+      "name": "screen.delete",
+      "description": "Delete a review, its records and decisions. [People only.]",
+      "params": {
+        "review": {
+          "type": "string",
+          "description": "Review",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/screen/delete"
+      },
+      "destructive": true
+    },
+    {
+      "name": "screen.import",
+      "description": "Records into a review: --from reading_list, --works, --collection, --import (a previewed RIS or BibTeX file), or --pubmed \"query\". Duplicates by DOI or PubMed ID are marked.",
+      "params": {
+        "review": {
+          "type": "string",
+          "description": "Review",
+          "required": true
+        },
+        "from": {
+          "type": "string",
+          "description": "reading_list"
+        },
+        "works": {
+          "type": "string",
+          "description": "Papers"
+        },
+        "collection": {
+          "type": "string",
+          "description": "Collection"
+        },
+        "project": {
+          "type": "string",
+          "description": "Project"
+        },
+        "import": {
+          "type": "string",
+          "description": "Import id from import.preview"
+        },
+        "pubmed": {
+          "type": "string",
+          "description": "PubMed query"
+        },
+        "max": {
+          "type": "number",
+          "description": "Most records from PubMed (default 200)"
+        },
+        "source_db": {
+          "type": "string",
+          "description": "Database the records came from"
+        },
+        "query": {
+          "type": "string",
+          "description": "The search string used (for the methods)"
+        },
+        "searched_on": {
+          "type": "string",
+          "description": "Date searched YYYY-MM-DD"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/screen/import"
+      }
+    },
+    {
+      "name": "screen.records",
+      "description": "Records by state (ta, ft), with decisions (blinded ones hidden from people until they decide).",
+      "params": {
+        "review": {
+          "type": "string",
+          "description": "Review",
+          "required": true
+        },
+        "ta": {
+          "type": "string",
+          "description": "Title/abstract state",
+          "enum": [
+            "pending",
+            "include",
+            "exclude",
+            "maybe",
+            "conflict"
+          ]
+        },
+        "ft": {
+          "type": "string",
+          "description": "Full-text state",
+          "enum": [
+            "none",
+            "pending",
+            "include",
+            "exclude",
+            "conflict"
+          ]
+        },
+        "duplicates": {
+          "type": "boolean",
+          "description": "Only duplicates"
+        },
+        "stage": {
+          "type": "string",
+          "description": "Stage for blinding",
+          "enum": [
+            "title_abstract",
+            "full_text"
+          ]
+        },
+        "limit": {
+          "type": "number",
+          "description": "Rows"
+        },
+        "offset": {
+          "type": "number",
+          "description": "Skip"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/screen/records"
+      }
+    },
+    {
+      "name": "screen.next",
+      "description": "The next record this seat has not decided at a stage (abstract with its word count), or the next conflict.",
+      "params": {
+        "review": {
+          "type": "string",
+          "description": "Review",
+          "required": true
+        },
+        "stage": {
+          "type": "string",
+          "description": "Stage",
+          "enum": [
+            "title_abstract",
+            "full_text"
+          ]
+        },
+        "queue": {
+          "type": "string",
+          "description": "Queue",
+          "enum": [
+            "undecided",
+            "conflicts"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/screen/next"
+      }
+    },
+    {
+      "name": "screen.decide",
+      "description": "Decide a record: include, exclude or maybe (full text: include or exclude, with a reason to exclude). Your AI agent adds --basis_words \"a-b\" (words of the abstract), --rationale and --confidence. People resolve conflicts with --seat final.",
+      "params": {
+        "record": {
+          "type": "string",
+          "description": "Record",
+          "required": true
+        },
+        "stage": {
+          "type": "string",
+          "description": "Stage",
+          "enum": [
+            "title_abstract",
+            "full_text"
+          ]
+        },
+        "value": {
+          "type": "string",
+          "description": "Decision",
+          "required": true,
+          "enum": [
+            "include",
+            "exclude",
+            "maybe"
+          ]
+        },
+        "reason": {
+          "type": "string",
+          "description": "Exclusion reason key"
+        },
+        "seat": {
+          "type": "string",
+          "description": "People: final resolves a conflict",
+          "enum": [
+            "person",
+            "final"
+          ]
+        },
+        "basis_words": {
+          "type": "string",
+          "description": "Your AI agent: word span of the abstract the decision rests on"
+        },
+        "rationale": {
+          "type": "string",
+          "description": "Why"
+        },
+        "confidence": {
+          "type": "string",
+          "description": "How sure",
+          "enum": [
+            "low",
+            "medium",
+            "high",
+            "very_high"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/screen/decide"
+      }
+    },
+    {
+      "name": "screen.undo-decision",
+      "description": "Take back this seat's decision on a record.",
+      "params": {
+        "record": {
+          "type": "string",
+          "description": "Record",
+          "required": true
+        },
+        "stage": {
+          "type": "string",
+          "description": "Stage",
+          "enum": [
+            "title_abstract",
+            "full_text"
+          ]
+        },
+        "seat": {
+          "type": "string",
+          "description": "Seat",
+          "enum": [
+            "person",
+            "final"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/screen/undo-decision"
+      }
+    },
+    {
+      "name": "screen.mark-duplicate",
+      "description": "Mark a record as a duplicate of another (\"\" clears it). [People only.]",
+      "params": {
+        "record": {
+          "type": "string",
+          "description": "Record",
+          "required": true
+        },
+        "of": {
+          "type": "string",
+          "description": "The record it duplicates"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/screen/mark-duplicate"
+      }
+    },
+    {
+      "name": "screen.export",
+      "description": "Every record with its decisions as CSV.",
+      "params": {
+        "review": {
+          "type": "string",
+          "description": "Review",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/screen/export"
+      }
+    },
+    {
+      "name": "tasks.list",
+      "description": "A project's to-do list (or every project's when --project is left out), open tasks by default; filter by status, who it is for, when it is due, a label or words.",
+      "params": {
+        "project": {
+          "type": "string",
+          "description": "Project"
+        },
+        "status": {
+          "type": "string",
+          "description": "Which",
+          "enum": [
+            "open",
+            "all",
+            "todo",
+            "doing",
+            "waiting",
+            "done"
+          ]
+        },
+        "assignee": {
+          "type": "string",
+          "description": "For whom",
+          "enum": [
+            "person",
+            "agent"
+          ]
+        },
+        "due": {
+          "type": "string",
+          "description": "When",
+          "enum": [
+            "overdue",
+            "today",
+            "week",
+            "none"
+          ]
+        },
+        "label": {
+          "type": "string",
+          "description": "Label"
+        },
+        "q": {
+          "type": "string",
+          "description": "Words in the title or notes"
+        },
+        "limit": {
+          "type": "number",
+          "description": "Rows"
+        },
+        "offset": {
+          "type": "number",
+          "description": "Skip"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/tasks/list"
+      }
+    },
+    {
+      "name": "tasks.get",
+      "description": "One task with its checklist, labels and linked records.",
+      "params": {
+        "task": {
+          "type": "string",
+          "description": "Task",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/tasks/get"
+      }
+    },
+    {
+      "name": "tasks.summary",
+      "description": "Open tasks across active projects (or one project): counts by due day (overdue, today, this week), in progress, waiting, for your AI agent, per project, and what comes next (in one project: every open task, by day then priority).",
+      "params": {
+        "project": {
+          "type": "string",
+          "description": "Project"
+        },
+        "limit": {
+          "type": "number",
+          "description": "How many next tasks (default 12)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/tasks/summary"
+      }
+    },
+    {
+      "name": "tasks.create",
+      "description": "Add a task to a project's to-do list. --assignee agent hands it to your AI agent (not in confidential projects).",
+      "params": {
+        "project": {
+          "type": "string",
+          "description": "Project",
+          "required": true
+        },
+        "title": {
+          "type": "string",
+          "description": "What to do",
+          "required": true
+        },
+        "notes": {
+          "type": "string",
+          "description": "Notes"
+        },
+        "status": {
+          "type": "string",
+          "description": "Status",
+          "enum": [
+            "todo",
+            "doing",
+            "waiting",
+            "done"
+          ]
+        },
+        "priority": {
+          "type": "string",
+          "description": "Priority",
+          "enum": [
+            "none",
+            "low",
+            "medium",
+            "high",
+            "urgent"
+          ]
+        },
+        "due": {
+          "type": "string",
+          "description": "Due day YYYY-MM-DD"
+        },
+        "assignee": {
+          "type": "string",
+          "description": "For whom",
+          "enum": [
+            "person",
+            "agent"
+          ]
+        },
+        "labels": {
+          "type": "string",
+          "description": "JSON list of labels"
+        },
+        "checklist": {
+          "type": "string",
+          "description": "JSON list of steps: [\"Re-run the baseline\", {\"text\":\"Plot the results\",\"done\":true}] (keep an item's \"id\" to keep it)"
+        },
+        "links": {
+          "type": "string",
+          "description": "JSON list of the project's records: [{\"kind\":\"work\",\"id\":\"<paper>\"},{\"kind\":\"node\",\"id\":\"<claim>\"}] (kinds: work, node, manuscript, board, note, experiment)"
+        },
+        "recur": {
+          "type": "string",
+          "description": "Repeat when completed",
+          "enum": [
+            "none",
+            "daily",
+            "weekly",
+            "monthly"
+          ]
+        },
+        "after": {
+          "type": "string",
+          "description": "\"start\" puts it at the top"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/tasks/create"
+      }
+    },
+    {
+      "name": "tasks.update",
+      "description": "Change a task: title, notes, status, priority, due day (\"\" clears it), who it is for, labels, checklist, links or repeat.",
+      "params": {
+        "task": {
+          "type": "string",
+          "description": "Task",
+          "required": true
+        },
+        "title": {
+          "type": "string",
+          "description": "Title"
+        },
+        "notes": {
+          "type": "string",
+          "description": "Notes"
+        },
+        "status": {
+          "type": "string",
+          "description": "Status",
+          "enum": [
+            "todo",
+            "doing",
+            "waiting",
+            "done"
+          ]
+        },
+        "priority": {
+          "type": "string",
+          "description": "Priority",
+          "enum": [
+            "none",
+            "low",
+            "medium",
+            "high",
+            "urgent"
+          ]
+        },
+        "due": {
+          "type": "string",
+          "description": "Due day YYYY-MM-DD (\"\" clears it)"
+        },
+        "assignee": {
+          "type": "string",
+          "description": "For whom",
+          "enum": [
+            "person",
+            "agent"
+          ]
+        },
+        "labels": {
+          "type": "string",
+          "description": "JSON list of labels"
+        },
+        "checklist": {
+          "type": "string",
+          "description": "JSON list of steps: [\"Re-run the baseline\", {\"text\":\"Plot the results\",\"done\":true}] (keep an item's \"id\" to keep it)"
+        },
+        "links": {
+          "type": "string",
+          "description": "JSON list of the project's records: [{\"kind\":\"work\",\"id\":\"<paper>\"},{\"kind\":\"node\",\"id\":\"<claim>\"}] (kinds: work, node, manuscript, board, note, experiment)"
+        },
+        "recur": {
+          "type": "string",
+          "description": "Repeat",
+          "enum": [
+            "none",
+            "daily",
+            "weekly",
+            "monthly"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/tasks/update"
+      }
+    },
+    {
+      "name": "tasks.complete",
+      "description": "Tick a task off (--done false reopens it). A repeating task makes its next one.",
+      "params": {
+        "task": {
+          "type": "string",
+          "description": "Task",
+          "required": true
+        },
+        "done": {
+          "type": "boolean",
+          "description": "Done (default true)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/tasks/complete"
+      }
+    },
+    {
+      "name": "tasks.move",
+      "description": "Move a task to a status column and place it (\"start\", after a task id, or at the end).",
+      "params": {
+        "task": {
+          "type": "string",
+          "description": "Task",
+          "required": true
+        },
+        "status": {
+          "type": "string",
+          "description": "Status",
+          "enum": [
+            "todo",
+            "doing",
+            "waiting",
+            "done"
+          ]
+        },
+        "after": {
+          "type": "string",
+          "description": "\"start\", \"end\" or a task id"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/tasks/move"
+      }
+    },
+    {
+      "name": "tasks.check",
+      "description": "Tick or untick one checklist item (--item), or add an item (--text).",
+      "params": {
+        "task": {
+          "type": "string",
+          "description": "Task",
+          "required": true
+        },
+        "item": {
+          "type": "string",
+          "description": "Checklist item id"
+        },
+        "text": {
+          "type": "string",
+          "description": "A new item"
+        },
+        "done": {
+          "type": "boolean",
+          "description": "Done"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/tasks/check"
+      }
+    },
+    {
+      "name": "tasks.delete",
+      "description": "Delete a task (Activity can undo it).",
+      "params": {
+        "task": {
+          "type": "string",
+          "description": "Task",
+          "required": true
+        },
+        "preview": {
+          "type": "boolean",
+          "description": "Only show the task"
+        },
+        "confirm": {
+          "type": "boolean",
+          "description": "Your AI agent: true once the person asked for this deletion. Without it nothing is deleted and the answer says what would be."
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/tasks/delete"
+      },
+      "destructive": true
+    },
+    {
+      "name": "exp.list",
+      "description": "A project's experiments: status, outcome, tags, dates, the next protocol step, runs and journal counts, lineage.",
+      "params": {
+        "project": {
+          "type": "string",
+          "description": "Project",
+          "required": true
+        },
+        "status": {
+          "type": "string",
+          "description": "Only this status",
+          "enum": [
+            "planned",
+            "running",
+            "paused",
+            "done",
+            "cancelled"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/exp/list"
+      }
+    },
+    {
+      "name": "exp.get",
+      "description": "One experiment: objective, design (variables, materials), protocol with ticks, links, status and dates, outcome and conclusion, what it repeats and its repeats.",
+      "params": {
+        "experiment": {
+          "type": "string",
+          "description": "Experiment",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/exp/get"
+      }
+    },
+    {
+      "name": "exp.runs",
+      "description": "An experiment's runs (values keyed by variable id; the variables come with them).",
+      "params": {
+        "experiment": {
+          "type": "string",
+          "description": "Experiment",
+          "required": true
+        },
+        "status": {
+          "type": "string",
+          "description": "Only this status",
+          "enum": [
+            "planned",
+            "done",
+            "failed",
+            "excluded"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/exp/runs"
+      }
+    },
+    {
+      "name": "exp.entries",
+      "description": "An experiment's journal, oldest first: kind, what it is about (step or run), corrections, strike-throughs, late entries, files (with file_path for your AI agent).",
+      "params": {
+        "experiment": {
+          "type": "string",
+          "description": "Experiment",
+          "required": true
+        },
+        "limit": {
+          "type": "number",
+          "description": "The newest this many (default 500)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/exp/entries"
+      }
+    },
+    {
+      "name": "exp.results",
+      "description": "Per measure, n, mean, SD, min and max (or counts for text, categories and yes/no) by condition group, from done runs.",
+      "params": {
+        "experiment": {
+          "type": "string",
+          "description": "Experiment",
+          "required": true
+        },
+        "by": {
+          "type": "string",
+          "description": "The conditions that make the groups: variable ids, or a JSON list of names (default all; the rest pool, e.g. seeds or batches as replicates; [] pools every run)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/exp/results"
+      }
+    },
+    {
+      "name": "exp.export",
+      "description": "The runs as CSV: a column per condition and measure, with units.",
+      "params": {
+        "experiment": {
+          "type": "string",
+          "description": "Experiment",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/exp/export"
+      }
+    },
+    {
+      "name": "exp.file",
+      "description": "A file attached to a journal entry (your AI agent gets its file_path).",
+      "params": {
+        "entry": {
+          "type": "string",
+          "description": "Journal entry",
+          "required": true
+        },
+        "name": {
+          "type": "string",
+          "description": "Stored file name, as exp.entries lists it",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/exp/file"
+      }
+    },
+    {
+      "name": "exp.templates",
+      "description": "Templates (plans and protocols kept for reuse), usable in every project.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/exp/templates"
+      }
+    },
+    {
+      "name": "exp.create",
+      "description": "Plan a new experiment in a project (numbered EXP-001, EXP-002...), blank or from a template.",
+      "params": {
+        "project": {
+          "type": "string",
+          "description": "Project",
+          "required": true
+        },
+        "title": {
+          "type": "string",
+          "description": "Title (from a template: defaults to its name)"
+        },
+        "template": {
+          "type": "string",
+          "description": "Template to start from"
+        },
+        "kind": {
+          "type": "string",
+          "description": "Kind",
+          "enum": [
+            "lab",
+            "chemistry",
+            "computational",
+            "study",
+            "field",
+            "other"
+          ]
+        },
+        "aim": {
+          "type": "string",
+          "description": "What it sets out to find"
+        },
+        "hypothesis": {
+          "type": "string",
+          "description": "What you expect, and why"
+        },
+        "variables": {
+          "type": "string",
+          "description": "JSON list of variables: [{\"name\":\"Temperature\",\"role\":\"condition\",\"type\":\"number\",\"unit\":\"°C\",\"levels\":[\"20\",\"30\",\"37\"]},{\"name\":\"Medium\",\"role\":\"constant\",\"value\":\"LB broth\"},{\"name\":\"OD600\",\"role\":\"measure\",\"type\":\"number\"}] (roles: condition = varied, constant = held fixed, measure = recorded; types: number, text, category with \"options\", yesno). Keep a variable's \"id\" to keep its data."
+        },
+        "steps": {
+          "type": "string",
+          "description": "JSON list of protocol steps: [\"Prepare 50 mM Tris, pH 7.4\", {\"text\":\"Incubate at 37 °C\",\"minutes\":30}] (minutes = a timer in bench mode; keep a step's \"id\" to keep its tick)"
+        },
+        "materials": {
+          "type": "string",
+          "description": "JSON list: [{\"name\":\"Tris buffer\",\"detail\":\"50 mM, pH 7.4\"},{\"name\":\"Python\",\"detail\":\"3.12, numpy 2.1\"}]"
+        },
+        "links": {
+          "type": "string",
+          "description": "JSON list of what it tests: [{\"kind\":\"node\",\"id\":\"<claim or question>\"},{\"kind\":\"work\",\"id\":\"<paper>\"}]"
+        },
+        "tags": {
+          "type": "string",
+          "description": "JSON list of tags"
+        },
+        "planned_start": {
+          "type": "string",
+          "description": "Planned start, YYYY-MM-DD"
+        },
+        "planned_end": {
+          "type": "string",
+          "description": "Planned end, YYYY-MM-DD"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/exp/create"
+      }
+    },
+    {
+      "name": "exp.repeat",
+      "description": "Run an experiment again: a new planned experiment with the same objective, design and protocol (unticked), linked to the original. Runs, journal and conclusion start empty.",
+      "params": {
+        "experiment": {
+          "type": "string",
+          "description": "Experiment to repeat",
+          "required": true
+        },
+        "title": {
+          "type": "string",
+          "description": "Title (default: the same with \"(repeat)\")"
+        },
+        "planned_start": {
+          "type": "string",
+          "description": "Planned start, YYYY-MM-DD"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/exp/repeat"
+      }
+    },
+    {
+      "name": "exp.update",
+      "description": "Change an experiment: title, kind, aim, hypothesis, variables, steps, materials, links, tags, planned dates, pin, or status (running stamps the start, done or cancelled the end; the journal notes each change).",
+      "params": {
+        "experiment": {
+          "type": "string",
+          "description": "Experiment",
+          "required": true
+        },
+        "title": {
+          "type": "string",
+          "description": "Title"
+        },
+        "kind": {
+          "type": "string",
+          "description": "Kind",
+          "enum": [
+            "lab",
+            "chemistry",
+            "computational",
+            "study",
+            "field",
+            "other"
+          ]
+        },
+        "aim": {
+          "type": "string",
+          "description": "Aim"
+        },
+        "hypothesis": {
+          "type": "string",
+          "description": "Hypothesis"
+        },
+        "variables": {
+          "type": "string",
+          "description": "JSON list of variables: [{\"name\":\"Temperature\",\"role\":\"condition\",\"type\":\"number\",\"unit\":\"°C\",\"levels\":[\"20\",\"30\",\"37\"]},{\"name\":\"Medium\",\"role\":\"constant\",\"value\":\"LB broth\"},{\"name\":\"OD600\",\"role\":\"measure\",\"type\":\"number\"}] (roles: condition = varied, constant = held fixed, measure = recorded; types: number, text, category with \"options\", yesno). Keep a variable's \"id\" to keep its data."
+        },
+        "steps": {
+          "type": "string",
+          "description": "JSON list of protocol steps: [\"Prepare 50 mM Tris, pH 7.4\", {\"text\":\"Incubate at 37 °C\",\"minutes\":30}] (minutes = a timer in bench mode; keep a step's \"id\" to keep its tick)"
+        },
+        "materials": {
+          "type": "string",
+          "description": "JSON list: [{\"name\":\"Tris buffer\",\"detail\":\"50 mM, pH 7.4\"},{\"name\":\"Python\",\"detail\":\"3.12, numpy 2.1\"}]"
+        },
+        "links": {
+          "type": "string",
+          "description": "JSON list of what it tests: [{\"kind\":\"node\",\"id\":\"<claim or question>\"},{\"kind\":\"work\",\"id\":\"<paper>\"}]"
+        },
+        "tags": {
+          "type": "string",
+          "description": "JSON list of tags"
+        },
+        "planned_start": {
+          "type": "string",
+          "description": "Planned start, YYYY-MM-DD (\"\" clears it)"
+        },
+        "planned_end": {
+          "type": "string",
+          "description": "Planned end, YYYY-MM-DD (\"\" clears it)"
+        },
+        "pinned": {
+          "type": "boolean",
+          "description": "Pinned to the top of the list"
+        },
+        "status": {
+          "type": "string",
+          "description": "Status",
+          "enum": [
+            "planned",
+            "running",
+            "paused",
+            "done",
+            "cancelled"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/exp/update"
+      }
+    },
+    {
+      "name": "exp.step",
+      "description": "Tick (or untick with --done false) a protocol step of a started experiment; the journal notes it with the time.",
+      "params": {
+        "experiment": {
+          "type": "string",
+          "description": "Experiment",
+          "required": true
+        },
+        "step": {
+          "type": "string",
+          "description": "Step id",
+          "required": true
+        },
+        "done": {
+          "type": "boolean",
+          "description": "Done (default: the opposite of now)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/exp/step"
+      }
+    },
+    {
+      "name": "exp.delete",
+      "description": "Delete an experiment with its runs, journal and files (--preview shows what goes). Its repeats stay. [People only.]",
+      "params": {
+        "experiment": {
+          "type": "string",
+          "description": "Experiment",
+          "required": true
+        },
+        "preview": {
+          "type": "boolean",
+          "description": "Only show what would go"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/exp/delete"
+      },
+      "destructive": true
+    },
+    {
+      "name": "exp.add-runs",
+      "description": "Record runs (trials, samples, participants, simulations). A run with a measured value is done unless a status says otherwise. Record only values that were measured or computed.",
+      "params": {
+        "experiment": {
+          "type": "string",
+          "description": "Experiment",
+          "required": true
+        },
+        "runs": {
+          "type": "string",
+          "description": "JSON list: [{\"values\":{\"Temperature\":37,\"OD600\":0.82},\"status\":\"done\",\"note\":\"..\"}] (values by variable name)"
+        },
+        "csv": {
+          "type": "string",
+          "description": "Or CSV / tab-separated text: a header row of variable names (Status and Note columns optional), then one row per run"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/exp/add-runs"
+      }
+    },
+    {
+      "name": "exp.plan-runs",
+      "description": "Plan one run for every combination of condition levels, times replicates (--preview counts them).",
+      "params": {
+        "experiment": {
+          "type": "string",
+          "description": "Experiment",
+          "required": true
+        },
+        "replicates": {
+          "type": "number",
+          "description": "Replicates of each combination (default 1)"
+        },
+        "preview": {
+          "type": "boolean",
+          "description": "Only count the runs"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/exp/plan-runs"
+      }
+    },
+    {
+      "name": "exp.update-run",
+      "description": "Change a run: values (merged; \"\" clears one), status or note. Measuring a planned run makes it done.",
+      "params": {
+        "run": {
+          "type": "string",
+          "description": "Run",
+          "required": true
+        },
+        "values": {
+          "type": "string",
+          "description": "JSON object of values by variable name"
+        },
+        "status": {
+          "type": "string",
+          "description": "Status",
+          "enum": [
+            "planned",
+            "done",
+            "failed",
+            "excluded"
+          ]
+        },
+        "note": {
+          "type": "string",
+          "description": "Note"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/exp/update-run"
+      }
+    },
+    {
+      "name": "exp.delete-runs",
+      "description": "Remove runs (Activity can bring them back).",
+      "params": {
+        "runs": {
+          "type": "string",
+          "description": "Run ids",
+          "required": true
+        },
+        "confirm": {
+          "type": "boolean",
+          "description": "Your AI agent: true once the person asked for this deletion. Without it nothing is deleted and the answer says what would be."
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/exp/delete-runs"
+      },
+      "destructive": true
+    },
+    {
+      "name": "exp.log",
+      "description": "Write in an experiment's journal: a note, observation, result, deviation or issue, about a step or a run when given, with files (people upload; your AI agent gives --paths). An entry dated earlier shows as a late entry.",
+      "params": {
+        "experiment": {
+          "type": "string",
+          "description": "Experiment",
+          "required": true
+        },
+        "text": {
+          "type": "string",
+          "description": "What happened"
+        },
+        "kind": {
+          "type": "string",
+          "description": "Kind of entry",
+          "enum": [
+            "note",
+            "observation",
+            "result",
+            "deviation",
+            "issue"
+          ]
+        },
+        "ref": {
+          "type": "string",
+          "description": "What it is about: {\"kind\":\"step\",\"id\":\"<step>\"} or {\"kind\":\"run\",\"id\":\"<run>\"}"
+        },
+        "at": {
+          "type": "string",
+          "description": "When it happened, \"YYYY-MM-DD HH:MM\" (default now)"
+        },
+        "paths": {
+          "type": "string",
+          "description": "JSON list of absolute paths of files to attach (your AI agent)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/exp/log"
+      }
+    },
+    {
+      "name": "exp.correct",
+      "description": "Correct a journal entry's text or kind. The original stays in its history with the reason. The app's own entries stay as written.",
+      "params": {
+        "entry": {
+          "type": "string",
+          "description": "Journal entry",
+          "required": true
+        },
+        "text": {
+          "type": "string",
+          "description": "Corrected text"
+        },
+        "kind": {
+          "type": "string",
+          "description": "Kind",
+          "enum": [
+            "note",
+            "observation",
+            "result",
+            "deviation",
+            "issue"
+          ]
+        },
+        "reason": {
+          "type": "string",
+          "description": "Why",
+          "required": true,
+          "enum": [
+            "typo",
+            "recording",
+            "calculation",
+            "late",
+            "review",
+            "other"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/exp/correct"
+      }
+    },
+    {
+      "name": "exp.strike",
+      "description": "Strike a journal entry through with a reason. It stays legible in the journal; nothing is erased.",
+      "params": {
+        "entry": {
+          "type": "string",
+          "description": "Journal entry",
+          "required": true
+        },
+        "reason": {
+          "type": "string",
+          "description": "Why it is struck out",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/exp/strike"
+      }
+    },
+    {
+      "name": "exp.conclude",
+      "description": "The outcome (supports, refutes, inconclusive, failed), what the data show, and next steps. Your AI agent's conclusion stays proposed until a person keeps it.",
+      "params": {
+        "experiment": {
+          "type": "string",
+          "description": "Experiment",
+          "required": true
+        },
+        "outcome": {
+          "type": "string",
+          "description": "Outcome (\"\" clears it)",
+          "enum": [
+            "supports",
+            "refutes",
+            "inconclusive",
+            "failed",
+            ""
+          ]
+        },
+        "summary": {
+          "type": "string",
+          "description": "What the data show: effects with n, caveats"
+        },
+        "next_steps": {
+          "type": "string",
+          "description": "What to do next"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/exp/conclude"
+      }
+    },
+    {
+      "name": "exp.save-template",
+      "description": "Keep an experiment's objective, design and protocol as a template for any project.",
+      "params": {
+        "experiment": {
+          "type": "string",
+          "description": "Experiment",
+          "required": true
+        },
+        "name": {
+          "type": "string",
+          "description": "Template name (default: the title)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/exp/save-template"
+      }
+    },
+    {
+      "name": "exp.delete-template",
+      "description": "Remove a template (experiments made from it keep their copy). [People only.]",
+      "params": {
+        "template": {
+          "type": "string",
+          "description": "Template",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/exp/delete-template"
+      },
+      "destructive": true
+    },
+    {
+      "name": "repo.list",
+      "description": "A project's whole repository: every folder and file with its path, size, version and how the app shows it. ready false means its starter repository is not made yet (repo.init makes it).",
+      "params": {
+        "project": {
+          "type": "string",
+          "description": "Project",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/repo/list"
+      }
+    },
+    {
+      "name": "repo.get",
+      "description": "One folder (with what is directly inside it) or file (with its versions).",
+      "params": {
+        "item": {
+          "type": "string",
+          "description": "File or folder id",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/repo/get"
+      }
+    },
+    {
+      "name": "repo.versions",
+      "description": "A file's versions, newest first: who made each and when.",
+      "params": {
+        "item": {
+          "type": "string",
+          "description": "File",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/repo/versions"
+      }
+    },
+    {
+      "name": "repo.read",
+      "description": "A text file's content (up to 2 MB: notes, code, CSV, Markdown). For other files, repo.file gives where the file is on this machine.",
+      "params": {
+        "item": {
+          "type": "string",
+          "description": "File",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/repo/read"
+      }
+    },
+    {
+      "name": "repo.file",
+      "description": "The file itself, or an earlier version. Pages show pictures, PDFs, sound, video and text in place; your AI agent gets where the file is on this machine (disk_path).",
+      "params": {
+        "item": {
+          "type": "string",
+          "description": "File",
+          "required": true
+        },
+        "version": {
+          "type": "number",
+          "description": "Version number (default: the current one)"
+        },
+        "download": {
+          "type": "boolean",
+          "description": "As a download"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/repo/file"
+      }
+    },
+    {
+      "name": "repo.init",
+      "description": "Make a project's starter repository (README.md, data/raw, data/processed, code, results, docs) if it was never made. New projects get it when they are made.",
+      "params": {
+        "project": {
+          "type": "string",
+          "description": "Project",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/repo/init"
+      }
+    },
+    {
+      "name": "repo.mkdir",
+      "description": "Make a folder. A path such as \"results/figures/2026\" makes each folder that is missing.",
+      "params": {
+        "project": {
+          "type": "string",
+          "description": "Project",
+          "required": true
+        },
+        "name": {
+          "type": "string",
+          "description": "Folder name or path",
+          "required": true
+        },
+        "folder": {
+          "type": "string",
+          "description": "Inside which folder (Folder: its id or path, e.g. \"data/raw\" (\"\" or left out: the top))"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/repo/mkdir"
+      }
+    },
+    {
+      "name": "repo.upload",
+      "description": "Put files in a folder (at most 100 at a time, 1 GB each). A file whose name is already there becomes its next version; the one before is kept. People upload; your AI agent gives --paths.",
+      "params": {
+        "project": {
+          "type": "string",
+          "description": "Project",
+          "required": true
+        },
+        "folder": {
+          "type": "string",
+          "description": "Folder: its id or path, e.g. \"data/raw\" (\"\" or left out: the top)"
+        },
+        "path": {
+          "type": "string",
+          "description": "Subfolders to make under the folder first, e.g. \"run-3/plates\" (a folder upload)"
+        },
+        "paths": {
+          "type": "string",
+          "description": "JSON list of absolute paths of files on this machine (your AI agent)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/repo/upload"
+      }
+    },
+    {
+      "name": "repo.write",
+      "description": "Write a text file (notes, code, CSV, Markdown; up to 2 MB): a new one with --name in --folder, or a new version of one with --item (the one before is kept).",
+      "params": {
+        "project": {
+          "type": "string",
+          "description": "Project (for a new file)"
+        },
+        "folder": {
+          "type": "string",
+          "description": "Folder: its id or path, e.g. \"data/raw\" (\"\" or left out: the top)"
+        },
+        "name": {
+          "type": "string",
+          "description": "File name, e.g. analysis.py"
+        },
+        "item": {
+          "type": "string",
+          "description": "An existing text file (writes its next version)"
+        },
+        "content": {
+          "type": "string",
+          "description": "The whole text of the file (\"\" for an empty file)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/repo/write"
+      }
+    },
+    {
+      "name": "repo.rename",
+      "description": "Rename a file or folder (names cannot hold / \\ : * ? \" < > |).",
+      "params": {
+        "item": {
+          "type": "string",
+          "description": "File or folder",
+          "required": true
+        },
+        "name": {
+          "type": "string",
+          "description": "New name",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/repo/rename"
+      }
+    },
+    {
+      "name": "repo.move",
+      "description": "Move files and folders into another folder of the same project.",
+      "params": {
+        "items": {
+          "type": "string",
+          "description": "Item ids (JSON list or one id)",
+          "required": true
+        },
+        "to": {
+          "type": "string",
+          "description": "Into which folder (Folder: its id or path, e.g. \"data/raw\" (\"\" or left out: the top))"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/repo/move"
+      }
+    },
+    {
+      "name": "repo.delete",
+      "description": "Delete files and folders, with everything inside them and every earlier version. [Proposal: a person approves.]",
+      "params": {
+        "items": {
+          "type": "string",
+          "description": "Item ids (JSON list or one id)",
+          "required": true
+        },
+        "preview": {
+          "type": "boolean",
+          "description": "Only say what would go"
+        },
+        "why": {
+          "type": "string",
+          "description": "Your AI agent: why, in a sentence or two, for the person approving"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/repo/delete"
+      },
+      "destructive": true
+    },
+    {
+      "name": "repo.restore",
+      "description": "Make an earlier version of a file the current one; the current one is kept as a version too.",
+      "params": {
+        "item": {
+          "type": "string",
+          "description": "File",
+          "required": true
+        },
+        "version": {
+          "type": "number",
+          "description": "Version number",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/repo/restore"
+      }
+    }
+  ]
+}

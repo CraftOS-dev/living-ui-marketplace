@@ -211,6 +211,51 @@
       "folder": "inventory",
       "tags": ["inventory", "stock", "warehouse", "barcode", "purchasing", "small-business"],
       "version": "1.0.0"
+    },
+    {
+      "id": "advance-pos",
+      "livingUIVersion": 2,
+      "name": "Advance POS",
+      "description": "Full point of sale for a shop or cafe. Ring up sales from product tiles, search or a barcode scanner, then take cash, card, gift cards, store credit and loyalty points, split any way, with tips; returns and exchanges come back onto the same screen. Behind the register: products with variants and option groups, stock with history, customers with points and credit, promotions (automatic, coupon codes, buy X get Y), gift cards, a cash drawer with X and Z reports, staff PINs with roles, manager approvals and a time clock, an audit log, reports with CSV export, 58 and 80 mm receipts, and a customer-facing display. CraftBot sends receipts, reviews each closed drawer, drafts restock lists and answers questions about the business.",
+      "folder": "advance-pos",
+      "tags": ["POS", "retail", "sales", "payments", "stock", "small-business"],
+      "version": "1.0.0"
+    },
+    {
+      "id": "pos",
+      "livingUIVersion": 2,
+      "name": "POS",
+      "description": "Point of sale for cafes, restaurants and shops: a fast touch-first register with sizes and options, dine-in, takeaway and delivery orders, split payments by cash, card or QR, returns and exchanges, and open tickets for tabs and tables. Around it: a kitchen screen with an order board, a customer display, stock with low-stock marks, customers, shifts with blind cash-ups and X and Z reports, staff PINs with roles and manager approvals, a training mode, gapless receipt numbers, and tax presets for Malaysia, Singapore, Japan, Australia, New Zealand, the UK and the US. CraftBot imports menus from a photo, PDF or spreadsheet, emails receipts and writes the daily brief.",
+      "folder": "pos",
+      "tags": ["POS", "cafe", "restaurant", "sales", "kitchen", "small-business"],
+      "version": "1.0.0"
+    },
+    {
+      "id": "erp",
+      "livingUIVersion": 2,
+      "name": "ERP",
+      "description": "Run the whole business in one app: sales (quotes, orders, deliveries, invoices, credit notes), purchasing (orders, goods receipts, bills), inventory across warehouses with stock counts and reorder suggestions, manufacturing with bills of materials and builds, payments and bank reconciliation with statement import, and a double-entry ledger with chart of accounts, journals, taxes, multi-currency with live rates, month-end close, fixed assets and budgets. 12 reports with CSV export, people (directory, org chart, leave, expense claims, payroll) and projects (task boards, timesheets, billing time, profitability). Team accounts with per-module roles, approval limits and an audit trail, and a setup wizard with 22 country presets. CraftBot drafts the paperwork, reads files dropped in the Inbox, reconciles bank lines, chases overdue invoices and reviews the month-end close; postings and payments come to you as proposals to approve.",
+      "folder": "erp",
+      "tags": ["ERP", "accounting", "inventory", "sales", "payroll", "business"],
+      "version": "1.0.0"
+    },
+    {
+      "id": "cad-workshop",
+      "livingUIVersion": 2,
+      "name": "CAD Workshop",
+      "description": "Design real, editable parts for 3D printing and machining. A parametric feature tree (sketch, extrude, revolve, holes, fillets, chamfers, shell, push/pull, patterns, mirror, booleans, STEP import) driven by named parameters and built by the OpenCascade kernel on your computer. The workspace works like desktop CAD: a toolbar with shortcuts, sketch mode with snapping and typed sizes, drag handles, box select, exact measurements kept as checks that re-run on every build, undo and revert of any batch, and STEP, 3MF, STL and GLB export. CraftBot designs parts from a description, fixes failed builds and reviews a part for 3D printing, resin or CNC. The geometry engine (about 79 MB) downloads once on first run.",
+      "folder": "cad-workshop",
+      "tags": ["CAD", "3D printing", "design", "engineering", "maker"],
+      "version": "1.0.0"
+    },
+    {
+      "id": "research-os",
+      "livingUIVersion": 2,
+      "name": "Research OS",
+      "description": "A research workspace for academics: a library of papers and their PDFs (add by DOI, arXiv, PubMed, OpenAlex or ISBN; import BibTeX, RIS and CSL JSON; open-access PDFs fetched on their own), a reader with color-coded highlights, comments and area marks, and projects built around a research question with a reading list, a claims map where every piece of evidence stays tied to its exact passage, boards, to-do lists, experiments, a file repository and notes. Discovery searches the open registries with saved-search alerts and a citation map; the writing desk typesets manuscripts with LaTeX (live citations in 7 styles, tracked changes, snapshots, a PDF built on your computer, Word and LaTeX export), and systematic reviews get blinded dual screening with a PRISMA 2020 flow. CraftBot identifies PDFs, maps claims, answers questions with quotes, runs deep searches, drafts passages as tracked changes and screens records, with everything it judges waiting for your review.",
+      "folder": "research-os",
+      "tags": ["research", "academic", "papers", "writing", "reference manager", "productivity"],
+      "version": "1.0.0"
     }
   ]
 }

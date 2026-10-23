@@ -1,0 +1,1521 @@
+{
+  "opsVersion": 1,
+  "operations": [
+    {
+      "name": "health",
+      "description": "Liveness check (PocketBase built-in).",
+      "system": true,
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/health"
+      }
+    },
+    {
+      "name": "ops.list",
+      "description": "Return this operations manifest.",
+      "system": true,
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/_ops"
+      }
+    },
+    {
+      "name": "app.guide",
+      "description": "START HERE: conventions (mm, Z up, face and edge keys, references, expressions), feature kinds, error codes and ready-to-run recipes.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/app/guide"
+      }
+    },
+    {
+      "name": "app.status",
+      "description": "Engine state (installed, running, busy, and setup: the one-off download of the engine on a new computer, with state ready, pending, downloading, installing, failed or off and its progress), the build running now, queued builds, parts by status and open requests.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/app/status"
+      }
+    },
+    {
+      "name": "settings.get",
+      "description": "Units, navigation, projection, grid, materials with densities, default material, how long agent edits wait.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/settings/get"
+      }
+    },
+    {
+      "name": "settings.update",
+      "description": "Change settings: display_unit, navigation, projection, show_grid, materials (JSON list of {name, density}), default_material, agent_wait_s.",
+      "params": {
+        "display_unit": {
+          "type": "string",
+          "description": "mm or in (display only; data is always mm)",
+          "enum": [
+            "mm",
+            "in"
+          ]
+        },
+        "navigation": {
+          "type": "string",
+          "description": "Which mouse button rotates the view",
+          "enum": [
+            "left_rotates",
+            "right_rotates",
+            "middle_rotates"
+          ]
+        },
+        "projection": {
+          "type": "string",
+          "description": "perspective or orthographic",
+          "enum": [
+            "perspective",
+            "orthographic"
+          ]
+        },
+        "show_grid": {
+          "type": "boolean",
+          "description": "Show the ground grid"
+        },
+        "materials": {
+          "type": "string",
+          "description": "JSON list: [{\"name\": \"PLA\", \"density\": 1.24}] (g/cm3)"
+        },
+        "default_material": {
+          "type": "string",
+          "description": "Material for new parts (a name from materials)"
+        },
+        "agent_wait_s": {
+          "type": "number",
+          "description": "Default seconds an agent edit waits for its build (0-25)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/settings/update"
+      }
+    },
+    {
+      "name": "jobs.run",
+      "description": "Run maintenance now: prune (old builds and pictures), requeue (interrupted builds), engine_start (load the geometry engine ahead of a series of edits; a no-op when it is running), engine_test (start the engine and time a sample part) or engine_install (start, or retry after a failure, the one-off download of the geometry engine; it runs in the background and app.status shows its progress).",
+      "params": {
+        "job": {
+          "type": "string",
+          "description": "Which job",
+          "required": true,
+          "enum": [
+            "prune",
+            "requeue",
+            "engine_start",
+            "engine_test",
+            "engine_install"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/jobs/run"
+      }
+    },
+    {
+      "name": "parts.list",
+      "description": "Parts with status, size, volume, mass, feature count and thumbnail; pinned first.",
+      "params": {
+        "q": {
+          "type": "string",
+          "description": "Search names and descriptions"
+        },
+        "status": {
+          "type": "string",
+          "description": "Only this status",
+          "enum": [
+            "empty",
+            "queued",
+            "building",
+            "ok",
+            "warning",
+            "failed"
+          ]
+        },
+        "pinned": {
+          "type": "boolean",
+          "description": "Only pinned parts"
+        },
+        "archived": {
+          "type": "boolean",
+          "description": "Archived parts instead"
+        },
+        "sort": {
+          "type": "string",
+          "description": "updated (default), name or created",
+          "enum": [
+            "updated",
+            "name",
+            "created"
+          ]
+        },
+        "limit": {
+          "type": "number",
+          "description": "Page size"
+        },
+        "page": {
+          "type": "number",
+          "description": "Page from 1"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/parts/list"
+      }
+    },
+    {
+      "name": "parts.get",
+      "description": "One part: parameters with values, features in order with status and errors, rollback marker, current build (summary, files), pending build, selection, checks, exports and files.",
+      "params": {
+        "part": {
+          "type": "string",
+          "description": "The part: its id or exact name",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/parts/get"
+      }
+    },
+    {
+      "name": "parts.create",
+      "description": "New empty part.",
+      "params": {
+        "name": {
+          "type": "string",
+          "description": "Unique name",
+          "required": true
+        },
+        "description": {
+          "type": "string",
+          "description": "What it is for"
+        },
+        "material": {
+          "type": "string",
+          "description": "A material from settings (for mass)"
+        },
+        "density": {
+          "type": "number",
+          "description": "Own density in g/cm3 (overrides the material)"
+        },
+        "color": {
+          "type": "string",
+          "description": "Body color",
+          "enum": [
+            "neutral",
+            "accent",
+            "blue",
+            "green",
+            "amber",
+            "red",
+            "violet",
+            "graphite"
+          ]
+        },
+        "notes": {
+          "type": "string",
+          "description": "Notes"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/parts/create"
+      }
+    },
+    {
+      "name": "parts.update",
+      "description": "Rename or change a part: name, description, material, density, color, pinned, archived, notes. Material and density rebuild for mass.",
+      "params": {
+        "part": {
+          "type": "string",
+          "description": "The part: its id or exact name",
+          "required": true
+        },
+        "name": {
+          "type": "string",
+          "description": "New name"
+        },
+        "description": {
+          "type": "string",
+          "description": "Description"
+        },
+        "material": {
+          "type": "string",
+          "description": "Material name"
+        },
+        "density": {
+          "type": "number",
+          "description": "Own density g/cm3 (0 = use the material)"
+        },
+        "color": {
+          "type": "string",
+          "description": "Body color",
+          "enum": [
+            "neutral",
+            "accent",
+            "blue",
+            "green",
+            "amber",
+            "red",
+            "violet",
+            "graphite"
+          ]
+        },
+        "pinned": {
+          "type": "boolean",
+          "description": "Pin to the top"
+        },
+        "archived": {
+          "type": "boolean",
+          "description": "Archive (hidden from the list)"
+        },
+        "notes": {
+          "type": "string",
+          "description": "Notes"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/parts/update"
+      }
+    },
+    {
+      "name": "parts.duplicate",
+      "description": "Copy a part (parameters, features and imported files) under a new name.",
+      "params": {
+        "part": {
+          "type": "string",
+          "description": "The part: its id or exact name",
+          "required": true
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the copy (default \"<name> copy\")"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/parts/duplicate"
+      }
+    },
+    {
+      "name": "params.set",
+      "description": "Create or change a parameter (a named number features use as {\"expr\": \"name\"}); rebuilds and answers the edit result.",
+      "params": {
+        "part": {
+          "type": "string",
+          "description": "The part: its id or exact name",
+          "required": true
+        },
+        "name": {
+          "type": "string",
+          "description": "Parameter name, e.g. wall",
+          "required": true
+        },
+        "value": {
+          "type": "string",
+          "description": "A number or an expression of other parameters, e.g. 3 or \"wall * 2\""
+        },
+        "kind": {
+          "type": "string",
+          "description": "length (mm), angle (deg), count or ratio",
+          "enum": [
+            "length",
+            "angle",
+            "count",
+            "ratio"
+          ]
+        },
+        "min": {
+          "type": "number",
+          "description": "Lowest allowed value"
+        },
+        "max": {
+          "type": "number",
+          "description": "Highest allowed value"
+        },
+        "clear_bounds": {
+          "type": "boolean",
+          "description": "Remove min and max"
+        },
+        "comment": {
+          "type": "string",
+          "description": "What it controls"
+        },
+        "rename": {
+          "type": "string",
+          "description": "New name (expressions and features are updated)"
+        },
+        "wait_s": {
+          "type": "number",
+          "description": "Seconds to wait for the build (0-25; the agent waits 20 by default)"
+        },
+        "on_fail": {
+          "type": "string",
+          "description": "When the build fails because of this edit: revert it (default for the agent) or keep it",
+          "enum": [
+            "revert",
+            "keep"
+          ]
+        },
+        "dry_run": {
+          "type": "boolean",
+          "description": "Build the edit without saving it and answer the same result"
+        },
+        "expected_hash": {
+          "type": "string",
+          "description": "The part's tree_hash you read; the edit is refused if the part changed since"
+        },
+        "batch": {
+          "type": "string",
+          "description": "Join this batch id (one revertible group)"
+        },
+        "new_batch": {
+          "type": "boolean",
+          "description": "Start a new batch instead of joining your open one"
+        },
+        "note": {
+          "type": "string",
+          "description": "Why, in a few words (shown in the history)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/params/set"
+      }
+    },
+    {
+      "name": "features.schema",
+      "description": "The params of a feature kind with examples (--kind extrude), or the list of kinds; --full true returns every kind and sketch item type.",
+      "params": {
+        "kind": {
+          "type": "string",
+          "description": "A feature kind",
+          "enum": [
+            "sketch",
+            "extrude",
+            "revolve",
+            "primitive",
+            "hole",
+            "fillet",
+            "chamfer",
+            "shell",
+            "pattern_linear",
+            "pattern_circular",
+            "mirror",
+            "boolean",
+            "transform",
+            "import_step"
+          ]
+        },
+        "full": {
+          "type": "boolean",
+          "description": "Every kind in full"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/features/schema"
+      }
+    },
+    {
+      "name": "features.add",
+      "description": "Add a feature (inserted at the rollback marker, or after --after); rebuilds and answers status, delta, per-feature results and errors.",
+      "params": {
+        "part": {
+          "type": "string",
+          "description": "The part: its id or exact name",
+          "required": true
+        },
+        "kind": {
+          "type": "string",
+          "description": "Feature kind",
+          "required": true,
+          "enum": [
+            "sketch",
+            "extrude",
+            "revolve",
+            "primitive",
+            "hole",
+            "fillet",
+            "chamfer",
+            "shell",
+            "pattern_linear",
+            "pattern_circular",
+            "mirror",
+            "boolean",
+            "transform",
+            "import_step"
+          ]
+        },
+        "params": {
+          "type": "string",
+          "description": "JSON object of the kind's params (features.schema --kind <kind>)"
+        },
+        "name": {
+          "type": "string",
+          "description": "Feature name (default: s1, ext1, hole1 ...)"
+        },
+        "after": {
+          "type": "string",
+          "description": "Insert after this feature (or start)"
+        },
+        "suppressed": {
+          "type": "boolean",
+          "description": "Add it suppressed"
+        },
+        "feature_note": {
+          "type": "string",
+          "description": "A note on the feature"
+        },
+        "wait_s": {
+          "type": "number",
+          "description": "Seconds to wait for the build (0-25; the agent waits 20 by default)"
+        },
+        "on_fail": {
+          "type": "string",
+          "description": "When the build fails because of this edit: revert it (default for the agent) or keep it",
+          "enum": [
+            "revert",
+            "keep"
+          ]
+        },
+        "dry_run": {
+          "type": "boolean",
+          "description": "Build the edit without saving it and answer the same result"
+        },
+        "expected_hash": {
+          "type": "string",
+          "description": "The part's tree_hash you read; the edit is refused if the part changed since"
+        },
+        "batch": {
+          "type": "string",
+          "description": "Join this batch id (one revertible group)"
+        },
+        "new_batch": {
+          "type": "boolean",
+          "description": "Start a new batch instead of joining your open one"
+        },
+        "note": {
+          "type": "string",
+          "description": "Why, in a few words (shown in the history)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/features/add"
+      }
+    },
+    {
+      "name": "features.update",
+      "description": "Change a feature: params (merged into the current ones unless --merge false), unset keys, rename (references follow), suppress or restore.",
+      "params": {
+        "part": {
+          "type": "string",
+          "description": "The part: its id or exact name",
+          "required": true
+        },
+        "feature": {
+          "type": "string",
+          "description": "Feature name or id",
+          "required": true
+        },
+        "params": {
+          "type": "string",
+          "description": "JSON object of params to change"
+        },
+        "merge": {
+          "type": "boolean",
+          "description": "Merge into the current params (default true)"
+        },
+        "unset": {
+          "type": "string",
+          "description": "JSON list of param keys to remove"
+        },
+        "name": {
+          "type": "string",
+          "description": "New name"
+        },
+        "suppressed": {
+          "type": "boolean",
+          "description": "Suppress (skip) or restore"
+        },
+        "feature_note": {
+          "type": "string",
+          "description": "Note on the feature"
+        },
+        "wait_s": {
+          "type": "number",
+          "description": "Seconds to wait for the build (0-25; the agent waits 20 by default)"
+        },
+        "on_fail": {
+          "type": "string",
+          "description": "When the build fails because of this edit: revert it (default for the agent) or keep it",
+          "enum": [
+            "revert",
+            "keep"
+          ]
+        },
+        "dry_run": {
+          "type": "boolean",
+          "description": "Build the edit without saving it and answer the same result"
+        },
+        "expected_hash": {
+          "type": "string",
+          "description": "The part's tree_hash you read; the edit is refused if the part changed since"
+        },
+        "batch": {
+          "type": "string",
+          "description": "Join this batch id (one revertible group)"
+        },
+        "new_batch": {
+          "type": "boolean",
+          "description": "Start a new batch instead of joining your open one"
+        },
+        "note": {
+          "type": "string",
+          "description": "Why, in a few words (shown in the history)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/features/update"
+      }
+    },
+    {
+      "name": "features.move",
+      "description": "Move a feature after another (or to the start); refused when it would use something made after it.",
+      "params": {
+        "part": {
+          "type": "string",
+          "description": "The part: its id or exact name",
+          "required": true
+        },
+        "feature": {
+          "type": "string",
+          "description": "Feature to move",
+          "required": true
+        },
+        "after": {
+          "type": "string",
+          "description": "Feature to put it after, or start",
+          "required": true
+        },
+        "wait_s": {
+          "type": "number",
+          "description": "Seconds to wait for the build (0-25; the agent waits 20 by default)"
+        },
+        "on_fail": {
+          "type": "string",
+          "description": "When the build fails because of this edit: revert it (default for the agent) or keep it",
+          "enum": [
+            "revert",
+            "keep"
+          ]
+        },
+        "dry_run": {
+          "type": "boolean",
+          "description": "Build the edit without saving it and answer the same result"
+        },
+        "expected_hash": {
+          "type": "string",
+          "description": "The part's tree_hash you read; the edit is refused if the part changed since"
+        },
+        "batch": {
+          "type": "string",
+          "description": "Join this batch id (one revertible group)"
+        },
+        "new_batch": {
+          "type": "boolean",
+          "description": "Start a new batch instead of joining your open one"
+        },
+        "note": {
+          "type": "string",
+          "description": "Why, in a few words (shown in the history)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/features/move"
+      }
+    },
+    {
+      "name": "features.roll-to",
+      "description": "Move the rollback marker: only features up to it are built (to inspect or insert earlier); to=end builds everything.",
+      "params": {
+        "part": {
+          "type": "string",
+          "description": "The part: its id or exact name",
+          "required": true
+        },
+        "to": {
+          "type": "string",
+          "description": "A feature name, start or end",
+          "required": true
+        },
+        "wait_s": {
+          "type": "number",
+          "description": "Seconds to wait for the build (0-25; the agent waits 20 by default)"
+        },
+        "on_fail": {
+          "type": "string",
+          "description": "When the build fails because of this edit: revert it (default for the agent) or keep it",
+          "enum": [
+            "revert",
+            "keep"
+          ]
+        },
+        "dry_run": {
+          "type": "boolean",
+          "description": "Build the edit without saving it and answer the same result"
+        },
+        "expected_hash": {
+          "type": "string",
+          "description": "The part's tree_hash you read; the edit is refused if the part changed since"
+        },
+        "batch": {
+          "type": "string",
+          "description": "Join this batch id (one revertible group)"
+        },
+        "new_batch": {
+          "type": "boolean",
+          "description": "Start a new batch instead of joining your open one"
+        },
+        "note": {
+          "type": "string",
+          "description": "Why, in a few words (shown in the history)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/features/roll-to"
+      }
+    },
+    {
+      "name": "edits.batch",
+      "description": "Several edits as ONE change with one build: steps is a JSON list of {\"op\": \"params.set\" | \"features.add\" | \"features.update\" | \"features.delete\" | \"features.move\", ...the same params as those ops}.",
+      "params": {
+        "part": {
+          "type": "string",
+          "description": "The part: its id or exact name",
+          "required": true
+        },
+        "steps": {
+          "type": "string",
+          "description": "JSON list of steps",
+          "required": true
+        },
+        "wait_s": {
+          "type": "number",
+          "description": "Seconds to wait for the build (0-25; the agent waits 20 by default)"
+        },
+        "on_fail": {
+          "type": "string",
+          "description": "When the build fails because of this edit: revert it (default for the agent) or keep it",
+          "enum": [
+            "revert",
+            "keep"
+          ]
+        },
+        "dry_run": {
+          "type": "boolean",
+          "description": "Build the edit without saving it and answer the same result"
+        },
+        "expected_hash": {
+          "type": "string",
+          "description": "The part's tree_hash you read; the edit is refused if the part changed since"
+        },
+        "batch": {
+          "type": "string",
+          "description": "Join this batch id (one revertible group)"
+        },
+        "new_batch": {
+          "type": "boolean",
+          "description": "Start a new batch instead of joining your open one"
+        },
+        "note": {
+          "type": "string",
+          "description": "Why, in a few words (shown in the history)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/edits/batch"
+      }
+    },
+    {
+      "name": "builds.get",
+      "description": "The current build of a part (status, per-feature results, error with candidates, summary, file URLs and the topology file path) and any pending build; or one build by id.",
+      "params": {
+        "part": {
+          "type": "string",
+          "description": "The part (id or name)"
+        },
+        "build": {
+          "type": "string",
+          "description": "A build id instead"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/builds/get"
+      }
+    },
+    {
+      "name": "builds.run",
+      "description": "Build the part now (normally builds follow every edit); force=true rebuilds even when nothing changed.",
+      "params": {
+        "part": {
+          "type": "string",
+          "description": "The part: its id or exact name",
+          "required": true
+        },
+        "force": {
+          "type": "boolean",
+          "description": "Rebuild even if a build of this tree exists"
+        },
+        "wait_s": {
+          "type": "number",
+          "description": "Seconds to wait (0-25)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/builds/run"
+      }
+    },
+    {
+      "name": "builds.cancel",
+      "description": "Cancel the part's queued builds and stop its running one.",
+      "params": {
+        "part": {
+          "type": "string",
+          "description": "The part: its id or exact name",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/builds/cancel"
+      }
+    },
+    {
+      "name": "model.describe",
+      "description": "Keys and geometry of faces and edges (type, area or length, center, normal or direction, radius, the two faces of an edge, convexity) from the current build.",
+      "params": {
+        "part": {
+          "type": "string",
+          "description": "The part: its id or exact name",
+          "required": true
+        },
+        "of": {
+          "type": "string",
+          "description": "faces (default), edges, bodies or all",
+          "enum": [
+            "faces",
+            "edges",
+            "bodies",
+            "all"
+          ]
+        },
+        "feature": {
+          "type": "string",
+          "description": "Only what this feature made"
+        },
+        "type": {
+          "type": "string",
+          "description": "Only this geometry type (plane, cylinder, line, circle ...)"
+        },
+        "body": {
+          "type": "string",
+          "description": "Only this body"
+        },
+        "limit": {
+          "type": "number",
+          "description": "Page size (default 200)"
+        },
+        "page": {
+          "type": "number",
+          "description": "Page from 1"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/model/describe"
+      }
+    },
+    {
+      "name": "model.measure",
+      "description": "Exact measurement from the kernel: one entity (area, length, radius, center, normal), or two (minimum distance with dx dy dz, angle, gap between parallel faces, axis distance).",
+      "params": {
+        "part": {
+          "type": "string",
+          "description": "The part: its id or exact name",
+          "required": true
+        },
+        "a": {
+          "type": "string",
+          "description": "A key (ext1.cap_end, an edge key, a body name) or a JSON reference",
+          "required": true
+        },
+        "b": {
+          "type": "string",
+          "description": "A second key or reference"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/model/measure"
+      }
+    },
+    {
+      "name": "model.properties",
+      "description": "Volume, surface area, bounding box, center of mass, mass (from the material density) per body and in total.",
+      "params": {
+        "part": {
+          "type": "string",
+          "description": "The part: its id or exact name",
+          "required": true
+        },
+        "density": {
+          "type": "number",
+          "description": "Density g/cm3 to use instead of the material"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/model/properties"
+      }
+    },
+    {
+      "name": "model.check",
+      "description": "Validity of every body (kernel check, closed, separate solids, sliver faces, short edges) and overlapping bodies.",
+      "params": {
+        "part": {
+          "type": "string",
+          "description": "The part: its id or exact name",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/model/check"
+      }
+    },
+    {
+      "name": "refs.resolve",
+      "description": "Test a reference against the current model: count, whether it meets expect, and the faces or edges it selects.",
+      "params": {
+        "part": {
+          "type": "string",
+          "description": "The part: its id or exact name",
+          "required": true
+        },
+        "ref": {
+          "type": "string",
+          "description": "JSON reference, e.g. {\"edges\": {\"created_by\": \"ext1\", \"parallel_to\": \"Z\"}, \"expect\": 4}",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/refs/resolve"
+      }
+    },
+    {
+      "name": "views.render",
+      "description": "Orthographic PNG of the part for you to look at (one view, or a 2x2 sheet of front, right, top, iso by default), with highlighted keys and the scale of each tile; returns the file path.",
+      "params": {
+        "part": {
+          "type": "string",
+          "description": "The part: its id or exact name",
+          "required": true
+        },
+        "views": {
+          "type": "string",
+          "description": "JSON list of 1-4 views: front back left right top bottom iso iso_back"
+        },
+        "view": {
+          "type": "string",
+          "description": "One view instead of views",
+          "enum": [
+            "front",
+            "back",
+            "left",
+            "right",
+            "top",
+            "bottom",
+            "iso",
+            "iso_back"
+          ]
+        },
+        "highlight": {
+          "type": "string",
+          "description": "JSON list of face or edge keys to color"
+        },
+        "size": {
+          "type": "number",
+          "description": "Pixels (256-1600, default 768)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/views/render"
+      }
+    },
+    {
+      "name": "compare.builds",
+      "description": "What a change did: added and removed volume (and meshes the app shows) between two builds, or before and after a batch of changes.",
+      "params": {
+        "part": {
+          "type": "string",
+          "description": "The part: its id or exact name",
+          "required": true
+        },
+        "batch": {
+          "type": "string",
+          "description": "A batch id from changes.list"
+        },
+        "from": {
+          "type": "string",
+          "description": "Build id before"
+        },
+        "to": {
+          "type": "string",
+          "description": "Build id after (default the current one)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/compare/builds"
+      }
+    },
+    {
+      "name": "exports.create",
+      "description": "Write the part to a file: step (AP214, re-read to verify), stl, 3mf (one object per body) or glb; returns the absolute path.",
+      "params": {
+        "part": {
+          "type": "string",
+          "description": "The part: its id or exact name",
+          "required": true
+        },
+        "format": {
+          "type": "string",
+          "description": "File format",
+          "required": true,
+          "enum": [
+            "step",
+            "stl",
+            "3mf",
+            "glb"
+          ]
+        },
+        "tolerance": {
+          "type": "number",
+          "description": "Mesh tolerance in mm for stl, 3mf, glb (default 0.02)"
+        },
+        "name": {
+          "type": "string",
+          "description": "File name without extension (default the part name)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/exports/create"
+      }
+    },
+    {
+      "name": "exports.list",
+      "description": "Exported files with format, size, who made them, whether the part changed since, and absolute path.",
+      "params": {
+        "part": {
+          "type": "string",
+          "description": "Only this part"
+        },
+        "format": {
+          "type": "string",
+          "description": "Only this format",
+          "enum": [
+            "step",
+            "stl",
+            "3mf",
+            "glb"
+          ]
+        },
+        "limit": {
+          "type": "number",
+          "description": "Page size"
+        },
+        "page": {
+          "type": "number",
+          "description": "Page from 1"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/exports/list"
+      }
+    },
+    {
+      "name": "changes.list",
+      "description": "The history: batches of changes newest first (who, when, note, each change with before and after), across parts or for one.",
+      "params": {
+        "part": {
+          "type": "string",
+          "description": "Only this part"
+        },
+        "batch": {
+          "type": "string",
+          "description": "One batch"
+        },
+        "actor": {
+          "type": "string",
+          "description": "Only you, agent or system",
+          "enum": [
+            "you",
+            "agent",
+            "system"
+          ]
+        },
+        "limit": {
+          "type": "number",
+          "description": "Batches per page"
+        },
+        "page": {
+          "type": "number",
+          "description": "Page from 1"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/changes/list"
+      }
+    },
+    {
+      "name": "changes.revert",
+      "description": "Undo a whole batch in one step (as a new batch, which can itself be reverted). preview=true shows what it would undo and any conflicts.",
+      "params": {
+        "batch": {
+          "type": "string",
+          "description": "Batch id",
+          "required": true
+        },
+        "preview": {
+          "type": "boolean",
+          "description": "Only show what it would do"
+        },
+        "force": {
+          "type": "boolean",
+          "description": "Revert even if later changes touched the same features"
+        },
+        "wait_s": {
+          "type": "number",
+          "description": "Seconds to wait for the build (0-25; the agent waits 20 by default)"
+        },
+        "on_fail": {
+          "type": "string",
+          "description": "When the build fails because of this edit: revert it (default for the agent) or keep it",
+          "enum": [
+            "revert",
+            "keep"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/changes/revert"
+      }
+    },
+    {
+      "name": "selection.get",
+      "description": "What the person selected in the viewer: keys split into faces, edges and bodies, plus ready-made references (faces_ref, edges_ref).",
+      "params": {
+        "part": {
+          "type": "string",
+          "description": "The part: its id or exact name",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/selection/get"
+      }
+    },
+    {
+      "name": "selection.set",
+      "description": "Select faces, edges or bodies in the viewer (to show the person what you mean), or clear.",
+      "params": {
+        "part": {
+          "type": "string",
+          "description": "The part: its id or exact name",
+          "required": true
+        },
+        "keys": {
+          "type": "string",
+          "description": "JSON list of keys"
+        },
+        "clear": {
+          "type": "boolean",
+          "description": "Clear the selection"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/selection/set"
+      }
+    },
+    {
+      "name": "checks.list",
+      "description": "The part's checks with their last result (pass, fail, could not run) and measured value.",
+      "params": {
+        "part": {
+          "type": "string",
+          "description": "The part: its id or exact name",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/checks/list"
+      }
+    },
+    {
+      "name": "checks.save",
+      "description": "Add or change a check that runs on every build: bbox_x/y/z, volume, area, mass, solid_count, valid, distance (closest gap), center_distance (between hole axes or centers) or radius (with refs), face_count, fits_within (box).",
+      "params": {
+        "part": {
+          "type": "string",
+          "description": "The part: its id or exact name",
+          "required": true
+        },
+        "check": {
+          "type": "string",
+          "description": "Existing check id or name to change"
+        },
+        "name": {
+          "type": "string",
+          "description": "What it checks, e.g. \"Fits the 80 mm case\""
+        },
+        "kind": {
+          "type": "string",
+          "description": "Check kind",
+          "enum": [
+            "bbox_x",
+            "bbox_y",
+            "bbox_z",
+            "volume",
+            "area",
+            "mass",
+            "solid_count",
+            "valid",
+            "distance",
+            "center_distance",
+            "radius",
+            "face_count",
+            "fits_within"
+          ]
+        },
+        "op": {
+          "type": "string",
+          "description": "eq, le, ge or between",
+          "enum": [
+            "eq",
+            "le",
+            "ge",
+            "between"
+          ]
+        },
+        "target": {
+          "type": "number",
+          "description": "Target value (mm, mm3, g ...)"
+        },
+        "target_max": {
+          "type": "number",
+          "description": "Upper value for between"
+        },
+        "tolerance": {
+          "type": "number",
+          "description": "Allowed difference for eq"
+        },
+        "refs": {
+          "type": "string",
+          "description": "JSON {\"a\": key or reference, \"b\": ...} for distance, center_distance and radius"
+        },
+        "box": {
+          "type": "string",
+          "description": "JSON [x, y, z] for fits_within"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/checks/save"
+      }
+    },
+    {
+      "name": "checks.run",
+      "description": "Run the part's checks now and list the results.",
+      "params": {
+        "part": {
+          "type": "string",
+          "description": "The part: its id or exact name",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/checks/run"
+      }
+    },
+    {
+      "name": "assets.add",
+      "description": "Add a STEP file to a part (by absolute path) so features.add --kind import_step can bring it in.",
+      "params": {
+        "part": {
+          "type": "string",
+          "description": "The part: its id or exact name",
+          "required": true
+        },
+        "path": {
+          "type": "string",
+          "description": "Absolute path of the .step or .stp file"
+        },
+        "name": {
+          "type": "string",
+          "description": "Display name"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/assets/add"
+      }
+    },
+    {
+      "name": "assets.list",
+      "description": "STEP files added to a part.",
+      "params": {
+        "part": {
+          "type": "string",
+          "description": "The part: its id or exact name",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/assets/list"
+      }
+    },
+    {
+      "name": "requests.create",
+      "description": "A request for the AI agent from the app (design, repair or review); stored and sent as the matching trigger.",
+      "params": {
+        "kind": {
+          "type": "string",
+          "description": "design, repair or review",
+          "enum": [
+            "design",
+            "repair",
+            "review"
+          ]
+        },
+        "part": {
+          "type": "string",
+          "description": "The part (required for repair and review)"
+        },
+        "title": {
+          "type": "string",
+          "description": "Short title"
+        },
+        "body": {
+          "type": "string",
+          "description": "What is wanted"
+        },
+        "process": {
+          "type": "string",
+          "description": "For review: how it will be made",
+          "enum": [
+            "fdm_print",
+            "resin_print",
+            "cnc_3axis",
+            "general"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/requests/create"
+      }
+    },
+    {
+      "name": "requests.list",
+      "description": "Requests to the AI agent, newest first.",
+      "params": {
+        "part": {
+          "type": "string",
+          "description": "Only this part"
+        },
+        "status": {
+          "type": "string",
+          "description": "Only this status",
+          "enum": [
+            "sent",
+            "working",
+            "done",
+            "failed"
+          ]
+        },
+        "limit": {
+          "type": "number",
+          "description": "How many"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/requests/list"
+      }
+    },
+    {
+      "name": "requests.get",
+      "description": "One request with its part's full detail (as parts.get).",
+      "params": {
+        "brief": {
+          "type": "string",
+          "description": "Request id",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/requests/get"
+      }
+    },
+    {
+      "name": "requests.update",
+      "description": "Report on a request: status working, done or failed, and the result text the person reads.",
+      "params": {
+        "brief": {
+          "type": "string",
+          "description": "Request id",
+          "required": true
+        },
+        "status": {
+          "type": "string",
+          "description": "New status",
+          "enum": [
+            "working",
+            "done",
+            "failed"
+          ]
+        },
+        "result": {
+          "type": "string",
+          "description": "What was done, or the question for the person"
+        },
+        "part": {
+          "type": "string",
+          "description": "The part it produced (when it had none)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/requests/update"
+      }
+    },
+    {
+      "name": "records.delete",
+      "description": "Delete any record (parts, features, parameters, builds, exports, changes, checks, assets, briefs, compares, selections); preview=true lists what it takes along. Features and parameters are journaled edits.",
+      "params": {
+        "collection": {
+          "type": "string",
+          "description": "Collection",
+          "required": true,
+          "enum": [
+            "parts",
+            "features",
+            "parameters",
+            "builds",
+            "exports",
+            "changes",
+            "checks",
+            "assets",
+            "briefs",
+            "compares",
+            "selections"
+          ]
+        },
+        "id": {
+          "type": "string",
+          "description": "Record id (a part may also be its name)",
+          "required": true
+        },
+        "preview": {
+          "type": "boolean",
+          "description": "Only show what it would remove"
+        },
+        "reason": {
+          "type": "string",
+          "description": "Why (logged)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/records/delete"
+      },
+      "destructive": true
+    }
+  ]
+}
