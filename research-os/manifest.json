@@ -1,0 +1,48 @@
+{
+  "id": "{{PROJECT_ID}}",
+  "name": "{{PROJECT_NAME}}",
+  "description": "{{PROJECT_DESCRIPTION}}",
+  "agentAppVersion": 2,
+  "createdAt": "{{CREATED_AT}}",
+  "authMode": "none",
+  "port": "{{PORT}}",
+  "pbVersion": "0.39.7",
+  "kitVersion": "0.6.0",
+  "craftbotVersion": "1.4.4",
+  "pipeline": {
+    "install": "npm install --ignore-scripts --prefix frontend",
+    "build": "npm run build --prefix frontend",
+    "start": "pocketbase serve --http=127.0.0.1:{{PORT}} --dir pb/pb_data --hooksDir pb/pb_hooks --migrationsDir pb/pb_migrations --publicDir pb/pb_public",
+    "health": "/api/health"
+  },
+  "capabilities": {
+    "external_hosts": [
+      "api.crossref.org",
+      "api.openalex.org",
+      "arxiv.org",
+      "doi.org",
+      "eutils.ncbi.nlm.nih.gov",
+      "export.arxiv.org",
+      "openlibrary.org",
+      "pubmed.ncbi.nlm.nih.gov"
+    ],
+    "triggers": [
+      "access_requested",
+      "claims_requested",
+      "draft_requested",
+      "experiment_requested",
+      "feed_review",
+      "ocr_requested",
+      "papers_waiting",
+      "proposal_returned",
+      "question_asked",
+      "references_requested",
+      "responses_requested",
+      "screening_requested",
+      "search_requested",
+      "support_check_requested",
+      "task_assigned"
+    ]
+  },
+  "adapterVersion": "1.9.0"
+}

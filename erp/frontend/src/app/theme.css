@@ -1,0 +1,390 @@
+/*
+ * ERP visual system (the family of the Expenses tracker and Inventory).
+ *
+ * A warm, soft workspace: a canvas holding one app shell with large rounded
+ * corners, light and sand cards, one dark card per screen at most, ink
+ * primary pills with an accent dot, and the theme's accent for the current
+ * thing. No borders on cards, generous radii, Manrope.
+ *
+ * One type scale: 12 caption, 13 secondary, 14 UI, 15 card titles and
+ * reading, 26 page titles and headline numbers. Hierarchy comes from weight
+ * and color. Spacing on a 4px grid.
+ *
+ * Every color follows the host theme. lib/themeColors.ts reads the kit's
+ * theme tokens (--agent-app-bg, -surface, -text, -muted, -border, -accent,
+ * -accent-contrast), derives the --erp-* tokens with contrast checks, and
+ * re-derives them whenever the host switches the theme pack, light or dark
+ * mode, or custom colors. Only the state colors (green good, amber waiting,
+ * red overdue or wrong) are fixed, because they carry meaning; their text
+ * variants are derived so they read on every theme.
+ */
+
+/* Shape and type are the app's own (themes never set them); this selector
+ * out-ranks the kit's :root[data-theme] defaults. */
+html:root,
+html:root[data-theme='light'],
+html:root[data-theme='dark'] {
+  --agent-app-radius: 14px;
+  --agent-app-font: 'Manrope Variable', Manrope, system-ui, sans-serif;
+}
+
+html:root {
+  /* The accent and muted text as they read on ordinary surfaces. */
+  --erp-accent: var(--erp-accent-base);
+  --erp-on-accent: var(--erp-on-accent-base);
+  --erp-muted: var(--erp-muted-base);
+  --erp-red-text: var(--erp-red-text-base);
+  --erp-track: var(--erp-line);
+
+  /* Fixed state colors (fills); their text variants are derived. */
+  --erp-red: #de4b33;
+  --erp-green: #4f9a6c;
+  --erp-amber: #e2a43a;
+
+  /* Documents preview as printed: black on white paper. */
+  --erp-paper: #ffffff;
+  --erp-paper-ink: #111111;
+  --erp-paper-muted: #5b5b5b;
+  --erp-paper-line: #e4e4e4;
+
+  --erp-shadow: 0 24px 48px -28px rgba(0, 0, 0, 0.35);
+  --erp-pop-shadow: 0 20px 50px -20px rgba(29, 28, 26, 0.45);
+}
+
+html:root,
+html:root[data-theme='light'] {
+  color-scheme: light;
+}
+
+html:root[data-theme='dark'] {
+  color-scheme: dark;
+  --erp-shadow: 0 24px 48px -28px rgba(0, 0, 0, 0.8);
+  --erp-pop-shadow: 0 20px 50px -20px rgba(0, 0, 0, 0.85);
+}
+
+/* Surface scopes: inside them the accent and muted text switch to the
+ * variants derived for that background, so nothing sits on its own color. */
+.erp-on-sand {
+  --erp-muted: var(--erp-muted-sand);
+  --erp-track: var(--erp-track-sand);
+}
+.erp-on-dark {
+  --erp-accent: var(--erp-accent-dark);
+  --erp-on-accent: var(--erp-on-accent-dark);
+  --erp-muted: var(--erp-on-dark-muted);
+  --erp-red-text: var(--erp-red-on-dark);
+}
+.erp-on-ink {
+  --erp-accent: var(--erp-accent-ink);
+  --erp-on-accent: var(--erp-on-accent-ink);
+}
+.erp-on-card {
+  --erp-accent: var(--erp-accent-base);
+  --erp-on-accent: var(--erp-on-accent-base);
+  --erp-muted: var(--erp-muted-base);
+  --erp-red-text: var(--erp-red-text-base);
+  --erp-track: var(--erp-line);
+}
+
+html,
+body {
+  background: var(--erp-canvas);
+  color: var(--erp-ink);
+  font-family: 'Manrope Variable', Manrope, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Base text size on body only: the root stays 16px so rem spacing is true. */
+body {
+  font-size: 14px;
+  line-height: 20px;
+}
+
+/* The kit's 16px and 18px steps fold into the scale. */
+html .text-base,
+html .text-lg {
+  font-size: 15px;
+  line-height: 22px;
+}
+
+/* Everything that reacts to the mouse shows the pointer. */
+@layer base {
+  button:not(:disabled),
+  a[href],
+  [role='button'],
+  [role='tab'],
+  [role='radio'],
+  [role='checkbox'],
+  [role='menuitem'],
+  [role='switch'],
+  [role='option'],
+  [role='row'][data-href],
+  select:not(:disabled),
+  summary,
+  label:has(input),
+  label[for],
+  input[type='checkbox'],
+  input[type='radio'],
+  input[type='date'],
+  input[type='month'],
+  input[type='file'],
+  input[type='color'],
+  input[type='date']::-webkit-calendar-picker-indicator,
+  input[type='month']::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+  }
+  button:disabled,
+  select:disabled {
+    cursor: not-allowed;
+  }
+  /* Text that is edited in place shows the pointer until it has focus. */
+  .editable:not(:focus) {
+    cursor: pointer;
+  }
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Native <select> popups paint their options with these. */
+select option {
+  background-color: var(--erp-card);
+  color: var(--erp-ink);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--erp-muted);
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--erp-line);
+  border-radius: 999px;
+}
+
+/* A horizontal strip that scrolls without showing a bar (chips, tabs). */
+.erp-strip {
+  scrollbar-width: none;
+}
+.erp-strip::-webkit-scrollbar {
+  display: none;
+}
+
+/* Entrances. */
+@keyframes erp-rise {
+  from {
+    transform: translateY(10px);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+.erp-rise {
+  animation: erp-rise 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.erp-d1 {
+  animation-delay: 40ms;
+}
+.erp-d2 {
+  animation-delay: 80ms;
+}
+.erp-d3 {
+  animation-delay: 120ms;
+}
+.erp-d4 {
+  animation-delay: 160ms;
+}
+.erp-d5 {
+  animation-delay: 200ms;
+}
+
+@keyframes erp-pop {
+  from {
+    transform: scale(0.97) translateY(4px);
+  }
+  to {
+    transform: scale(1) translateY(0);
+  }
+}
+.erp-pop {
+  animation: erp-pop 180ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes erp-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(0.55);
+  }
+}
+.erp-pulse {
+  animation: erp-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes erp-grow {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+.erp-grow {
+  transform-origin: bottom;
+  animation: erp-grow 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes erp-grow-x {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+.erp-grow-x {
+  transform-origin: left;
+  animation: erp-grow-x 620ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes erp-draw {
+  from {
+    transform: rotate(-12deg) scale(0.94);
+  }
+  to {
+    transform: rotate(0) scale(1);
+  }
+}
+.erp-draw {
+  transform-origin: center;
+  animation: erp-draw 640ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes erp-shimmer {
+  from {
+    background-position: -200px 0;
+  }
+  to {
+    background-position: calc(200px + 100%) 0;
+  }
+}
+.erp-skeleton {
+  background: linear-gradient(90deg, var(--erp-row) 0, var(--erp-row-hover) 60px, var(--erp-row) 120px) no-repeat;
+  background-color: var(--erp-row);
+  background-size: 200px 100%;
+  animation: erp-shimmer 1.3s ease-in-out infinite;
+}
+
+/* A row the person just changed or opened from a link: one soft ring. */
+@keyframes erp-flash {
+  0% {
+    box-shadow: 0 0 0 0 var(--erp-accent);
+  }
+  100% {
+    box-shadow: 0 0 0 10px transparent;
+  }
+}
+.erp-flash {
+  animation: erp-flash 700ms ease-out 1;
+}
+
+@keyframes erp-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20%,
+  60% {
+    transform: translateX(-6px);
+  }
+  40%,
+  80% {
+    transform: translateX(6px);
+  }
+}
+.erp-shake {
+  animation: erp-shake 360ms ease-in-out 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .erp-rise,
+  .erp-pop,
+  .erp-pulse,
+  .erp-grow,
+  .erp-grow-x,
+  .erp-draw,
+  .erp-skeleton,
+  .erp-flash,
+  .erp-shake {
+    animation: none;
+  }
+}
+
+/* The kit's toasts in the app's language: dark pills above the phone bar. */
+html .pointer-events-none.fixed.bottom-4.right-4 {
+  z-index: 90;
+}
+html .pointer-events-none.fixed.bottom-4.right-4 > button {
+  border: 0;
+  border-radius: 20px;
+  background: var(--erp-ink);
+  color: var(--erp-shell);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 12px 20px;
+  box-shadow: 0 18px 40px -18px rgba(29, 28, 26, 0.6);
+}
+html .pointer-events-none.fixed.bottom-4.right-4 > button.text-red-700 {
+  background: var(--erp-red);
+  color: var(--erp-on-red);
+}
+@media (max-width: 767px) {
+  html .pointer-events-none.fixed.bottom-4.right-4 {
+    bottom: 96px;
+    right: 16px;
+    left: 16px;
+    width: auto;
+  }
+}
+
+/* Printing a document or a report: only the paper goes to the printer. */
+.erp-print-only {
+  display: none;
+}
+@media print {
+  html,
+  body {
+    background: #ffffff !important;
+  }
+  body * {
+    visibility: hidden !important;
+  }
+  .erp-print,
+  .erp-print * {
+    visibility: visible !important;
+  }
+  .erp-print-only {
+    display: block !important;
+  }
+  .erp-print {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+  }
+  .erp-no-print {
+    display: none !important;
+  }
+}

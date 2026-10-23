@@ -1,0 +1,510 @@
+/*
+ * Research OS visual system: a compact, detailed workspace with visual
+ * summaries.
+ *
+ * A full-height app: a slim icon rail, then the page. Panels are flat
+ * surfaces with a hairline border and small corners; controls are 28px tall
+ * with 6px corners; lists are dense rows split by hairlines. Round shapes are
+ * kept for what is round by nature: status dots, color swatches, switches,
+ * slider knobs and count badges.
+ *
+ * One type scale: 12 captions, labels and dense data; 13 UI text; 14 and 15
+ * titles; 26 headline numbers. Hierarchy comes from weight and color.
+ * Spacing on a 4px grid.
+ *
+ * Every color follows the host theme: lib/themeColors.ts derives the --ro-*
+ * tokens (and the eight highlight colors, the relation and node colors) from
+ * the kit's --agent-app-* tokens with contrast checks, and re-derives them
+ * when the host switches theme pack, mode or custom colors.
+ */
+
+html:root,
+html:root[data-theme='light'],
+html:root[data-theme='dark'] {
+  --agent-app-radius: 6px;
+  --agent-app-font: 'Manrope Variable', Manrope, system-ui, sans-serif;
+}
+
+html:root {
+  --ro-accent: var(--ro-accent-base);
+  --ro-on-accent: var(--ro-on-accent-base);
+  --ro-muted: var(--ro-muted-base);
+  --ro-red-text: var(--ro-red-text-base);
+  --ro-track: var(--ro-line);
+
+  --ro-r-sm: 4px;
+  --ro-r: 6px;
+  --ro-r-md: 8px;
+  --ro-r-lg: 10px;
+
+  --ro-red: #de4b33;
+  --ro-green: #4f9a6c;
+  --ro-amber: #e2a43a;
+
+  --ro-shadow: 0 8px 24px -12px rgba(0, 0, 0, 0.28);
+  --ro-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
+  --ro-mono: ui-monospace, 'Cascadia Mono', 'SF Mono', Consolas, monospace;
+  --ro-serif: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, 'Times New Roman', serif;
+}
+
+html:root,
+html:root[data-theme='light'] {
+  color-scheme: light;
+}
+
+html:root[data-theme='dark'] {
+  color-scheme: dark;
+  --ro-shadow: 0 8px 24px -12px rgba(0, 0, 0, 0.7);
+  --ro-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Surface scopes: inside them accent and muted text switch to the variants derived for that background. */
+.ro-on-sand {
+  --ro-muted: var(--ro-muted-sand);
+  --ro-track: var(--ro-track-sand);
+}
+.ro-on-dark {
+  --ro-accent: var(--ro-accent-dark);
+  --ro-on-accent: var(--ro-on-accent-dark);
+  --ro-muted: var(--ro-on-dark-muted);
+  --ro-red-text: var(--ro-red-on-dark);
+}
+.ro-on-ink {
+  --ro-accent: var(--ro-accent-ink);
+  --ro-on-accent: var(--ro-on-accent-ink);
+}
+.ro-on-card {
+  --ro-accent: var(--ro-accent-base);
+  --ro-on-accent: var(--ro-on-accent-base);
+  --ro-muted: var(--ro-muted-base);
+  --ro-red-text: var(--ro-red-text-base);
+  --ro-track: var(--ro-line);
+}
+
+html,
+body {
+  background: var(--ro-shell);
+  color: var(--ro-ink);
+  font-family: 'Manrope Variable', Manrope, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  font-size: 13px;
+  line-height: 18px;
+}
+
+html .text-base,
+html .text-lg {
+  font-size: 14px;
+  line-height: 20px;
+}
+
+/* Everything that reacts to the mouse shows the pointer. */
+@layer base {
+  button:not(:disabled),
+  a[href],
+  [role='button'],
+  [role='tab'],
+  [role='radio'],
+  [role='checkbox'],
+  [role='menuitem'],
+  [role='switch'],
+  [role='option'],
+  [data-hover],
+  select:not(:disabled),
+  summary,
+  label:has(input),
+  label[for],
+  input[type='checkbox'],
+  input[type='radio'],
+  input[type='range'],
+  input[type='file'] {
+    cursor: pointer;
+  }
+  button:disabled,
+  select:disabled {
+    cursor: not-allowed;
+  }
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+.mono {
+  font-family: var(--ro-mono);
+  font-size: 12px;
+}
+
+.serif {
+  font-family: var(--ro-serif);
+}
+
+/* Dense tables: hairline rows, sticky header. */
+.ro-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+.ro-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  height: 32px;
+  padding: 0 8px;
+  background: var(--ro-card);
+  border-bottom: 1px solid var(--ro-line);
+  color: var(--ro-muted);
+  font-size: 12px;
+  font-weight: 600;
+  text-align: left;
+  white-space: nowrap;
+}
+.ro-table td {
+  height: 44px;
+  padding: 0 8px;
+  border-bottom: 1px solid var(--ro-hair);
+  font-size: 13px;
+  vertical-align: middle;
+}
+.ro-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+.ro-table tbody tr:hover td {
+  background: var(--ro-row);
+}
+.ro-table tbody tr[aria-selected='true'] td {
+  background: var(--ro-row-hover);
+}
+
+/* The reader: pages, the stored text layer over them, and the marks. */
+.ro-page {
+  position: relative;
+  margin: 0 auto;
+  background: #fff;
+  box-shadow: var(--ro-shadow-sm), 0 0 0 1px var(--ro-line);
+}
+.ro-page canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.ro-textlayer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  line-height: 1;
+  text-size-adjust: none;
+  forced-color-adjust: none;
+  transform-origin: 0 0;
+  z-index: 2;
+}
+.ro-textlayer > span {
+  position: absolute;
+  z-index: 1;
+  color: transparent;
+  white-space: pre;
+  cursor: text;
+  transform-origin: 0% 0%;
+}
+.ro-textlayer .ro-endofcontent {
+  display: block;
+  position: absolute;
+  inset: 100% 0 0;
+  z-index: 0;
+  cursor: default;
+  user-select: none;
+}
+.ro-textlayer.ro-selecting .ro-endofcontent {
+  top: 0;
+}
+.ro-textlayer > span::selection {
+  background: var(--ro-select);
+  color: transparent;
+}
+.ro-textlayer > br::selection {
+  background: transparent;
+}
+.ro-textlayer.ro-tool-area > span {
+  cursor: crosshair;
+}
+.ro-marks {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+.ro-marks [data-mark] {
+  position: absolute;
+  pointer-events: auto;
+  cursor: pointer;
+  mix-blend-mode: multiply;
+}
+html:root[data-theme='dark'] .ro-marks [data-mark] {
+  mix-blend-mode: normal;
+}
+
+/* The canvas (claims map, boards). */
+.ro-canvas {
+  overflow: hidden;
+  touch-action: none;
+  background-color: var(--ro-stage);
+  background-image: radial-gradient(var(--ro-grid) 1px, transparent 1px);
+}
+.ro-canvas.ro-panning {
+  cursor: grabbing;
+}
+
+select option {
+  background-color: var(--ro-card);
+  color: var(--ro-ink);
+}
+
+input::placeholder,
+textarea::placeholder,
+[data-placeholder]:empty::before {
+  color: var(--ro-muted);
+}
+[data-placeholder]:empty::before {
+  content: attr(data-placeholder);
+  pointer-events: none;
+}
+
+/* The manuscript editor. */
+.ro-editor [contenteditable] {
+  outline: none;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+/* An empty block shows its hint only while you are in it. */
+.ro-editor [data-block][data-placeholder]:empty:not(:focus)::before {
+  content: none;
+}
+.ro-editor .ro-cite {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  margin: 0 1px;
+  padding: 0 5px;
+  border-radius: var(--ro-r-sm);
+  background: var(--ro-accent-soft);
+  color: var(--ro-ink);
+  font-family: 'Manrope Variable', Manrope, system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  vertical-align: 1px;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: all;
+}
+.ro-editor .ro-cite[data-bad='true'] {
+  background: var(--ro-red);
+  color: var(--ro-on-red);
+}
+.ro-editor .ro-claim {
+  border-bottom: 2px solid var(--ro-rel-supports);
+  cursor: pointer;
+}
+/* Inline maths (drawn by KaTeX) and cross-references ("Figure 2"). */
+.ro-editor .ro-math,
+.ro-math {
+  display: inline-block;
+  margin: 0 1px;
+  padding: 0 3px;
+  border-radius: var(--ro-r-sm);
+  color: var(--ro-ink);
+  font-style: normal;
+  line-height: 1.2;
+  vertical-align: baseline;
+  cursor: pointer;
+  user-select: all;
+}
+.ro-editor .ro-math:hover {
+  background: var(--ro-row);
+}
+/* KaTeX sets maths at 1.21em; next to the serif text that reads large. */
+.ro-math .katex {
+  font-size: 1.06em;
+}
+.ro-math[data-pending] {
+  font-family: var(--ro-mono, ui-monospace, monospace);
+  font-size: 0.85em;
+}
+.ro-editor .ro-ref,
+.ro-ref {
+  color: var(--ro-accent-text);
+  font-weight: 600;
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  user-select: all;
+}
+.ro-editor .ro-ref[data-bad='true'] {
+  color: var(--ro-red-text);
+}
+.ro-editor .katex-display {
+  margin: 0;
+}
+.ro-editor .ro-claimchip {
+  display: inline-block;
+  max-width: 16em;
+  margin: 0 2px;
+  padding: 0 5px;
+  overflow: hidden;
+  border-left: 2px solid var(--ro-kind-claim);
+  border-radius: 0 var(--ro-r-sm) var(--ro-r-sm) 0;
+  background: var(--ro-row);
+  color: var(--ro-ink-2);
+  font-family: 'Manrope Variable', Manrope, system-ui, sans-serif;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 20px;
+  text-overflow: ellipsis;
+  vertical-align: -5px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+input[type='range'].ro-range {
+  appearance: none;
+  height: 16px;
+  background: transparent;
+}
+input[type='range'].ro-range::-webkit-slider-runnable-track {
+  height: 3px;
+  border-radius: 2px;
+  background: var(--ro-track);
+}
+input[type='range'].ro-range::-webkit-slider-thumb {
+  appearance: none;
+  margin-top: -5px;
+  width: 13px;
+  height: 13px;
+  border-radius: 999px;
+  background: var(--ro-ink);
+  border: 2px solid var(--ro-card);
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--ro-line);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+/* Entrances (they fill backwards only, so a stacked menu is never hidden). */
+@keyframes ro-rise {
+  from {
+    transform: translateY(4px);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+.ro-rise {
+  animation: ro-rise 220ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+
+@keyframes ro-pop {
+  from {
+    transform: scale(0.98) translateY(2px);
+  }
+  to {
+    transform: scale(1) translateY(0);
+  }
+}
+.ro-pop {
+  animation: ro-pop 140ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+
+@keyframes ro-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+.ro-pulse {
+  animation: ro-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes ro-shimmer {
+  from {
+    background-position: -200px 0;
+  }
+  to {
+    background-position: 200px 0;
+  }
+}
+.ro-skeleton {
+  background: linear-gradient(90deg, var(--ro-row) 0%, var(--ro-row-hover) 50%, var(--ro-row) 100%);
+  background-size: 400px 100%;
+  animation: ro-shimmer 1.2s linear infinite;
+  border-radius: var(--ro-r-sm);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ro-rise,
+  .ro-pop,
+  .ro-pulse,
+  .ro-skeleton {
+    animation: none;
+  }
+}
+
+/* The kit's toasts in the app's language: compact ink notes above the phone bar. */
+html .pointer-events-none.fixed.bottom-4.right-4 > button {
+  border: 0;
+  border-radius: var(--ro-r-md);
+  background: var(--ro-ink);
+  color: var(--ro-shell);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 12px;
+  box-shadow: var(--ro-shadow);
+}
+html .pointer-events-none.fixed.bottom-4.right-4 > button.text-red-700 {
+  background: var(--ro-red);
+  color: var(--ro-on-red);
+}
+@media (max-width: 767px) {
+  html .pointer-events-none.fixed.bottom-4.right-4 {
+    bottom: 68px;
+    right: 12px;
+    left: 12px;
+    width: auto;
+  }
+}
+
+@media print {
+  .ro-noprint {
+    display: none !important;
+  }
+}
+
+/* A step or run the journal points at flashes once. */
+@keyframes ro-flash {
+  0%,
+  40% {
+    background-color: var(--ro-accent-soft);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+.ro-flash,
+.ro-flash > td {
+  animation: ro-flash 1.6s ease-out;
+}
