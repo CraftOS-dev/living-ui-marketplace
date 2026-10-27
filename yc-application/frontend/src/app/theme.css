@@ -1,0 +1,269 @@
+/*
+ * The Expenses tracker's layout on a neutral, high-contrast base: a grey
+ * page, white cards with a visible border, grey rows inside them, near-black
+ * text. YC's colors (its orange #fb651e and black) appear only where the eye
+ * should go: the main action buttons, the current step, the odds gauge and
+ * the dots that mark something needing attention.
+ *
+ * Every layer differs from the next: page, card, row, hover fill, empty
+ * bars. A hover never takes the color of what it sits on or holds.
+ *
+ * One type scale: 12 caption, 13 secondary, 14 UI, 15 card titles and
+ * reading, 26 page titles and headline numbers. Spacing on a 4px grid.
+ * Light and dark follow CraftBot's mode.
+ */
+
+html:root,
+html:root[data-theme='light'] {
+  color-scheme: light;
+  --yc-canvas: #d4d4d8;
+  --yc-shell: #f4f4f5;
+  --yc-card: #ffffff;
+  --yc-border: #d4d4d8;
+  --yc-row: #eeeef0;
+  --yc-hover: #dcdce0;
+  --yc-line: #c4c4cc;
+  --yc-ink: #18181b;
+  --yc-ink-2: #3f3f46;
+  --yc-muted: #52525b;
+  --yc-slice-2: #a1a1aa;
+  --yc-slice-3: #d4d4d8;
+  --yc-accent: #fb651e;
+  --yc-on-accent: #ffffff;
+  --yc-accent-soft: #fdba94;
+  --yc-dark: #18181b;
+  --yc-dark-border: #18181b;
+  --yc-dark-2: #27272a;
+  --yc-dark-hover: #3f3f46;
+  --yc-dark-line: #52525b;
+  --yc-on-dark: #fafafa;
+  --yc-on-dark-muted: #a1a1aa;
+  --yc-red: #dc2626;
+  --yc-red-text: #b91c1c;
+  --yc-green: #16a34a;
+  --yc-green-text: #15803d;
+  --yc-solid: #18181b;
+  --yc-on-solid: #fb651e;
+  --yc-shadow: rgba(24, 24, 27, 0.5);
+}
+
+html:root[data-theme='dark'] {
+  color-scheme: dark;
+  --yc-canvas: #000000;
+  --yc-shell: #111113;
+  --yc-card: #1c1c1f;
+  --yc-border: #3f3f46;
+  --yc-row: #29292d;
+  --yc-hover: #3f3f46;
+  --yc-line: #5b5b64;
+  --yc-ink: #fafafa;
+  --yc-ink-2: #d4d4d8;
+  --yc-muted: #a1a1aa;
+  --yc-slice-2: #71717a;
+  --yc-slice-3: #3f3f46;
+  --yc-accent: #fb651e;
+  --yc-on-accent: #ffffff;
+  --yc-accent-soft: #7c2d12;
+  --yc-dark: #000000;
+  --yc-dark-border: #3f3f46;
+  --yc-dark-2: #27272a;
+  --yc-dark-hover: #3f3f46;
+  --yc-dark-line: #52525b;
+  --yc-on-dark: #fafafa;
+  --yc-on-dark-muted: #a1a1aa;
+  --yc-red: #ef4444;
+  --yc-red-text: #f87171;
+  --yc-green: #22c55e;
+  --yc-green-text: #4ade80;
+  --yc-solid: #fb651e;
+  --yc-on-solid: #ffffff;
+  --yc-shadow: rgba(0, 0, 0, 0.8);
+}
+
+html,
+body,
+div:has(> .yc-app) {
+  background: var(--yc-canvas);
+  color: var(--yc-ink);
+}
+
+body,
+.yc-app,
+.yc-portal {
+  font-family: 'Manrope Variable', Manrope, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  font-size: 14px;
+  line-height: 20px;
+}
+
+@layer base {
+  button:not(:disabled),
+  a[href],
+  [role='button'],
+  [role='tab'],
+  [role='radio'],
+  [role='checkbox'],
+  [role='switch'],
+  select:not(:disabled),
+  summary,
+  label:has(input),
+  input[type='checkbox'] {
+    cursor: pointer;
+  }
+  button:disabled,
+  select:disabled {
+    cursor: not-allowed;
+  }
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--yc-muted);
+}
+
+select option {
+  background-color: var(--yc-card);
+  color: var(--yc-ink);
+}
+
+::selection {
+  background: color-mix(in srgb, var(--yc-accent) 30%, transparent);
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--yc-line);
+  border-radius: 999px;
+}
+
+/* Inside the dark card, the muted text and rows switch to their dark versions. */
+.yc-on-dark {
+  --yc-muted: var(--yc-on-dark-muted);
+  --yc-border: var(--yc-dark-2);
+  --yc-row: var(--yc-dark-2);
+  --yc-line: var(--yc-dark-line);
+  --yc-hover: var(--yc-dark-hover);
+}
+
+/* Things that sit on the page or the peach card keep their fill and take a
+   dark outline on hover, so they stand out instead of sinking into it. */
+.yc-edge {
+  transition: box-shadow 150ms ease;
+}
+.yc-edge:hover {
+  box-shadow: inset 0 0 0 1.5px var(--yc-ink);
+}
+
+/*
+ * Motion, kept quiet: cards settle 6px into place once when a step opens,
+ * the step pill slides, the gauge sweeps, editors open downward, removed
+ * rows fold away. Nothing loops except the dot on something that is
+ * working, nothing bounces, nothing fades. Entrance keyframes fill backwards
+ * only, so no lasting transform leaves an element in its own stacking context.
+ */
+@keyframes yc-rise {
+  from {
+    transform: translateY(6px);
+  }
+}
+.yc-rise {
+  animation: yc-rise 260ms ease-out backwards;
+}
+
+@keyframes yc-unfold {
+  from {
+    clip-path: inset(0 0 100% 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+.yc-unfold {
+  animation: yc-unfold 200ms ease-out backwards;
+}
+
+@keyframes yc-zoom {
+  from {
+    transform: scale(0.98);
+  }
+}
+.yc-zoom {
+  animation: yc-zoom 160ms ease-out backwards;
+}
+
+@keyframes yc-toast {
+  from {
+    transform: translateY(8px);
+  }
+}
+.yc-toast {
+  animation: yc-toast 200ms ease-out backwards;
+}
+
+@keyframes yc-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.yc-spin {
+  animation: yc-spin 1.2s linear infinite;
+}
+
+/* The dot on a status that is in progress breathes gently. */
+@keyframes yc-breathe {
+  50% {
+    transform: scale(1.3);
+  }
+}
+.yc-breathe {
+  animation: yc-breathe 2s ease-in-out infinite;
+}
+
+/* Pills press in a little; color changes ease. */
+.yc-pill {
+  transition: background-color 160ms ease, transform 120ms ease;
+}
+.yc-pill:not(:disabled):active {
+  transform: scale(0.98);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition-duration: 0ms !important;
+  }
+}
+
+/* Touch: bigger tap areas. */
+.hit {
+  position: relative;
+}
+@media (pointer: coarse) {
+  .hit::after {
+    content: '';
+    position: absolute;
+    inset: -8px;
+  }
+}
+@supports (-webkit-touch-callout: none) {
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}
