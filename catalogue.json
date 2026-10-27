@@ -256,6 +256,24 @@
       "folder": "research-os",
       "tags": ["research", "academic", "papers", "writing", "reference manager", "productivity"],
       "version": "1.0.0"
+    },
+    {
+      "id": "life-os",
+      "livingUIVersion": 2,
+      "name": "Life OS",
+      "description": "Your whole life on one screen that keeps itself up to date. Home shows today at a glance: a landscape that follows the time of day, the season and the weather where you live, an hourly and seven-day forecast, your agent's note for the day, heads-ups for birthdays, people you have not talked to in a while, bills and trips, your top three, one-tap habits, mood and water, money left this month, what is coming up and the news, in rows you can drag into your own order. A pinboard for every card (Inbox, Today, Coming up, Later) with the week's weather, a habit tracker with streaks, and a balance chart of eight parts of life scored from what you actually do. Each part has its own tool: health logs and workouts, money with savings jars and bills, a connection map of friends and family, focus and wins for work, chores and shopping for home, books and learning, trips with packing lists and a bucket list, and calm minutes for the mind. Goals fill themselves from the jar, the books you finish, your weigh-ins or the habits you keep; projects are journeys of stepping stones and the journal is a page of paper your agent reads only when you share it. CraftBot writes the morning note, plans your day, sorts the inbox, breaks goals into steps, writes the weekly recap and answers questions, with new goals, habits and plans arriving as proposals you keep item by item. Optional read-only Google Calendar mirror.",
+      "folder": "life-os",
+      "tags": ["life", "personal", "habits", "goals", "journal", "productivity"],
+      "version": "1.0.0"
+    },
+    {
+      "id": "yc-application",
+      "livingUIVersion": 2,
+      "name": "YC Application",
+      "description": "Takes founders from their links to a submitted Y Combinator application. Add your website, each founder's LinkedIn and GitHub, or your pitch deck, and CraftBot reads them and fills every question of the YC form (founders, company, progress, idea, equity and each founder's profile), asking you only for what it cannot find. Its words never overwrite yours: they arrive as answers for a founder to read and confirm. Every answer is reviewed the way a YC partner reads it (marketing speak, jargon, vague claims, overclaims, text that sounds machine-written, parts of the question left out, a shorter version), then the whole application for founder signal, fit, insight, demand and answers that disagree. About 50 checks from YC's own guidance and a 100 point odds model show your chance of getting in and the moves worth most, with a deadline countdown, an equity chart, founder video rules and the confirmations only founders can make. When it is ready, CraftBot types the application into YC's form in its browser and stops before Submit; you press it, and the app keeps what was sent. Copy by hand or export Markdown any time.",
+      "folder": "yc-application",
+      "tags": ["startup", "fundraising", "yc", "applications", "writing", "productivity"],
+      "version": "1.0.0"
     }
   ]
 }

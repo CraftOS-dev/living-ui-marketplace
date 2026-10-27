@@ -1,0 +1,1110 @@
+{
+  "opsVersion": 1,
+  "operations": [
+    {
+      "name": "health",
+      "description": "Liveness check (PocketBase built-in).",
+      "system": true,
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/health"
+      }
+    },
+    {
+      "name": "ops.list",
+      "description": "Return this operations manifest.",
+      "system": true,
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/_ops"
+      }
+    },
+    {
+      "name": "app.guide",
+      "description": "START HERE: how this YC application app works, the rules for writing answers, and the step-by-step recipes for gathering, answering a founder and filling YC's form.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/app/guide"
+      }
+    },
+    {
+      "name": "app.status",
+      "description": "Where the application stands: each pipeline step (with the screen it is on), the estimated odds, fix_next (what to fix in the application, most important first: blockers before warnings before tips, then by odds points), do_first (things to do before applying, outside the form), and the questions waiting for a founder.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/app/status"
+      }
+    },
+    {
+      "name": "app.founder-todo",
+      "description": "Everything waiting on the founders in one list: your open questions (on answers and on founders), answers to read and confirm, questions only founders answer, and the switches only founders turn on. Use it to tell the founders what is left for them.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/app/founder-todo"
+      }
+    },
+    {
+      "name": "pipeline.get",
+      "description": "Everything the pipeline page shows: steps, odds with factors, failing checks, the do-first list, sources and recent activity.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/pipeline/get"
+      }
+    },
+    {
+      "name": "settings.get",
+      "description": "The batch, the deadline, the status, the founder video confirmations and the state of your AI agent's work.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/settings/get"
+      }
+    },
+    {
+      "name": "settings.update",
+      "description": "Change the batch and its deadline (verify the date on ycombinator.com/apply) and whether a YC founder recommended the team. A new batch given without --deadline takes YC's date when the app knows it, otherwise none: then read it on ycombinator.com/apply and set it. settings.get lists the batches to pick from (batches) and the confirmations only founders make (confirm_list).",
+      "params": {
+        "batch": {
+          "type": "string",
+          "description": "Batch, e.g. \"Spring 2027\""
+        },
+        "deadline": {
+          "type": "string",
+          "description": "Deadline as ISO date-time in UTC, e.g. 2027-02-10T04:00:00Z (\"\" clears it)"
+        },
+        "deadline_note": {
+          "type": "string",
+          "description": "Where the deadline comes from, e.g. \"Spring 2027: February 9 at 8pm PT (ycombinator.com/apply)\""
+        },
+        "recommended": {
+          "type": "boolean",
+          "description": "A YC founder recommended the team"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/settings/update"
+      }
+    },
+    {
+      "name": "confirms.set",
+      "description": "A founder confirms what only founders can: the founder video rules, full-time if accepted, one application, vesting, IP, roles, monthly revenue. [Founders only.]",
+      "params": {
+        "one_minute": {
+          "type": "boolean",
+          "description": "Founder video: one minute long"
+        },
+        "all_founders": {
+          "type": "boolean",
+          "description": "Founder video: every founder is in it"
+        },
+        "unscripted": {
+          "type": "boolean",
+          "description": "Founder video: talking, not reading a script"
+        },
+        "no_extras": {
+          "type": "boolean",
+          "description": "Founder video: no demo, music or effects"
+        },
+        "full_time_if_accepted": {
+          "type": "boolean",
+          "description": "A founder confirms: every founder works on it full-time if accepted"
+        },
+        "one_application": {
+          "type": "boolean",
+          "description": "A founder confirms: this is the company's only application this batch"
+        },
+        "vesting": {
+          "type": "boolean",
+          "description": "A founder confirms: founder shares vest"
+        },
+        "ip_clear": {
+          "type": "boolean",
+          "description": "A founder confirms: no employer or school can claim the code or the idea"
+        },
+        "goals_aligned": {
+          "type": "boolean",
+          "description": "A founder confirms: the founders agree on roles, goals and who is CEO"
+        },
+        "revenue_monthly": {
+          "type": "boolean",
+          "description": "A founder confirms: the revenue figures are monthly, not cumulative, not GMV"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/confirms/set"
+      }
+    },
+    {
+      "name": "activity.list",
+      "description": "Who changed what, newest first.",
+      "params": {
+        "limit": {
+          "type": "number",
+          "description": "Rows (default 30)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/activity/list"
+      }
+    },
+    {
+      "name": "questions.list",
+      "description": "The YC form: every question in order with its key, type (long, short, url, yesno, number, choice, months), limit, yes/no gate and who should write it (fill: your AI agent; draft: your AI agent drafts, a founder rewrites; founder: only a founder knows).",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/questions/list"
+      }
+    },
+    {
+      "name": "answers.list",
+      "description": "Every question with its answer, who wrote it, whether a founder confirmed it, the reviewer's verdict and counts. --only missing|unconfirmed|flagged|needs narrows it (flagged: the reviewer or a failing check points at it); --brief true gives one line per question.",
+      "params": {
+        "section": {
+          "type": "string",
+          "description": "Section",
+          "enum": [
+            "founders",
+            "company",
+            "progress",
+            "idea",
+            "equity",
+            "curious",
+            "profile"
+          ]
+        },
+        "only": {
+          "type": "string",
+          "description": "Which questions",
+          "enum": [
+            "all",
+            "missing",
+            "unconfirmed",
+            "flagged",
+            "needs"
+          ]
+        },
+        "brief": {
+          "type": "boolean",
+          "description": "One line per question"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/answers/list"
+      }
+    },
+    {
+      "name": "answers.get",
+      "description": "One question with its answer, the reviewer's verdict (what a stranger understands, issues, missing parts, a shorter version) and counts.",
+      "params": {
+        "key": {
+          "type": "string",
+          "description": "Question key from answers.list (founder profile keys look like fp.<founder id>.impressive)",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/answers/get"
+      }
+    },
+    {
+      "name": "answers.set",
+      "description": "Write an answer. yesno takes yes or no; number takes a number; choice one of the listed choices; months a JSON object {\"2026-09\":1200}. Your AI agent fills empty or unconfirmed answers; on an answer a founder wrote or confirmed its text is kept as a suggestion with --why.",
+      "params": {
+        "key": {
+          "type": "string",
+          "description": "Question key from answers.list (founder profile keys look like fp.<founder id>.impressive)",
+          "required": true
+        },
+        "value": {
+          "type": "string",
+          "description": "The answer (\"\" clears an unconfirmed one)",
+          "required": true
+        },
+        "source": {
+          "type": "string",
+          "description": "Your AI agent: where the facts come from, e.g. \"acme.com/about; Jane's LinkedIn\""
+        },
+        "need": {
+          "type": "string",
+          "description": "Your question to the founders on this answer (\"\" clears it once answered)"
+        },
+        "why": {
+          "type": "string",
+          "description": "Your AI agent: why the founder should take your suggestion"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/answers/set"
+      }
+    },
+    {
+      "name": "answers.confirm",
+      "description": "A founder marks answers as read and right: one --key or a whole --section. [Founders only.]",
+      "params": {
+        "key": {
+          "type": "string",
+          "description": "Question key"
+        },
+        "section": {
+          "type": "string",
+          "description": "Section",
+          "enum": [
+            "founders",
+            "company",
+            "progress",
+            "idea",
+            "equity",
+            "curious",
+            "profile"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/answers/confirm"
+      }
+    },
+    {
+      "name": "answers.accept",
+      "description": "A founder takes your AI agent's suggestion for an answer. [Founders only.]",
+      "params": {
+        "key": {
+          "type": "string",
+          "description": "Question key from answers.list (founder profile keys look like fp.<founder id>.impressive)",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/answers/accept"
+      }
+    },
+    {
+      "name": "answers.use-shorter",
+      "description": "A founder takes the reviewer's shorter version of an answer. [Founders only.]",
+      "params": {
+        "key": {
+          "type": "string",
+          "description": "Question key from answers.list (founder profile keys look like fp.<founder id>.impressive)",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/answers/use-shorter"
+      }
+    },
+    {
+      "name": "answers.dismiss",
+      "description": "Drop the suggestion on an answer.",
+      "params": {
+        "key": {
+          "type": "string",
+          "description": "Question key from answers.list (founder profile keys look like fp.<founder id>.impressive)",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/answers/dismiss"
+      }
+    },
+    {
+      "name": "answers.set-many",
+      "description": "Write several answers (and questions for the founders) in one call: --items '[{\"key\":\"c_name\",\"value\":\"Molarly\",\"source\":\"molarly.example\"}, {\"key\":\"e_breakdown\",\"need\":\"How do you split equity?\"}, {\"key\":\"p_users\",\"value\":\"14\",\"need\":\"\"}]'. An item with \"need\" and no \"value\" only asks; \"need\":\"\" clears the question. Same rules as answers.set for each; the answer lists what was stored, kept as a suggestion, asked, or refused and why.",
+      "params": {
+        "items": {
+          "type": "string",
+          "description": "JSON list of {key, value, source, why, need}",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/answers/set-many"
+      }
+    },
+    {
+      "name": "answers.find",
+      "description": "Which answers mention some words (a number, a name): use it before changing a fact so every answer that states it is updated.",
+      "params": {
+        "text": {
+          "type": "string",
+          "description": "Words or a number to look for",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/answers/find"
+      }
+    },
+    {
+      "name": "answers.need",
+      "description": "Your AI agent asks the founders for what it cannot find or must check: one short question they can answer in a line, shown on the answer until a founder answers it or you clear it. Writing the answer yourself keeps the question open: clear it with --clear true (or --need \"\" on answers.set). For many at once use answers.set-many items with \"need\".",
+      "params": {
+        "key": {
+          "type": "string",
+          "description": "Question key from answers.list (founder profile keys look like fp.<founder id>.impressive)",
+          "required": true
+        },
+        "text": {
+          "type": "string",
+          "description": "The question for the founders"
+        },
+        "clear": {
+          "type": "boolean",
+          "description": "Remove the question"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/answers/need"
+      }
+    },
+    {
+      "name": "answers.recheck",
+      "description": "Have the reviewer read one answer again (--key), or every answer.",
+      "params": {
+        "key": {
+          "type": "string",
+          "description": "Question key (empty: every answer)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/answers/recheck"
+      }
+    },
+    {
+      "name": "founders.list",
+      "description": "The founders with their facts (technical, full-time, equity) and whether they confirmed them.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/founders/list"
+      }
+    },
+    {
+      "name": "founders.get",
+      "description": "One founder with their profile answers (most impressive thing, hack story, things built, awards).",
+      "params": {
+        "founder": {
+          "type": "string",
+          "description": "Founder id or full name",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/founders/get"
+      }
+    },
+    {
+      "name": "founders.add",
+      "description": "Add a founder. Never guess equity, technical or full-time: leave them out and ask with --need.",
+      "params": {
+        "name": {
+          "type": "string",
+          "description": "Full name",
+          "required": true
+        },
+        "role": {
+          "type": "string",
+          "description": "Title, e.g. CEO, CTO"
+        },
+        "email": {
+          "type": "string",
+          "description": "Email"
+        },
+        "linkedin": {
+          "type": "string",
+          "description": "LinkedIn URL"
+        },
+        "github": {
+          "type": "string",
+          "description": "GitHub URL"
+        },
+        "x": {
+          "type": "string",
+          "description": "X (Twitter) URL"
+        },
+        "website": {
+          "type": "string",
+          "description": "Personal site"
+        },
+        "location": {
+          "type": "string",
+          "description": "Where they live now, e.g. \"San Francisco, US\""
+        },
+        "education": {
+          "type": "string",
+          "description": "Education, one line per school with degree and year"
+        },
+        "work": {
+          "type": "string",
+          "description": "Work history, one line per role with years"
+        },
+        "technical": {
+          "type": "boolean",
+          "description": "Writes code or does the technical work (leave out when not known)"
+        },
+        "full_time": {
+          "type": "boolean",
+          "description": "Works on the company full-time (leave out when not known)"
+        },
+        "equity": {
+          "type": "number",
+          "description": "Equity percent, 0 to 100"
+        },
+        "need": {
+          "type": "string",
+          "description": "Your AI agent: what you need this founder to tell you (\"\" clears it)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/founders/add"
+      }
+    },
+    {
+      "name": "founders.update",
+      "description": "Change a founder's facts. Your AI agent fills empty fields; values a founder confirmed are kept and reported back.",
+      "params": {
+        "founder": {
+          "type": "string",
+          "description": "Founder id or full name",
+          "required": true
+        },
+        "name": {
+          "type": "string",
+          "description": "Full name"
+        },
+        "role": {
+          "type": "string",
+          "description": "Title, e.g. CEO, CTO"
+        },
+        "email": {
+          "type": "string",
+          "description": "Email"
+        },
+        "linkedin": {
+          "type": "string",
+          "description": "LinkedIn URL"
+        },
+        "github": {
+          "type": "string",
+          "description": "GitHub URL"
+        },
+        "x": {
+          "type": "string",
+          "description": "X (Twitter) URL"
+        },
+        "website": {
+          "type": "string",
+          "description": "Personal site"
+        },
+        "location": {
+          "type": "string",
+          "description": "Where they live now, e.g. \"San Francisco, US\""
+        },
+        "education": {
+          "type": "string",
+          "description": "Education, one line per school with degree and year"
+        },
+        "work": {
+          "type": "string",
+          "description": "Work history, one line per role with years"
+        },
+        "technical": {
+          "type": "boolean",
+          "description": "Writes code or does the technical work (leave out when not known)"
+        },
+        "full_time": {
+          "type": "boolean",
+          "description": "Works on the company full-time (leave out when not known)"
+        },
+        "equity": {
+          "type": "number",
+          "description": "Equity percent, 0 to 100"
+        },
+        "need": {
+          "type": "string",
+          "description": "Your AI agent: what you need this founder to tell you (\"\" clears it)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/founders/update"
+      }
+    },
+    {
+      "name": "founders.confirm",
+      "description": "A founder confirms their row is right. [Founders only.]",
+      "params": {
+        "founder": {
+          "type": "string",
+          "description": "Founder id or full name",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/founders/confirm"
+      }
+    },
+    {
+      "name": "founders.reorder",
+      "description": "Put the founders in order (the first is the lead).",
+      "params": {
+        "order": {
+          "type": "string",
+          "description": "JSON list of founder ids or names in order",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/founders/reorder"
+      }
+    },
+    {
+      "name": "founders.remove",
+      "description": "Remove a founder and their profile answers.",
+      "params": {
+        "founder": {
+          "type": "string",
+          "description": "Founder id or full name",
+          "required": true
+        },
+        "confirm": {
+          "type": "boolean",
+          "description": "Your AI agent: true once a founder asked for this deletion. Without it nothing is deleted and the answer says what would be."
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/founders/remove"
+      },
+      "destructive": true
+    },
+    {
+      "name": "sources.list",
+      "description": "The links and files to read, with their state (new, reading, read, failed), what was learned and, for files, the disk_path to read them from.",
+      "params": {
+        "state": {
+          "type": "string",
+          "description": "Only this state",
+          "enum": [
+            "new",
+            "reading",
+            "read",
+            "failed"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/sources/list"
+      }
+    },
+    {
+      "name": "sources.get",
+      "description": "One source with its summary and disk_path; for a text file (.md, .txt, .csv, .json, .html) its text too. Read PDFs and decks at disk_path with your file tools.",
+      "params": {
+        "source": {
+          "type": "string",
+          "description": "The source: its id, its link or its title",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/sources/get"
+      }
+    },
+    {
+      "name": "sources.add",
+      "description": "Add a link to read (the company site, a founder's LinkedIn or GitHub, a launch post).",
+      "params": {
+        "url": {
+          "type": "string",
+          "description": "The link",
+          "required": true
+        },
+        "kind": {
+          "type": "string",
+          "description": "What it is",
+          "enum": [
+            "link",
+            "file",
+            "website",
+            "linkedin",
+            "github",
+            "x",
+            "deck",
+            "doc",
+            "video",
+            "metrics",
+            "other"
+          ]
+        },
+        "title": {
+          "type": "string",
+          "description": "Title"
+        },
+        "founder": {
+          "type": "string",
+          "description": "The founder it is about (id or name)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/sources/add"
+      }
+    },
+    {
+      "name": "sources.upload",
+      "description": "Add a file (a deck, notes, a past application). Your AI agent gives --path to a file on this machine.",
+      "params": {
+        "path": {
+          "type": "string",
+          "description": "Your AI agent: absolute path of the file"
+        },
+        "kind": {
+          "type": "string",
+          "description": "What it is",
+          "enum": [
+            "link",
+            "file",
+            "website",
+            "linkedin",
+            "github",
+            "x",
+            "deck",
+            "doc",
+            "video",
+            "metrics",
+            "other"
+          ]
+        },
+        "title": {
+          "type": "string",
+          "description": "Title"
+        },
+        "founder": {
+          "type": "string",
+          "description": "The founder it is about (id or name)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/sources/upload"
+      }
+    },
+    {
+      "name": "sources.update",
+      "description": "Record what you learned from a source: its kind and title, state reading/read/failed, and a summary of the facts with numbers and dates.",
+      "params": {
+        "source": {
+          "type": "string",
+          "description": "The source: its id, its link or its title",
+          "required": true
+        },
+        "kind": {
+          "type": "string",
+          "description": "What it is",
+          "enum": [
+            "link",
+            "file",
+            "website",
+            "linkedin",
+            "github",
+            "x",
+            "deck",
+            "doc",
+            "video",
+            "metrics",
+            "other"
+          ]
+        },
+        "title": {
+          "type": "string",
+          "description": "Title"
+        },
+        "state": {
+          "type": "string",
+          "description": "State",
+          "enum": [
+            "new",
+            "reading",
+            "read",
+            "failed"
+          ]
+        },
+        "summary": {
+          "type": "string",
+          "description": "The facts learned"
+        },
+        "error": {
+          "type": "string",
+          "description": "Why it could not be read"
+        },
+        "founder": {
+          "type": "string",
+          "description": "The founder it is about (id or name)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/sources/update"
+      }
+    },
+    {
+      "name": "sources.remove",
+      "description": "Remove a link or file.",
+      "params": {
+        "source": {
+          "type": "string",
+          "description": "The source: its id, its link or its title",
+          "required": true
+        },
+        "confirm": {
+          "type": "boolean",
+          "description": "Your AI agent: true once a founder asked for this deletion. Without it nothing is deleted and the answer says what would be."
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/sources/remove"
+      },
+      "destructive": true
+    },
+    {
+      "name": "review.checks",
+      "description": "Every check against YC's guidance (team, clarity, progress, idea, video, form) with pass, fail or wait, why it matters and the fix; the do-first list; and the reviewer's progress.",
+      "params": {
+        "status": {
+          "type": "string",
+          "description": "Only this status",
+          "enum": [
+            "pass",
+            "fail",
+            "wait",
+            "na"
+          ]
+        },
+        "group": {
+          "type": "string",
+          "description": "Only this group",
+          "enum": [
+            "before",
+            "team",
+            "clarity",
+            "progress",
+            "idea",
+            "video",
+            "form"
+          ]
+        },
+        "brief": {
+          "type": "boolean",
+          "description": "One line per check, no do-first list"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/review/checks"
+      }
+    },
+    {
+      "name": "review.odds",
+      "description": "The estimated chance of getting into the batch, its band and rank, and every factor with its effect (an estimate from public YC evidence, not YC's number).",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/review/odds"
+      }
+    },
+    {
+      "name": "gather.start",
+      "description": "A founder asks your AI agent to read every source and fill the application. [Founders only.]",
+      "params": {
+        "focus": {
+          "type": "string",
+          "description": "Anything to focus on"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/gather/start"
+      }
+    },
+    {
+      "name": "gather.begin",
+      "description": "Your AI agent: say you started gathering (the pipeline shows it working).",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/gather/begin"
+      }
+    },
+    {
+      "name": "gather.finish",
+      "description": "Your AI agent: say you finished, with a summary of what you filled and what you need from the founders.",
+      "params": {
+        "summary": {
+          "type": "string",
+          "description": "What you filled and what you need",
+          "required": true
+        },
+        "failed": {
+          "type": "boolean",
+          "description": "You could not finish"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/gather/finish"
+      }
+    },
+    {
+      "name": "messages.list",
+      "description": "What the founders told your AI agent and its replies, oldest first. Messages with state sent or queued are not answered yet.",
+      "params": {
+        "limit": {
+          "type": "number",
+          "description": "How many (default 30)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/messages/list"
+      }
+    },
+    {
+      "name": "messages.send",
+      "description": "A founder tells your AI agent something (news, a fact, a request). [Founders only.]",
+      "params": {
+        "text": {
+          "type": "string",
+          "description": "The message",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/messages/send"
+      }
+    },
+    {
+      "name": "messages.reply",
+      "description": "Your AI agent replies to a founder's message (--message), or with no --message posts a note in the thread: what you did, or the answer.",
+      "params": {
+        "message": {
+          "type": "string",
+          "description": "The message you answer (leave out for a note)"
+        },
+        "text": {
+          "type": "string",
+          "description": "Your reply, two sentences at most",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/messages/reply"
+      }
+    },
+    {
+      "name": "submit.ready",
+      "description": "Whether the application is ready: the blockers and warnings left.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/submit/ready"
+      }
+    },
+    {
+      "name": "submit.packet",
+      "description": "Every field to type into YC's form, in the form's order (only questions whose yes/no gate is open), and each founder's profile and contact facts.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/submit/packet"
+      }
+    },
+    {
+      "name": "submit.fill",
+      "description": "A founder asks your AI agent to type the application into YC's form. Refused while blockers remain unless --anyway true. [Founders only.]",
+      "params": {
+        "anyway": {
+          "type": "boolean",
+          "description": "Fill even though blockers remain"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/submit/fill"
+      }
+    },
+    {
+      "name": "submit.progress",
+      "description": "Your AI agent reports each step of filling YC's form, only after a founder pressed \"Fill the form\": started, waiting (for a founder to sign in), filled (a section), mismatch (a field that differs), stopped (could not go on), done (every section filled, waiting for the founder's Submit).",
+      "params": {
+        "section": {
+          "type": "string",
+          "description": "The form section or step",
+          "required": true
+        },
+        "status": {
+          "type": "string",
+          "description": "What happened",
+          "required": true,
+          "enum": [
+            "started",
+            "waiting",
+            "filled",
+            "mismatch",
+            "stopped",
+            "done"
+          ]
+        },
+        "note": {
+          "type": "string",
+          "description": "Fields left empty and why, or what the founder must do"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/submit/progress"
+      }
+    },
+    {
+      "name": "submit.done",
+      "description": "A founder pressed Submit on YC's site: keep exactly what was sent and lock the answers. [Founders only.]",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/submit/done"
+      }
+    },
+    {
+      "name": "submit.status",
+      "description": "Record what happened after submitting: interview (with --when), accepted or rejected.",
+      "params": {
+        "status": {
+          "type": "string",
+          "description": "Status",
+          "required": true,
+          "enum": [
+            "submitted",
+            "interview",
+            "accepted",
+            "rejected"
+          ]
+        },
+        "when": {
+          "type": "string",
+          "description": "Interview date and time, ISO"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/submit/status"
+      }
+    },
+    {
+      "name": "submit.next-batch",
+      "description": "Start again for another batch: the answers stay, \"applied before\" turns on. [Founders only.]",
+      "params": {
+        "batch": {
+          "type": "string",
+          "description": "The batch, e.g. \"Summer 2027\"",
+          "required": true
+        },
+        "deadline": {
+          "type": "string",
+          "description": "Its deadline, ISO in UTC"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/submit/next-batch"
+      }
+    },
+    {
+      "name": "export.markdown",
+      "description": "The whole application as Markdown.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/export/markdown"
+      }
+    }
+  ]
+}
