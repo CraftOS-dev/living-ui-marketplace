@@ -1,0 +1,4805 @@
+{
+  "opsVersion": 1,
+  "operations": [
+    {
+      "name": "health",
+      "description": "Liveness check (PocketBase built-in).",
+      "system": true,
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/health"
+      }
+    },
+    {
+      "name": "ops.list",
+      "description": "Return this operations manifest.",
+      "system": true,
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/_ops"
+      }
+    },
+    {
+      "name": "app.guide",
+      "description": "Start here: how a life is kept in this app, what your AI agent may do, the error codes, and recipes (--topic day_plan|inbox|breakdown|habit_help|recap|morning_note|question|evening_checkin|logging; --part arts for habit drawings).",
+      "params": {
+        "topic": {
+          "type": "string",
+          "description": "A recipe"
+        },
+        "part": {
+          "type": "string",
+          "description": "arts",
+          "enum": [
+            "arts"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/app/guide"
+      }
+    },
+    {
+      "name": "app.status",
+      "description": "What the frame shows: badges, the areas switched on, goals, projects and people for pickers, currency, units, the place, today's writing prompt.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/app/status"
+      }
+    },
+    {
+      "name": "home.summary",
+      "description": "Home in one read: today's cards, habits, the body, money this month, people to reach and birthdays, what is coming in 7 days, the latest journal moment, goals, nudges.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/home/summary"
+      }
+    },
+    {
+      "name": "find.all",
+      "description": "Search cards, goals, habits, people, projects, books (and, for the person, the journal).",
+      "params": {
+        "q": {
+          "type": "string",
+          "description": "What to find",
+          "required": true
+        },
+        "limit": {
+          "type": "number",
+          "description": "At most this many per kind"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/find/all"
+      }
+    },
+    {
+      "name": "settings.get",
+      "description": "The settings and the currencies the app knows.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/settings/get"
+      }
+    },
+    {
+      "name": "settings.update",
+      "description": "Change settings. From your AI agent it waits as a proposal the person keeps. [Proposal: a person approves.]",
+      "params": {
+        "owner_name": {
+          "type": "string",
+          "description": "Their name"
+        },
+        "day_starts_hour": {
+          "type": "number",
+          "description": "When a day starts, 0 to 6"
+        },
+        "week_starts_on": {
+          "type": "string",
+          "description": "monday or sunday",
+          "enum": [
+            "monday",
+            "sunday"
+          ]
+        },
+        "units": {
+          "type": "string",
+          "description": "metric or imperial",
+          "enum": [
+            "metric",
+            "imperial"
+          ]
+        },
+        "currency": {
+          "type": "string",
+          "description": "ISO currency code, e.g. EUR"
+        },
+        "month_budget": {
+          "type": "string",
+          "description": "Monthly spending budget, e.g. 2000 (0 for none)"
+        },
+        "water_goal": {
+          "type": "number",
+          "description": "Glasses of water a day"
+        },
+        "sleep_goal": {
+          "type": "number",
+          "description": "Hours of sleep a night"
+        },
+        "steps_goal": {
+          "type": "number",
+          "description": "Steps a day"
+        },
+        "reflections_to_agent": {
+          "type": "string",
+          "description": "never or when_shared",
+          "enum": [
+            "never",
+            "when_shared"
+          ]
+        },
+        "agent_autonomy": {
+          "type": "string",
+          "description": "as_designed or propose_all",
+          "enum": [
+            "as_designed",
+            "propose_all"
+          ]
+        },
+        "quiet_start": {
+          "type": "string",
+          "description": "Quiet hours start HH:MM"
+        },
+        "quiet_end": {
+          "type": "string",
+          "description": "Quiet hours end HH:MM"
+        },
+        "calendar_enabled": {
+          "type": "boolean",
+          "description": "Mirror Google Calendar (read only)"
+        },
+        "calendar_id": {
+          "type": "string",
+          "description": "Which calendar (primary by default)"
+        },
+        "home_rows": {
+          "type": "string",
+          "description": "JSON order of the rows of Home: every one of today, habits, goals, days, news once"
+        },
+        "why": {
+          "type": "string",
+          "description": "Your AI agent: why, in a sentence or two, for the person approving"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/settings/update"
+      }
+    },
+    {
+      "name": "onboarding.complete",
+      "description": "The first run in one step: a name, the areas that are theirs, currency and units, a first goal, a few habits, the rhythm. [People only.]",
+      "params": {
+        "owner_name": {
+          "type": "string",
+          "description": "Their name"
+        },
+        "areas": {
+          "type": "string",
+          "description": "JSON list of area kinds to switch on, e.g. [\"health\",\"money\",\"family\"]"
+        },
+        "currency": {
+          "type": "string",
+          "description": "ISO currency code"
+        },
+        "units": {
+          "type": "string",
+          "description": "metric or imperial",
+          "enum": [
+            "metric",
+            "imperial"
+          ]
+        },
+        "week_starts_on": {
+          "type": "string",
+          "description": "monday or sunday",
+          "enum": [
+            "monday",
+            "sunday"
+          ]
+        },
+        "goal": {
+          "type": "string",
+          "description": "JSON first goal: {\"title\":\"Run a half marathon\",\"area\":\"health\",\"measure\":\"number_up\",\"target\":21,\"unit\":\"km\",\"deadline\":\"2027-04-01\",\"purpose\":\"...\"}"
+        },
+        "habits": {
+          "type": "string",
+          "description": "JSON list of habits: [{\"name\":\"Drink water\",\"art\":\"water\",\"target\":8,\"unit\":\"glasses\",\"cue\":\"After breakfast\",\"for_goal\":true}]"
+        },
+        "routines": {
+          "type": "string",
+          "description": "JSON of routines to switch on: {\"morning_note\":true,\"evening_checkin\":true,\"weekly_recap\":true}"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/onboarding/complete"
+      }
+    },
+    {
+      "name": "activity.list",
+      "description": "What was done, by whom, newest first.",
+      "params": {
+        "actor": {
+          "type": "string",
+          "description": "person, agent or system",
+          "enum": [
+            "person",
+            "agent",
+            "system"
+          ]
+        },
+        "target": {
+          "type": "string",
+          "description": "A collection"
+        },
+        "record": {
+          "type": "string",
+          "description": "A record id"
+        },
+        "since": {
+          "type": "string",
+          "description": "Since a timestamp"
+        },
+        "limit": {
+          "type": "number",
+          "description": "How many"
+        },
+        "offset": {
+          "type": "number",
+          "description": "Skip this many"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/activity/list"
+      }
+    },
+    {
+      "name": "activity.undo",
+      "description": "Undo one write (or a batch). Your AI agent can undo only its own.",
+      "params": {
+        "entry": {
+          "type": "string",
+          "description": "Activity id"
+        },
+        "batch": {
+          "type": "string",
+          "description": "A batch id"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/activity/undo"
+      }
+    },
+    {
+      "name": "activity.last",
+      "description": "The caller's newest undoable write.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/activity/last"
+      }
+    },
+    {
+      "name": "export.json",
+      "description": "Everything as one JSON file (the person only). [People only.]",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/export/json"
+      }
+    },
+    {
+      "name": "calendar.status",
+      "description": "Whether the Google Calendar mirror is on and its last sync.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/calendar/status"
+      }
+    },
+    {
+      "name": "calendar.events",
+      "description": "Mirrored calendar events between two days.",
+      "params": {
+        "from": {
+          "type": "string",
+          "description": "First day"
+        },
+        "to": {
+          "type": "string",
+          "description": "Last day"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/calendar/events"
+      }
+    },
+    {
+      "name": "calendar.sync",
+      "description": "Sync the calendar mirror now.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/calendar/sync"
+      }
+    },
+    {
+      "name": "routines.list",
+      "description": "The routines that ask your AI agent (morning note, evening check-in, weekly recap): on or off, time, days, last runs.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/routines/list"
+      }
+    },
+    {
+      "name": "routines.update",
+      "description": "Switch a routine on or off, set its time and days (the person only). [People only.]",
+      "params": {
+        "routine": {
+          "type": "string",
+          "description": "morning_note, evening_checkin or weekly_recap",
+          "required": true
+        },
+        "enabled": {
+          "type": "boolean",
+          "description": "On or off"
+        },
+        "time": {
+          "type": "string",
+          "description": "HH:MM"
+        },
+        "days": {
+          "type": "string",
+          "description": "JSON list of weekdays 0 (Sunday) to 6"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/routines/update"
+      }
+    },
+    {
+      "name": "routines.run-now",
+      "description": "Run a routine now, to try it. [People only.]",
+      "params": {
+        "routine": {
+          "type": "string",
+          "description": "The routine",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/routines/run-now"
+      }
+    },
+    {
+      "name": "world.place",
+      "description": "Where the weather and news are for (found from the internet address the first time).",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/world/place"
+      }
+    },
+    {
+      "name": "world.places",
+      "description": "Towns matching a name, to choose one.",
+      "params": {
+        "q": {
+          "type": "string",
+          "description": "A town name",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/world/places"
+      }
+    },
+    {
+      "name": "world.set-place",
+      "description": "Use this town for the weather and news (the person only). [People only.]",
+      "params": {
+        "city": {
+          "type": "string",
+          "description": "Town",
+          "required": true
+        },
+        "region": {
+          "type": "string",
+          "description": "Region"
+        },
+        "country": {
+          "type": "string",
+          "description": "Country code"
+        },
+        "lat": {
+          "type": "number",
+          "description": "Latitude",
+          "required": true
+        },
+        "lon": {
+          "type": "number",
+          "description": "Longitude",
+          "required": true
+        },
+        "timezone": {
+          "type": "string",
+          "description": "Time zone"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/world/set-place"
+      }
+    },
+    {
+      "name": "world.weather",
+      "description": "The weather now, the next 24 hours and 7 days where the person lives.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/world/weather"
+      }
+    },
+    {
+      "name": "world.news",
+      "description": "Headlines for a topic.",
+      "params": {
+        "topic": {
+          "type": "string",
+          "description": "Topic",
+          "enum": [
+            "top",
+            "world",
+            "nation",
+            "business",
+            "technology",
+            "science",
+            "health",
+            "sports",
+            "entertainment"
+          ]
+        },
+        "limit": {
+          "type": "number",
+          "description": "How many"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/world/news"
+      }
+    },
+    {
+      "name": "agent.request",
+      "description": "A person asks your AI agent for a piece of work from a screen. [People only.]",
+      "params": {
+        "kind": {
+          "type": "string",
+          "description": "What",
+          "required": true,
+          "enum": [
+            "day_plan",
+            "inbox",
+            "breakdown",
+            "habit_help",
+            "recap"
+          ]
+        },
+        "date": {
+          "type": "string",
+          "description": "The day"
+        },
+        "goal": {
+          "type": "string",
+          "description": "Goal id (breakdown)"
+        },
+        "habit": {
+          "type": "string",
+          "description": "Habit id (habit_help)"
+        },
+        "brief": {
+          "type": "string",
+          "description": "Anything to add"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/agent/request"
+      }
+    },
+    {
+      "name": "agent.brief",
+      "description": "The person's life today in one read, for your AI agent's first call.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/agent/brief"
+      }
+    },
+    {
+      "name": "agent.status",
+      "description": "Counts of what waits: proposals, suggestions, questions.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/agent/status"
+      }
+    },
+    {
+      "name": "asks.create",
+      "description": "A person asks your AI agent a question. [People only.]",
+      "params": {
+        "question": {
+          "type": "string",
+          "description": "The question",
+          "required": true
+        },
+        "about": {
+          "type": "string",
+          "description": "What it is about",
+          "enum": [
+            "life",
+            "area",
+            "goal",
+            "habit",
+            "person"
+          ]
+        },
+        "target": {
+          "type": "string",
+          "description": "The area kind, goal, habit or person id"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/asks/create"
+      }
+    },
+    {
+      "name": "asks.list",
+      "description": "Questions and answers, newest first.",
+      "params": {
+        "status": {
+          "type": "string",
+          "description": "waiting, working, answered or failed",
+          "enum": [
+            "waiting",
+            "working",
+            "answered",
+            "failed"
+          ]
+        },
+        "limit": {
+          "type": "number",
+          "description": "How many"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/asks/list"
+      }
+    },
+    {
+      "name": "asks.get",
+      "description": "One question.",
+      "params": {
+        "ask": {
+          "type": "string",
+          "description": "Question id",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/asks/get"
+      }
+    },
+    {
+      "name": "asks.working",
+      "description": "Your AI agent is working on the answer.",
+      "params": {
+        "ask": {
+          "type": "string",
+          "description": "Question id",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/asks/working"
+      }
+    },
+    {
+      "name": "asks.answer",
+      "description": "The answer, in plain text with the numbers.",
+      "params": {
+        "ask": {
+          "type": "string",
+          "description": "Question id",
+          "required": true
+        },
+        "answer": {
+          "type": "string",
+          "description": "The answer",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/asks/answer"
+      }
+    },
+    {
+      "name": "asks.fail",
+      "description": "Say the question cannot be answered, and why.",
+      "params": {
+        "ask": {
+          "type": "string",
+          "description": "Question id",
+          "required": true
+        },
+        "reason": {
+          "type": "string",
+          "description": "Why",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/asks/fail"
+      }
+    },
+    {
+      "name": "asks.delete",
+      "description": "Delete a question. [People only.]",
+      "params": {
+        "ask": {
+          "type": "string",
+          "description": "Question id",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/asks/delete"
+      },
+      "destructive": true
+    },
+    {
+      "name": "proposals.list",
+      "description": "Proposals (waiting by default).",
+      "params": {
+        "status": {
+          "type": "string",
+          "description": "Which",
+          "enum": [
+            "waiting",
+            "approved",
+            "partly_approved",
+            "rejected",
+            "returned",
+            "withdrawn",
+            "stale",
+            "all"
+          ]
+        },
+        "kind": {
+          "type": "string",
+          "description": "A kind"
+        },
+        "limit": {
+          "type": "number",
+          "description": "How many"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/proposals/list"
+      }
+    },
+    {
+      "name": "proposals.approve",
+      "description": "Keep a proposal (all of it, or only the items ticked). [People only.]",
+      "params": {
+        "proposal": {
+          "type": "string",
+          "description": "Proposal id",
+          "required": true
+        },
+        "items": {
+          "type": "string",
+          "description": "JSON list of item keys to keep"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/proposals/approve"
+      }
+    },
+    {
+      "name": "proposals.reject",
+      "description": "Decline a proposal. [People only.]",
+      "params": {
+        "proposal": {
+          "type": "string",
+          "description": "Proposal id",
+          "required": true
+        },
+        "note": {
+          "type": "string",
+          "description": "Why"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/proposals/reject"
+      }
+    },
+    {
+      "name": "proposals.return",
+      "description": "Send a proposal back with what to change. [People only.]",
+      "params": {
+        "proposal": {
+          "type": "string",
+          "description": "Proposal id",
+          "required": true
+        },
+        "note": {
+          "type": "string",
+          "description": "What to change",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/proposals/return"
+      }
+    },
+    {
+      "name": "proposals.withdraw",
+      "description": "Your AI agent takes one of its proposals back.",
+      "params": {
+        "proposal": {
+          "type": "string",
+          "description": "Proposal id",
+          "required": true
+        },
+        "note": {
+          "type": "string",
+          "description": "Why"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/proposals/withdraw"
+      }
+    },
+    {
+      "name": "suggestions.list",
+      "description": "Field suggestions (open by default).",
+      "params": {
+        "status": {
+          "type": "string",
+          "description": "Which",
+          "enum": [
+            "open",
+            "accepted",
+            "dismissed",
+            "stale",
+            "all"
+          ]
+        },
+        "target_kind": {
+          "type": "string",
+          "description": "tasks, habits or goals",
+          "enum": [
+            "tasks",
+            "habits",
+            "goals"
+          ]
+        },
+        "target_id": {
+          "type": "string",
+          "description": "A record id"
+        },
+        "limit": {
+          "type": "number",
+          "description": "How many"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/suggestions/list"
+      }
+    },
+    {
+      "name": "suggestions.create",
+      "description": "Suggest one field of one record (or many with --items): shown as a dashed chip the person keeps or dismisses.",
+      "params": {
+        "target_kind": {
+          "type": "string",
+          "description": "tasks, habits or goals",
+          "enum": [
+            "tasks",
+            "habits",
+            "goals"
+          ]
+        },
+        "target_id": {
+          "type": "string",
+          "description": "Record id"
+        },
+        "field": {
+          "type": "string",
+          "description": "Field (tasks: do_date, due_date, area, goal, project, person, duration_min; habits: goal, area, cue, time_of_day; goals: area, deadline, purpose)"
+        },
+        "value": {
+          "type": "string",
+          "description": "The value"
+        },
+        "why": {
+          "type": "string",
+          "description": "Why, briefly"
+        },
+        "items": {
+          "type": "string",
+          "description": "JSON list of {target_kind, target_id, field, value, why}"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/suggestions/create"
+      }
+    },
+    {
+      "name": "suggestions.accept",
+      "description": "Keep a suggestion (or a list of them). [People only.]",
+      "params": {
+        "suggestion": {
+          "type": "string",
+          "description": "Suggestion id or JSON list",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/suggestions/accept"
+      }
+    },
+    {
+      "name": "suggestions.dismiss",
+      "description": "Dismiss a suggestion (or a list). [People only.]",
+      "params": {
+        "suggestion": {
+          "type": "string",
+          "description": "Suggestion id or JSON list",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/suggestions/dismiss"
+      }
+    },
+    {
+      "name": "life.overview",
+      "description": "Every area (on and off) with its pulse from its own data, and the goals across them.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/life/overview"
+      }
+    },
+    {
+      "name": "life.area",
+      "description": "One area's page: its pulse, goals, habits, open cards and projects.",
+      "params": {
+        "area": {
+          "type": "string",
+          "description": "Area of life",
+          "enum": [
+            "health",
+            "money",
+            "relationships",
+            "work",
+            "home",
+            "growth",
+            "fun",
+            "mind"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/life/area"
+      }
+    },
+    {
+      "name": "areas.set",
+      "description": "Switch an area of life on or off. From your AI agent it waits as a proposal. [Proposal: a person approves.]",
+      "params": {
+        "area": {
+          "type": "string",
+          "description": "Area of life",
+          "enum": [
+            "health",
+            "money",
+            "relationships",
+            "work",
+            "home",
+            "growth",
+            "fun",
+            "mind"
+          ]
+        },
+        "enabled": {
+          "type": "boolean",
+          "description": "On or off"
+        },
+        "why": {
+          "type": "string",
+          "description": "Your AI agent: why, in a sentence or two, for the person approving"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/areas/set"
+      }
+    },
+    {
+      "name": "areas.reorder",
+      "description": "Put the areas in a new order. From your AI agent it waits as a proposal. [Proposal: a person approves.]",
+      "params": {
+        "areas": {
+          "type": "string",
+          "description": "JSON list of area kinds",
+          "required": true
+        },
+        "why": {
+          "type": "string",
+          "description": "Your AI agent: why, in a sentence or two, for the person approving"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/areas/reorder"
+      }
+    },
+    {
+      "name": "goals.list",
+      "description": "Goals with progress and pace (live ones by default).",
+      "params": {
+        "area": {
+          "type": "string",
+          "description": "Area of life",
+          "enum": [
+            "health",
+            "money",
+            "relationships",
+            "work",
+            "home",
+            "growth",
+            "fun",
+            "mind"
+          ]
+        },
+        "state": {
+          "type": "string",
+          "description": "Which",
+          "enum": [
+            "active",
+            "paused",
+            "done",
+            "dropped",
+            "live",
+            "all"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/goals/list"
+      }
+    },
+    {
+      "name": "goals.get",
+      "description": "One goal with its cards, habits, projects and check-ins.",
+      "params": {
+        "goal": {
+          "type": "string",
+          "description": "Goal id",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/goals/get"
+      }
+    },
+    {
+      "name": "goals.create",
+      "description": "A new goal in an area. Where it can it measures itself (pot, books, weight, habits, tasks). [Proposal: a person approves.]",
+      "params": {
+        "title": {
+          "type": "string",
+          "description": "What the goal is",
+          "required": true
+        },
+        "area": {
+          "type": "string",
+          "description": "Area of life",
+          "required": true,
+          "enum": [
+            "health",
+            "money",
+            "relationships",
+            "work",
+            "home",
+            "growth",
+            "fun",
+            "mind"
+          ]
+        },
+        "measure": {
+          "type": "string",
+          "description": "How it measures itself: pot (a savings pot), books (books finished), weight (weigh-ins), habits, tasks, milestones, number_up / number_down (check-ins), none",
+          "enum": [
+            "number_up",
+            "number_down",
+            "milestones",
+            "tasks",
+            "habits",
+            "pot",
+            "books",
+            "weight",
+            "none"
+          ]
+        },
+        "target": {
+          "type": "string",
+          "description": "Target (an amount for pot, a number of books, a weight, a number)"
+        },
+        "baseline": {
+          "type": "string",
+          "description": "Where it starts (number goals and weight; an amount already saved for pot)"
+        },
+        "unit": {
+          "type": "string",
+          "description": "Unit for number goals, e.g. km"
+        },
+        "pot": {
+          "type": "string",
+          "description": "Savings pot id for a pot goal (a new pot is made when none is given)"
+        },
+        "milestones": {
+          "type": "string",
+          "description": "JSON list of milestone texts"
+        },
+        "start_date": {
+          "type": "string",
+          "description": "When it starts"
+        },
+        "deadline": {
+          "type": "string",
+          "description": "By when"
+        },
+        "purpose": {
+          "type": "string",
+          "description": "Why it matters"
+        },
+        "why": {
+          "type": "string",
+          "description": "Your AI agent: why, in a sentence or two, for the person approving"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/goals/create"
+      }
+    },
+    {
+      "name": "goals.update",
+      "description": "Change a goal. [Proposal: a person approves.]",
+      "params": {
+        "goal": {
+          "type": "string",
+          "description": "Goal id",
+          "required": true
+        },
+        "title": {
+          "type": "string",
+          "description": "What the goal is"
+        },
+        "area": {
+          "type": "string",
+          "description": "Area of life",
+          "enum": [
+            "health",
+            "money",
+            "relationships",
+            "work",
+            "home",
+            "growth",
+            "fun",
+            "mind"
+          ]
+        },
+        "measure": {
+          "type": "string",
+          "description": "How it measures itself: pot (a savings pot), books (books finished), weight (weigh-ins), habits, tasks, milestones, number_up / number_down (check-ins), none",
+          "enum": [
+            "number_up",
+            "number_down",
+            "milestones",
+            "tasks",
+            "habits",
+            "pot",
+            "books",
+            "weight",
+            "none"
+          ]
+        },
+        "target": {
+          "type": "string",
+          "description": "Target (an amount for pot, a number of books, a weight, a number)"
+        },
+        "baseline": {
+          "type": "string",
+          "description": "Where it starts (number goals and weight; an amount already saved for pot)"
+        },
+        "unit": {
+          "type": "string",
+          "description": "Unit for number goals, e.g. km"
+        },
+        "pot": {
+          "type": "string",
+          "description": "Savings pot id for a pot goal (a new pot is made when none is given)"
+        },
+        "milestones": {
+          "type": "string",
+          "description": "JSON list of milestone texts"
+        },
+        "start_date": {
+          "type": "string",
+          "description": "When it starts"
+        },
+        "deadline": {
+          "type": "string",
+          "description": "By when"
+        },
+        "purpose": {
+          "type": "string",
+          "description": "Why it matters"
+        },
+        "why": {
+          "type": "string",
+          "description": "Your AI agent: why, in a sentence or two, for the person approving"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/goals/update"
+      }
+    },
+    {
+      "name": "goals.set-state",
+      "description": "Take a goal up, pause it, mark it done or let it go. [Proposal: a person approves.]",
+      "params": {
+        "goal": {
+          "type": "string",
+          "description": "Goal id",
+          "required": true
+        },
+        "state": {
+          "type": "string",
+          "description": "active, paused, done or dropped",
+          "required": true,
+          "enum": [
+            "active",
+            "paused",
+            "done",
+            "dropped"
+          ]
+        },
+        "why": {
+          "type": "string",
+          "description": "Your AI agent: why, in a sentence or two, for the person approving"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/goals/set-state"
+      }
+    },
+    {
+      "name": "goals.checkin",
+      "description": "A number for a number goal (the latest counts).",
+      "params": {
+        "goal": {
+          "type": "string",
+          "description": "Goal id",
+          "required": true
+        },
+        "value": {
+          "type": "number",
+          "description": "The number now",
+          "required": true
+        },
+        "date": {
+          "type": "string",
+          "description": "The day"
+        },
+        "note": {
+          "type": "string",
+          "description": "A note"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/goals/checkin"
+      }
+    },
+    {
+      "name": "goals.uncheckin",
+      "description": "Take a check-in back.",
+      "params": {
+        "checkin": {
+          "type": "string",
+          "description": "Check-in id",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/goals/uncheckin"
+      }
+    },
+    {
+      "name": "goals.milestone",
+      "description": "Add a milestone (--text), tick or untick one (--item, --done), or remove one (--item --remove true).",
+      "params": {
+        "goal": {
+          "type": "string",
+          "description": "Goal id",
+          "required": true
+        },
+        "text": {
+          "type": "string",
+          "description": "A new milestone"
+        },
+        "item": {
+          "type": "string",
+          "description": "Milestone id"
+        },
+        "done": {
+          "type": "boolean",
+          "description": "Done or not"
+        },
+        "remove": {
+          "type": "boolean",
+          "description": "Remove it"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/goals/milestone"
+      }
+    },
+    {
+      "name": "goals.delete",
+      "description": "Delete a goal; its cards, habits and projects stay, unlinked. [Proposal: a person approves.]",
+      "params": {
+        "goal": {
+          "type": "string",
+          "description": "Goal id",
+          "required": true
+        },
+        "why": {
+          "type": "string",
+          "description": "Your AI agent: why, in a sentence or two, for the person approving"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/goals/delete"
+      },
+      "destructive": true
+    },
+    {
+      "name": "goals.breakdown",
+      "description": "First steps for a goal in one go: cards, habits, milestones, a project. [Proposal: a person approves.]",
+      "params": {
+        "goal": {
+          "type": "string",
+          "description": "Goal id",
+          "required": true
+        },
+        "items": {
+          "type": "string",
+          "description": "JSON list: [{\"kind\":\"task|habit|milestone|project\",\"title\":\"..\", \"do_date\":\"..\", \"schedule\":\"daily|weekdays|per_week\", \"times\":3, \"art\":\"run\", \"cue\":\"..\"}]",
+          "required": true
+        },
+        "why": {
+          "type": "string",
+          "description": "Your AI agent: why, in a sentence or two, for the person approving"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/goals/breakdown"
+      }
+    },
+    {
+      "name": "board.get",
+      "description": "The board: Inbox, Today, Coming up (next 7 days), Later and Done (last 7 days), with today's weather, minutes planned and events.",
+      "params": {
+        "area": {
+          "type": "string",
+          "description": "Area of life",
+          "enum": [
+            "health",
+            "money",
+            "relationships",
+            "work",
+            "home",
+            "growth",
+            "fun",
+            "mind"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/board/get"
+      }
+    },
+    {
+      "name": "board.week",
+      "description": "Seven days with their cards, calendar events, plans and weather, and the inbox: the next seven from today, from --start, or the calendar week around --date.",
+      "params": {
+        "start": {
+          "type": "string",
+          "description": "First of the seven days (default today)"
+        },
+        "date": {
+          "type": "string",
+          "description": "A day in the calendar week to show instead"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/board/week"
+      }
+    },
+    {
+      "name": "board.plan",
+      "description": "A plan for the day in one step: card moves, today's top three, new cards, a note on Home. [Proposal: a person approves.]",
+      "params": {
+        "moves": {
+          "type": "string",
+          "description": "JSON list [{\"task\":\"<id>\",\"column\":\"today|coming|inbox|later\",\"do_date\":\"YYYY-MM-DD\"}]"
+        },
+        "top": {
+          "type": "string",
+          "description": "JSON list of card ids to star"
+        },
+        "new_tasks": {
+          "type": "string",
+          "description": "JSON list [{\"title\":\"..\",\"column\":\"today\",\"area\":\"family\"}]"
+        },
+        "note": {
+          "type": "string",
+          "description": "A note for Home"
+        },
+        "why": {
+          "type": "string",
+          "description": "Your AI agent: why, in a sentence or two, for the person approving"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/board/plan"
+      }
+    },
+    {
+      "name": "tasks.list",
+      "description": "Cards by list or filter.",
+      "params": {
+        "column": {
+          "type": "string",
+          "description": "Which list",
+          "enum": [
+            "inbox",
+            "today",
+            "coming",
+            "later",
+            "done",
+            "open",
+            "all"
+          ]
+        },
+        "area": {
+          "type": "string",
+          "description": "Area of life",
+          "enum": [
+            "health",
+            "money",
+            "relationships",
+            "work",
+            "home",
+            "growth",
+            "fun",
+            "mind"
+          ]
+        },
+        "project": {
+          "type": "string",
+          "description": "Project id"
+        },
+        "goal": {
+          "type": "string",
+          "description": "Goal id"
+        },
+        "person": {
+          "type": "string",
+          "description": "Person id"
+        },
+        "q": {
+          "type": "string",
+          "description": "Words"
+        },
+        "limit": {
+          "type": "number",
+          "description": "How many"
+        },
+        "offset": {
+          "type": "number",
+          "description": "Skip"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/tasks/list"
+      }
+    },
+    {
+      "name": "tasks.get",
+      "description": "One card with its history.",
+      "params": {
+        "task": {
+          "type": "string",
+          "description": "Card id",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/tasks/get"
+      }
+    },
+    {
+      "name": "tasks.create",
+      "description": "A new card.",
+      "params": {
+        "title": {
+          "type": "string",
+          "description": "What to do",
+          "required": true
+        },
+        "notes": {
+          "type": "string",
+          "description": "Notes"
+        },
+        "area": {
+          "type": "string",
+          "description": "Area of life",
+          "enum": [
+            "health",
+            "money",
+            "relationships",
+            "work",
+            "home",
+            "growth",
+            "fun",
+            "mind"
+          ]
+        },
+        "project": {
+          "type": "string",
+          "description": "Project id"
+        },
+        "goal": {
+          "type": "string",
+          "description": "Goal id"
+        },
+        "person": {
+          "type": "string",
+          "description": "Person id (finishing it counts as being in touch)"
+        },
+        "column": {
+          "type": "string",
+          "description": "Which list: inbox, today, coming (next 7 days), later",
+          "enum": [
+            "inbox",
+            "today",
+            "coming",
+            "later"
+          ]
+        },
+        "do_date": {
+          "type": "string",
+          "description": "The day to do it (YYYY-MM-DD, today, tomorrow)"
+        },
+        "due_date": {
+          "type": "string",
+          "description": "A real deadline"
+        },
+        "someday": {
+          "type": "boolean",
+          "description": "Someday (in Later, no day)"
+        },
+        "start_time": {
+          "type": "string",
+          "description": "HH:MM"
+        },
+        "duration_min": {
+          "type": "number",
+          "description": "Minutes it takes"
+        },
+        "stage": {
+          "type": "string",
+          "description": "In a project: todo or doing",
+          "enum": [
+            "todo",
+            "doing"
+          ]
+        },
+        "recurrence": {
+          "type": "string",
+          "description": "JSON {\"every\":1,\"unit\":\"day|week|month\",\"weekdays\":[1,3]} or \"\" to stop repeating"
+        },
+        "checklist": {
+          "type": "string",
+          "description": "JSON list of checklist lines"
+        },
+        "top": {
+          "type": "boolean",
+          "description": "One of today's top three"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/tasks/create"
+      }
+    },
+    {
+      "name": "tasks.add-many",
+      "description": "Several cards in one call (one batch; activity.undo --batch takes them all back).",
+      "params": {
+        "items": {
+          "type": "string",
+          "description": "JSON list of 1 to 20 cards, each with title and any of notes, area, project, goal, person, column, do_date, due_date, someday, start_time, duration_min, top",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/tasks/add-many"
+      }
+    },
+    {
+      "name": "tasks.update",
+      "description": "Change a card.",
+      "params": {
+        "task": {
+          "type": "string",
+          "description": "Card id",
+          "required": true
+        },
+        "title": {
+          "type": "string",
+          "description": "What to do"
+        },
+        "notes": {
+          "type": "string",
+          "description": "Notes"
+        },
+        "area": {
+          "type": "string",
+          "description": "Area of life",
+          "enum": [
+            "health",
+            "money",
+            "relationships",
+            "work",
+            "home",
+            "growth",
+            "fun",
+            "mind"
+          ]
+        },
+        "project": {
+          "type": "string",
+          "description": "Project id"
+        },
+        "goal": {
+          "type": "string",
+          "description": "Goal id"
+        },
+        "person": {
+          "type": "string",
+          "description": "Person id (finishing it counts as being in touch)"
+        },
+        "column": {
+          "type": "string",
+          "description": "Which list: inbox, today, coming (next 7 days), later",
+          "enum": [
+            "inbox",
+            "today",
+            "coming",
+            "later"
+          ]
+        },
+        "do_date": {
+          "type": "string",
+          "description": "The day to do it (YYYY-MM-DD, today, tomorrow)"
+        },
+        "due_date": {
+          "type": "string",
+          "description": "A real deadline"
+        },
+        "someday": {
+          "type": "boolean",
+          "description": "Someday (in Later, no day)"
+        },
+        "start_time": {
+          "type": "string",
+          "description": "HH:MM"
+        },
+        "duration_min": {
+          "type": "number",
+          "description": "Minutes it takes"
+        },
+        "stage": {
+          "type": "string",
+          "description": "In a project: todo or doing",
+          "enum": [
+            "todo",
+            "doing"
+          ]
+        },
+        "recurrence": {
+          "type": "string",
+          "description": "JSON {\"every\":1,\"unit\":\"day|week|month\",\"weekdays\":[1,3]} or \"\" to stop repeating"
+        },
+        "checklist": {
+          "type": "string",
+          "description": "JSON list of checklist lines"
+        },
+        "top": {
+          "type": "boolean",
+          "description": "One of today's top three"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/tasks/update"
+      }
+    },
+    {
+      "name": "tasks.move",
+      "description": "Drop a card in a list (its day follows: today, tomorrow for Coming up, none for Inbox and Later), with the new order of that list.",
+      "params": {
+        "task": {
+          "type": "string",
+          "description": "Card id",
+          "required": true
+        },
+        "column": {
+          "type": "string",
+          "description": "The list",
+          "required": true,
+          "enum": [
+            "inbox",
+            "today",
+            "coming",
+            "later",
+            "done"
+          ]
+        },
+        "do_date": {
+          "type": "string",
+          "description": "An exact day instead"
+        },
+        "order": {
+          "type": "string",
+          "description": "JSON list of the card ids in that list, in order"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/tasks/move"
+      }
+    },
+    {
+      "name": "tasks.complete",
+      "description": "Done (or --done false to open again). A repeating card makes its next one.",
+      "params": {
+        "task": {
+          "type": "string",
+          "description": "Card id",
+          "required": true
+        },
+        "done": {
+          "type": "boolean",
+          "description": "Done or not"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/tasks/complete"
+      }
+    },
+    {
+      "name": "tasks.top",
+      "description": "Star a card as one of today's top three (or not).",
+      "params": {
+        "task": {
+          "type": "string",
+          "description": "Card id",
+          "required": true
+        },
+        "top": {
+          "type": "boolean",
+          "description": "Starred or not"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/tasks/top"
+      }
+    },
+    {
+      "name": "tasks.check",
+      "description": "Checklist: add a line (--text), tick or untick (--item, --done), rename (--item --text), remove (--item --remove true).",
+      "params": {
+        "task": {
+          "type": "string",
+          "description": "Card id",
+          "required": true
+        },
+        "item": {
+          "type": "string",
+          "description": "Line id"
+        },
+        "text": {
+          "type": "string",
+          "description": "Text"
+        },
+        "done": {
+          "type": "boolean",
+          "description": "Done or not"
+        },
+        "remove": {
+          "type": "boolean",
+          "description": "Remove it"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/tasks/check"
+      }
+    },
+    {
+      "name": "tasks.reorder",
+      "description": "Cards in a new order.",
+      "params": {
+        "tasks": {
+          "type": "string",
+          "description": "JSON list of card ids",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/tasks/reorder"
+      }
+    },
+    {
+      "name": "tasks.delete",
+      "description": "Delete a card.",
+      "params": {
+        "task": {
+          "type": "string",
+          "description": "Card id",
+          "required": true
+        },
+        "confirm": {
+          "type": "boolean",
+          "description": "Your AI agent: true once the person asked for this deletion. Without it nothing is deleted and the answer says what would be."
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/tasks/delete"
+      },
+      "destructive": true
+    },
+    {
+      "name": "projects.list",
+      "description": "Projects with their steps and progress.",
+      "params": {
+        "state": {
+          "type": "string",
+          "description": "Which",
+          "enum": [
+            "active",
+            "someday",
+            "done",
+            "dropped",
+            "all"
+          ]
+        },
+        "area": {
+          "type": "string",
+          "description": "Area of life",
+          "enum": [
+            "health",
+            "money",
+            "relationships",
+            "work",
+            "home",
+            "growth",
+            "fun",
+            "mind"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/projects/list"
+      }
+    },
+    {
+      "name": "projects.get",
+      "description": "One project with its steps to do, doing and done.",
+      "params": {
+        "project": {
+          "type": "string",
+          "description": "Project id",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/projects/get"
+      }
+    },
+    {
+      "name": "projects.create",
+      "description": "A new project. [Proposal: a person approves.]",
+      "params": {
+        "title": {
+          "type": "string",
+          "description": "Project",
+          "required": true
+        },
+        "area": {
+          "type": "string",
+          "description": "Area of life",
+          "enum": [
+            "health",
+            "money",
+            "relationships",
+            "work",
+            "home",
+            "growth",
+            "fun",
+            "mind"
+          ]
+        },
+        "goal": {
+          "type": "string",
+          "description": "Goal id it serves"
+        },
+        "deadline": {
+          "type": "string",
+          "description": "By when"
+        },
+        "notes": {
+          "type": "string",
+          "description": "Notes"
+        },
+        "look": {
+          "type": "number",
+          "description": "Cover 0 to 7"
+        },
+        "why": {
+          "type": "string",
+          "description": "Your AI agent: why, in a sentence or two, for the person approving"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/projects/create"
+      }
+    },
+    {
+      "name": "projects.update",
+      "description": "Change a project. [Proposal: a person approves.]",
+      "params": {
+        "project": {
+          "type": "string",
+          "description": "Project id",
+          "required": true
+        },
+        "title": {
+          "type": "string",
+          "description": "Title"
+        },
+        "area": {
+          "type": "string",
+          "description": "Area of life",
+          "enum": [
+            "health",
+            "money",
+            "relationships",
+            "work",
+            "home",
+            "growth",
+            "fun",
+            "mind"
+          ]
+        },
+        "goal": {
+          "type": "string",
+          "description": "Goal id"
+        },
+        "deadline": {
+          "type": "string",
+          "description": "By when"
+        },
+        "notes": {
+          "type": "string",
+          "description": "Notes"
+        },
+        "look": {
+          "type": "number",
+          "description": "Cover 0 to 7"
+        },
+        "why": {
+          "type": "string",
+          "description": "Your AI agent: why, in a sentence or two, for the person approving"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/projects/update"
+      }
+    },
+    {
+      "name": "projects.set-state",
+      "description": "Active, someday, done or dropped. [Proposal: a person approves.]",
+      "params": {
+        "project": {
+          "type": "string",
+          "description": "Project id",
+          "required": true
+        },
+        "state": {
+          "type": "string",
+          "description": "The state",
+          "required": true,
+          "enum": [
+            "active",
+            "someday",
+            "done",
+            "dropped"
+          ]
+        },
+        "why": {
+          "type": "string",
+          "description": "Your AI agent: why, in a sentence or two, for the person approving"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/projects/set-state"
+      }
+    },
+    {
+      "name": "projects.reorder",
+      "description": "Projects in a new order.",
+      "params": {
+        "projects": {
+          "type": "string",
+          "description": "JSON list of project ids",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/projects/reorder"
+      }
+    },
+    {
+      "name": "projects.delete",
+      "description": "Delete a project; its steps stay as cards unless --with_tasks true. [Proposal: a person approves.]",
+      "params": {
+        "project": {
+          "type": "string",
+          "description": "Project id",
+          "required": true
+        },
+        "with_tasks": {
+          "type": "boolean",
+          "description": "Delete its steps too"
+        },
+        "why": {
+          "type": "string",
+          "description": "Your AI agent: why, in a sentence or two, for the person approving"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/projects/delete"
+      },
+      "destructive": true
+    },
+    {
+      "name": "habits.list",
+      "description": "Habits with today, the streak, the best streak, the 30-day rate and the last 14 days.",
+      "params": {
+        "area": {
+          "type": "string",
+          "description": "Area of life",
+          "enum": [
+            "health",
+            "money",
+            "relationships",
+            "work",
+            "home",
+            "growth",
+            "fun",
+            "mind"
+          ]
+        },
+        "archived": {
+          "type": "boolean",
+          "description": "Archived ones"
+        },
+        "date": {
+          "type": "string",
+          "description": "As of this day"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/habits/list"
+      }
+    },
+    {
+      "name": "habits.get",
+      "description": "One habit with its days (the last year, or --days) and notes.",
+      "params": {
+        "habit": {
+          "type": "string",
+          "description": "Habit id",
+          "required": true
+        },
+        "days": {
+          "type": "number",
+          "description": "How many days back, 7 to 365 (365)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/habits/get"
+      }
+    },
+    {
+      "name": "habits.create",
+      "description": "A new habit. [Proposal: a person approves.]",
+      "params": {
+        "name": {
+          "type": "string",
+          "description": "The habit",
+          "required": true
+        },
+        "art": {
+          "type": "string",
+          "description": "Its drawing (app.guide --part arts)"
+        },
+        "area": {
+          "type": "string",
+          "description": "Area of life",
+          "enum": [
+            "health",
+            "money",
+            "relationships",
+            "work",
+            "home",
+            "growth",
+            "fun",
+            "mind"
+          ]
+        },
+        "goal": {
+          "type": "string",
+          "description": "Goal id"
+        },
+        "schedule": {
+          "type": "string",
+          "description": "daily, weekdays or per_week",
+          "enum": [
+            "daily",
+            "weekdays",
+            "per_week"
+          ]
+        },
+        "days": {
+          "type": "string",
+          "description": "JSON weekdays for weekdays (0 Sunday)"
+        },
+        "times": {
+          "type": "number",
+          "description": "Times a week for per_week"
+        },
+        "target": {
+          "type": "number",
+          "description": "How many a day for a counted habit (e.g. 8 glasses)"
+        },
+        "unit": {
+          "type": "string",
+          "description": "Unit for a counted habit"
+        },
+        "time_of_day": {
+          "type": "string",
+          "description": "morning, afternoon, evening or anytime",
+          "enum": [
+            "morning",
+            "afternoon",
+            "evening",
+            "anytime"
+          ]
+        },
+        "cue": {
+          "type": "string",
+          "description": "When it happens, e.g. After morning coffee"
+        },
+        "source": {
+          "type": "string",
+          "description": "Counts itself from the body log: water (glasses) or mind_min (calm minutes); empty to stop",
+          "enum": [
+            "water",
+            "mind_min",
+            ""
+          ]
+        },
+        "started_on": {
+          "type": "string",
+          "description": "Start day"
+        },
+        "why": {
+          "type": "string",
+          "description": "Your AI agent: why, in a sentence or two, for the person approving"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/habits/create"
+      }
+    },
+    {
+      "name": "habits.update",
+      "description": "Change a habit (or archive it with --archived true). [Proposal: a person approves.]",
+      "params": {
+        "habit": {
+          "type": "string",
+          "description": "Habit id",
+          "required": true
+        },
+        "name": {
+          "type": "string",
+          "description": "Name"
+        },
+        "art": {
+          "type": "string",
+          "description": "Drawing"
+        },
+        "area": {
+          "type": "string",
+          "description": "Area of life",
+          "enum": [
+            "health",
+            "money",
+            "relationships",
+            "work",
+            "home",
+            "growth",
+            "fun",
+            "mind"
+          ]
+        },
+        "goal": {
+          "type": "string",
+          "description": "Goal id"
+        },
+        "schedule": {
+          "type": "string",
+          "description": "Schedule",
+          "enum": [
+            "daily",
+            "weekdays",
+            "per_week"
+          ]
+        },
+        "days": {
+          "type": "string",
+          "description": "JSON weekdays"
+        },
+        "times": {
+          "type": "number",
+          "description": "Times a week"
+        },
+        "target": {
+          "type": "number",
+          "description": "How many a day"
+        },
+        "unit": {
+          "type": "string",
+          "description": "Unit"
+        },
+        "time_of_day": {
+          "type": "string",
+          "description": "Time of day",
+          "enum": [
+            "morning",
+            "afternoon",
+            "evening",
+            "anytime"
+          ]
+        },
+        "cue": {
+          "type": "string",
+          "description": "Cue"
+        },
+        "source": {
+          "type": "string",
+          "description": "Counts itself from the body log: water (glasses) or mind_min (calm minutes); empty to stop",
+          "enum": [
+            "water",
+            "mind_min",
+            ""
+          ]
+        },
+        "archived": {
+          "type": "boolean",
+          "description": "Archived"
+        },
+        "why": {
+          "type": "string",
+          "description": "Your AI agent: why, in a sentence or two, for the person approving"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/habits/update"
+      }
+    },
+    {
+      "name": "habits.reorder",
+      "description": "Habits in a new order.",
+      "params": {
+        "habits": {
+          "type": "string",
+          "description": "JSON list of habit ids",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/habits/reorder"
+      }
+    },
+    {
+      "name": "habits.tap",
+      "description": "The one-tap log: a check habit flips done; a counted one adds one.",
+      "params": {
+        "habit": {
+          "type": "string",
+          "description": "Habit id",
+          "required": true
+        },
+        "date": {
+          "type": "string",
+          "description": "The day (today by default)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/habits/tap"
+      }
+    },
+    {
+      "name": "habits.log",
+      "description": "Set a day exactly: done (default), skipped, a value, --add n, a note.",
+      "params": {
+        "habit": {
+          "type": "string",
+          "description": "Habit id",
+          "required": true
+        },
+        "date": {
+          "type": "string",
+          "description": "The day"
+        },
+        "state": {
+          "type": "string",
+          "description": "done or skipped",
+          "enum": [
+            "done",
+            "skipped"
+          ]
+        },
+        "value": {
+          "type": "number",
+          "description": "The count"
+        },
+        "add": {
+          "type": "number",
+          "description": "Add to the count"
+        },
+        "note": {
+          "type": "string",
+          "description": "A note"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/habits/log"
+      }
+    },
+    {
+      "name": "habits.unlog",
+      "description": "Clear a day.",
+      "params": {
+        "habit": {
+          "type": "string",
+          "description": "Habit id",
+          "required": true
+        },
+        "date": {
+          "type": "string",
+          "description": "The day"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/habits/unlog"
+      }
+    },
+    {
+      "name": "habits.delete",
+      "description": "Delete a habit and its logged days. [Proposal: a person approves.]",
+      "params": {
+        "habit": {
+          "type": "string",
+          "description": "Habit id",
+          "required": true
+        },
+        "why": {
+          "type": "string",
+          "description": "Your AI agent: why, in a sentence or two, for the person approving"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/habits/delete"
+      },
+      "destructive": true
+    },
+    {
+      "name": "days.get",
+      "description": "A day's mood, energy and your AI agent's note.",
+      "params": {
+        "date": {
+          "type": "string",
+          "description": "The day"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/days/get"
+      }
+    },
+    {
+      "name": "days.month",
+      "description": "Every day of a month: mood, cards done, habits done, journal, movement, events.",
+      "params": {
+        "month": {
+          "type": "string",
+          "description": "YYYY-MM"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/days/month"
+      }
+    },
+    {
+      "name": "days.mood",
+      "description": "How the day feels (the person only). [People only.]",
+      "params": {
+        "date": {
+          "type": "string",
+          "description": "The day"
+        },
+        "mood": {
+          "type": "number",
+          "description": "1 to 5 (0 clears)"
+        },
+        "energy": {
+          "type": "number",
+          "description": "1 to 5 (0 clears)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/days/mood"
+      }
+    },
+    {
+      "name": "days.note",
+      "description": "Your AI agent's note for the day on Home (empty text clears it).",
+      "params": {
+        "text": {
+          "type": "string",
+          "description": "The note"
+        },
+        "date": {
+          "type": "string",
+          "description": "The day"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/days/note"
+      }
+    },
+    {
+      "name": "journal.list",
+      "description": "Journal entries, newest first. Your AI agent sees only shared ones, plus private_days: the days with a private page (never their words).",
+      "params": {
+        "from": {
+          "type": "string",
+          "description": "From"
+        },
+        "to": {
+          "type": "string",
+          "description": "To"
+        },
+        "tag": {
+          "type": "string",
+          "description": "An area",
+          "enum": [
+            "health",
+            "money",
+            "relationships",
+            "work",
+            "home",
+            "growth",
+            "fun",
+            "mind"
+          ]
+        },
+        "photos": {
+          "type": "boolean",
+          "description": "Only with photos"
+        },
+        "q": {
+          "type": "string",
+          "description": "Words"
+        },
+        "limit": {
+          "type": "number",
+          "description": "How many"
+        },
+        "offset": {
+          "type": "number",
+          "description": "Skip"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/journal/list"
+      }
+    },
+    {
+      "name": "journal.get",
+      "description": "One entry.",
+      "params": {
+        "entry": {
+          "type": "string",
+          "description": "Entry id",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/journal/get"
+      }
+    },
+    {
+      "name": "journal.write",
+      "description": "Write (the person only): the first save makes the entry, later saves (with --entry) update it. [People only.]",
+      "params": {
+        "entry": {
+          "type": "string",
+          "description": "Entry id (to update)"
+        },
+        "date": {
+          "type": "string",
+          "description": "The day"
+        },
+        "body": {
+          "type": "string",
+          "description": "The writing"
+        },
+        "mood": {
+          "type": "number",
+          "description": "1 to 5"
+        },
+        "tags": {
+          "type": "string",
+          "description": "JSON list of areas"
+        },
+        "privacy": {
+          "type": "string",
+          "description": "private or shared_with_agent",
+          "enum": [
+            "private",
+            "shared_with_agent"
+          ]
+        },
+        "remove_photo": {
+          "type": "boolean",
+          "description": "Remove the photo"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/journal/write"
+      }
+    },
+    {
+      "name": "journal.delete",
+      "description": "Delete an entry (the person only). [People only.]",
+      "params": {
+        "entry": {
+          "type": "string",
+          "description": "Entry id",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/journal/delete"
+      },
+      "destructive": true
+    },
+    {
+      "name": "journal.photo",
+      "description": "An entry's photo (your AI agent gets its path on disk, for shared entries).",
+      "params": {
+        "entry": {
+          "type": "string",
+          "description": "Entry id",
+          "required": true
+        },
+        "v": {
+          "type": "string",
+          "description": "Cache key"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/journal/photo"
+      }
+    },
+    {
+      "name": "journal.memories",
+      "description": "Entries from this day in earlier months and years.",
+      "params": {
+        "date": {
+          "type": "string",
+          "description": "The day"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/journal/memories"
+      }
+    },
+    {
+      "name": "journal.heat",
+      "description": "How much was written each day (the last year, or --days), and the writing streak.",
+      "params": {
+        "days": {
+          "type": "number",
+          "description": "How many days back, 7 to 365 (365)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/journal/heat"
+      }
+    },
+    {
+      "name": "recap.week",
+      "description": "A week in numbers, the mood by day, wins, goals that moved, and your AI agent's paragraph.",
+      "params": {
+        "date": {
+          "type": "string",
+          "description": "A day in the week"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/recap/week"
+      }
+    },
+    {
+      "name": "recap.write",
+      "description": "Your AI agent's paragraph for a week's recap (empty text clears it).",
+      "params": {
+        "date": {
+          "type": "string",
+          "description": "A day in the week"
+        },
+        "text": {
+          "type": "string",
+          "description": "The paragraph"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/recap/write"
+      }
+    },
+    {
+      "name": "people.list",
+      "description": "People (one circle or one area), with last contact, keep-in-touch due and the next birthday.",
+      "params": {
+        "circle": {
+          "type": "string",
+          "description": "Circle",
+          "enum": [
+            "partner",
+            "friends",
+            "family"
+          ]
+        },
+        "area": {
+          "type": "string",
+          "description": "Area of life",
+          "enum": [
+            "health",
+            "money",
+            "relationships",
+            "work",
+            "home",
+            "growth",
+            "fun",
+            "mind"
+          ]
+        },
+        "archived": {
+          "type": "boolean",
+          "description": "Archived ones"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/people/list"
+      }
+    },
+    {
+      "name": "people.get",
+      "description": "One person with the times you were in touch, plans with them and cards about them.",
+      "params": {
+        "person": {
+          "type": "string",
+          "description": "Person id",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/people/get"
+      }
+    },
+    {
+      "name": "people.reach",
+      "description": "Who to reach out to (most overdue first) and birthdays in the next days.",
+      "params": {
+        "days": {
+          "type": "number",
+          "description": "Birthdays within this many days"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/people/reach"
+      }
+    },
+    {
+      "name": "people.create",
+      "description": "Add a person (--links: the people they know, joined on the connection map). [Proposal: a person approves.]",
+      "params": {
+        "name": {
+          "type": "string",
+          "description": "Name",
+          "required": true
+        },
+        "circle": {
+          "type": "string",
+          "description": "partner, friends or family",
+          "enum": [
+            "partner",
+            "friends",
+            "family"
+          ]
+        },
+        "relation": {
+          "type": "string",
+          "description": "e.g. Mum, best friend"
+        },
+        "birthday": {
+          "type": "string",
+          "description": "MM-DD, or YYYY-MM-DD when the year is known"
+        },
+        "keep_in_touch_days": {
+          "type": "number",
+          "description": "Every how many days to be in touch (0 for no nudge)"
+        },
+        "notes": {
+          "type": "string",
+          "description": "Notes"
+        },
+        "look": {
+          "type": "number",
+          "description": "Their little face (a number)"
+        },
+        "archived": {
+          "type": "boolean",
+          "description": "Archived"
+        },
+        "links": {
+          "type": "string",
+          "description": "Ids of people they know (JSON list or comma separated)"
+        },
+        "why": {
+          "type": "string",
+          "description": "Your AI agent: why, in a sentence or two, for the person approving"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/people/create"
+      }
+    },
+    {
+      "name": "people.update",
+      "description": "Change a person. [Proposal: a person approves.]",
+      "params": {
+        "person": {
+          "type": "string",
+          "description": "Person id",
+          "required": true
+        },
+        "name": {
+          "type": "string",
+          "description": "Name"
+        },
+        "circle": {
+          "type": "string",
+          "description": "partner, friends or family",
+          "enum": [
+            "partner",
+            "friends",
+            "family"
+          ]
+        },
+        "relation": {
+          "type": "string",
+          "description": "e.g. Mum, best friend"
+        },
+        "birthday": {
+          "type": "string",
+          "description": "MM-DD, or YYYY-MM-DD when the year is known"
+        },
+        "keep_in_touch_days": {
+          "type": "number",
+          "description": "Every how many days to be in touch (0 for no nudge)"
+        },
+        "notes": {
+          "type": "string",
+          "description": "Notes"
+        },
+        "look": {
+          "type": "number",
+          "description": "Their little face (a number)"
+        },
+        "archived": {
+          "type": "boolean",
+          "description": "Archived"
+        },
+        "why": {
+          "type": "string",
+          "description": "Your AI agent: why, in a sentence or two, for the person approving"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/people/update"
+      }
+    },
+    {
+      "name": "people.link",
+      "description": "Connect two people on the connection map (they know each other), or take the line away with --linked false.",
+      "params": {
+        "person": {
+          "type": "string",
+          "description": "Person id",
+          "required": true
+        },
+        "other": {
+          "type": "string",
+          "description": "The other person id",
+          "required": true
+        },
+        "linked": {
+          "type": "boolean",
+          "description": "true to connect (default), false to take the line away"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/people/link"
+      }
+    },
+    {
+      "name": "people.touch",
+      "description": "You were in touch with someone (today by default).",
+      "params": {
+        "person": {
+          "type": "string",
+          "description": "Person id",
+          "required": true
+        },
+        "kind": {
+          "type": "string",
+          "description": "talk, message, meet, gift or other",
+          "enum": [
+            "talk",
+            "message",
+            "meet",
+            "gift",
+            "other"
+          ]
+        },
+        "date": {
+          "type": "string",
+          "description": "The day"
+        },
+        "note": {
+          "type": "string",
+          "description": "A note"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/people/touch"
+      }
+    },
+    {
+      "name": "people.untouch",
+      "description": "Take a note of being in touch back.",
+      "params": {
+        "interaction": {
+          "type": "string",
+          "description": "Interaction id",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/people/untouch"
+      }
+    },
+    {
+      "name": "people.delete",
+      "description": "Remove a person and their history. [Proposal: a person approves.]",
+      "params": {
+        "person": {
+          "type": "string",
+          "description": "Person id",
+          "required": true
+        },
+        "why": {
+          "type": "string",
+          "description": "Your AI agent: why, in a sentence or two, for the person approving"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/people/delete"
+      },
+      "destructive": true
+    },
+    {
+      "name": "events.list",
+      "description": "Plans (family dinners, meetups, birthdays out) from today on.",
+      "params": {
+        "from": {
+          "type": "string",
+          "description": "From"
+        },
+        "to": {
+          "type": "string",
+          "description": "To"
+        },
+        "area": {
+          "type": "string",
+          "description": "Area of life",
+          "enum": [
+            "health",
+            "money",
+            "relationships",
+            "work",
+            "home",
+            "growth",
+            "fun",
+            "mind"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/events/list"
+      }
+    },
+    {
+      "name": "events.create",
+      "description": "A plan on a day, in an area, maybe with someone.",
+      "params": {
+        "title": {
+          "type": "string",
+          "description": "What",
+          "required": true
+        },
+        "date": {
+          "type": "string",
+          "description": "The day",
+          "required": true
+        },
+        "time": {
+          "type": "string",
+          "description": "HH:MM"
+        },
+        "area": {
+          "type": "string",
+          "description": "Area of life",
+          "required": true,
+          "enum": [
+            "health",
+            "money",
+            "relationships",
+            "work",
+            "home",
+            "growth",
+            "fun",
+            "mind"
+          ]
+        },
+        "place": {
+          "type": "string",
+          "description": "Where"
+        },
+        "person": {
+          "type": "string",
+          "description": "Person id"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/events/create"
+      }
+    },
+    {
+      "name": "events.update",
+      "description": "Change a plan.",
+      "params": {
+        "event": {
+          "type": "string",
+          "description": "Plan id",
+          "required": true
+        },
+        "title": {
+          "type": "string",
+          "description": "What"
+        },
+        "date": {
+          "type": "string",
+          "description": "The day"
+        },
+        "time": {
+          "type": "string",
+          "description": "HH:MM"
+        },
+        "area": {
+          "type": "string",
+          "description": "Area of life",
+          "enum": [
+            "health",
+            "money",
+            "relationships",
+            "work",
+            "home",
+            "growth",
+            "fun",
+            "mind"
+          ]
+        },
+        "place": {
+          "type": "string",
+          "description": "Where"
+        },
+        "person": {
+          "type": "string",
+          "description": "Person id"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/events/update"
+      }
+    },
+    {
+      "name": "events.delete",
+      "description": "Delete a plan.",
+      "params": {
+        "event": {
+          "type": "string",
+          "description": "Plan id",
+          "required": true
+        },
+        "confirm": {
+          "type": "boolean",
+          "description": "Your AI agent: true once the person asked for this deletion. Without it nothing is deleted and the answer says what would be."
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/events/delete"
+      },
+      "destructive": true
+    },
+    {
+      "name": "health.day",
+      "description": "A day's body log (water, sleep, steps, weight, calm minutes), its workouts and the daily goals.",
+      "params": {
+        "date": {
+          "type": "string",
+          "description": "The day"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/health/day"
+      }
+    },
+    {
+      "name": "health.log",
+      "description": "Log the body: set water, sleep_h, steps, weight, mind_min, or add with add_water / add_mind.",
+      "params": {
+        "date": {
+          "type": "string",
+          "description": "The day"
+        },
+        "water": {
+          "type": "number",
+          "description": "Glasses"
+        },
+        "add_water": {
+          "type": "number",
+          "description": "Glasses to add (minus to take off)"
+        },
+        "sleep_h": {
+          "type": "number",
+          "description": "Hours slept"
+        },
+        "steps": {
+          "type": "number",
+          "description": "Steps"
+        },
+        "weight": {
+          "type": "number",
+          "description": "Weight (kg or lb, by units)"
+        },
+        "mind_min": {
+          "type": "number",
+          "description": "Calm minutes"
+        },
+        "add_mind": {
+          "type": "number",
+          "description": "Calm minutes to add"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/health/log"
+      }
+    },
+    {
+      "name": "health.trend",
+      "description": "The last days, day by day, with averages (for the charts).",
+      "params": {
+        "days": {
+          "type": "number",
+          "description": "How many days (7 to 400)"
+        },
+        "to": {
+          "type": "string",
+          "description": "Last day"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/health/trend"
+      }
+    },
+    {
+      "name": "workouts.list",
+      "description": "Workouts between two days.",
+      "params": {
+        "from": {
+          "type": "string",
+          "description": "From"
+        },
+        "to": {
+          "type": "string",
+          "description": "To"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/workouts/list"
+      }
+    },
+    {
+      "name": "workouts.add",
+      "description": "A workout.",
+      "params": {
+        "kind": {
+          "type": "string",
+          "description": "walk, run, gym, yoga, bike, swim, sport or dance",
+          "required": true,
+          "enum": [
+            "walk",
+            "run",
+            "gym",
+            "yoga",
+            "bike",
+            "swim",
+            "sport",
+            "dance"
+          ]
+        },
+        "minutes": {
+          "type": "number",
+          "description": "Minutes",
+          "required": true
+        },
+        "date": {
+          "type": "string",
+          "description": "The day"
+        },
+        "note": {
+          "type": "string",
+          "description": "A note"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/workouts/add"
+      }
+    },
+    {
+      "name": "workouts.update",
+      "description": "Change a workout.",
+      "params": {
+        "workout": {
+          "type": "string",
+          "description": "Workout id",
+          "required": true
+        },
+        "kind": {
+          "type": "string",
+          "description": "Kind",
+          "enum": [
+            "walk",
+            "run",
+            "gym",
+            "yoga",
+            "bike",
+            "swim",
+            "sport",
+            "dance"
+          ]
+        },
+        "minutes": {
+          "type": "number",
+          "description": "Minutes"
+        },
+        "date": {
+          "type": "string",
+          "description": "The day"
+        },
+        "note": {
+          "type": "string",
+          "description": "A note"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/workouts/update"
+      }
+    },
+    {
+      "name": "workouts.delete",
+      "description": "Delete a workout.",
+      "params": {
+        "workout": {
+          "type": "string",
+          "description": "Workout id",
+          "required": true
+        },
+        "confirm": {
+          "type": "boolean",
+          "description": "Your AI agent: true once the person asked for this deletion. Without it nothing is deleted and the answer says what would be."
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/workouts/delete"
+      },
+      "destructive": true
+    },
+    {
+      "name": "money.month",
+      "description": "A month at a glance: spent, income, budget, left per day, by category, day by day, entries, bills and pots.",
+      "params": {
+        "month": {
+          "type": "string",
+          "description": "YYYY-MM"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/money/month"
+      }
+    },
+    {
+      "name": "money.entries",
+      "description": "Money entries between two days.",
+      "params": {
+        "from": {
+          "type": "string",
+          "description": "From"
+        },
+        "to": {
+          "type": "string",
+          "description": "To"
+        },
+        "category": {
+          "type": "string",
+          "description": "Category",
+          "enum": [
+            "food",
+            "groceries",
+            "transport",
+            "home",
+            "bills",
+            "fun",
+            "health",
+            "shopping",
+            "gifts",
+            "other",
+            "salary",
+            "extra"
+          ]
+        },
+        "limit": {
+          "type": "number",
+          "description": "How many"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/money/entries"
+      }
+    },
+    {
+      "name": "money.add",
+      "description": "Money out (spend) or in (income).",
+      "params": {
+        "amount": {
+          "type": "string",
+          "description": "Amount, e.g. 12.50",
+          "required": true
+        },
+        "kind": {
+          "type": "string",
+          "description": "spend or income",
+          "enum": [
+            "spend",
+            "income"
+          ]
+        },
+        "category": {
+          "type": "string",
+          "description": "Category",
+          "enum": [
+            "food",
+            "groceries",
+            "transport",
+            "home",
+            "bills",
+            "fun",
+            "health",
+            "shopping",
+            "gifts",
+            "other",
+            "salary",
+            "extra"
+          ]
+        },
+        "date": {
+          "type": "string",
+          "description": "The day"
+        },
+        "note": {
+          "type": "string",
+          "description": "What it was"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/money/add"
+      }
+    },
+    {
+      "name": "money.update",
+      "description": "Change an entry.",
+      "params": {
+        "entry": {
+          "type": "string",
+          "description": "Entry id",
+          "required": true
+        },
+        "amount": {
+          "type": "string",
+          "description": "Amount"
+        },
+        "kind": {
+          "type": "string",
+          "description": "spend or income",
+          "enum": [
+            "spend",
+            "income"
+          ]
+        },
+        "category": {
+          "type": "string",
+          "description": "Category",
+          "enum": [
+            "food",
+            "groceries",
+            "transport",
+            "home",
+            "bills",
+            "fun",
+            "health",
+            "shopping",
+            "gifts",
+            "other",
+            "salary",
+            "extra"
+          ]
+        },
+        "date": {
+          "type": "string",
+          "description": "The day"
+        },
+        "note": {
+          "type": "string",
+          "description": "What it was"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/money/update"
+      }
+    },
+    {
+      "name": "money.delete",
+      "description": "Delete an entry.",
+      "params": {
+        "entry": {
+          "type": "string",
+          "description": "Entry id",
+          "required": true
+        },
+        "confirm": {
+          "type": "boolean",
+          "description": "Your AI agent: true once the person asked for this deletion. Without it nothing is deleted and the answer says what would be."
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/money/delete"
+      },
+      "destructive": true
+    },
+    {
+      "name": "pots.list",
+      "description": "Savings pots.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/pots/list"
+      }
+    },
+    {
+      "name": "pots.create",
+      "description": "A savings pot.",
+      "params": {
+        "name": {
+          "type": "string",
+          "description": "Name",
+          "required": true
+        },
+        "target": {
+          "type": "string",
+          "description": "Target amount"
+        },
+        "saved": {
+          "type": "string",
+          "description": "Already saved"
+        },
+        "look": {
+          "type": "number",
+          "description": "Jar 0 to 7"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/pots/create"
+      }
+    },
+    {
+      "name": "pots.update",
+      "description": "Change a pot.",
+      "params": {
+        "pot": {
+          "type": "string",
+          "description": "Pot id",
+          "required": true
+        },
+        "name": {
+          "type": "string",
+          "description": "Name"
+        },
+        "target": {
+          "type": "string",
+          "description": "Target"
+        },
+        "saved": {
+          "type": "string",
+          "description": "Saved"
+        },
+        "look": {
+          "type": "number",
+          "description": "Jar 0 to 7"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/pots/update"
+      }
+    },
+    {
+      "name": "pots.add",
+      "description": "Put money in a pot (or take some out with --take true).",
+      "params": {
+        "pot": {
+          "type": "string",
+          "description": "Pot id",
+          "required": true
+        },
+        "amount": {
+          "type": "string",
+          "description": "Amount",
+          "required": true
+        },
+        "take": {
+          "type": "boolean",
+          "description": "Take out instead"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/pots/add"
+      }
+    },
+    {
+      "name": "pots.delete",
+      "description": "Delete a pot.",
+      "params": {
+        "pot": {
+          "type": "string",
+          "description": "Pot id",
+          "required": true
+        },
+        "confirm": {
+          "type": "boolean",
+          "description": "Your AI agent: true once the person asked for this deletion. Without it nothing is deleted and the answer says what would be."
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/pots/delete"
+      },
+      "destructive": true
+    },
+    {
+      "name": "bills.list",
+      "description": "Bills with this month's due day and whether paid.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/bills/list"
+      }
+    },
+    {
+      "name": "bills.create",
+      "description": "A monthly bill.",
+      "params": {
+        "name": {
+          "type": "string",
+          "description": "Name",
+          "required": true
+        },
+        "amount": {
+          "type": "string",
+          "description": "Amount"
+        },
+        "due_day": {
+          "type": "number",
+          "description": "Day of the month it is due",
+          "required": true
+        },
+        "category": {
+          "type": "string",
+          "description": "Category",
+          "enum": [
+            "home",
+            "bills",
+            "transport",
+            "health",
+            "fun",
+            "shopping",
+            "other"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/bills/create"
+      }
+    },
+    {
+      "name": "bills.update",
+      "description": "Change a bill (or stop it with --active false).",
+      "params": {
+        "bill": {
+          "type": "string",
+          "description": "Bill id",
+          "required": true
+        },
+        "name": {
+          "type": "string",
+          "description": "Name"
+        },
+        "amount": {
+          "type": "string",
+          "description": "Amount"
+        },
+        "due_day": {
+          "type": "number",
+          "description": "Due day"
+        },
+        "category": {
+          "type": "string",
+          "description": "Category",
+          "enum": [
+            "home",
+            "bills",
+            "transport",
+            "health",
+            "fun",
+            "shopping",
+            "other"
+          ]
+        },
+        "active": {
+          "type": "boolean",
+          "description": "Still coming"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/bills/update"
+      }
+    },
+    {
+      "name": "bills.pay",
+      "description": "This month's bill is paid (noted as a spend unless --record false; --paid false unmarks).",
+      "params": {
+        "bill": {
+          "type": "string",
+          "description": "Bill id",
+          "required": true
+        },
+        "paid": {
+          "type": "boolean",
+          "description": "Paid or not"
+        },
+        "record": {
+          "type": "boolean",
+          "description": "Note it as a spend"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/bills/pay"
+      }
+    },
+    {
+      "name": "bills.delete",
+      "description": "Delete a bill.",
+      "params": {
+        "bill": {
+          "type": "string",
+          "description": "Bill id",
+          "required": true
+        },
+        "confirm": {
+          "type": "boolean",
+          "description": "Your AI agent: true once the person asked for this deletion. Without it nothing is deleted and the answer says what would be."
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/bills/delete"
+      },
+      "destructive": true
+    },
+    {
+      "name": "books.shelf",
+      "description": "The bookshelf: reading, want to read, read, and how many this year.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/books/shelf"
+      }
+    },
+    {
+      "name": "books.list",
+      "description": "Books.",
+      "params": {
+        "status": {
+          "type": "string",
+          "description": "want, reading or done",
+          "enum": [
+            "want",
+            "reading",
+            "done"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/books/list"
+      }
+    },
+    {
+      "name": "books.add",
+      "description": "A book.",
+      "params": {
+        "title": {
+          "type": "string",
+          "description": "Title",
+          "required": true
+        },
+        "author": {
+          "type": "string",
+          "description": "Author"
+        },
+        "status": {
+          "type": "string",
+          "description": "want, reading or done",
+          "enum": [
+            "want",
+            "reading",
+            "done"
+          ]
+        },
+        "pages": {
+          "type": "number",
+          "description": "Pages"
+        },
+        "page": {
+          "type": "number",
+          "description": "Page you are on"
+        },
+        "look": {
+          "type": "number",
+          "description": "Spine 0 to 7"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/books/add"
+      }
+    },
+    {
+      "name": "books.update",
+      "description": "Change a book (the page you are on finishes it at the last page).",
+      "params": {
+        "book": {
+          "type": "string",
+          "description": "Book id",
+          "required": true
+        },
+        "title": {
+          "type": "string",
+          "description": "Title"
+        },
+        "author": {
+          "type": "string",
+          "description": "Author"
+        },
+        "status": {
+          "type": "string",
+          "description": "Status",
+          "enum": [
+            "want",
+            "reading",
+            "done"
+          ]
+        },
+        "pages": {
+          "type": "number",
+          "description": "Pages"
+        },
+        "page": {
+          "type": "number",
+          "description": "Page"
+        },
+        "rating": {
+          "type": "number",
+          "description": "0 to 5"
+        },
+        "finished_on": {
+          "type": "string",
+          "description": "Day finished"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/books/update"
+      }
+    },
+    {
+      "name": "books.delete",
+      "description": "Delete a book.",
+      "params": {
+        "book": {
+          "type": "string",
+          "description": "Book id",
+          "required": true
+        },
+        "confirm": {
+          "type": "boolean",
+          "description": "Your AI agent: true once the person asked for this deletion. Without it nothing is deleted and the answer says what would be."
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/books/delete"
+      },
+      "destructive": true
+    },
+    {
+      "name": "learning.list",
+      "description": "What is being learned.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/learning/list"
+      }
+    },
+    {
+      "name": "learning.add",
+      "description": "Something to learn.",
+      "params": {
+        "name": {
+          "type": "string",
+          "description": "What",
+          "required": true
+        },
+        "kind": {
+          "type": "string",
+          "description": "course, skill or language",
+          "enum": [
+            "course",
+            "skill",
+            "language"
+          ]
+        },
+        "progress": {
+          "type": "number",
+          "description": "0 to 100"
+        },
+        "note": {
+          "type": "string",
+          "description": "A note"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/learning/add"
+      }
+    },
+    {
+      "name": "learning.update",
+      "description": "Change it.",
+      "params": {
+        "item": {
+          "type": "string",
+          "description": "Item id",
+          "required": true
+        },
+        "name": {
+          "type": "string",
+          "description": "What"
+        },
+        "kind": {
+          "type": "string",
+          "description": "Kind",
+          "enum": [
+            "course",
+            "skill",
+            "language"
+          ]
+        },
+        "progress": {
+          "type": "number",
+          "description": "0 to 100"
+        },
+        "note": {
+          "type": "string",
+          "description": "A note"
+        },
+        "archived": {
+          "type": "boolean",
+          "description": "Archived"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/learning/update"
+      }
+    },
+    {
+      "name": "learning.practice",
+      "description": "Practised (today by default); minutes add up.",
+      "params": {
+        "item": {
+          "type": "string",
+          "description": "Item id",
+          "required": true
+        },
+        "minutes": {
+          "type": "number",
+          "description": "Minutes"
+        },
+        "progress": {
+          "type": "number",
+          "description": "Progress now, 0 to 100"
+        },
+        "date": {
+          "type": "string",
+          "description": "The day"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/learning/practice"
+      }
+    },
+    {
+      "name": "learning.delete",
+      "description": "Delete it.",
+      "params": {
+        "item": {
+          "type": "string",
+          "description": "Item id",
+          "required": true
+        },
+        "confirm": {
+          "type": "boolean",
+          "description": "Your AI agent: true once the person asked for this deletion. Without it nothing is deleted and the answer says what would be."
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/learning/delete"
+      },
+      "destructive": true
+    },
+    {
+      "name": "bucket.list",
+      "description": "The bucket list.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/bucket/list"
+      }
+    },
+    {
+      "name": "bucket.add",
+      "description": "Something for the bucket list.",
+      "params": {
+        "title": {
+          "type": "string",
+          "description": "What",
+          "required": true
+        },
+        "kind": {
+          "type": "string",
+          "description": "place, experience, skill, food or other",
+          "enum": [
+            "place",
+            "experience",
+            "skill",
+            "food",
+            "other"
+          ]
+        },
+        "note": {
+          "type": "string",
+          "description": "A note"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/bucket/add"
+      }
+    },
+    {
+      "name": "bucket.update",
+      "description": "Change it, or tick it off with --done true.",
+      "params": {
+        "item": {
+          "type": "string",
+          "description": "Item id",
+          "required": true
+        },
+        "title": {
+          "type": "string",
+          "description": "What"
+        },
+        "kind": {
+          "type": "string",
+          "description": "Kind",
+          "enum": [
+            "place",
+            "experience",
+            "skill",
+            "food",
+            "other"
+          ]
+        },
+        "note": {
+          "type": "string",
+          "description": "A note"
+        },
+        "done": {
+          "type": "boolean",
+          "description": "Done"
+        },
+        "date": {
+          "type": "string",
+          "description": "The day it happened"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/bucket/update"
+      }
+    },
+    {
+      "name": "bucket.delete",
+      "description": "Delete it.",
+      "params": {
+        "item": {
+          "type": "string",
+          "description": "Item id",
+          "required": true
+        },
+        "confirm": {
+          "type": "boolean",
+          "description": "Your AI agent: true once the person asked for this deletion. Without it nothing is deleted and the answer says what would be."
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/bucket/delete"
+      },
+      "destructive": true
+    },
+    {
+      "name": "trips.list",
+      "description": "Trips with countdowns and packing lists.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/trips/list"
+      }
+    },
+    {
+      "name": "trips.add",
+      "description": "A trip. Its packing list starts with the basics (passport, chargers, toothbrush, clothes) plus --packing.",
+      "params": {
+        "title": {
+          "type": "string",
+          "description": "Trip",
+          "required": true
+        },
+        "place": {
+          "type": "string",
+          "description": "Where"
+        },
+        "start_date": {
+          "type": "string",
+          "description": "Leaving"
+        },
+        "end_date": {
+          "type": "string",
+          "description": "Back"
+        },
+        "packing": {
+          "type": "string",
+          "description": "More to pack: a JSON list, or one per line"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/trips/add"
+      }
+    },
+    {
+      "name": "trips.update",
+      "description": "Change a trip.",
+      "params": {
+        "trip": {
+          "type": "string",
+          "description": "Trip id",
+          "required": true
+        },
+        "title": {
+          "type": "string",
+          "description": "Trip"
+        },
+        "place": {
+          "type": "string",
+          "description": "Where"
+        },
+        "start_date": {
+          "type": "string",
+          "description": "Leaving"
+        },
+        "end_date": {
+          "type": "string",
+          "description": "Back"
+        },
+        "notes": {
+          "type": "string",
+          "description": "Notes"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/trips/update"
+      }
+    },
+    {
+      "name": "trips.pack",
+      "description": "Packing list: add things (--text, one per line or a JSON list), or for one line (--item) exactly one of: --done true|false, --text (rename), --remove true.",
+      "params": {
+        "trip": {
+          "type": "string",
+          "description": "Trip id",
+          "required": true
+        },
+        "text": {
+          "type": "string",
+          "description": "Things to add (one per line), or the new name with --item"
+        },
+        "item": {
+          "type": "string",
+          "description": "Line id (trips.list shows them)"
+        },
+        "done": {
+          "type": "boolean",
+          "description": "Packed or not"
+        },
+        "remove": {
+          "type": "boolean",
+          "description": "Take the line off"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/trips/pack"
+      }
+    },
+    {
+      "name": "trips.delete",
+      "description": "Delete a trip.",
+      "params": {
+        "trip": {
+          "type": "string",
+          "description": "Trip id",
+          "required": true
+        },
+        "confirm": {
+          "type": "boolean",
+          "description": "Your AI agent: true once the person asked for this deletion. Without it nothing is deleted and the answer says what would be."
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/trips/delete"
+      },
+      "destructive": true
+    },
+    {
+      "name": "chores.list",
+      "description": "Chores, the ones due first.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/chores/list"
+      }
+    },
+    {
+      "name": "chores.add",
+      "description": "A chore that comes round.",
+      "params": {
+        "name": {
+          "type": "string",
+          "description": "What",
+          "required": true
+        },
+        "room": {
+          "type": "string",
+          "description": "Room",
+          "enum": [
+            "kitchen",
+            "bathroom",
+            "living",
+            "bedroom",
+            "laundry",
+            "outside",
+            "other"
+          ]
+        },
+        "every_days": {
+          "type": "number",
+          "description": "Every how many days"
+        },
+        "last_done": {
+          "type": "string",
+          "description": "Last done"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/chores/add"
+      }
+    },
+    {
+      "name": "chores.update",
+      "description": "Change a chore.",
+      "params": {
+        "chore": {
+          "type": "string",
+          "description": "Chore id",
+          "required": true
+        },
+        "name": {
+          "type": "string",
+          "description": "What"
+        },
+        "room": {
+          "type": "string",
+          "description": "Room",
+          "enum": [
+            "kitchen",
+            "bathroom",
+            "living",
+            "bedroom",
+            "laundry",
+            "outside",
+            "other"
+          ]
+        },
+        "every_days": {
+          "type": "number",
+          "description": "Every how many days"
+        },
+        "last_done": {
+          "type": "string",
+          "description": "Last done"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/chores/update"
+      }
+    },
+    {
+      "name": "chores.done",
+      "description": "Done today (or --date); --done false clears it.",
+      "params": {
+        "chore": {
+          "type": "string",
+          "description": "Chore id",
+          "required": true
+        },
+        "date": {
+          "type": "string",
+          "description": "The day"
+        },
+        "done": {
+          "type": "boolean",
+          "description": "Done or not"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/chores/done"
+      }
+    },
+    {
+      "name": "chores.delete",
+      "description": "Delete a chore.",
+      "params": {
+        "chore": {
+          "type": "string",
+          "description": "Chore id",
+          "required": true
+        },
+        "confirm": {
+          "type": "boolean",
+          "description": "Your AI agent: true once the person asked for this deletion. Without it nothing is deleted and the answer says what would be."
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/chores/delete"
+      },
+      "destructive": true
+    },
+    {
+      "name": "shopping.list",
+      "description": "The shopping list.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/shopping/list"
+      }
+    },
+    {
+      "name": "shopping.add",
+      "description": "Things to buy (one per line).",
+      "params": {
+        "text": {
+          "type": "string",
+          "description": "What to buy",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/shopping/add"
+      }
+    },
+    {
+      "name": "shopping.check",
+      "description": "Bought (or not).",
+      "params": {
+        "item": {
+          "type": "string",
+          "description": "Item id",
+          "required": true
+        },
+        "done": {
+          "type": "boolean",
+          "description": "Bought"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/shopping/check"
+      }
+    },
+    {
+      "name": "shopping.update",
+      "description": "Rename an item.",
+      "params": {
+        "item": {
+          "type": "string",
+          "description": "Item id",
+          "required": true
+        },
+        "text": {
+          "type": "string",
+          "description": "Text"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/shopping/update"
+      }
+    },
+    {
+      "name": "shopping.clear",
+      "description": "Take the bought things off the list.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/shopping/clear"
+      }
+    },
+    {
+      "name": "shopping.delete",
+      "description": "Delete an item.",
+      "params": {
+        "item": {
+          "type": "string",
+          "description": "Item id",
+          "required": true
+        },
+        "confirm": {
+          "type": "boolean",
+          "description": "Your AI agent: true once the person asked for this deletion. Without it nothing is deleted and the answer says what would be."
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/shopping/delete"
+      },
+      "destructive": true
+    },
+    {
+      "name": "focus.week",
+      "description": "Minutes of focus day by day this week.",
+      "params": {
+        "date": {
+          "type": "string",
+          "description": "A day in the week"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/focus/week"
+      }
+    },
+    {
+      "name": "focus.list",
+      "description": "Focus sessions.",
+      "params": {
+        "from": {
+          "type": "string",
+          "description": "From"
+        },
+        "to": {
+          "type": "string",
+          "description": "To"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/focus/list"
+      }
+    },
+    {
+      "name": "focus.log",
+      "description": "A focus session (the timer logs one when it rings).",
+      "params": {
+        "minutes": {
+          "type": "number",
+          "description": "Minutes",
+          "required": true
+        },
+        "date": {
+          "type": "string",
+          "description": "The day"
+        },
+        "task": {
+          "type": "string",
+          "description": "Card id it was for"
+        },
+        "note": {
+          "type": "string",
+          "description": "A note"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/focus/log"
+      }
+    },
+    {
+      "name": "focus.delete",
+      "description": "Delete a session.",
+      "params": {
+        "session": {
+          "type": "string",
+          "description": "Session id",
+          "required": true
+        },
+        "confirm": {
+          "type": "boolean",
+          "description": "Your AI agent: true once the person asked for this deletion. Without it nothing is deleted and the answer says what would be."
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/focus/delete"
+      },
+      "destructive": true
+    },
+    {
+      "name": "wins.list",
+      "description": "Wins, newest first.",
+      "params": {
+        "area": {
+          "type": "string",
+          "description": "Area of life",
+          "enum": [
+            "health",
+            "money",
+            "relationships",
+            "work",
+            "home",
+            "growth",
+            "fun",
+            "mind"
+          ]
+        },
+        "limit": {
+          "type": "number",
+          "description": "How many"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/wins/list"
+      }
+    },
+    {
+      "name": "wins.add",
+      "description": "A win, in a line.",
+      "params": {
+        "text": {
+          "type": "string",
+          "description": "The win",
+          "required": true
+        },
+        "date": {
+          "type": "string",
+          "description": "The day"
+        },
+        "area": {
+          "type": "string",
+          "description": "Area of life",
+          "enum": [
+            "health",
+            "money",
+            "relationships",
+            "work",
+            "home",
+            "growth",
+            "fun",
+            "mind"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/wins/add"
+      }
+    },
+    {
+      "name": "wins.update",
+      "description": "Change a win.",
+      "params": {
+        "win": {
+          "type": "string",
+          "description": "Win id",
+          "required": true
+        },
+        "text": {
+          "type": "string",
+          "description": "The win"
+        },
+        "date": {
+          "type": "string",
+          "description": "The day"
+        },
+        "area": {
+          "type": "string",
+          "description": "Area of life",
+          "enum": [
+            "health",
+            "money",
+            "relationships",
+            "work",
+            "home",
+            "growth",
+            "fun",
+            "mind"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/wins/update"
+      }
+    },
+    {
+      "name": "wins.delete",
+      "description": "Delete a win.",
+      "params": {
+        "win": {
+          "type": "string",
+          "description": "Win id",
+          "required": true
+        },
+        "confirm": {
+          "type": "boolean",
+          "description": "Your AI agent: true once the person asked for this deletion. Without it nothing is deleted and the answer says what would be."
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/wins/delete"
+      },
+      "destructive": true
+    }
+  ]
+}
