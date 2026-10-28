@@ -1,0 +1,419 @@
+/*
+ * Research Board visual system.
+ *
+ * A full-height tool: a sidebar of boards, then the board edge to edge. Flat
+ * surfaces split by hairline borders, small corners (6 to 8px), compact 32px
+ * controls, high contrast and almost no color: ink for actions and the
+ * selection, green and red only for links that support or contradict, the
+ * accent only for what the AI agent proposes. Manrope.
+ *
+ * The board follows the Research OS map: a dotted stage that pans and zooms,
+ * flat cards with a border, and curved links with arrowheads (dashed while
+ * the AI agent's proposal waits).
+ *
+ * One type scale: 12 caption, 13 secondary, 14 UI, 15 card titles and
+ * reading, 26 page titles and headline numbers. Hierarchy comes from weight
+ * and color. Spacing on a 4px grid.
+ *
+ * Every color follows the host theme. lib/themeColors.ts reads the kit's
+ * theme tokens (--agent-app-bg, -surface, -text, -muted, -border, -accent,
+ * -accent-contrast), derives the --rb-* tokens with contrast checks, and
+ * re-derives them whenever CraftBot switches the theme pack, light or dark
+ * mode, or custom colors. Kind and link hues are fixed because they carry
+ * meaning, but shifted per theme to show and read.
+ */
+
+/* Shape and type are the app's own (themes never set them); this selector
+ * out-ranks the kit's :root[data-theme] defaults. */
+html:root,
+html:root[data-theme='light'],
+html:root[data-theme='dark'] {
+  --agent-app-radius: 8px;
+  --agent-app-font: 'Manrope Variable', Manrope, system-ui, sans-serif;
+}
+
+html:root {
+  /* The accent and muted text as they read on ordinary surfaces. */
+  --rb-accent: var(--rb-accent-base);
+  --rb-on-accent: var(--rb-on-accent-base);
+  --rb-muted: var(--rb-muted-base);
+  --rb-red-text: var(--rb-red-text-base);
+
+  /* Fixed state colors (fills); their text variants are derived. */
+  --rb-red: #de4b33;
+  --rb-green: #4f9a6c;
+
+  --rb-shadow: 0 24px 48px -28px rgba(0, 0, 0, 0.35);
+}
+
+html:root,
+html:root[data-theme='light'] {
+  color-scheme: light;
+}
+
+html:root[data-theme='dark'] {
+  color-scheme: dark;
+  --rb-shadow: 0 24px 48px -28px rgba(0, 0, 0, 0.8);
+}
+
+/* Surface scopes: inside them the accent and muted text switch to the
+ * variants derived for that background, so nothing sits on its own color. */
+.rb-on-sand {
+  --rb-muted: var(--rb-muted-sand);
+}
+.rb-on-dark {
+  --rb-accent: var(--rb-accent-dark);
+  --rb-on-accent: var(--rb-on-accent-dark);
+  --rb-muted: var(--rb-on-dark-muted);
+  --rb-red-text: var(--rb-red-on-dark);
+}
+.rb-on-ink {
+  --rb-accent: var(--rb-accent-ink);
+  --rb-on-accent: var(--rb-on-accent-ink);
+}
+.rb-on-card {
+  --rb-accent: var(--rb-accent-base);
+  --rb-on-accent: var(--rb-on-accent-base);
+  --rb-muted: var(--rb-muted-base);
+  --rb-red-text: var(--rb-red-text-base);
+}
+
+html,
+body {
+  background: var(--rb-card);
+  overflow: hidden;
+  color: var(--rb-ink);
+  font-family: 'Manrope Variable', Manrope, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Base text size on body only: the root stays 16px so rem spacing is true. */
+body {
+  font-size: 14px;
+  line-height: 20px;
+}
+
+/* The kit's 16px and 18px steps fold into the scale. */
+html .text-base,
+html .text-lg {
+  font-size: 15px;
+  line-height: 22px;
+}
+
+/* Everything that reacts to the mouse shows the pointer. */
+@layer base {
+  button:not(:disabled),
+  a[href],
+  [role='button'],
+  [role='tab'],
+  [role='radio'],
+  [role='checkbox'],
+  [role='menuitem'],
+  [role='switch'],
+  [role='option'],
+  select:not(:disabled),
+  summary,
+  label:has(input),
+  label[for],
+  input[type='checkbox'],
+  input[type='radio'],
+  input[type='date'],
+  input[type='file'],
+  input[type='date']::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+  }
+  button:disabled,
+  select:disabled {
+    cursor: not-allowed;
+  }
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Native <select> popups paint their options with these. */
+select option {
+  background-color: var(--rb-card);
+  color: var(--rb-ink);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--rb-muted);
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--rb-line);
+  border-radius: 999px;
+}
+
+/* Entrances. */
+@keyframes rb-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.rb-rise {
+  animation: rb-rise 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.rb-d1 {
+  animation-delay: 60ms;
+}
+.rb-d2 {
+  animation-delay: 120ms;
+}
+.rb-d3 {
+  animation-delay: 180ms;
+}
+.rb-d4 {
+  animation-delay: 240ms;
+}
+.rb-d5 {
+  animation-delay: 300ms;
+}
+
+@keyframes rb-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+.rb-pop {
+  animation: rb-pop 200ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes rb-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+.rb-pulse {
+  animation: rb-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes rb-caret {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+.rb-caret {
+  animation: rb-caret 1s steps(1) infinite;
+}
+
+@keyframes rb-grow {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+.rb-grow {
+  transform-origin: bottom;
+  animation: rb-grow 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes rb-draw {
+  from {
+    opacity: 0;
+    transform: rotate(-12deg) scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(0) scale(1);
+  }
+}
+.rb-draw {
+  transform-origin: center;
+  animation: rb-draw 640ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes rb-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.rb-fade {
+  animation: rb-fade 200ms ease-out both;
+}
+
+/* ----------------------------------------------------------- the board */
+
+.rb-canvas {
+  overflow: hidden;
+  touch-action: none;
+  background-color: var(--rb-stage);
+  background-image: radial-gradient(var(--rb-grid) 1.1px, transparent 1.2px);
+}
+.rb-canvas.rb-panning,
+.rb-canvas.rb-panning * {
+  cursor: grabbing !important;
+}
+
+/* A card arriving on the board. */
+@keyframes rb-land {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.rb-land {
+  animation: rb-land 360ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* A link drawing itself in. */
+@keyframes rb-stroke {
+  from {
+    stroke-dashoffset: var(--rb-len, 600);
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.rb-stroke {
+  stroke-dasharray: var(--rb-len, 600);
+  animation: rb-stroke 620ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Proposed links flow gently, so they read as waiting. */
+@keyframes rb-flow {
+  to {
+    stroke-dashoffset: -22;
+  }
+}
+.rb-flow {
+  animation: rb-flow 1.4s linear infinite;
+}
+
+/* Panels sliding in from the right edge of the board. */
+@keyframes rb-slide {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.rb-slide {
+  animation: rb-slide 300ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* A card that matches the board search. */
+@keyframes rb-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 2px var(--rb-accent), 0 0 0 6px color-mix(in srgb, var(--rb-accent) 22%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 2px var(--rb-accent), 0 0 0 10px color-mix(in srgb, var(--rb-accent) 8%, transparent);
+  }
+}
+.rb-hit {
+  animation: rb-glow 1.8s ease-in-out infinite;
+}
+
+/* Skeleton shimmer while something loads. */
+@keyframes rb-shimmer {
+  from {
+    background-position: -200% 0;
+  }
+  to {
+    background-position: 200% 0;
+  }
+}
+.rb-skeleton {
+  background: linear-gradient(90deg, var(--rb-row) 0%, var(--rb-row-hover) 50%, var(--rb-row) 100%);
+  background-size: 200% 100%;
+  animation: rb-shimmer 1.4s ease-in-out infinite;
+}
+
+/* Long text inside cards. */
+.rb-prose {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.rb-serif {
+  font-family: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, 'Times New Roman', serif;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rb-rise,
+  .rb-pop,
+  .rb-pulse,
+  .rb-caret,
+  .rb-grow,
+  .rb-draw,
+  .rb-fade,
+  .rb-land,
+  .rb-stroke,
+  .rb-flow,
+  .rb-slide,
+  .rb-hit,
+  .rb-skeleton {
+    animation: none;
+  }
+}
+
+/* The kit's toasts in the app's language: dark pills above the phone bar. */
+/* Above the dialogs (z-60/61) and the entry bar (z-70): an error raised while
+ * a dialog is open must not hide behind its backdrop. */
+html .pointer-events-none.fixed.bottom-4.right-4 {
+  z-index: 80;
+}
+html .pointer-events-none.fixed.bottom-4.right-4 > button {
+  border: 0;
+  border-radius: 8px;
+  background: var(--rb-ink);
+  color: var(--rb-card);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 10px 14px;
+  box-shadow: 0 10px 30px -12px rgba(0, 0, 0, 0.45);
+}
+html .pointer-events-none.fixed.bottom-4.right-4 > button.text-red-700 {
+  background: var(--rb-red);
+  color: #ffffff;
+}
+@media (max-width: 767px) {
+  html .pointer-events-none.fixed.bottom-4.right-4 {
+    bottom: 16px;
+    right: 16px;
+    left: 16px;
+    width: auto;
+  }
+}

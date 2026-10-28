@@ -3,13 +3,14 @@
   "apps": [
     {
       "id": "research-board",
+      "livingUIVersion": 2,
       "name": "Research Board",
-      "description": "Organize research with notes, images, videos, YouTube links, and documents on a visual board. Features categories, search, and detail views.",
+      "description": "A sidebar of boards and a zoomable canvas: notes, web links, YouTube videos, images, videos, documents and quotes, grouped in sections and joined by links that support, contradict or lead to each other. Link previews, drag and drop, paste, find, tags and Markdown export. Your AI agent summarizes cards and reviews a board, proposing the links it sees.",
       "folder": "research-board",
-      "tags": ["research", "media", "productivity"],
-      "version": "1.0.0",
+      "tags": ["research", "whiteboard", "knowledge", "AI", "productivity"],
+      "version": "2.0.0",
       "customizable": [
-        {"key": "APP_TITLE", "label": "Board Title", "type": "text", "default": "Research Board", "placeholder": "e.g., Game Design Board"}
+        {"key": "APP_TITLE", "label": "Workspace name", "type": "text", "default": "Research Board", "placeholder": "e.g., Game Design Board"}
       ]
     },
     {
@@ -50,10 +51,10 @@
       "id": "trading-view",
       "livingUIVersion": 2,
       "name": "Trading View",
-      "description": "TradingView-like trading dashboard with interactive charts, technical indicators, and customizable widget layout.",
+      "description": "A trading terminal of drag-and-resize widgets: charts with 31 indicators, 15 drawing tools, comparisons and pre/post-market, multi-timeframe grids, watchlists, details, news, screener and heatmap over stocks, ETFs, indices, forex and futures (Yahoo Finance) and crypto (Binance). Alerts run on the server around the clock. Your AI agent analyzes charts and watchlists, draws its levels, sets and explains alerts, and every change it makes can be reverted.",
       "folder": "trading-view",
-      "tags": ["finance", "stock"],
-      "version": "1.0.0"
+      "tags": ["finance", "trading", "stocks", "crypto", "charts", "AI"],
+      "version": "2.0.0"
     },
     {
       "id": "crm-system",

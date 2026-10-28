@@ -1,0 +1,354 @@
+/*
+ * Trading View visual system.
+ *
+ * A terminal for people who trade all day: one top bar, then a workspace of
+ * widgets edge to edge. Widgets are flat panels split by 1px hairlines (the
+ * grid gap shows the rule color), no shadows, no second background. Dense:
+ * 28px widget headers, 26px rows, 12 to 13px type with tabular numbers.
+ * Near-monochrome: ink on the card; color only where it means something:
+ * up and down, link channels, indicator lines, and the accent for the
+ * selection and for everything the AI agent adds. Manrope.
+ *
+ * Colors follow the host theme: lib/themeColors.ts derives the --tv-* tokens
+ * from the kit's theme tokens with contrast checks and re-derives them when
+ * CraftBot switches theme pack, light or dark mode, or the up/down palette.
+ */
+
+html:root,
+html:root[data-theme='light'],
+html:root[data-theme='dark'] {
+  --agent-app-radius: 6px;
+  --agent-app-font: 'Manrope Variable', Manrope, system-ui, sans-serif;
+}
+
+html:root,
+html:root[data-theme='light'] {
+  color-scheme: light;
+}
+
+html:root[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+html,
+body {
+  background: var(--tv-card);
+  overflow: hidden;
+  color: var(--tv-ink);
+  font-family: 'Manrope Variable', Manrope, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  font-size: 13px;
+  line-height: 18px;
+}
+
+html .text-base,
+html .text-lg {
+  font-size: 14px;
+  line-height: 20px;
+}
+
+@layer base {
+  button:not(:disabled),
+  a[href],
+  [role='button'],
+  [role='tab'],
+  [role='menuitem'],
+  [role='option'],
+  [role='switch'],
+  select:not(:disabled),
+  label:has(input),
+  input[type='checkbox'] {
+    cursor: pointer;
+  }
+  button:disabled,
+  select:disabled {
+    cursor: not-allowed;
+  }
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}
+
+select option {
+  background-color: var(--tv-card);
+  color: var(--tv-ink);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--tv-muted);
+}
+
+:focus-visible {
+  outline: 2px solid var(--tv-accent);
+  outline-offset: -2px;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--tv-line);
+  border-radius: 999px;
+  border: 2px solid var(--tv-card);
+}
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* ------------------------------------------------------------------ grid */
+
+/* Widgets sit 1px apart and each draws a 1px rule around itself: adjacent
+ * rules overlap into one hairline; empty space stays the card color. */
+.tv-grid {
+  background: var(--tv-card);
+}
+.tv-grid .react-grid-item,
+.tv-grid .tv-stack > div {
+  box-shadow: 0 0 0 1px var(--tv-line);
+}
+.tv-grid .react-grid-layout {
+  position: relative;
+  transition: height 160ms ease;
+}
+.tv-grid .react-grid-item {
+  transition: transform 160ms ease, width 160ms ease, height 160ms ease;
+  transition-property: left, top, width, height, transform;
+  box-sizing: border-box;
+}
+.tv-grid .react-grid-item.cssTransforms {
+  transition-property: transform, width, height;
+}
+.tv-grid .react-grid-item.resizing,
+.tv-grid .react-grid-item.react-draggable-dragging {
+  transition: none;
+  z-index: 3;
+  will-change: transform;
+}
+.tv-grid .react-grid-item.react-draggable-dragging {
+  box-shadow: 0 0 0 1px var(--tv-accent);
+}
+.tv-grid .react-grid-item.react-grid-placeholder {
+  background: var(--tv-accent-soft);
+  outline: 1px dashed var(--tv-accent);
+  outline-offset: -1px;
+  transition-duration: 100ms;
+  z-index: 2;
+  user-select: none;
+}
+.tv-grid .react-grid-item > .react-resizable-handle {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  z-index: 4;
+}
+.tv-grid .react-grid-item > .react-resizable-handle-se {
+  right: 0;
+  bottom: 0;
+  cursor: se-resize;
+}
+.tv-grid .react-grid-item > .react-resizable-handle-se::after {
+  content: '';
+  position: absolute;
+  right: 3px;
+  bottom: 3px;
+  width: 6px;
+  height: 6px;
+  border-right: 1.5px solid var(--tv-muted);
+  border-bottom: 1.5px solid var(--tv-muted);
+  opacity: 0;
+  transition: opacity 120ms;
+}
+.tv-grid .react-grid-item:hover > .react-resizable-handle-se::after {
+  opacity: 1;
+}
+.tv-grid .react-grid-item > .react-resizable-handle-e {
+  right: -3px;
+  top: 28px;
+  bottom: 14px;
+  height: auto;
+  width: 7px;
+  cursor: ew-resize;
+}
+.tv-grid .react-grid-item > .react-resizable-handle-s {
+  bottom: -3px;
+  left: 0;
+  right: 14px;
+  width: auto;
+  height: 7px;
+  cursor: ns-resize;
+}
+.tv-drag {
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.react-draggable-dragging .tv-drag {
+  cursor: grabbing;
+}
+/* A widget being dragged or resized: no text selection anywhere, and the
+ * widgets under the pointer take no hover (no crosshairs, no row hovers). */
+html.tv-gesture,
+html.tv-gesture * {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+}
+html.tv-gesture-on .react-grid-item > * {
+  pointer-events: none;
+}
+html.tv-gesture[data-gesture='drag'] * {
+  cursor: grabbing !important;
+}
+html.tv-gesture[data-gesture='e'] * {
+  cursor: ew-resize !important;
+}
+html.tv-gesture[data-gesture='s'] * {
+  cursor: ns-resize !important;
+}
+html.tv-gesture[data-gesture='se'] * {
+  cursor: nwse-resize !important;
+}
+
+/* ---------------------------------------------------------------- tables */
+
+.tv-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--tv-card);
+  box-shadow: inset 0 -1px 0 var(--tv-hair);
+}
+
+/* --------------------------------------------------------------- motion */
+
+@keyframes tv-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.97) translateY(3px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.tv-pop {
+  animation: tv-pop 160ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes tv-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.tv-fade {
+  animation: tv-fade 160ms ease-out both;
+}
+
+@keyframes tv-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+.tv-pulse {
+  animation: tv-pulse 1.6s ease-in-out infinite;
+}
+
+/* A price that just ticked: a brief wash of its direction. */
+@keyframes tv-tick-up {
+  from {
+    background-color: var(--tv-up-soft);
+  }
+  to {
+    background-color: transparent;
+  }
+}
+@keyframes tv-tick-down {
+  from {
+    background-color: var(--tv-down-soft);
+  }
+  to {
+    background-color: transparent;
+  }
+}
+.tv-tick-up {
+  animation: tv-tick-up 900ms ease-out;
+}
+.tv-tick-down {
+  animation: tv-tick-down 900ms ease-out;
+}
+
+@keyframes tv-shimmer {
+  from {
+    background-position: -200% 0;
+  }
+  to {
+    background-position: 200% 0;
+  }
+}
+.tv-skeleton {
+  background: linear-gradient(90deg, var(--tv-row) 0%, var(--tv-row-hover) 50%, var(--tv-row) 100%);
+  background-size: 200% 100%;
+  animation: tv-shimmer 1.4s ease-in-out infinite;
+}
+
+.tv-prose {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tv-pop,
+  .tv-fade,
+  .tv-pulse,
+  .tv-tick-up,
+  .tv-tick-down,
+  .tv-skeleton {
+    animation: none;
+  }
+  .tv-grid .react-grid-item {
+    transition: none;
+  }
+}
+
+/* The kit's toasts in the app's language. */
+html .pointer-events-none.fixed.bottom-4.right-4 {
+  z-index: 80;
+}
+html .pointer-events-none.fixed.bottom-4.right-4 > button {
+  border: 0;
+  border-radius: 6px;
+  background: var(--tv-tooltip);
+  color: var(--tv-on-tooltip);
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 9px 13px;
+  box-shadow: 0 10px 30px -12px rgba(0, 0, 0, 0.45);
+}
+html .pointer-events-none.fixed.bottom-4.right-4 > button.text-red-700 {
+  background: var(--tv-down);
+  color: #ffffff;
+}
+@media (max-width: 767px) {
+  html .pointer-events-none.fixed.bottom-4.right-4 {
+    bottom: 12px;
+    right: 12px;
+    left: 12px;
+    width: auto;
+  }
+}

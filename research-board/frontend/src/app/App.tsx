@@ -1,108 +1,116 @@
 /**
- * App entry for the V2 platform.
- *
- * Bootstraps the ORIGINAL V1 research-board frontend unchanged — same
- * components, same design system, same behavior. The adaptation to the V2
- * (PocketBase) platform is a client-side API adapter (./services/apiAdapter):
- * it translates the V1 REST calls (board items, connections, uploads, state)
- * into PocketBase collection ops. Uploaded media lives in an `uploads` file
- * collection and is served same-origin by PocketBase, so the board's
- * <img>/<video>/<iframe> load it natively. Look and interactions are unchanged.
- *
- * The adapter import is FIRST on purpose — it sets
- * window.__CRAFTBOT_BACKEND_URL__ to a sentinel host at module-eval time,
- * before the component/controller modules (which read that global at their own
- * top level) are evaluated.
+ * Research Board: a sidebar of boards and the board, edge to edge. An AI
+ * agent operates the same operations through the agent-app CLI, summarizes
+ * cards and reviews boards.
  */
-import { installApiAdapter } from './services/apiAdapter'
-import { useEffect, useRef } from 'react'
-import { ToastContainer } from 'react-toastify'
-import 'react-toastify/dist/ReactToastify.css'
-import { MainView } from './components/MainView'
-import { AppController } from './AppController'
-import { uiCapture } from './services/UICapture'
-import {
-  applyThemeToDocument,
-  DEFAULT_CUSTOM_COLORS,
-  type CustomColors,
-  type ThemeId,
-} from './theme/themes'
-import './styles/global.css'
+import '@fontsource-variable/manrope';
+import './theme.css';
+import { useEffect, useState } from 'react';
+import { LayoutGrid, PanelLeft, Plus } from 'lucide-react';
+import { getPbClient } from '../kit/index.ts';
+import { BoardPage } from './board/BoardPage.tsx';
+import { AddProvider } from './components/AddCard.tsx';
+import { Sidebar, SidebarProvider, useSidebar } from './components/Sidebar.tsx';
+import { CircleButton, Empty, PillButton, pillInput } from './components/ui.tsx';
+import { api } from './lib/api.ts';
+import { AppDataProvider, useApp } from './lib/context.tsx';
+import { startLive } from './lib/live.ts';
+import { lastBoard, navigate, replaceQuery, useRoute } from './lib/router.ts';
+import { startThemeColors } from './lib/themeColors.ts';
 
-// Patch fetch before any component effect or the controller can fire a request.
-installApiAdapter()
+// Views legitimately load the same operation twice; the SDK's auto-cancel
+// of same-path requests would blank one of them.
+getPbClient().pb.autoCancellation(false);
+// Colors follow the host theme (see themeColors.ts).
+startThemeColors();
+// All realtime subscriptions in one tick, before any view mounts (see live.ts).
+startLive();
 
-// Preserve V1 main.tsx behavior: point instrumentation at the (sentinel)
-// backend with auto-capture; the adapter neutralizes those calls.
-const backendUrl =
-  ((window as unknown as { __CRAFTBOT_BACKEND_URL__?: string }).__CRAFTBOT_BACKEND_URL__ ?? '') +
-  '/api'
-uiCapture.initialize(backendUrl, true, 2000)
-
-// Initialize the controller (module singleton, exactly as in V1)
-const controller = new AppController()
-
-export function App(): React.JSX.Element {
-  const themeIdRef = useRef<ThemeId>('craftbot')
-  const modeRef = useRef<'dark' | 'light'>('dark')
-  const customColorsRef = useRef<CustomColors>({ ...DEFAULT_CUSTOM_COLORS })
-
-  useEffect(() => {
-    controller.initialize()
-
-    uiCapture.registerComponent('App', {
-      initialized: true,
-      componentName: 'App',
-    })
-
-    applyThemeToDocument(themeIdRef.current, modeRef.current, customColorsRef.current)
-
-    const onMessage = (e: MessageEvent): void => {
-      if (!e.data) return
-
-      if (e.data.type === 'craftbot-theme') {
-        const mode: 'dark' | 'light' = e.data.theme === 'light' ? 'light' : 'dark'
-        modeRef.current = mode
-        applyThemeToDocument(themeIdRef.current, mode, customColorsRef.current)
-      }
-
-      if (e.data.type === 'livingui-theme') {
-        const themeId = e.data.themeId as ThemeId
-        themeIdRef.current = themeId
-        if (e.data.customColors) {
-          customColorsRef.current = e.data.customColors as CustomColors
-        }
-        applyThemeToDocument(themeId, modeRef.current, customColorsRef.current)
-      }
-    }
-
-    window.addEventListener('message', onMessage)
-
+function FirstBoard(): React.JSX.Element {
+  const side = useSidebar();
+  const [name, setName] = useState('');
+  const [busy, setBusy] = useState(false);
+  const create = async (): Promise<void> => {
+    if (name.trim() === '') return;
+    setBusy(true);
     try {
-      window.parent.postMessage({ type: 'craftbot-theme-request' }, '*')
+      const r = await api.createBoard({ name: name.trim() });
+      navigate('board', { id: r.board.id });
     } catch {
-      /* not embedded */
+      /* toasted */
+    } finally {
+      setBusy(false);
     }
+  };
+  return (
+    <div className="flex min-h-0 flex-1 flex-col">
+      <div className="flex h-12 shrink-0 items-center border-b border-[var(--rb-line)] px-2">{!side.open && <CircleButton icon={PanelLeft} label="Show the boards" onClick={side.toggle} />}</div>
+      <div className="rb-canvas flex flex-1 items-center justify-center p-6" style={{ backgroundSize: '24px 24px' }}>
+        <div className="rb-pop w-full max-w-sm rounded-[10px] border border-[var(--rb-line)] bg-[var(--rb-card)]">
+          <Empty icon={LayoutGrid} title="Create your first board">
+            One board per question or project: notes, links, videos, documents and quotes, laid out and linked.
+          </Empty>
+          <div className="-mt-4 flex gap-2 px-5 pb-5">
+            <input autoFocus value={name} onChange={(e) => setName(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && void create()} placeholder="Board name" aria-label="Board name" className={pillInput} />
+            <PillButton icon={Plus} loading={busy} disabled={name.trim() === ''} onClick={() => void create()}>
+              Create
+            </PillButton>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
-    return () => {
-      controller.cleanup()
-      uiCapture.unregisterComponent('App')
-      window.removeEventListener('message', onMessage)
+function Root(): React.JSX.Element {
+  const { ready, boards } = useApp();
+  const route = useRoute();
+  const known = boards.some((b) => b.id === route.id);
+
+  // No board in the address (or a deleted one): open the last one used, else
+  // the first. A board just created is not in the live list for a moment, so
+  // an unknown id gets a grace period before it is replaced.
+  useEffect(() => {
+    if (!ready || boards.length === 0 || known) return;
+    const go = (): void => {
+      const last = lastBoard();
+      const id = boards.some((b) => b.id === last) ? last : (boards[0]?.id ?? '');
+      if (id !== '') replaceQuery('board', { id });
+    };
+    if (route.id === '') {
+      go();
+      return;
     }
-  }, [])
+    const t = setTimeout(go, 2000);
+    return () => clearTimeout(t);
+  }, [ready, boards, known, route.id]);
 
   return (
-    <div className="app">
-      <MainView controller={controller} />
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop
-        closeOnClick
-        pauseOnHover
-        theme="colored"
-      />
+    <div className="flex h-[100dvh] w-full overflow-hidden bg-[var(--rb-card)] text-[var(--rb-ink)]">
+      <Sidebar current={route.id} />
+      <main className="flex min-w-0 flex-1 flex-col">
+        {!ready ? (
+          <div className="flex flex-1 items-center justify-center">
+            <span aria-label="Loading" className="size-6 animate-spin rounded-full border-2 border-[var(--rb-ink)] border-t-transparent" />
+          </div>
+        ) : boards.length === 0 ? (
+          <FirstBoard />
+        ) : known ? (
+          <BoardPage key={route.id} id={route.id} focus={route.card} />
+        ) : null}
+      </main>
     </div>
-  )
+  );
+}
+
+export function App(): React.JSX.Element {
+  return (
+    <AppDataProvider>
+      <SidebarProvider>
+        <AddProvider>
+          <Root />
+        </AddProvider>
+      </SidebarProvider>
+    </AppDataProvider>
+  );
 }
