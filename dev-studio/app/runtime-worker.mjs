@@ -212,11 +212,11 @@ process.on("message", async ({ id, method, params }) => {
       if (sessions.size >= 2)
         throw new Error("Two terminals are already open. Close one first.");
       const id = randomUUID(),
-        shell = process.platform === "win32" ? "powershell.exe" : "/bin/sh";
+        shell = params.executable || (process.platform === "win32" ? "powershell.exe" : "/bin/sh");
       const cwd = params.cwd || base;
       const terminal = pty.spawn(
         shell,
-        process.platform === "win32" ? ["-NoLogo", "-NoProfile"] : [],
+        params.executable ? params.args : process.platform === "win32" ? ["-NoLogo", "-NoProfile"] : [],
         {
           name: "xterm-256color",
           cols: 90,

@@ -24,6 +24,7 @@ import { taskReceipt, frameworkRequest } from "./task-state.mjs";
 import { reviewHandoff } from "./review-handoff.mjs";
 import { bridgeRecord, connectionState } from "./connector-state.mjs";
 import { agentConfiguration, connectionInstructions } from "./agent-connection.mjs";
+import { installedAgents, inspectAgent, loginLaunch, preset } from "./installed-agents.mjs";
 const s = (max = 1000, required = true) => ({ type: "string", required, max }),
   ref = (entity, required = true) => ({ type: "ref", entity, required });
 const op = (name, entity, description, params, extra = {}) => ({
@@ -115,11 +116,18 @@ export const workOperations = [
     },
   ),
   op("connector-configure", "connections", "Choose direct A2App or an optional local agent launcher.", {
-    provider: { type: "enum", values: ["external", "codex", "custom"], required: true },
+    provider: { type: "enum", values: ["external", "codex", "claude", "gemini", "custom"], required: true },
     command: s(1000, false), args: { type: "json" },
     input: { type: "enum", values: ["stdin", "arg"] },
   }),
   op("agent-connection-info", "connections", "Read credential-free local connection instructions.", {}, { readOnly: true, idempotent: true }),
+  op("agent-catalog", "connections", "Detect installed agents and check account readiness without starting tasks.", {}, { readOnly: true, idempotent: true }),
+  op("agent-connect", "connections", "Choose an installed agent and connect it in one step.", {
+    provider: { type: "enum", values: ["codex", "claude", "gemini"], required: true },
+  }),
+  op("agent-sign-in", "connections", "Open the selected agent's own sign-in program in an interactive session.", {
+    provider: { type: "enum", values: ["codex", "claude", "gemini"], required: true },
+  }),
   op("work-release", "attempts", "A direct agent releases its stopped delivery after a handoff.", {
     work: ref("work"), task: s(100),
   }, { idempotent: true }),
@@ -686,6 +694,23 @@ export const workRunners = {
     requireHuman(ctx);
     return connectionInstructions();
   },
+  "agent-catalog": async (_args, ctx) => {
+    requireHuman(ctx);
+    return { agents: await installedAgents() };
+  },
+  "agent-sign-in": async (args, ctx) => {
+    requireHuman(ctx);
+    return runtimeCall("terminal-open", { cwd: ROOT, ...await loginLaunch(args.provider) });
+  },
+  "agent-connect": async (args, ctx, deps) => {
+    requireHuman(ctx);
+    const agent = await inspectAgent(args.provider);
+    if (!agent.installed) throw Error(`${agent.name} is not installed. Open its installation guide, then check again.`);
+    if (agent.authentication === "required") throw Error(`Sign in to ${agent.name} first, then connect.`);
+    if (authority().preferences.agentCommand?.provider !== args.provider)
+      await workRunners["connector-configure"]({ provider: args.provider }, ctx, deps);
+    return workRunners["connector-control"]({ action: "connect" }, ctx, deps);
+  },
   "connector-configure": async (args, ctx) => {
     requireHuman(ctx);
     const a = authority();
@@ -738,7 +763,7 @@ export const workRunners = {
     const home = join(dataDir(), "bridge-home");
     await fs.mkdir(home, { recursive: true });
     const configuration = agentConfiguration(a.preferences.agentCommand);
-    const selectedHarness = configuration.provider === "custom" ? "studio-custom" : "studio-codex";
+    const selectedHarness = "studio-" + configuration.provider;
     const configPath = join(home, "agent-command.json");
     await fs.writeFile(configPath, JSON.stringify(configuration), { mode: 0o600 });
     await fs.writeFile(
@@ -749,7 +774,7 @@ export const workRunners = {
         harnesses: [
           {
             id: selectedHarness,
-            name: configuration.provider === "custom" ? "Configured agent" : "Installed Codex CLI",
+            name: configuration.provider === "custom" ? "Configured agent" : preset(configuration.provider).name,
             routes: [
               {
                 mode: "headless",

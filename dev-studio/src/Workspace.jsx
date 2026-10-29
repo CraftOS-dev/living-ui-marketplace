@@ -1162,6 +1162,13 @@ export default function Workspace() {
             return value;
           }}
           onAgentInfo={() => act("agent-connection-info")}
+          onAgentCatalog={() => op("agent-catalog")}
+          onChooseAgent={async (provider) => {
+            const result = await act("agent-connect", { provider });
+            if (result) setConnection(result);
+            return result;
+          }}
+          operation={op}
           onTools={async () => setTools(await act("tools-status"))}
           onCraftbot={(url) =>
             act("craftbot-configure", { url }, "CraftBot URL saved.")
@@ -2557,19 +2564,19 @@ export default function Workspace() {
                   {work?.mode === "craftbot"
                     ? "CraftBot · native delivery"
                     : connection.external
-                      ? work?.delivery === "external" && work.status === "running" ? "Direct A2App: task claimed" : "Direct A2App: agent polls for work"
+                      ? work?.delivery === "external" && work.status === "running" ? "External agent working" : "Choose an agent in Settings"
                     : connection.connecting || busy === "connector-control"
                       ? connection.connected
                         ? "Standalone: disconnecting…"
                         : "Standalone: connecting…"
                       : connection.connected
-                        ? "Standalone: connected"
-                        : "Standalone: disconnected"}
+                        ? (connection.agentName || "Agent") + " connected"
+                        : "No agent connected"}
                 </span>
                 <button
                   disabled={!!busy}
                   onClick={async () => {
-                    if (work?.mode === "craftbot") {
+                    if (work?.mode === "craftbot" || (!connection.connected && !connection.connecting)) {
                       openSettings();
                       return;
                     }
@@ -2579,12 +2586,12 @@ export default function Workspace() {
                   {work?.mode === "craftbot"
                     ? "Settings"
                     : connection.external
-                      ? "Connection setup"
+                      ? "Choose agent"
                     : connection.connecting
                       ? "Cancel connection"
                       : connection.connected
                         ? "Disconnect"
-                        : "Connect"}
+                        : "Choose agent"}
                 </button>
               </div>
               {work?.mode !== "craftbot" &&
@@ -2597,9 +2604,8 @@ export default function Workspace() {
               <details className="connector-note">
                 <summary>Connection setup</summary>
                 <p>
-                  Use any compatible agent through A2App, or choose an optional
-                  local launcher in Settings. CraftBot’s native host delivery is
-                  available when this app is imported there.
+                  Choose your agent in Settings, then start a development task.
+                  Studio handles delivery and keeps changes separate until you review them.
                 </p>
                 <button onClick={openSettings}>Agent settings</button>
               </details>
@@ -3300,7 +3306,7 @@ export default function Workspace() {
                         onChange={(e) => changeField("mode", e.target.value)}
                       >
                         <option value="standalone">
-                          Your agent · A2App or local launcher
+                          Selected agent
                         </option>
                         <option value="craftbot">
                           CraftBot · native host connection

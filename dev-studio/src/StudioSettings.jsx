@@ -12,6 +12,9 @@ export default function StudioSettings({
   onConnect,
   onConfigureAgent,
   onAgentInfo,
+  onAgentCatalog,
+  onChooseAgent,
+  operation,
   onTools,
   onCraftbot,
   onExecution,
@@ -61,7 +64,8 @@ export default function StudioSettings({
         <section aria-labelledby="settings-agents">
           <h2 id="settings-agents">Agents</h2>
           <AgentConnection configuration={preferences.agentCommand} connection={connection}
-            busy={busy} onConnect={onConnect} onConfigure={onConfigureAgent} onInfo={onAgentInfo} />
+            busy={busy} onConnect={onConnect} onConfigure={onConfigureAgent} onInfo={onAgentInfo}
+            onCatalog={onAgentCatalog} onChooseAgent={onChooseAgent} operation={operation} onDone={onBack} />
           <details className="settings-disclosure">
             <summary>CraftBot connection</summary>
             <p>

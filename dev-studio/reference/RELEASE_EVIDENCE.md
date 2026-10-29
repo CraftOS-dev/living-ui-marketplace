@@ -1,5 +1,16 @@
 # Development Studio first-release verification
 
+## Agent picker and connection UX — 29 October 2026
+
+The ordinary Settings flow detects installed agents and offers named Connect/Sign in actions. Copyable protocol instructions and custom commands are collapsed under Advanced connection. Account probes return only bounded readiness metadata, never their raw output or credential values. Login launches the selected agent's own program in an owned interactive session; opening Settings or its sign-in panel performs no login, installation or coding task.
+
+- All29 regression tests pass, including readiness/error classification, human-only setup guards, and a real directly launched PTY program with confirmed process cleanup. Existing terminal/reconnect, file safety, work isolation, delivery handoff and cancellation regressions still pass.
+- Independent real browser walkthrough connected Codex with one click, created/trusted a disposable JavaScript project, entered only a goal/criteria and started work. The actual installed agent added `triple(n)` and its test;2savedtests passed, framework delivery completed and human review became ready in38.871seconds. Both source/test diffs were visible, main source stayed unchanged and Apply was enabled. No implementation or agent response was supplied by the verifier.
+- The actual machine reports Codex ready, Claude Code installed/sign-in required, and Gemini missing. Claude connection without authentication is refused before changing configuration. Provider authentication was not completed on the user's behalf; Claude/Gemini coding is not certified here. Missing agents have official installation links; Gemini's installed-account state is reported as unknown rather than inferred from credential-file presence.
+- Profile flags were checked against installed CLI help and the official [Claude programmatic-use documentation](https://code.claude.com/docs/en/headless) and [Gemini CLI configuration](https://geminicli.com/docs/reference/configuration/). Presets retain each agent's model/account and do not disable all tool permissions. Direct A2App and arbitrary headless launchers remain supported for other agents.
+
+Final independent responsive/retention findings, exact gates, archive hash, cold-install results, backups and user-data comparisons are recorded under private `.a2app/evidence/agent-picker-20261029/`; these are excluded from Git/export. Existing ready user reviews remain unapplied.
+
 ## Agent-neutral connections — 29 October 2026
 
 Settings now offers Direct A2App, the optional Codex shortcut and an arbitrary executable/argument launcher. This replaces the earlier Codex-only product limitation; it does not certify every possible harness. Connection instructions use the same credentialed discovery/operations pattern as CRM and Research OS and contain no credential value. Native CraftBot import still needs the old host's format compatibility patch; direct A2App access does not.

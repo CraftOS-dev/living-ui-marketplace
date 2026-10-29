@@ -6,9 +6,11 @@ import { ROOT, dataDir } from "../app/config.mjs";
 import { developmentContext } from "./development-client.mjs";
 import { request } from "./client.mjs";
 import { agentConfiguration } from "../app/agent-connection.mjs";
+import { codingLaunch } from "../app/installed-agents.mjs";
 const configuration = agentConfiguration(process.argv[3]
   ? JSON.parse(await readFile(process.argv[3], "utf8")) : {});
-const custom = configuration.provider === "custom";
+const custom = configuration.provider !== "codex";
+const launch = custom && configuration.provider !== "custom" ? await codingLaunch(configuration.provider) : configuration;
 let prompt = "";
 for await (const chunk of process.stdin) prompt += chunk;
 const task = /task\s+(tsk_[a-zA-Z0-9]+)/.exec(prompt)?.[1];
@@ -24,8 +26,8 @@ const instruction = bootstrap
 const folder = join(process.argv[2] || dataDir(), "agent-processes");
 await mkdir(folder, { recursive: true });
 const child = spawn(
-  custom ? configuration.command : (process.env.STUDIO_CODEX_ENTRY || "codex"),
-  custom ? configuration.args.map(arg => arg.replaceAll("{prompt}", instruction)) : [
+  custom ? launch.command : (process.env.STUDIO_CODEX_ENTRY || "codex"),
+  custom ? launch.args.map(arg => arg.replaceAll("{prompt}", instruction)) : [
     "exec",
     "--ephemeral",
     "--json",
@@ -56,7 +58,7 @@ const initialWrite = writeFile(
   JSON.stringify(state),
 );
 child.stdin.on("error", () => {});
-child.stdin.end(!custom || configuration.input === "stdin" ? instruction : undefined);
+child.stdin.end(!custom || launch.input === "stdin" ? instruction : undefined);
 let events = 0;
 let diagnostic = "";
 let closing = false;

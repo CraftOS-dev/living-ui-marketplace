@@ -19,6 +19,11 @@ const ctx={credentialId:"ui"};
 test("connected agents cannot open a native folder picker", async()=>{
  await assert.rejects(()=>workspaceRunners["project-browse"]({initial:"C:\\"},{credentialId:"agent"}),/local app interface/);
 });
+
+test("agent credentials cannot launch sign-in, discover accounts or select a launcher", async()=>{
+ for(const name of ["agent-catalog","agent-sign-in","agent-connect"])
+  await assert.rejects(()=>workRunners[name]({provider:"codex"},{credentialId:"agent"},{}),/local app interface/);
+});
 const rows=new Map();
 const store={put:(entity,value)=>{rows.set(entity+":"+value.id,value);return value;},get:(entity,id)=>rows.get(entity+":"+id),list:entity=>[...rows.entries()].filter(([k])=>k.startsWith(entity+":")).map(([,v])=>v)};
 let dispatches=[];

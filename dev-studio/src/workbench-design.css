@@ -1327,6 +1327,23 @@
 .settings-note {
   margin: 8px 0 14px;
 }
+.agent-setup-toolbar,.agent-option-heading,.agent-current,.agent-option-actions {
+  display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
+}
+.workspace-shell .agent-setup h3 { font-size:14px; margin:0; }
+.agent-setup-toolbar { margin:20px 0 12px; }
+.agent-options { display:grid; gap:10px; }
+.agent-option { border:1px solid var(--border-default); padding:16px; border-radius:4px; min-width:0; }
+.workspace-shell .agent-option h4 { margin:0; font-size:13px; }
+.agent-option-heading span { color:var(--text-secondary); font-size:12px; }
+.agent-option-heading .agent-ready { color:var(--success-text, var(--text-primary)); }
+.agent-option-actions { justify-content:flex-start; margin-top:12px; }
+.agent-option-actions a { color:var(--text-link, var(--text-primary)); font-size:12px; }
+.agent-current,.agent-next { padding:16px; background:var(--bg-surface); border:1px solid var(--border-default); margin:12px 0; }
+.agent-login { padding:18px 0; margin-top:16px; border-top:1px solid var(--border-default); }
+.agent-login .terminal-host { height:240px; min-height:180px; }
+.agent-login .terminal-panel { margin:12px 0; }
+.agent-advanced { border-top:1px solid var(--border-default); padding-top:12px; }
 .settings-disclosure {
   margin-top: 20px;
 }

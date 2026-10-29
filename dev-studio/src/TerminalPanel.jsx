@@ -9,6 +9,10 @@ export default function TerminalPanel({
   sessionKey,
   executionEnabled = true,
   onEnableExecution,
+  openLabel,
+  closeLabel,
+  connectedLabel,
+  emptyLabel,
 }) {
   const host = useRef(null),
     socket = useRef(null),
@@ -143,7 +147,7 @@ export default function TerminalPanel({
           {(!projectName || phase === "open") && (
             <p>
               {phase === "open"
-                ? "Connected · " + session.current?.shell
+                ? connectedLabel || "Connected · " + session.current?.shell
                 : projectName
                   ? "A real shell in " + projectName
                   : "A real shell in the disposable proof folder."}
@@ -156,7 +160,7 @@ export default function TerminalPanel({
             disabled={phase === "opening"}
             onClick={() => close().catch((e) => setError(e.message))}
           >
-            Close terminal
+            {closeLabel || "Close terminal"}
           </button>
         ) : executionEnabled ? (
           <button
@@ -166,7 +170,7 @@ export default function TerminalPanel({
               await open();
             }}
           >
-            {resumeId ? "Resume terminal" : "Open terminal"}
+            {resumeId ? "Resume terminal" : openLabel || "Open terminal"}
           </button>
         ) : null}
       </div>
@@ -198,7 +202,7 @@ export default function TerminalPanel({
       )}
       {phase === "idle" && executionEnabled && (
         <div className="terminal-empty">
-          <h3>No terminal session</h3>
+          <h3>{emptyLabel || "No terminal session"}</h3>
           {!projectName && (
             <p>
               Open a terminal to check the real shell. Commands have your local

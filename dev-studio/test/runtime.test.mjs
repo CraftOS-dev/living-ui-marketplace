@@ -46,6 +46,18 @@ test("expired terminal tickets are refused",async()=>{
   await assert.rejects(connect(grant,"http://127.0.0.1:"+manifest.port),/403/);
  }finally{await stopRuntime();}
 });
+
+test("owned sign-in sessions launch a program directly and close its process", async () => {
+ try {
+  const grant=await runtimeCall("terminal-open",{executable:process.execPath,args:["-e","console.log('OWNED_LOGIN_PROGRAM');setInterval(()=>{},1000)"]});
+  const {manifest}=await import("../app/config.mjs");
+  const ws=await connect(grant,"http://127.0.0.1:"+manifest.port);
+  const output=await new Promise((resolve,reject)=>{let text="";const timer=setTimeout(()=>reject(Error("Missing owned program output")),5000);ws.on("message",raw=>{text+=JSON.parse(raw).data||"";if(text.includes("OWNED_LOGIN_PROGRAM")){clearTimeout(timer);resolve(text);}});});
+  assert.match(output,/OWNED_LOGIN_PROGRAM/);
+  await runtimeCall("terminal-close",{id:grant.id});ws.close();
+  assert.throws(()=>process.kill(grant.pid,0));
+ } finally {await stopRuntime();}
+});
 test("development services outlive bounded checks and still stop explicitly",async()=>{
  try{
   const command='node -e "console.log(\'SERVICE_READY\');setInterval(()=>{},1000)"';

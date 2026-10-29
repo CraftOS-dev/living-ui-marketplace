@@ -1075,6 +1075,8 @@
           "values": [
             "external",
             "codex",
+            "claude",
+            "gemini",
             "custom"
           ],
           "required": true
@@ -1106,6 +1108,52 @@
       "destructive": false,
       "readOnly": true,
       "idempotent": true
+    },
+    {
+      "name": "agent-catalog",
+      "module": "agents",
+      "entity": "connections",
+      "description": "Detect installed agents and check account readiness without starting tasks.",
+      "params": {},
+      "destructive": false,
+      "readOnly": true,
+      "idempotent": true
+    },
+    {
+      "name": "agent-connect",
+      "module": "agents",
+      "entity": "connections",
+      "description": "Choose an installed agent and connect it in one step.",
+      "params": {
+        "provider": {
+          "type": "enum",
+          "values": [
+            "codex",
+            "claude",
+            "gemini"
+          ],
+          "required": true
+        }
+      },
+      "destructive": false
+    },
+    {
+      "name": "agent-sign-in",
+      "module": "agents",
+      "entity": "connections",
+      "description": "Open the selected agent's own sign-in program in an interactive session.",
+      "params": {
+        "provider": {
+          "type": "enum",
+          "values": [
+            "codex",
+            "claude",
+            "gemini"
+          ],
+          "required": true
+        }
+      },
+      "destructive": false
     },
     {
       "name": "work-release",

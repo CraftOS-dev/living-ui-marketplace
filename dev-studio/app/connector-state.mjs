@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { ROOT } from "./config.mjs";
+const names = { "studio-codex": "Codex", "studio-claude": "Claude Code", "studio-gemini": "Gemini CLI", "studio-custom": "Custom agent" };
 
 export async function bridgeRecord() {
   try {
@@ -31,11 +32,12 @@ export async function connectionState(job, runtimeCall, harness = "studio-codex"
       record?.harness === harness &&
       Date.parse(record.startedAt) >= Date.parse(state.started) - 1000
     )
-      return { connected: true, pid: record.pid, job };
+      return { connected: true, pid: record.pid, job, agentName: names[harness] || "Agent" };
     return {
       connected: false,
       connecting: true,
       job,
+      agentName: names[harness] || "Agent",
       message: "Starting the standalone connection…",
     };
   }
