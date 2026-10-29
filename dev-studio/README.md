@@ -1,6 +1,6 @@
 # Development Studio
 
-A local development workspace built with the pinned React/Hono/SQLite Agent-App framework. Develop manually, connect your installed Codex CLI, or assign work to CraftBot. JavaScript/TypeScript and Python have verified language and debugger integrations; other projects use the editor, Git, terminals and configurable commands.
+A local development workspace built with the pinned React/Hono/SQLite Agent-App framework. Develop manually or connect any compatible agent through A2App. Optional launchers can start Codex or another local agent command; native CraftBot delivery is also available. JavaScript/TypeScript and Python have verified language and debugger integrations; other projects use the editor, Git, terminals and configurable commands.
 
 ## Start
 
@@ -28,9 +28,15 @@ Open the URL printed by the framework. Existing installations keep their identit
 
 Open **Work**, create a work item with a goal, acceptance criteria and context, then choose Standalone or CraftBot. You can attach the current file/selection, diagnostics or run output. Start work explicitly.
 
-Standalone uses your installed, authenticated Codex CLI. The connector supports app folders outside Git while retaining the CLI workspace sandbox and automatic approval review. Click **Connect** in **Agent work**. The app starts the framework bridge on the dedicated standalone capability. Manual development works with no agent connected.
+Open **Settings → Agents** and choose how to deliver tasks:
 
-CraftBot uses the native imported app and the host's capability consumer. Install the compatibility patch described in `../craftbot-compatibility/README.md`, configure a trusted built framework checkout and enable `studio-development-craftbot` plus `studio-craftbot-proof`. Then import the package through CraftBot. The host URL defaults to its inherited local backend port; Settings supports an explicit local override.
+- **Direct A2App**: click **Connect your own agent**, copy the instructions to an agent on this computer, and save Direct A2App as the delivery method. The agent discovers Studio through the bundled client and atomically polls `tasks next --capability studio-development-external --wait 60000`. No Codex or CraftBot installation is required. It uses the same managed file/check/review operations as every other agent. A direct agent stops its tools and calls `work-release(work,task)` after submitting, asking a question, failing or receiving cancellation. Studio revokes canceled writes immediately and waits for this acknowledgement before another delivery; it cannot terminate a process it does not own.
+- **Launch another agent command**: enter its executable and JSON argument array, select standard input or a `{prompt}` argument, save, then Connect. Studio passes the task directly to that process without a shell or provider/model-specific flags. A Windows npm shim may require the Node executable with the CLI's script path as the first argument. The agent must support tools and follow the supplied A2App workflow; configure its authentication/permissions in that agent. A plain chat model without tools is not a coding harness.
+- **Launch Codex CLI**: an optional shortcut for the installed authenticated CLI, retaining its workspace sandbox, automatic approval review and configured model. This is the previous installation's default; existing work and settings are preserved.
+
+The interface is agent-neutral, like the other marketplace apps: identity/discovery, records and declared operations use A2App, with local credential handling by the bundled client. Connection instructions contain no credential value. General app operation is distinct from listening for development tasks; a queued task stays queued until an agent claims it. Manual development works without a connected agent.
+
+CraftBot can use the same direct A2App interface. For **native import and automatic host delivery**, its older importer needs the compatibility patch described in `../craftbot-compatibility/README.md`, a trusted built framework checkout and the `studio-development-craftbot` plus `studio-craftbot-proof` allowlist. This compatibility work addresses the host's old app-format support; it is not a requirement for other agents to connect. The native host URL defaults to its inherited local backend port; Settings supports an explicit local override.
 
 Both agents use the same A2App contract: inspect context, edit a separate worktree/copy, run saved checks, report progress, ask questions and submit retained changes. Answering a question resumes the same isolated source with a distinct task delivery. A revision retains that source and attempt history. Cancellation revokes managed writes and waits for process-stop confirmation.
 

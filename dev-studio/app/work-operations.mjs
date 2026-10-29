@@ -23,6 +23,7 @@ import { runtimeCall } from "./runtime.mjs";
 import { taskReceipt, frameworkRequest } from "./task-state.mjs";
 import { reviewHandoff } from "./review-handoff.mjs";
 import { bridgeRecord, connectionState } from "./connector-state.mjs";
+import { agentConfiguration, connectionInstructions } from "./agent-connection.mjs";
 const s = (max = 1000, required = true) => ({ type: "string", required, max }),
   ref = (entity, required = true) => ({ type: "ref", entity, required });
 const op = (name, entity, description, params, extra = {}) => ({
@@ -104,7 +105,7 @@ export const workOperations = [
   op(
     "connector-control",
     "connections",
-    "Connect/disconnect the installed standalone Codex bridge.",
+    "Start, stop or inspect the selected local agent launcher.",
     {
       action: {
         type: "enum",
@@ -113,6 +114,15 @@ export const workOperations = [
       },
     },
   ),
+  op("connector-configure", "connections", "Choose direct A2App or an optional local agent launcher.", {
+    provider: { type: "enum", values: ["external", "codex", "custom"], required: true },
+    command: s(1000, false), args: { type: "json" },
+    input: { type: "enum", values: ["stdin", "arg"] },
+  }),
+  op("agent-connection-info", "connections", "Read credential-free local connection instructions.", {}, { readOnly: true, idempotent: true }),
+  op("work-release", "attempts", "A direct agent releases its stopped delivery after a handoff.", {
+    work: ref("work"), task: s(100),
+  }, { idempotent: true }),
   op(
     "craftbot-configure",
     "connections",
@@ -205,6 +215,7 @@ const publicWork = (w) =>
       "criteria",
       "context",
       "mode",
+      "delivery",
       "effort",
       "status",
       "created",
@@ -292,7 +303,7 @@ async function scrubInherited(root) {
   }
   await walk(root);
 }
-const capability = (w) => "studio-development-" + w.mode;
+const capability = (w) => "studio-development-" + (w.delivery === "external" ? "external" : w.mode);
 const publishReview = (w) =>
   reviewHandoff(w, {
     readTask: taskReceipt,
@@ -393,6 +404,7 @@ async function stopConfirmed(w) {
     }
   }
   if (w.task && !(await taskReceipt(w.task)).claim) return true;
+  if (w.delivery === "external") return w.releasedTask === w.task;
   if (w.mode === "craftbot") return (await craftBusy()) === false;
   try {
     const file = join(dataDir(), "agent-processes", w.task + ".json"),
@@ -461,6 +473,7 @@ export const workRunners = {
         );
     }
     Object.assign(w, await prepare(w), {
+      delivery: w.mode === "craftbot" ? "craftbot" : (authority().preferences.agentCommand?.provider || "codex"),
       status: "queued",
       started: new Date().toISOString(),
       summary: "",
@@ -510,7 +523,7 @@ export const workRunners = {
         (c) => c.project === w.project,
       ),
       protocol:
-        "Use project-tree and file-read with work=<id>. Use file-write(work,path,text,expected[,create]) for edits. run-start(config,work) executes a saved command in this isolated copy; run-inspect gives actual output. Never edit the main project or the app source. work-progress records your plan. work-question parks for an answer; stop that run after asking. work-finish freezes managed writes, completes the framework delivery and publishes review in one step; stop immediately after it succeeds, without a second tasks-complete call. Use work-context again to read user answers. Credential files are excluded.",
+        "Use project-tree and file-read with work=<id>. Use file-write(work,path,text,expected[,create]) for edits. run-start(config,work) executes a saved command in this isolated copy; run-inspect gives actual output. Never edit the main project or the app source. work-progress records your plan. work-question parks for an answer; stop that run after asking. work-finish freezes managed writes, completes the framework delivery and publishes review in one step; stop immediately after it succeeds, without a second tasks-complete call. Direct A2App agents must then stop their tools and call work-release(work,task) for this delivery. Use work-context again to read user answers. Credential files are excluded.",
     };
   },
   "work-progress": async (args, ctx, { store }) => {
@@ -614,7 +627,7 @@ export const workRunners = {
             .catch(() => null);
           if (
             receipt?.error &&
-            /^(Codex |Installed Codex CLI)/.test(receipt.error)
+            /^(Codex |Installed Codex CLI|Agent |Configured agent)/.test(receipt.error)
           )
             w.summary += " " + receipt.error.slice(0, 300);
         }
@@ -656,6 +669,38 @@ export const workRunners = {
     if (w.stopConfirmed) w.status = "canceled";
     return save(store, w);
   },
+  "work-release": async (args, ctx, { store }) => {
+    if (ctx.credentialId === "ui") throw Error("The connected agent must release its own delivery.");
+    const w = authority().work[args.work];
+    if (!w || w.delivery !== "external" || w.task !== args.task)
+      throw Error("This is not the current direct-agent delivery.");
+    const task = await taskReceipt(w.task);
+    if (!["input-required", "completed", "failed", "canceled", "pruned"].includes(task.status))
+      throw Error("Submit, ask a question, fail or cancel the delivery before releasing it.");
+    await noJobs(w, store);
+    w.releasedTask = w.task;
+    if (w.status === "canceling") { w.stopConfirmed = true; w.status = "canceled"; }
+    return save(store, w);
+  },
+  "agent-connection-info": (_args, ctx) => {
+    requireHuman(ctx);
+    return connectionInstructions();
+  },
+  "connector-configure": async (args, ctx) => {
+    requireHuman(ctx);
+    const a = authority();
+    if (a.preferences.bridgeJob) {
+      const current = await connectionState(a.preferences.bridgeJob, runtimeCall, a.preferences.bridgeHarness || "studio-codex");
+      if (current.connected || current.connecting) throw Error("Disconnect the current launcher before changing agents.");
+    }
+    if (Object.values(a.work).some(w => w.mode === "standalone" && ["queued", "running", "needs-input", "finalizing", "canceling"].includes(w.status)))
+      throw Error("Finish or cancel current standalone work before changing agents.");
+    for (const w of Object.values(a.work).filter(w => w.mode === "standalone" && w.task))
+      if (!(await stopConfirmed(w))) throw Error("Wait for the previous agent to stop or release its delivery before changing agents.");
+    a.preferences.agentCommand = agentConfiguration(args);
+    persist();
+    return a.preferences.agentCommand;
+  },
   "connector-control": async (args, ctx) => {
     requireHuman(ctx);
     const a = authority(),
@@ -664,10 +709,13 @@ export const workRunners = {
       if (id) await runtimeCall("job-stop", { id });
       a.preferences.bridgeJob = null;
       persist();
-      return { connected: false };
+      return { connected: false, external: a.preferences.agentCommand?.provider === "external" };
     }
+    if (a.preferences.agentCommand?.provider === "external")
+      return { connected: false, external: true, message: "Direct A2App · waiting for your agent to claim a task. Studio does not start or stop your external agent process." };
+    const harness = a.preferences.bridgeHarness || "studio-codex";
     if (id) {
-      const status = await connectionState(id, runtimeCall);
+      const status = await connectionState(id, runtimeCall, harness);
       if (status.connected || status.connecting || args.action === "status")
         return status;
     }
@@ -689,20 +737,24 @@ export const workRunners = {
       };
     const home = join(dataDir(), "bridge-home");
     await fs.mkdir(home, { recursive: true });
+    const configuration = agentConfiguration(a.preferences.agentCommand);
+    const selectedHarness = configuration.provider === "custom" ? "studio-custom" : "studio-codex";
+    const configPath = join(home, "agent-command.json");
+    await fs.writeFile(configPath, JSON.stringify(configuration), { mode: 0o600 });
     await fs.writeFile(
       join(home, "harnesses.json"),
       JSON.stringify({
         version: 1,
-        default: "studio-codex",
+        default: selectedHarness,
         harnesses: [
           {
-            id: "studio-codex",
-            name: "Installed Codex CLI",
+            id: selectedHarness,
+            name: configuration.provider === "custom" ? "Configured agent" : "Installed Codex CLI",
             routes: [
               {
                 mode: "headless",
                 command: process.execPath,
-                args: [join(ROOT, "scripts/development-agent.mjs"), dataDir()],
+                args: [join(ROOT, "scripts/development-agent.mjs"), dataDir(), configPath],
                 input: "stdin",
                 cwd: "app",
                 timeoutMs: 900000,
@@ -714,8 +766,8 @@ export const workRunners = {
     );
     const command =
       process.platform === "win32"
-        ? `$env:A2APP_HOME=${quote(home)}; & ${quote(process.execPath)} ${quote(join(ROOT, "node_modules/agent-app-framework/dist/agent-app.js"))} ${quote(ROOT)} bridge start --foreground --harness studio-codex --capability studio-development-standalone --capability studio-standalone-proof`
-        : `A2APP_HOME=${quote(home)} ${quote(process.execPath)} ${quote(join(ROOT, "node_modules/agent-app-framework/dist/agent-app.js"))} ${quote(ROOT)} bridge start --foreground --harness studio-codex --capability studio-development-standalone --capability studio-standalone-proof`;
+        ? `$env:A2APP_HOME=${quote(home)}; & ${quote(process.execPath)} ${quote(join(ROOT, "node_modules/agent-app-framework/dist/agent-app.js"))} ${quote(ROOT)} bridge start --foreground --harness ${selectedHarness} --capability studio-development-standalone --capability studio-standalone-proof`
+        : `A2APP_HOME=${quote(home)} ${quote(process.execPath)} ${quote(join(ROOT, "node_modules/agent-app-framework/dist/agent-app.js"))} ${quote(ROOT)} bridge start --foreground --harness ${selectedHarness} --capability studio-development-standalone --capability studio-standalone-proof`;
     const job = randomUUID();
     await runtimeCall("job-start", {
       id: job,
@@ -724,6 +776,7 @@ export const workRunners = {
       timeout: 0,
     });
     a.preferences.bridgeJob = job;
+    a.preferences.bridgeHarness = selectedHarness;
     persist();
     // A spawned shell is not a connected harness. Wait for the bridge's own
     // live readiness record; subsequent status polling handles slow startup.
@@ -731,7 +784,7 @@ export const workRunners = {
     let status;
     do {
       await new Promise((resolve) => setTimeout(resolve, 150));
-      status = await connectionState(job, runtimeCall);
+      status = await connectionState(job, runtimeCall, selectedHarness);
       if (!status.connecting) return status;
     } while (Date.now() < deadline);
     return status;
@@ -985,6 +1038,7 @@ workRunners["work-revise"] = async (args, ctx, { store, trigger }) => {
   w.submitted = null;
   w.finished = null;
   w.handoffError = null;
+  w.delivery = w.mode === "craftbot" ? "craftbot" : (authority().preferences.agentCommand?.provider || "codex");
   w.task = trigger(
     "studio.development-requested",
     { work: w.id, attempt: w.attempt, delivery: randomUUID() },

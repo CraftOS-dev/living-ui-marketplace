@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import AgentConnection from "./AgentConnection.jsx";
 
 export default function StudioSettings({
   preferences,
@@ -9,6 +10,8 @@ export default function StudioSettings({
   onBack,
   onPreferences,
   onConnect,
+  onConfigureAgent,
+  onAgentInfo,
   onTools,
   onCraftbot,
   onExecution,
@@ -57,36 +60,8 @@ export default function StudioSettings({
         </section>
         <section aria-labelledby="settings-agents">
           <h2 id="settings-agents">Agents</h2>
-          <div className="settings-row">
-            <div>
-              <strong>Standalone agent</strong>
-              <p>
-                Uses your installed, signed-in Codex CLI. Standard reasoning is
-                the default for new tasks.
-              </p>
-            </div>
-            <div className="settings-control">
-              <span role="status">
-                {connection.connecting
-                  ? "Connecting…"
-                  : connection.connected
-                    ? "Connected"
-                    : "Disconnected"}
-              </span>
-              <button disabled={!!busy} onClick={onConnect}>
-                {connection.connecting
-                  ? "Cancel connection"
-                  : connection.connected
-                    ? "Disconnect"
-                    : "Connect"}
-              </button>
-            </div>
-          </div>
-          {connection.message && !connection.connected && (
-            <p className="settings-note" role="status">
-              {connection.message}
-            </p>
-          )}
+          <AgentConnection configuration={preferences.agentCommand} connection={connection}
+            busy={busy} onConnect={onConnect} onConfigure={onConfigureAgent} onInfo={onAgentInfo} />
           <details className="settings-disclosure">
             <summary>CraftBot connection</summary>
             <p>

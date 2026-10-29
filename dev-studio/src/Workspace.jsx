@@ -199,6 +199,7 @@ export default function Workspace() {
     setArea("Settings");
   }
   async function toggleStandaloneConnection() {
+    if (connection.external) { openSettings(); return; }
     const result = await act("connector-control", {
       action:
         connection.connected || connection.connecting
@@ -1155,6 +1156,12 @@ export default function Workspace() {
             act("preferences-save", args, success)
           }
           onConnect={toggleStandaloneConnection}
+          onConfigureAgent={async (args) => {
+            const value = await act("connector-configure", args);
+            if (value) setConnection(await op("connector-control", { action: "status" }));
+            return value;
+          }}
+          onAgentInfo={() => act("agent-connection-info")}
           onTools={async () => setTools(await act("tools-status"))}
           onCraftbot={(url) =>
             act("craftbot-configure", { url }, "CraftBot URL saved.")
@@ -2549,6 +2556,8 @@ export default function Workspace() {
                 <span>
                   {work?.mode === "craftbot"
                     ? "CraftBot · native delivery"
+                    : connection.external
+                      ? work?.delivery === "external" && work.status === "running" ? "Direct A2App: task claimed" : "Direct A2App: agent polls for work"
                     : connection.connecting || busy === "connector-control"
                       ? connection.connected
                         ? "Standalone: disconnecting…"
@@ -2569,6 +2578,8 @@ export default function Workspace() {
                 >
                   {work?.mode === "craftbot"
                     ? "Settings"
+                    : connection.external
+                      ? "Connection setup"
                     : connection.connecting
                       ? "Cancel connection"
                       : connection.connected
@@ -2586,10 +2597,11 @@ export default function Workspace() {
               <details className="connector-note">
                 <summary>Connection setup</summary>
                 <p>
-                  Standalone uses your installed, authenticated Codex CLI.
-                  CraftBot delivery is managed by its host when this app is
-                  imported there.
+                  Use any compatible agent through A2App, or choose an optional
+                  local launcher in Settings. CraftBot’s native host delivery is
+                  available when this app is imported there.
                 </p>
+                <button onClick={openSettings}>Agent settings</button>
               </details>
               {work ? (
                 <div className="current-work">
@@ -3288,14 +3300,14 @@ export default function Workspace() {
                         onChange={(e) => changeField("mode", e.target.value)}
                       >
                         <option value="standalone">
-                          Standalone · installed Codex CLI
+                          Your agent · A2App or local launcher
                         </option>
                         <option value="craftbot">
                           CraftBot · native host connection
                         </option>
                       </select>
                     </label>
-                    {(fields.mode || "standalone") === "standalone" && (
+                    {(fields.mode || "standalone") === "standalone" && (!state.preferences.agentCommand || state.preferences.agentCommand.provider === "codex") && (
                       <label>
                         Reasoning
                         <select

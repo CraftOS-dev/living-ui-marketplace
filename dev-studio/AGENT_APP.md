@@ -77,3 +77,10 @@ Replace ordinary Diagnostics navigation with Settings. Keep integration proof hi
 
 ## Remove developer-test UI — 28 October 2026
 Remove the integration lab UI entirely after the user rejected its continued presence. No Advanced entry, component import or browser route remains. Keep proof records and maintenance operations unchanged; the user-facing product is the workspace and useful IDE settings. This supersedes the earlier Advanced lab placement. Frontend-only; preserve projects, files, tasks and connection state.
+
+## Agent-neutral connections — 29 October 2026
+All agents use the A2App adapter; Codex is an optional launcher. Agents/connections exposes human-only connector-configure and read-only agent-connection-info. Settings supports direct polling, the existing Codex shortcut, and a custom executable/argument launcher. No shell receives task content; custom agents retain their own authentication/model/permissions. No token is returned by connection instructions.
+
+Direct standalone work uses capability studio-development-external, distinct from managed studio-development-standalone and native studio-development-craftbot. After a direct agent claims a task, read its payload.work and follow the task-scoped development client. Keep task progress alive at least every30seconds. After work-question, work-finish, failure or cancellation, stop tools and owned checks and invoke work-release(work,task) (agents/attempts). This acknowledges only the exact current delivery and is unavailable for managed launchers or UI credentials. Until acknowledged, question resume/revision/new writers remain blocked. Cancellation revokes writes immediately but never claims to kill an external process. Human review/application remains unavailable to agents. Old capabilities and existing records retain their behavior.
+
+Comparison: crm/pb/pb_hooks/_a2app_lib.js and research-os/AGENT_APP.md expose credentialed A2App to arbitrary agents; provider-specific dispatch is separate. The pinned framework itself supports generic harness routes and tasks next polling. Native old-host import compatibility still needs the separate CraftBot patch, not direct A2App access.

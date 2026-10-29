@@ -91,6 +91,7 @@ export const developmentEntities = {
     f("goal"),
     f("criteria"),
     f("mode"),
+    f("delivery"),
     f("effort"),
     f("status"),
     f("task"),

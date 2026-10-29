@@ -1,5 +1,16 @@
 # Development Studio first-release verification
 
+## Agent-neutral connections — 29 October 2026
+
+Settings now offers Direct A2App, the optional Codex shortcut and an arbitrary executable/argument launcher. This replaces the earlier Codex-only product limitation; it does not certify every possible harness. Connection instructions use the same credentialed discovery/operations pattern as CRM and Research OS and contain no credential value. Native CraftBot import still needs the old host's format compatibility patch; direct A2App access does not.
+
+- Regression suite: 26 passing tests. Direct protocol integration verified atomic claiming, authentication refusal, isolated saved checks, question/release/resume, stale-release refusal, retained revision, review/application and cancellation. This scripted protocol fixture is explicitly not a model execution claim.
+- Actual generic launcher: a freshly extracted/imported installation used the configured authenticated Codex executable through the custom-command path, added `double(7) === 14`, retained greeting behavior and passed 2 real saved tests. Main source stayed unchanged until first human Apply; that click succeeded in301ms. Coding/delivery took approximately53seconds. The custom route receives the configured executable/arguments directly, with no Codex-specific flags injected by Studio.
+- Independent real browser walk: direct/custom configuration persistence, copied literal PowerShell instructions, empty polling, missing-prompt/JSON errors, operation discovery, truthful external status, dirty-buffer retention and390px light/dark views passed; console warnings/errors0. Raw reports are private under `.a2app/evidence/agent-neutral-20261029/`.
+- Claude Code is installed but not authenticated here; Claude/Gemini execution was not certified. Custom agents need tool access and a suitable headless command, or can poll A2App directly from their own session. External cancellation revokes managed writes and waits for the agent's exact-delivery release acknowledgement; Studio does not claim it killed an unowned external process.
+
+The platform and Python-tool statements below remain verification boundaries: Windows was exercised, and debugpy/Black implement optional Python debugging/formatting. They are independent of which agent operates Studio. Framework gates and cold install checks are repeated for the final artifact; no provider keys, credentials or raw conversations are committed.
+
 Verified locally on Windows on 25 October 2026 with Node 24.19.0, pinned Agent-App framework `5e9c7a1e28fd4742cbb49e49188d63031f35c145`, React/Hono/SQLite blueprint. The original milestone-zero record is EVIDENCE.md; its old scope and browser blocker are historical.
 
 ## Implemented scope

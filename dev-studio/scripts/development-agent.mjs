@@ -5,6 +5,10 @@ import { join } from "node:path";
 import { ROOT, dataDir } from "../app/config.mjs";
 import { developmentContext } from "./development-client.mjs";
 import { request } from "./client.mjs";
+import { agentConfiguration } from "../app/agent-connection.mjs";
+const configuration = agentConfiguration(process.argv[3]
+  ? JSON.parse(await readFile(process.argv[3], "utf8")) : {});
+const custom = configuration.provider === "custom";
 let prompt = "";
 for await (const chunk of process.stdin) prompt += chunk;
 const task = /task\s+(tsk_[a-zA-Z0-9]+)/.exec(prompt)?.[1];
@@ -20,8 +24,8 @@ const instruction = bootstrap
 const folder = join(process.argv[2] || dataDir(), "agent-processes");
 await mkdir(folder, { recursive: true });
 const child = spawn(
-  process.env.STUDIO_CODEX_ENTRY || "codex",
-  [
+  custom ? configuration.command : (process.env.STUDIO_CODEX_ENTRY || "codex"),
+  custom ? configuration.args.map(arg => arg.replaceAll("{prompt}", instruction)) : [
     "exec",
     "--ephemeral",
     "--json",
@@ -44,6 +48,7 @@ const state = {
   started,
   spawned: new Date().toISOString(),
   reasoningEffort: effort,
+  provider: configuration.provider,
   scopedContext: !!bootstrap,
 };
 const initialWrite = writeFile(
@@ -51,7 +56,7 @@ const initialWrite = writeFile(
   JSON.stringify(state),
 );
 child.stdin.on("error", () => {});
-child.stdin.end(instruction);
+child.stdin.end(!custom || configuration.input === "stdin" ? instruction : undefined);
 let events = 0;
 let diagnostic = "";
 let closing = false;
@@ -95,14 +100,14 @@ child.stderr.on("data", (data) => {
   diagnostic = (diagnostic + data.toString()).slice(-4096);
 });
 child.on("error", () => {
-  state.error = "Installed Codex CLI could not start.";
+  state.error = custom ? "Configured agent could not start. Check its executable path (use node plus the CLI script for a Windows npm shim)." : "Installed Codex CLI could not start.";
 });
 child.on("close", async (code) => {
   closing = true;
   if (handoffWatch) clearInterval(handoffWatch);
   await initialWrite;
   if (code !== 0 && !state.error && !state.deliveryAtYield) {
-    state.error = /login|authenticat|unauthoriz|401/i.test(diagnostic)
+    state.error = custom ? "Configured agent exited before completing delivery. Check its command, task input and authentication in your terminal." : /login|authenticat|unauthoriz|401/i.test(diagnostic)
       ? "Codex authentication is unavailable. Run codex login in your local terminal, then retry."
       : /quota|usage limit|rate limit|429/i.test(diagnostic)
         ? "Codex usage is unavailable. Check your CLI account limits, then retry."
@@ -112,7 +117,7 @@ child.on("close", async (code) => {
   state.exitCode = code;
   await writeFile(join(folder, task + ".json"), JSON.stringify(state));
   console.log(
-    JSON.stringify({ harness: "codex", task, exitCode: code, events }),
+    JSON.stringify({ harness: configuration.provider, task, exitCode: code, events }),
   );
   process.exitCode = state.deliveryAtYield
     ? 0

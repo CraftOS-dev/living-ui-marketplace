@@ -15,6 +15,7 @@ const allowed = new Set([
   "work-progress",
   "work-question",
   "work-finish",
+  "work-release",
 ]);
 export async function callDevelopment(work, name, args = {}) {
   if (!work || !allowed.has(name))

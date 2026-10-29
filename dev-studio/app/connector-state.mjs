@@ -14,7 +14,7 @@ export async function bridgeRecord() {
     return null;
   }
 }
-export async function connectionState(job, runtimeCall) {
+export async function connectionState(job, runtimeCall, harness = "studio-codex") {
   if (!job) return { connected: false };
   let state;
   try {
@@ -28,7 +28,7 @@ export async function connectionState(job, runtimeCall) {
   const record = await bridgeRecord();
   if (state.status === "running") {
     if (
-      record?.harness === "studio-codex" &&
+      record?.harness === harness &&
       Date.parse(record.startedAt) >= Date.parse(state.started) - 1000
     )
       return { connected: true, pid: record.pid, job };
@@ -44,6 +44,6 @@ export async function connectionState(job, runtimeCall) {
     status: state.status,
     message: record
       ? "Another Studio instance already has the standalone connection. Connect from that installation, or disconnect it before using this one."
-      : "The standalone connection did not stay running. Check that Codex is installed and signed in, then connect again.",
+      : "The agent launcher did not stay running. Check that its executable is installed and authenticated, then connect again.",
   };
 }

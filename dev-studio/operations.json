@@ -1050,7 +1050,7 @@
       "name": "connector-control",
       "module": "agents",
       "entity": "connections",
-      "description": "Connect/disconnect the installed standalone Codex bridge.",
+      "description": "Start, stop or inspect the selected local agent launcher.",
       "params": {
         "action": {
           "type": "enum",
@@ -1063,6 +1063,69 @@
         }
       },
       "destructive": false
+    },
+    {
+      "name": "connector-configure",
+      "module": "agents",
+      "entity": "connections",
+      "description": "Choose direct A2App or an optional local agent launcher.",
+      "params": {
+        "provider": {
+          "type": "enum",
+          "values": [
+            "external",
+            "codex",
+            "custom"
+          ],
+          "required": true
+        },
+        "command": {
+          "type": "string",
+          "required": false,
+          "max": 1000
+        },
+        "args": {
+          "type": "json"
+        },
+        "input": {
+          "type": "enum",
+          "values": [
+            "stdin",
+            "arg"
+          ]
+        }
+      },
+      "destructive": false
+    },
+    {
+      "name": "agent-connection-info",
+      "module": "agents",
+      "entity": "connections",
+      "description": "Read credential-free local connection instructions.",
+      "params": {},
+      "destructive": false,
+      "readOnly": true,
+      "idempotent": true
+    },
+    {
+      "name": "work-release",
+      "module": "agents",
+      "entity": "attempts",
+      "description": "A direct agent releases its stopped delivery after a handoff.",
+      "params": {
+        "work": {
+          "type": "ref",
+          "entity": "work",
+          "required": true
+        },
+        "task": {
+          "type": "string",
+          "required": true,
+          "max": 100
+        }
+      },
+      "destructive": false,
+      "idempotent": true
     },
     {
       "name": "craftbot-configure",
