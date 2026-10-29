@@ -1,5 +1,8 @@
 # Development Studio first-release verification
 
+## Current CraftBot scope — 29 October 2026
+The user has rejected changes to CraftBot. Its portable host patch and setup instructions have been removed from this repository/PR. Studio's standalone and agent-neutral workflows require no host changes. Dated native CraftBot results below used an experimental modified host and are retained only as history; they do not certify native import or automatic delivery on an unchanged older host. No external CraftBot checkout or runtime data is changed by this scope correction.
+
 ## Agent picker and connection UX — 29 October 2026
 
 The ordinary Settings flow detects installed agents and offers named Connect/Sign in actions. Copyable protocol instructions and custom commands are collapsed under Advanced connection. Account probes return only bounded readiness metadata, never their raw output or credential values. Login launches the selected agent's own program in an owned interactive session; opening Settings or its sign-in panel performs no login, installation or coding task.

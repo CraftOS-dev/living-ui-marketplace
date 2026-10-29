@@ -1,3 +1,5 @@
+**Current constraint — 29 October 2026:** CraftBot must remain unchanged. No host patch is shipped. Studio must use existing agent interfaces; native import/automatic delivery on an unchanged older CraftBot host remains unproven. The original plan below is historical where it depends on host modifications; current scope is governed by the latest entries in requirements.md.
+
 **The first release should let someone take a real project from setup through editing, agent assistance, execution, debugging, review and Git delivery—with CraftBot connected or with a standalone coding agent.**
 
 Working name: **Development Studio**.

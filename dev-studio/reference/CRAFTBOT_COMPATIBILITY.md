@@ -1,9 +1,14 @@
 # CraftBot compatibility
-## Current result — 24 October 2026 follow-up
+## Current boundary — 29 October 2026
+CraftBot must remain unchanged. The portable host patch and its setup instructions have been removed from this repository and PR. Studio's supported standalone and agent-neutral workflows require no CraftBot modification. Any future CraftBot integration must adapt Studio to existing host capabilities.
+
+Native import and automatic task delivery against an unchanged older host are not proven. The following dated results came from an experimental modified host and remain historical evidence only. They must not be presented as a current installation prerequisite or an unchanged-host compatibility pass. Existing records and application state are preserved. This change does not edit or revert the separate CraftBot checkout.
+
+## Historical result — 24 October 2026 follow-up
 The user separately authorized the host compatibility changes. CraftBot now recognizes the app as native format 0.1.0, imports through a trusted framework CLI/blueprint, and launches it without the PocketBase runner.
 Actual clean ZIP import created app bf4de299aab9 on port 3100. Its CraftBot session reviewed request 109cbccb-8535-40a4-86dd-d5021d1d0ab1, stored passed, and completed task tsk_72a2aa8b2a4ebeb1.
 Host restart preserved the passed result. Real worker and PTY shell processes stopped, the app port closed, relaunch kept identity, and a claimed review canceled to terminal canceled in both task and domain request.
-The portable host patch and setup instructions are in the parent repository's craftbot-compatibility/ directory. Configure a trusted built CRAFTBOT_FRAMEWORK_ROOT and explicitly allow studio-craftbot-proof in CRAFTBOT_A2APP_CAPABILITIES. Unconfigured app-to-agent delivery remains disabled.
+That experiment used a trusted framework checkout and an explicit capability allowlist. Its host patch and setup instructions were subsequently withdrawn; they are not shipped with this release.
 Existing format-2 imports remain on the old runner. Format-2 data-safety and trigger-plane suites pass, plus 8 new compatibility/cancellation tests and 40 trigger/runtime tests.
 This proves the integration path. Native browser follow-up is environment-blocked; the independent verifier exposes no browser. See EVIDENCE.md and WALK_VERIFY_CRAFTBOT.md. The full workspace has not started.
 ## Historical result before the authorized host patch

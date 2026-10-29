@@ -1,6 +1,6 @@
 # Development Studio
 
-A local development workspace built with the pinned React/Hono/SQLite Agent-App framework. Develop manually or connect any compatible agent through A2App. Optional launchers can start Codex or another local agent command; native CraftBot delivery is also available. JavaScript/TypeScript and Python have verified language and debugger integrations; other projects use the editor, Git, terminals and configurable commands.
+A local development workspace built with the pinned React/Hono/SQLite Agent-App framework. Develop manually or connect any compatible agent through A2App. Optional launchers can start Codex or another local agent command. Studio requires no changes to CraftBot. JavaScript/TypeScript and Python have verified language and debugger integrations; other projects use the editor, Git, terminals and configurable commands.
 
 ## Start
 
@@ -26,7 +26,7 @@ Open the URL printed by the framework. Existing installations keep their identit
 
 ## Agent development
 
-Open **Work**, create a work item with a goal, acceptance criteria and context, then choose Standalone or CraftBot. You can attach the current file/selection, diagnostics or run output. Start work explicitly.
+Open **Work** and create a work item with a goal, acceptance criteria and context for your selected agent. You can attach the current file/selection, diagnostics or run output. Start work explicitly.
 
 Open **Settings → Agents**, choose an installed agent and click **Connect**. Studio detects Codex, Claude Code and Gemini CLI, shows sign-in readiness and configures task delivery automatically. **Sign in** opens the agent's own interactive login inside Studio; complete its browser prompts and check sign-in again. Missing agents link to their official installation help. Opening Settings starts no coding work, installs no software and changes no account. After connection, return to Work and start a task; no commands need copying.
 
@@ -38,7 +38,7 @@ The following integration options remain under the collapsed **Advanced connecti
 
 The interface is agent-neutral, like the other marketplace apps: identity/discovery, records and declared operations use A2App, with local credential handling by the bundled client. Connection instructions contain no credential value. General app operation is distinct from listening for development tasks; a queued task stays queued until an agent claims it. Manual development works without a connected agent.
 
-CraftBot can use the same direct A2App interface. For **native import and automatic host delivery**, its older importer needs the compatibility patch described in `../craftbot-compatibility/README.md`, a trusted built framework checkout and the `studio-development-craftbot` plus `studio-craftbot-proof` allowlist. This compatibility work addresses the host's old app-format support; it is not a requirement for other agents to connect. The native host URL defaults to its inherited local backend port; Settings supports an explicit local override.
+CraftBot integration must use its existing capabilities and Studio's agent-neutral interface without modifying the host. No CraftBot patch is included or required for the supported standalone workflow. Native import and automatic host delivery have not been proven against an unchanged older CraftBot host; historical tests using experimental host changes do not establish that compatibility. Existing native records and integration operations are retained for preservation, rather than presented as an unchanged-host compatibility pass. See `reference/CRAFTBOT_COMPATIBILITY.md` for the boundary.
 
 Both agents use the same A2App contract: inspect context, edit a separate worktree/copy, run saved checks, report progress, ask questions and submit retained changes. Answering a question resumes the same isolated source with a distinct task delivery. A revision retains that source and attempt history. Cancellation revokes managed writes and waits for process-stop confirmation.
 
@@ -59,7 +59,7 @@ npm run package
 
 Developer candidates have disposable databases. Use the framework's `validate`, stop-live, `promote`, `serve` lifecycle to release changes. Never edit framework-owned files. Smoke/proof drivers create disposable fixture projects; actual agent proof scripts require configured harnesses and may consume their normal usage.
 
-`npm run package` writes `../.milestone-tools/deliverables/development-studio-v1.zip`. Pinned MIT framework dependencies are bundled. Credentials, databases, project files, runtime logs, node_modules and private evidence are excluded. The package runs without this source checkout or CraftBot; CraftBot import needs the host patch.
+`npm run package` writes `../.milestone-tools/deliverables/development-studio-v1.zip`. Pinned MIT framework dependencies are bundled. Credentials, databases, project files, runtime logs, node_modules and private evidence are excluded. The package runs without this source checkout or CraftBot. It contains no CraftBot host patch.
 
 Use **Settings** for agent connections, appearance, local tools and project execution/recovery. Internal verification receipts remain available to maintenance tools and are not exposed as IDE screens. See `reference/RELEASE_EVIDENCE.md` for release checks, `reference/RELEASE_PLAN.md` for scope, and `AGENT_APP.md` for the agent protocol. Remote development, simultaneous collaboration, VS Code extensions and marketplace publication are outside this local first release.
 
