@@ -1,0 +1,1379 @@
+/* Tool surfaces and controls: project navigation, editor, output, optional dock. */
+.workspace-shell {
+  font:
+    13px/1.45 "Segoe UI",
+    system-ui,
+    sans-serif;
+}
+.workspace-shell button,
+.workspace-shell input,
+.workspace-shell select,
+.workspace-shell textarea {
+  border-radius: 3px;
+}
+.workspace-shell .ws-primary {
+  background: var(--accent-solid);
+  color: var(--text-on-accent);
+  border-color: var(--accent-solid);
+  font-weight: 500;
+}
+.workspace-shell .ws-primary:hover {
+  background: var(--accent-hover);
+  opacity: 1;
+}
+.workspace-header {
+  height: 42px;
+  gap: 16px;
+  padding: 0 12px;
+  background: var(--bg-sunken);
+}
+.workspace-brand {
+  font-size: 12px;
+  font-weight: 500;
+  gap: 8px;
+  letter-spacing: 0;
+}
+.workspace-brand > svg {
+  color: var(--accent-text);
+  flex: none;
+}
+.header-project-name {
+  font-size: 12px;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  border-left: 1px solid var(--border-default);
+  padding-left: 14px;
+}
+.workspace-shell .command-search {
+  width: min(370px, 32vw);
+  font-size: 11px;
+  gap: 9px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  min-height: 27px;
+  padding: 3px 9px;
+}
+.command-search > span {
+  flex: 1;
+  white-space: nowrap;
+}
+.command-search > svg {
+  flex: none;
+}
+.workspace-shell .header-actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 27px;
+  padding: 3px 7px;
+  font-size: 11px;
+}
+.workspace-shell .agent-toggle[aria-expanded="true"] {
+  background: var(--accent-bg);
+  border-color: var(--accent-border);
+}
+.project-start {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+.start-actions {
+  padding: 28px 16px 18px;
+  background: var(--bg-sunken);
+  border-right: 1px solid var(--border-default);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+.workspace-shell .start-actions h1 {
+  font-size: 17px;
+  font-weight: 500;
+  letter-spacing: 0;
+  margin: 0 12px 17px;
+}
+.workspace-shell .start-actions button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+  padding: 8px 12px;
+  min-height: 36px;
+  border: 0;
+  background: transparent;
+  font-size: 12px;
+}
+.workspace-shell .start-actions button:hover {
+  background: var(--bg-hover);
+}
+.start-actions button > span {
+  flex: 1;
+}
+.start-actions button > svg {
+  flex: none;
+  color: var(--accent-text);
+}
+.start-actions kbd {
+  border: 0;
+  padding: 0;
+  font-size: 10px;
+}
+.start-tools {
+  padding-top: 26px;
+  margin-top: 23px;
+  border-top: 1px solid var(--border-default);
+}
+.workspace-shell .start-tools h2 {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  padding: 0 12px 9px;
+}
+.workspace-shell .start-local-note {
+  font-size: 11px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin: auto 12px 0;
+  padding-top: 45px;
+}
+.start-recents {
+  padding: 28px 28px 24px;
+  min-width: 0;
+  overflow: auto;
+}
+.start-recents > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 22px;
+}
+.workspace-shell .start-recents h2 {
+  font-size: 15px;
+  font-weight: 500;
+}
+.start-recents > header > span {
+  font:
+    11px Consolas,
+    monospace;
+  color: var(--text-secondary);
+}
+.start-column-headings,
+.start-project-row {
+  display: grid;
+  grid-template-columns: minmax(160px, 1fr) minmax(180px, 1.6fr) 85px;
+  align-items: center;
+  gap: 18px;
+}
+.start-column-headings {
+  font-size: 11px;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border-default);
+  padding: 0 10px 9px;
+}
+.workspace-shell .start-project-row {
+  border: 0;
+  border-bottom: 1px solid var(--border-default);
+  border-radius: 0;
+  padding: 13px 10px;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  min-width: 0;
+  font-size: 12px;
+}
+.workspace-shell .start-project-row:hover {
+  background: var(--bg-hover);
+}
+.start-project-name {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+}
+.start-project-name svg {
+  color: var(--accent-text);
+  flex: none;
+}
+.start-project-name strong {
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.start-project-path {
+  font:
+    11px Consolas,
+    monospace;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.start-project-type {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+.start-no-projects {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  padding: 27px 10px;
+  color: var(--text-secondary);
+}
+.start-no-projects svg {
+  flex: none;
+  margin-top: 1px;
+}
+.workspace-shell .start-no-projects h3 {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+.start-no-projects p {
+  font-size: 12px;
+  margin-top: 5px;
+}
+.workspace-body {
+  grid-template-columns: 45px 225px minmax(0, 1fr);
+}
+.workspace-body.has-agent-panel {
+  grid-template-columns: 45px 225px minmax(0, 1fr) 300px;
+}
+.workspace-shell .activity-bar {
+  padding: 8px 3px;
+  gap: 3px;
+}
+.workspace-shell .activity-bar button {
+  min-height: 45px;
+  border-radius: 3px;
+}
+.activity-bar button > span {
+  font-size: 17px;
+  line-height: 1.2;
+}
+.activity-bar button small {
+  font-size: 9px;
+  letter-spacing: 0;
+}
+.workspace-shell .activity-bar button.active {
+  color: var(--accent-text);
+  background: var(--accent-bg);
+}
+.activity-bar button.active:before {
+  background: var(--accent-solid);
+  left: -3px;
+}
+.project-selector {
+  padding: 11px 10px 10px;
+}
+.workspace-shell .project-selector select {
+  font-weight: 500;
+}
+.project-profile {
+  font-size: 11px;
+}
+.workspace-shell .ws-section-title {
+  padding: 10px 12px;
+}
+.workspace-shell .workspace-sidebar h2 {
+  font-size: 12px;
+  font-weight: 500;
+}
+.workspace-shell .file-row {
+  min-height: 26px;
+  padding-top: 3px;
+  padding-bottom: 3px;
+  gap: 7px;
+}
+.file-row > span:first-child {
+  width: 22px;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+}
+.file-row > span.file-js,
+.file-row > span.file-ts,
+.file-row > span.file-jsx,
+.file-row > span.file-tsx {
+  color: var(--info-text);
+}
+.file-row > span.file-py {
+  color: var(--warning-text);
+}
+.workspace-shell .file-row.selected {
+  background: var(--accent-bg);
+  box-shadow: inset 2px 0 var(--accent-solid);
+}
+.file-tree {
+  padding-top: 3px;
+}
+.workspace-shell .sidebar-foot > span {
+  font-size: 10px;
+}
+.workspace-shell .sidebar-foot button {
+  font-size: 11px;
+}
+.workbench-empty {
+  text-align: left;
+  align-items: stretch;
+  max-width: 380px;
+  gap: 10px;
+  padding: 24px;
+}
+.workspace-shell .workbench-empty h2 {
+  font-size: 14px;
+  letter-spacing: 0;
+  font-weight: 500;
+}
+.workbench-empty > p {
+  font-size: 12px;
+  line-height: 1.6;
+}
+.workbench-empty dl {
+  width: 100%;
+  font-size: 12px;
+  border-top: 1px solid var(--border-default);
+  padding-top: 12px;
+  margin-top: 12px;
+}
+.workbench-empty dd {
+  font-size: 11px;
+}
+.editor-tabs {
+  background: var(--bg-sunken);
+}
+.workspace-shell .editor-tab {
+  border-radius: 0;
+  font-size: 12px;
+}
+.workspace-shell .editor-tab.active {
+  border-top-color: var(--accent-solid);
+}
+.editor-toolbar {
+  background: var(--bg-surface);
+}
+.bottom-panel {
+  height: 245px;
+  background: var(--bg-surface);
+}
+.bottom-tabs {
+  background: var(--bg-sunken);
+}
+.workspace-shell .bottom-tabs button {
+  font-size: 11px;
+}
+.agent-heading {
+  padding: 11px 12px;
+  gap: 8px;
+  background: var(--bg-sunken);
+}
+.agent-heading h2 {
+  font-size: 12px;
+  font-weight: 500;
+}
+.agent-heading p {
+  font-size: 11px;
+}
+.agent-heading .agent-spark {
+  display: flex;
+  color: var(--text-secondary);
+}
+.workspace-shell .close-agent {
+  margin-left: auto;
+  border: 0;
+  background: transparent;
+  font-size: 18px;
+  line-height: 1;
+  padding: 1px 5px;
+  min-height: 24px;
+}
+.connector-strip {
+  padding: 11px 12px 0;
+  font-size: 11px;
+}
+.connector-strip button {
+  font-size: 11px;
+  min-height: 25px;
+}
+.connector-note {
+  font-size: 11px;
+  padding: 9px 12px 12px;
+  line-height: 1.5;
+}
+.connector-note summary {
+  cursor: pointer;
+}
+.connector-note p {
+  padding-top: 8px;
+}
+.agent-intro {
+  padding: 18px 14px;
+  text-align: left;
+  gap: 10px;
+}
+.agent-intro h3 {
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+.agent-intro > p {
+  font-size: 12px;
+  line-height: 1.6;
+}
+.agent-intro > .ws-primary {
+  align-self: flex-start;
+  margin: 6px 0 4px;
+}
+.agent-suggestions {
+  gap: 0;
+  margin-top: 12px;
+  border-top: 1px solid var(--border-default);
+}
+.agent-suggestions > button {
+  font-size: 12px;
+  padding: 10px 0;
+  border: 0;
+  border-bottom: 1px solid var(--border-default);
+  border-radius: 0;
+  background: transparent;
+}
+.current-work {
+  padding: 13px;
+  gap: 12px;
+}
+.work-summary {
+  border: 0;
+  border-top: 1px solid var(--border-default);
+  padding: 12px 0;
+  border-radius: 0;
+  font-size: 12px;
+}
+.work-summary summary {
+  font-weight: 500;
+  cursor: pointer;
+}
+.work-summary p,
+.review-report p {
+  padding-top: 10px;
+}
+.comparison-heading {
+  padding: 14px 16px;
+  gap: 10px;
+}
+.review-report summary {
+  cursor: pointer;
+}
+.review-file-list {
+  padding: 4px 12px;
+}
+.workspace-statusbar {
+  height: 23px;
+  font-size: 10px;
+}
+.workspace-statusbar > button {
+  font-size: 10px;
+}
+@media (min-width: 1700px) {
+  .workspace-body {
+    grid-template-columns: 48px 245px minmax(0, 1fr);
+  }
+  .workspace-body.has-agent-panel {
+    grid-template-columns: 48px 245px minmax(0, 1fr) 320px;
+  }
+}
+@media (max-width: 1250px) {
+  .workspace-body {
+    grid-template-columns: 44px 205px minmax(0, 1fr);
+  }
+  .workspace-body.has-agent-panel {
+    grid-template-columns: 44px 205px minmax(0, 1fr) 280px;
+  }
+  .header-project-name {
+    max-width: 130px;
+  }
+  .workspace-header {
+    gap: 10px;
+  }
+  .workspace-shell .command-search {
+    width: min(300px, 28vw);
+  }
+  .start-column-headings,
+  .start-project-row {
+    grid-template-columns: minmax(130px, 1fr) minmax(140px, 1.5fr) 75px;
+    gap: 12px;
+  }
+}
+@media (max-width: 1000px) {
+  .workspace-body,
+  .workspace-body.has-agent-panel {
+    grid-template-columns: 44px 190px minmax(0, 1fr);
+  }
+  .workspace-body.has-agent-panel .agent-panel {
+    display: none;
+  }
+  .workspace-body.has-agent-panel:has(
+      .activity-bar button[aria-label="Work"].active
+    )
+    .agent-panel {
+    display: flex;
+  }
+  .workspace-body.has-agent-panel:has(
+      .activity-bar button[aria-label="Work"].active
+    ) {
+    grid-template-rows: minmax(250px, 1fr) 270px;
+  }
+  .workspace-shell .agent-toggle {
+    display: none;
+  }
+  .header-project-name {
+    display: none;
+  }
+  .project-start {
+    grid-template-columns: 230px minmax(0, 1fr);
+  }
+  .start-recents {
+    padding: 26px 20px;
+  }
+  .start-column-headings,
+  .start-project-row {
+    grid-template-columns: minmax(100px, 1fr) minmax(100px, 1.5fr);
+  }
+  .start-project-type,
+  .start-column-headings > span:last-child {
+    display: none;
+  }
+  .agent-heading {
+    padding: 10px 12px;
+  }
+  .agent-intro {
+    padding: 16px;
+  }
+}
+@media (max-width: 640px) {
+  .workspace-header {
+    height: 42px;
+    padding: 0 10px;
+    gap: 8px;
+  }
+  .workspace-brand {
+    font-size: 11px;
+    gap: 6px;
+  }
+  .workspace-shell .command-search {
+    width: 28px;
+    min-height: 26px;
+    justify-content: center;
+    padding: 4px;
+    margin-left: auto;
+  }
+  .command-search:before {
+    content: none;
+  }
+  .command-search > span,
+  .command-search > kbd {
+    display: none;
+  }
+  .workspace-shell .header-actions button {
+    font-size: 11px;
+  }
+  .project-start {
+    display: block;
+  }
+  .start-actions {
+    padding: 20px 16px;
+    border-right: 0;
+    border-bottom: 1px solid var(--border-default);
+  }
+  .workspace-shell .start-actions h1 {
+    margin-bottom: 10px;
+    font-size: 15px;
+  }
+  .workspace-shell .start-actions button {
+    min-height: 44px;
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+  .start-tools {
+    padding-top: 13px;
+    margin-top: 13px;
+  }
+  .workspace-shell .start-local-note {
+    padding-top: 14px;
+    margin-top: 0;
+  }
+  .start-recents {
+    padding: 20px 20px 25px;
+  }
+  .start-recents > header {
+    margin-bottom: 17px;
+  }
+  .start-column-headings {
+    display: none;
+  }
+  .workspace-shell .start-project-row {
+    display: flex;
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
+    padding: 13px 0;
+    min-height: 55px;
+  }
+  .start-project-path {
+    max-width: 100%;
+    padding-left: 25px;
+  }
+  .workspace-body,
+  .workspace-body.has-agent-panel {
+    display: flex;
+    flex-direction: column;
+  }
+  .workspace-shell .activity-bar {
+    padding: 2px 8px;
+    gap: 5px;
+  }
+  .workspace-shell .activity-bar button {
+    min-height: 44px;
+  }
+  .project-selector {
+    padding: 8px 12px;
+  }
+  .workspace-shell .project-selector select {
+    font-size: 12px;
+  }
+  .workspace-sidebar {
+    min-height: 110px;
+    max-height: 220px;
+  }
+  .workspace-shell .file-row {
+    min-height: 36px;
+  }
+  .workspace-body.has-agent-panel:has(
+      .activity-bar button[aria-label="Work"].active
+    )
+    .agent-panel {
+    display: flex;
+    max-height: none;
+  }
+  .workspace-body.has-agent-panel:has(
+      .activity-bar button[aria-label="Work"].active
+    )
+    .workspace-main {
+    display: none;
+  }
+  .workspace-body:has(.activity-bar button[aria-label="Work"].active):not(
+      .has-agent-panel
+    )
+    .workspace-main {
+    display: flex;
+  }
+  .workbench-empty {
+    max-width: 100%;
+    padding: 20px;
+  }
+  .workspace-shell .workbench-empty h2 {
+    font-size: 14px;
+  }
+  .bottom-panel {
+    height: 225px;
+  }
+}
+.project-folder-input {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  min-width: 0;
+}
+.project-folder-input input {
+  flex: 1;
+  min-width: 0;
+  width: 0;
+}
+.project-folder-input button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+/* Workbench panels: small toolbars, disclosure, readable file rows. */
+.tool-sidebar {
+  min-width: 0;
+}
+.tool-sidebar .ws-section-title {
+  align-items: center;
+  gap: 8px;
+}
+.tool-sidebar .ws-section-title h2 {
+  text-transform: uppercase;
+  letter-spacing: 0.45px;
+  font-size: 11px;
+}
+.tool-sidebar .ws-section-title > span {
+  color: var(--text-secondary);
+  display: flex;
+}
+.workspace-shell .tool-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 25px;
+  height: 25px;
+  min-height: 25px;
+  padding: 3px;
+  border: 0;
+  background: transparent;
+  border-radius: 3px;
+  flex: none;
+}
+.workspace-shell .tool-icon:hover {
+  background: var(--bg-hover, var(--bg-sunken));
+}
+.tool-search-form {
+  display: grid;
+  grid-template-columns: 17px minmax(0, 1fr);
+  gap: 6px 3px;
+  padding: 2px 12px 8px 6px;
+  align-items: center;
+}
+.workspace-shell .replace-toggle {
+  width: 17px;
+}
+.tool-input-row {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--border-default);
+  border-radius: 2px;
+  background: var(--bg-sunken);
+  min-width: 0;
+}
+.tool-input-row:focus-within {
+  outline: 1px solid var(--accent-solid);
+}
+.workspace-shell .tool-input-row input {
+  min-width: 0;
+  min-height: 28px;
+  padding: 4px 7px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  flex: 1;
+  width: 0;
+  font-size: 12px;
+}
+.workspace-shell .tool-input-row input:focus-visible {
+  outline: 0;
+}
+.replace-input {
+  grid-column: 2;
+}
+.workspace-shell .tool-panel-hint {
+  padding: 8px 14px 12px;
+  color: var(--text-secondary);
+  font-size: 11px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.tool-file-label {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+}
+.tool-file-label > span {
+  flex-shrink: 0;
+  max-width: 70%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.tool-file-label > small {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--text-secondary);
+  font-size: 10px;
+  font-weight: 400;
+}
+.tool-count {
+  margin-left: auto;
+  color: var(--text-secondary);
+  background: var(--bg-sunken);
+  border-radius: 8px;
+  padding: 0 5px;
+  font:
+    10px/17px "Segoe UI",
+    sans-serif;
+  flex: none;
+}
+.tool-file-group > summary,
+.scm-group > summary {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  font-size: 11px;
+  list-style: none;
+}
+.tool-file-group > summary::before,
+.scm-group > summary::before {
+  content: "›";
+  width: 9px;
+  flex: none;
+  color: var(--text-secondary);
+}
+.tool-file-group[open] > summary::before,
+.scm-group[open] > summary::before {
+  transform: rotate(90deg);
+}
+.tool-file-group > summary::-webkit-details-marker,
+.scm-group > summary::-webkit-details-marker {
+  display: none;
+}
+.tool-file-group > summary:hover,
+.scm-group > summary:hover {
+  background: var(--bg-hover, var(--bg-sunken));
+}
+.workspace-shell .tool-search-hit {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  width: 100%;
+  border: 0;
+  border-radius: 0;
+  padding: 4px 14px 4px 27px;
+  min-height: 25px;
+  text-align: left;
+  font-size: 11px;
+  background: transparent;
+}
+.tool-search-hit > span {
+  color: var(--text-secondary);
+  flex: none;
+  font-size: 10px;
+}
+.tool-search-hit > code {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+.scm-heading {
+  position: relative;
+}
+.tool-heading-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: auto;
+}
+.scm-menu > summary {
+  list-style: none;
+  cursor: pointer;
+  width: 25px;
+  height: 25px;
+  text-align: center;
+  font-size: 19px;
+  line-height: 22px;
+  border-radius: 3px;
+}
+.scm-menu > summary::-webkit-details-marker {
+  display: none;
+}
+.scm-menu > summary:hover {
+  background: var(--bg-hover, var(--bg-sunken));
+}
+.scm-menu-items {
+  position: absolute;
+  top: 36px;
+  right: 10px;
+  width: 190px;
+  padding: 4px;
+  z-index: 15;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  box-shadow: 0 3px 12px var(--shadow-color, var(--border-default));
+  border-radius: 3px;
+}
+.workspace-shell .scm-menu-items button {
+  border: 0;
+  background: transparent;
+  text-align: left;
+  font-size: 12px;
+  padding: 5px 9px;
+}
+.workspace-shell .scm-menu-items button:last-child {
+  border-top: 1px solid var(--border-default);
+  margin-top: 3px;
+  border-radius: 0;
+}
+.scm-branch {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 14px 7px;
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+.scm-branch span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.scm-compose {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 3px 12px 13px;
+}
+.workspace-shell .scm-compose textarea {
+  min-height: 47px;
+  padding: 6px 8px;
+  font-size: 12px;
+  border-radius: 2px;
+}
+.workspace-shell .scm-commit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  font-size: 12px;
+  min-height: 28px;
+  padding: 4px 8px;
+}
+.scm-group {
+  border-top: 1px solid var(--border-default);
+}
+.scm-group > summary {
+  font-size: 11px;
+  font-weight: 600;
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+.scm-file {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  padding: 0 8px 0 13px;
+  gap: 2px;
+}
+.scm-file:hover,
+.scm-file:focus-within {
+  background: var(--bg-hover, var(--bg-sunken));
+}
+.workspace-shell .scm-file-open {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  flex: 1;
+  border: 0;
+  background: transparent;
+  border-radius: 0;
+  text-align: left;
+  padding: 4px 0;
+  min-height: 27px;
+  font-size: 12px;
+}
+.scm-file-open > svg {
+  flex: none;
+  color: var(--text-secondary);
+}
+.scm-status {
+  font: 10px/1.4 monospace;
+  color: var(--warning-text);
+  flex: none;
+  margin-left: auto;
+}
+.scm-file-action {
+  opacity: 0;
+}
+.scm-file:hover .scm-file-action,
+.scm-file:focus-within .scm-file-action {
+  opacity: 1;
+}
+.tool-trust-note {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin: 0 12px 8px;
+  font-size: 10px;
+  color: var(--text-secondary);
+  flex-wrap: wrap;
+}
+.workspace-shell .tool-trust-note button {
+  border: 0;
+  background: transparent;
+  padding: 2px 0;
+  min-height: 24px;
+  font-size: 10px;
+  color: var(--accent-text);
+}
+.workspace-shell .project-terminal-panel .section-heading {
+  min-height: 26px;
+  margin-bottom: 7px;
+}
+.workspace-shell .project-terminal-panel .section-heading > div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.workspace-shell .project-terminal-panel .section-heading h2 {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--text-secondary);
+}
+.workspace-shell .project-terminal-panel .terminal-host.is-empty {
+  display: none;
+}
+.workspace-shell .project-terminal-panel .terminal-empty {
+  border: 0;
+  min-height: 55px;
+  padding: 14px 0;
+  text-align: left;
+  align-items: flex-start;
+}
+.workspace-shell .project-terminal-panel .terminal-empty h3 {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--text-secondary);
+}
+.terminal-locked {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  flex-wrap: wrap;
+}
+.workspace-shell .terminal-locked p {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+.workspace-shell .terminal-locked button {
+  font-size: 11px;
+}
+@media (hover: none) {
+  .scm-file-action {
+    opacity: 1;
+  }
+}
+@media (min-width: 1001px) {
+  .workspace-body {
+    grid-template-columns: 45px 260px minmax(0, 1fr);
+  }
+  .workspace-body.has-agent-panel {
+    grid-template-columns: 45px 260px minmax(0, 1fr) 300px;
+  }
+}
+@media (min-width: 1440px) {
+  .workspace-body {
+    grid-template-columns: 48px 280px minmax(0, 1fr);
+  }
+  .workspace-body.has-agent-panel {
+    grid-template-columns: 48px 280px minmax(0, 1fr) 320px;
+  }
+}
+.tool-sidebar details.tool-file-group,
+.tool-sidebar details.scm-group,
+.tool-sidebar details.scm-menu {
+  padding: 0;
+  margin: 0;
+  border-radius: 0;
+  background: transparent;
+}
+.tool-sidebar details.tool-file-group,
+.tool-sidebar details.scm-menu {
+  border: 0;
+}
+.tool-sidebar details.scm-group {
+  border: 0;
+  border-top: 1px solid var(--border-default);
+}
+.tool-sidebar details > summary {
+  text-transform: none;
+  margin: 0;
+  letter-spacing: normal;
+}
+/* Let xterm fit the space below the terminal toolbar, with one scrollbar. */
+.persistent-terminals:not([hidden]) {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+}
+.persistent-terminals > .terminal-tabs {
+  flex: none;
+}
+.persistent-terminals > div:not(.terminal-tabs):not([hidden]) {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+}
+.workspace-shell .persistent-terminals .project-terminal-panel {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+  padding: 6px 12px 8px;
+}
+.workspace-shell .project-terminal-panel .section-heading,
+.workspace-shell .project-terminal-panel > .notice,
+.workspace-shell .project-terminal-panel > [role="status"] {
+  flex: none;
+}
+.workspace-shell .project-terminal-panel .terminal-host {
+  flex: 1;
+  height: auto;
+  min-height: 0;
+  min-width: 0;
+  padding: 0;
+  overflow: hidden;
+}
+.workspace-shell .xterm .xterm-helper-textarea {
+  min-height: 0;
+  min-width: 0;
+  min-width: 0;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  resize: none;
+  outline: none;
+  font: inherit;
+}
+.workspace-shell .comparison-pane > details > summary {
+  text-transform: none;
+  letter-spacing: normal;
+}
+.markdown-preview ul,
+.markdown-preview ol {
+  padding-left: 24px;
+  margin: 10px 0;
+}
+.markdown-preview li {
+  margin: 4px 0;
+}
+.markdown-preview blockquote {
+  border-left: 3px solid var(--border-default);
+  color: var(--text-secondary);
+  padding-left: 14px;
+  margin: 12px 0;
+}
+.markdown-preview pre {
+  white-space: pre;
+  overflow: auto;
+  padding: 12px;
+  background: var(--bg-sunken);
+}
+.markdown-preview code {
+  font-family: monospace;
+  background: var(--bg-sunken);
+}
+.markdown-preview table {
+  border-collapse: collapse;
+  margin: 12px 0;
+  max-width: 100%;
+}
+.markdown-preview th,
+.markdown-preview td {
+  border: 1px solid var(--border-default);
+  padding: 6px 10px;
+}
+.markdown-preview a {
+  color: var(--accent-text);
+}
+.markdown-preview img {
+  max-width: 100%;
+}
+.workspace-shell .replace-toggle {
+  width: 25px;
+}
+.tool-search-form {
+  grid-template-columns: 25px minmax(0, 1fr);
+}
+.workspace-shell button[aria-label^="Close "],
+.workspace-shell button[aria-label="Add run configuration"] {
+  min-width: 24px;
+}
+.workspace-shell .editor-tab button[aria-label^="Close "] {
+  min-width: 26px;
+  width: 26px;
+  flex-shrink: 0;
+}
+
+.task-activity {
+  margin: 12px 0;
+  padding: 9px 0;
+  border-top: 1px solid var(--border-default);
+  border-bottom: 1px solid var(--border-default);
+  font-size: 12px;
+}
+.task-activity > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.task-activity time {
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+.task-activity p {
+  margin: 6px 0 0;
+  overflow-wrap: anywhere;
+}
+
+/* Ordinary IDE settings; historical integration tests live behind Advanced. */
+.workspace-body[hidden],
+.project-start[hidden] {
+  display: none !important;
+}
+.studio-settings {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 28px clamp(16px, 4vw, 48px);
+}
+.settings-heading,
+.settings-sections {
+  width: min(900px, 100%);
+  margin-inline: auto;
+}
+.settings-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+.workspace-shell .settings-heading h1 {
+  font-size: 22px;
+  line-height: 1.3;
+  letter-spacing: normal;
+  margin: 0;
+}
+.settings-heading p,
+.studio-settings p {
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.6;
+}
+.settings-sections section {
+  padding: 22px 0;
+  border-bottom: 1px solid var(--border-default);
+}
+.workspace-shell .studio-settings h2 {
+  font-size: 14px;
+  margin: 0 0 16px;
+}
+.settings-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+  margin: 12px 0;
+}
+.settings-row > * {
+  min-width: 0;
+}
+.settings-row > div:first-child {
+  flex: 1;
+}
+.settings-row > select {
+  width: min(260px, 100%);
+}
+.settings-row p {
+  margin: 6px 0 0;
+  max-width: 580px;
+}
+.settings-control {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.studio-settings label {
+  display: block;
+  font-size: 12px;
+  margin-bottom: 8px;
+}
+.settings-input-action {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.settings-input-action input {
+  flex: 1;
+  min-width: 0;
+}
+.settings-input-action button {
+  flex: none;
+}
+.settings-note {
+  margin: 8px 0 14px;
+}
+.settings-disclosure {
+  margin-top: 20px;
+}
+.settings-disclosure summary {
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 0;
+}
+.settings-tools-list {
+  font-size: 12px;
+  margin: 16px 0 0;
+}
+.settings-tools-list > div {
+  display: grid;
+  grid-template-columns: 100px minmax(0, 1fr);
+  gap: 18px;
+  padding: 7px 0;
+}
+.settings-tools-list dt {
+  font-weight: 600;
+}
+.settings-tools-list dd {
+  margin: 0;
+  color: var(--text-secondary);
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+@media (max-width: 600px) {
+  .settings-heading {
+    flex-direction: column;
+  }
+  .settings-row {
+    flex-direction: column;
+    gap: 12px;
+  }
+  .settings-row > select {
+    width: 100%;
+  }
+  .settings-input-action {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .settings-input-action input {
+    flex: none;
+  }
+  .settings-input-action button {
+    align-self: flex-start;
+  }
+}

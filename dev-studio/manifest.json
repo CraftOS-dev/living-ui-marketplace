@@ -1,0 +1,45 @@
+{
+  "id": "59bb058d439e",
+  "name": "Development Studio",
+  "agentAppVersion": "0.1.0",
+  "adapterVersion": "0.1.0",
+  "appVersion": "0.1.0",
+  "authMode": "none",
+  "modules": [
+    {
+      "summary": "Project context and milestone proof",
+      "name": "workspace"
+    },
+    {
+      "summary": "File inspection; editor arrives after milestone zero",
+      "name": "workbench"
+    },
+    {
+      "summary": "Managed local processes and terminal sessions",
+      "name": "execution"
+    },
+    {
+      "summary": "Proof artifacts; review arrives after milestone zero",
+      "name": "changes"
+    },
+    {
+      "summary": "Harness connections and round-trip requests",
+      "name": "agents"
+    },
+    {
+      "summary": "Runtime health and compatibility evidence",
+      "name": "settings"
+    }
+  ],
+  "modificationLock": false,
+  "capabilities": {
+    "integrations": []
+  },
+  "pipeline": {
+    "install": "npm install",
+    "build": "npm run build",
+    "start": "node server.mjs",
+    "health": "/api/_a2app"
+  },
+  "port": 8097
+}

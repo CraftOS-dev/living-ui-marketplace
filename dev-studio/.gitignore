@@ -1,0 +1,27 @@
+# Credentials are runtime artifacts: never shipped, exported, or committed.
+.agent-token
+.principal
+.superuser
+
+# The live database and adapter-owned state (the toolkit's lifecycle dataDir).
+data/
+
+# Framework runtime state: serve records, logs, the dev instance, the live
+# View snapshot, the gate pass, and backups.
+.a2app/serve.json
+.a2app/serve.log
+.a2app/dev.json
+.a2app/dev/
+.a2app/public/
+.a2app/gate-pass.json
+.a2app/backups/
+
+node_modules/
+
+# Keep only portable ownership metadata; ignore test homes and harness evidence.
+.a2app/*
+!.a2app/system-hashes.json
+!.a2app/toolkit.json
+
+# The built View (vite build output) — rebuilt by the pipeline, never committed.
+dist/

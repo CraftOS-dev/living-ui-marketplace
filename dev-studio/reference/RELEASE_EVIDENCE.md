@@ -1,0 +1,62 @@
+# Development Studio first-release verification
+
+Verified locally on Windows on 25 October 2026 with Node 24.19.0, pinned Agent-App framework `5e9c7a1e28fd4742cbb49e49188d63031f35c145`, React/Hono/SQLite blueprint. The original milestone-zero record is EVIDENCE.md; its old scope and browser blocker are historical.
+
+## Implemented scope
+
+M0–M4 provide project setup, Monaco editing/recovery, search/replace, terminals, saved commands/artifacts/previews, language services, Node/Python debugging, isolated agent work and review, checkpoints and Git delivery. M5 provides distribution, documentation and independent verification. Manual mode needs no agent. Standalone certification uses the installed authenticated Codex CLI; Claude is not certified. Python debugger/formatter require debugpy/Black in the selected interpreter. Windows is the verified platform. VS Code extensions, remote development, collaboration and marketplace publication remain outside this release.
+
+## Actual agent development
+
+These results were produced by the actual configured agents through the A2App operations. Proof drivers queued, polled and asserted receipts; they supplied no implementation or substituted agent response.
+
+| Scenario | Observed receipt |
+|---|---|
+| Standalone coding | Work `f4d283aa-6dfa-4d33-be60-4a0d650d0c3a`, task `tsk_03dc103262be9c81`: actual farewell implementation and Ada test, 2 passing tests, exit 0, fresh source; main unchanged until human review. |
+| Standalone question/resume | Work `117a9897-2556-4a67-aecd-fd1d1d354ac8`: initial `tsk_d379e700882476f7` asked a choice; answer resumed `tsk_31ed2e630e944513` in retained source, actual multiply implementation, 2 passing tests, exit 0, fresh. Independent API and browser observations; rejected after verification, main unchanged. |
+| Native CraftBot coding | Native app `42e1dea9d1ba`, work `1c2af2b7-e85f-4851-b98d-305e1e767781`, task `tsk_ba333b7aaa7f0884`: actual farewell implementation and Ada test, 2 passing tests. |
+| Native CraftBot revision | Same work, distinct task `tsk_f6498d274b74a259`: retained implementation plus requested empty-name test, run `5e8f3e30-1222-4ae8-b6d8-b21781cc49de`, 3 passing tests, exit 0, fresh. Independent retained-source/main comparison. |
+| Active standalone cancellation | Task `tsk_ff2bf2d95b5a4989`: working and actual PID observed, app cancellation stopped process, domain/framework canceled, stopConfirmed=true, late update refused. |
+| Active CraftBot cancellation | Task `tsk_0737fadc226fd11b`: working and actual native busy session observed, cancellation drained active session, domain/framework canceled, stopConfirmed=true, late update refused. |
+
+CraftBot native import uses the official trusted framework lifecycle with fresh identity/credentials and the separately scoped host compatibility patch. It is not foreign adoption. The actual host runs from `D:/Work/CraftOS/CraftBot`, dedicated local frontend/backend 8925/8926, with only proof and development CraftBot capabilities enabled. Standalone capabilities route independently. Native app source/data survive managed stop, candidate validation, promotion and host relaunch.
+
+## Runtime and safety checks
+
+- `npm test`: 18 passing tests. Bounded-check timeout versus explicit-stop development services; real PTY input/output, single-use/origin/expiry checks, reconnect to the same process, IPC-disconnect cleanup; Windows path/Git-case controls; binary/non-UTF8/large-file guards; bounded artifact reading; named environment references; per-project writer/provider routing; partial-revision refusal; actual worktree and tracked-secret scrub; save/apply compare-and-swap; zero-byte files; binary checkpoints; malicious Git fsmonitor positive control.
+- `scripts/execution-smoke.mjs`: real JS/TS and Python language-server diagnostics, completion/hover/definition, Node CDP and Python debugpy breakpoints/stack/locals/step/termination, confirmed owned-job cancellation.
+- `scripts/workspace-smoke.mjs` and `full-workflow-smoke.mjs`: actual disk CRUD/moves, search/replacement, trash/checkpoint restore, execution trust, real tests/fingerprints/stale checks, loopback HTTP preview, named environment references, distinct retry deliveries and unclaimed cancellation.
+- `scripts/git-delivery-verify.mjs`: actual local bare remote; stage/unstage/commit/history/push/clone, peer push, fetch and fast-forward pull. No external repository published.
+- `scripts/artifact-verify.mjs`: real build output, captured size/hash, exact read and unrecorded-path refusal. `scripts/formatter-verify.mjs`: real Black via stdin with >64 KiB input. Actual HTTP zero-byte writes verified in source and native apps.
+- CraftBot host regression suite: 8 compatibility tests; original trigger/runtime suite 40 tests and format-2 safety/trigger-plane acceptance also passed. Portable patch excludes unrelated host memory/OAuth/settings edits.
+- Framework validation: system ownership unchanged, fresh additive schema, all operation runners resolve, every measured protocol level within 2,000 characters, unchecked=[], promotable=true. Final exact-tree gate is required again after documentation changes.
+
+## Human workflow and independent browser verification
+
+A separate verifier directly drove real browser UI on the source candidate and native CraftBot app. See DIRECT_UI_VERIFICATION.md for its independent observations and verdict. It exercised JS/Python creation, clean and dirty recovery/cursor persistence, actual save/readback and external-write conflicts, both real terminals, Node and Python debug stepping, Pyright diagnostics, definition navigation, actual saved tests/staleness, web preview, modal keyboard focus, 390px/tablet/light views and native retained agent review/rejection. Browser console warning/error lists were empty on the tested source tab.
+
+Builder browser acceptance additionally exercised exact fast typing/save/readback, Markdown, rename, reviewed replacement, recoverable deletion/restore, partial acceptance and explicit human/agent merge followed by passing tests. On the actual native agent result, unsaved main.js blocked acceptance; the disposable marker was explicitly discarded and rejection left main source unchanged while retaining the isolated files. Cross-tab stale review controls found during verification were fixed and independently rechecked: external rejection updates both review/agent status and disables apply without reloading.
+
+Private screenshots/raw receipts remain under `.a2app/evidence/` and are excluded from exports. Independent reports preserve curated findings when disposable candidate databases are destroyed by promotion.
+
+## Distribution and final lifecycle
+
+The release acceptance driver extracts the final archive into a new temporary folder, installs dependencies, imports with a fresh identity and the blueprint inside its own installed package, boots and validates a disposable candidate, runs API/manual/development-lifetime/runtime/debug tests, then promotes and serves a clean live database. It writes `final-clean-package.json` and its command log under `.a2app/evidence/`; the external `release-receipt.json` beside the ZIP records its hash and the final running instances. These runtime receipts are deliberately excluded from the archive. The distributable excludes runtime databases, credentials, environment files, project source, logs, node_modules and private evidence. It bundles pinned distributable framework dependencies and provisions a fresh identity on import.
+
+- Native final UI promotion: official framework gate passed on disposable candidate63628, mandatory backup `2026-10-25T01-53-45-636Z-pre-promote-24564-0`, compatible live schema and preserved project/work/run records. The pinned framework encountered a transient Windows sharing violation publishing its backup directory. An optional app-owned Node preloader (`scripts/windows-lifecycle-retry.mjs`) retries only this exact atomic backup rename for at most eight seconds; it preserves mandatory backup, validation and ownership checks and modifies no framework file. Promotion then succeeded.
+
+- Development servers and the standalone bridge now run until explicitly stopped; normal saved checks remain bounded to ten minutes. A real regression observes a timed-out check while its untimed service stays running, then confirms service process termination.
+
+- Final native service-lifetime promotion: mandatory backup `2026-10-25T01-57-13-803Z-pre-promote-35852-0`, compatible live schema, official host relaunch at3101. Independent browser verification and the subsequent backend lifetime audit both pass.
+
+- Final native implementation/application: work `8e54750e-44cb-4259-86b0-a0a444ec7e83`, task `tsk_545fd2bb4df47580` completed on3101. Actual farewell/source and test changes were isolated until explicit human review-apply; post-apply main-project run `317a8770-c319-43fe-87e5-48c2f046a2a6` passed2tests/exit0/fresh.
+- Clean-folder standalone diagnosis/application: work `b65f671b-b618-4fc3-836c-1bb265997878`, task `tsk_6ce2b85c6c8e0687` completed in the independent extracted app at64197. Actual initial greeting check failed; the agent changed production code only, preserved the test digest, ran a fresh passing check and submitted an isolated result. Main stayed unchanged until review-apply; post-apply main run `a5d3fafd-af23-4c2d-a653-9d30afe0aabe` passed/exit0/fresh. The app's CraftBot URL was deliberately unavailable; standalone used only its installed authenticated Codex bridge. Both final provider paths are independently read back in `final-provider-independent.json`.
+- The fresh non-Git install exposed Codex's Git-directory precondition. The connector now passes the documented `--skip-git-repo-check` directory option while retaining `--approve-for-me` workspace sandbox and automatic approval review. It does not disable sandbox/approval or hook trust. Known startup/auth/quota failures become bounded classified hints; raw harness diagnostics/conversations are not persisted. A real missing-executable regression verifies a completed safe failure receipt without an orphan process. The original installed CLI's directory refusal was reproduced before this correction; the subsequent actual coding task above passed.
+
+## Full application acceptance — 27 October 2026
+
+Independent browser walks and disposable execution fixtures cover manual project setup, file editing/recovery/conflicts, reviewed replacement, sanitized Markdown and image previews, Git, real terminals, previews/artifacts, TypeScript/Python language tools and Node/Python debugging. The clean archive acceptance driver additionally checks actual zero-byte files, named environment references, local Git clone/fetch/fast-forward pull/push, source staleness, process lifetime/cancellation and20 runtime/security regressions. Remote Git credentials/network services were not tested; remote delivery used a disposable local bare repository.
+
+Both actual providers completed coding tasks, question/resume, isolated review/application and confirmed active cancellation. Standalone also exercised retained revision and explicit human conflict merge; CraftBot exercised rejection and retry with the answer retained. A fresh extracted standalone installation diagnosed an actual failing test, preserved its test file, and delivered a passing production fix with CraftBot unavailable. Exact task/run IDs, tested archive hashes and independent findings are preserved in private `.a2app/evidence/full-app-20261027/` and the external release receipt.
+
+Observed fixes include zero-byte file creation, immediate replacement buffer refresh and frozen reviewed input, guarded formatting while typing, single language hovers, F9/gutter breakpoints in both splits, two-terminal tab recovery, debugger session recovery after refresh, actionable interpreter errors, artifact-output fingerprint exclusions, mode-specific agent connection copy, selected-task persistence, distinct run time/ID labels and larger tab-close controls. Folder trashing is outside the specified file-only trash workflow; existing create/rename/move-folder and recoverable file deletion remain supported. Final independent rechecks and managed promotion are recorded after packaging; older reports retain their original findings and provenance.
