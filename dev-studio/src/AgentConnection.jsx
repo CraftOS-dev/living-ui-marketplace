@@ -9,6 +9,8 @@ export default function AgentConnection({ configuration, connection, busy, onCon
   const [login, setLogin] = useState(null);
   const [loginSession, setLoginSession] = useState(null);
   const [connectingAgent, setConnectingAgent] = useState(null);
+  const [craftbotAddress, setCraftbotAddress] = useState(null);
+  const [craftbotError, setCraftbotError] = useState("");
   async function refresh() {
     setChecking(true); setError("");
     try { const result = await onCatalog(); setAgents(result.agents); return result.agents; }
@@ -24,7 +26,7 @@ export default function AgentConnection({ configuration, connection, busy, onCon
     return () => { current = false; };
   }, []);
   const activeName = connection.agentName || agents?.find(item => item.id === configuration?.provider)?.name || "Agent";
-  const active = connection.connected || connection.connecting;
+  const active = connection.connected || connection.connecting || connection.bridgeActive;
   async function closeLogin() {
     if (loginSession) await operation("close-terminal", { id: loginSession });
     setLoginSession(null); setLogin(null);
@@ -38,13 +40,31 @@ export default function AgentConnection({ configuration, connection, busy, onCon
     {error && <p className="notice error" role="alert">{error}</p>}
     {!agents && checking && <p role="status">Looking for installed agents and checking sign-in…</p>}
     {active && <div className="agent-current" role="status">
-      <div><strong>{connection.connecting ? "Connecting to " : "Connected to "}{activeName}</strong>
-        <p>{connection.connecting ? "Waiting for the agent connection to be ready." : "Ready for development tasks. Starting a task is always your choice."}</p></div>
+      <div><strong>{connection.serviceOffline ? "Unavailable: " : connection.connecting ? "Connecting to " : "Connected to "}{activeName}</strong>
+        <p>{connection.serviceOffline ? connection.message : connection.connecting ? "Waiting for the agent connection to be ready." : "Ready for development tasks. Starting a task is always your choice."}</p></div>
       <button disabled={!!busy} onClick={onConnect}>{connection.connecting ? "Cancel connection" : "Disconnect"}</button>
     </div>}
     <div className="agent-options">
       {agents?.map(agent => {
         const selected = configuration?.provider === agent.id && active;
+        if (agent.service) return <article key={agent.id} className="agent-option" aria-label="CraftBot">
+          <div className="agent-option-heading"><h4>CraftBot</h4><span className={selected && !connection.serviceOffline ? "agent-ready" : ""}>{selected ? connection.serviceOffline ? "Unavailable" : "Connected" : agent.available ? "Ready to connect" : agent.installed ? "Finish CraftBot setup" : "Not running at this address"}</span></div>
+          <p>Uses your running CraftBot and its account settings. Each task opens a separate chat; changes come back here for review.</p>
+          <div className="agent-option-actions">{!selected && <button disabled={!!busy || active || !agent.available} onClick={async () => {
+            setError(""); setConnectingAgent("craftbot");
+            try { await onChooseAgent("craftbot"); } catch (failure) { setError(failure.message); } finally { setConnectingAgent(null); }
+          }}>{connectingAgent === "craftbot" ? "Connecting…" : "Connect CraftBot"}</button>}</div>
+          {!selected && <details className="settings-disclosure"><summary>CraftBot address</summary>
+            <p className="settings-note">Start CraftBot normally. If it uses another backend port, enter that address here. No changes to CraftBot are needed.</p>
+            <form onSubmit={async event => { event.preventDefault(); setCraftbotError(""); try { await operation("craftbot-configure", { url: craftbotAddress ?? agent.address }); await refresh(); } catch (failure) { setCraftbotError(failure.message); } }}>
+              <label htmlFor="craftbot-address">Local backend address</label><div className="settings-input-action">
+                <input id="craftbot-address" value={craftbotAddress ?? agent.address} onChange={event => setCraftbotAddress(event.target.value)} required />
+                <button disabled={!!busy || active}>Save and check</button>
+              </div>
+              {craftbotError && <p className="notice error" role="alert">{craftbotError}</p>}
+            </form>
+          </details>}
+        </article>;
         return <article key={agent.id} className="agent-option" aria-label={agent.name}>
           <div className="agent-option-heading"><h4>{agent.name}</h4>
             <span className={selected ? "agent-ready" : ""}>{selected ? connection.connecting ? "Connecting…" : "Connected" : !agent.installed ? "Not installed" : agent.authentication === "required" ? "Sign-in needed" : agent.authentication === "ready" ? "Ready to connect" : "Installed"}</span></div>

@@ -1077,7 +1077,8 @@
             "codex",
             "claude",
             "gemini",
-            "custom"
+            "custom",
+            "craftbot"
           ],
           "required": true
         },
@@ -1130,7 +1131,8 @@
           "values": [
             "codex",
             "claude",
-            "gemini"
+            "gemini",
+            "craftbot"
           ],
           "required": true
         }

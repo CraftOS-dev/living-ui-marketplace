@@ -21,12 +21,9 @@ export default function StudioSettings({
   onCheckpoints,
 }) {
   const [python, setPython] = useState(preferences.python || "");
-  const [craftbot, setCraftbot] = useState(preferences.craftbotUrl || "");
+
   useEffect(() => setPython(preferences.python || ""), [preferences.python]);
-  useEffect(
-    () => setCraftbot(preferences.craftbotUrl || ""),
-    [preferences.craftbotUrl],
-  );
+
   const theme = preferences.theme || "system";
   return (
     <main className="studio-settings" aria-label="Settings">
@@ -66,31 +63,7 @@ export default function StudioSettings({
           <AgentConnection configuration={preferences.agentCommand} connection={connection}
             busy={busy} onConnect={onConnect} onConfigure={onConfigureAgent} onInfo={onAgentInfo}
             onCatalog={onAgentCatalog} onChooseAgent={onChooseAgent} operation={operation} onDone={onBack} />
-          <details className="settings-disclosure">
-            <summary>CraftBot connection</summary>
-            <p>
-              CraftBot delivers tasks through its host when Studio is launched
-              from CraftBot. This address is only needed for that installation.
-            </p>
-            <form
-              onSubmit={(event) => {
-                event.preventDefault();
-                onCraftbot(craftbot.trim());
-              }}
-            >
-              <label htmlFor="settings-craftbot">CraftBot host URL</label>
-              <div className="settings-input-action">
-                <input
-                  id="settings-craftbot"
-                  value={craftbot}
-                  onChange={(event) => setCraftbot(event.target.value)}
-                  placeholder="http://127.0.0.1:8926"
-                  required
-                />
-                <button disabled={!!busy}>Save CraftBot host</button>
-              </div>
-            </form>
-          </details>
+
         </section>
         <section aria-labelledby="settings-tools">
           <h2 id="settings-tools">Development tools</h2>

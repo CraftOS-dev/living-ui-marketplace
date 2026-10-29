@@ -202,7 +202,7 @@ export default function Workspace() {
     if (connection.external) { openSettings(); return; }
     const result = await act("connector-control", {
       action:
-        connection.connected || connection.connecting
+        connection.connected || connection.connecting || connection.bridgeActive
           ? "disconnect"
           : "connect",
     });
@@ -882,6 +882,7 @@ export default function Workspace() {
       ...(path ? { path } : {}),
     });
     if (r) {
+      if (view !== "review" || workId !== id) setBottomOpen(false);
       setReview(r);
       setAgentOpen(true);
       setWorkId(id);
@@ -1470,7 +1471,7 @@ export default function Workspace() {
                   >
                     <strong>{w.title}</strong>
                     <span>
-                      {w.mode}
+                      {({ "craftbot-chat": "CraftBot", craftbot: "CraftBot", codex: "Codex", claude: "Claude Code", gemini: "Gemini CLI", custom: "Custom agent", external: "External agent" })[w.delivery] || (w.mode === "craftbot" ? "CraftBot" : "Selected agent")}
                       <Status status={w.status} />
                     </span>
                   </button>
@@ -2565,10 +2566,12 @@ export default function Workspace() {
                     ? "CraftBot · native delivery"
                     : connection.external
                       ? work?.delivery === "external" && work.status === "running" ? "External agent working" : "Choose an agent in Settings"
+                    : connection.serviceOffline
+                      ? "CraftBot unavailable"
                     : connection.connecting || busy === "connector-control"
                       ? connection.connected
-                        ? "Standalone: disconnecting…"
-                        : "Standalone: connecting…"
+                        ? "Disconnecting…"
+                        : "Connecting…"
                       : connection.connected
                         ? (connection.agentName || "Agent") + " connected"
                         : "No agent connected"}
@@ -2576,7 +2579,7 @@ export default function Workspace() {
                 <button
                   disabled={!!busy}
                   onClick={async () => {
-                    if (work?.mode === "craftbot" || (!connection.connected && !connection.connecting)) {
+                    if (work?.mode === "craftbot" || (!connection.connected && !connection.connecting && !connection.bridgeActive)) {
                       openSettings();
                       return;
                     }
@@ -2589,7 +2592,7 @@ export default function Workspace() {
                       ? "Choose agent"
                     : connection.connecting
                       ? "Cancel connection"
-                      : connection.connected
+                      : connection.connected || connection.bridgeActive
                         ? "Disconnect"
                         : "Choose agent"}
                 </button>
@@ -2643,7 +2646,7 @@ export default function Workspace() {
                           act(
                             "work-start",
                             { work: work.id },
-                            "Isolated attempt queued for " + work.mode + ".",
+                            "Isolated task queued for your selected agent.",
                           )
                         }
                       >
@@ -3307,9 +3310,6 @@ export default function Workspace() {
                       >
                         <option value="standalone">
                           Selected agent
-                        </option>
-                        <option value="craftbot">
-                          CraftBot · native host connection
                         </option>
                       </select>
                     </label>

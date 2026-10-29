@@ -1,7 +1,8 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { ROOT } from "./config.mjs";
-const names = { "studio-codex": "Codex", "studio-claude": "Claude Code", "studio-gemini": "Gemini CLI", "studio-custom": "Custom agent" };
+import { craftbotAgent } from "./craftbot-connection.mjs";
+const names = { "studio-craftbot": "CraftBot", "studio-codex": "Codex", "studio-claude": "Claude Code", "studio-gemini": "Gemini CLI", "studio-custom": "Custom agent" };
 
 export async function bridgeRecord() {
   try {
@@ -15,7 +16,7 @@ export async function bridgeRecord() {
     return null;
   }
 }
-export async function connectionState(job, runtimeCall, harness = "studio-codex") {
+export async function connectionState(job, runtimeCall, harness = "studio-codex", serviceUrl) {
   if (!job) return { connected: false };
   let state;
   try {
@@ -31,8 +32,12 @@ export async function connectionState(job, runtimeCall, harness = "studio-codex"
     if (
       record?.harness === harness &&
       Date.parse(record.startedAt) >= Date.parse(state.started) - 1000
-    )
+    ) {
+      if (harness === "studio-craftbot" && !(await craftbotAgent(serviceUrl)).available)
+        return { connected: false, bridgeActive: true, serviceOffline: true, job, agentName: "CraftBot",
+          message: "CraftBot is unavailable. Start it and finish its setup, then check the connection again." };
       return { connected: true, pid: record.pid, job, agentName: names[harness] || "Agent" };
+    }
     return {
       connected: false,
       connecting: true,

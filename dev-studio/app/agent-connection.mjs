@@ -3,7 +3,7 @@ import { ROOT, appPort } from "./config.mjs";
 
 export function agentConfiguration(input = {}) {
   const provider = input.provider || "codex";
-  if (!["codex", "claude", "gemini", "custom", "external"].includes(provider))
+  if (!["codex", "claude", "gemini", "custom", "external", "craftbot"].includes(provider))
     throw Error("Choose an installed agent, a custom command, or direct A2App access.");
   if (provider !== "custom") return { provider };
   const command = input.command?.trim();

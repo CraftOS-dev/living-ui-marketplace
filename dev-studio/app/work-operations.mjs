@@ -1,3 +1,4 @@
+import { craftbotUrl, craftbotAgent, stopCraftbotSession } from "./craftbot-connection.mjs";
 import * as fs from "node:fs/promises";
 import { join, dirname, relative, resolve } from "node:path";
 import { randomUUID } from "node:crypto";
@@ -116,14 +117,14 @@ export const workOperations = [
     },
   ),
   op("connector-configure", "connections", "Choose direct A2App or an optional local agent launcher.", {
-    provider: { type: "enum", values: ["external", "codex", "claude", "gemini", "custom"], required: true },
+    provider: { type: "enum", values: ["external", "codex", "claude", "gemini", "custom", "craftbot"], required: true },
     command: s(1000, false), args: { type: "json" },
     input: { type: "enum", values: ["stdin", "arg"] },
   }),
   op("agent-connection-info", "connections", "Read credential-free local connection instructions.", {}, { readOnly: true, idempotent: true }),
   op("agent-catalog", "connections", "Detect installed agents and check account readiness without starting tasks.", {}, { readOnly: true, idempotent: true }),
   op("agent-connect", "connections", "Choose an installed agent and connect it in one step.", {
-    provider: { type: "enum", values: ["codex", "claude", "gemini"], required: true },
+    provider: { type: "enum", values: ["codex", "claude", "gemini", "craftbot"], required: true },
   }),
   op("agent-sign-in", "connections", "Open the selected agent's own sign-in program in an interactive session.", {
     provider: { type: "enum", values: ["codex", "claude", "gemini"], required: true },
@@ -311,7 +312,8 @@ async function scrubInherited(root) {
   }
   await walk(root);
 }
-const capability = (w) => "studio-development-" + (w.delivery === "external" ? "external" : w.mode);
+const capability = (w) => "studio-development-" + (["external", "craftbot-chat"].includes(w.delivery) ? w.delivery : w.mode);
+const selectedDelivery = (w) => w.mode === "craftbot" ? "craftbot" : authority().preferences.agentCommand?.provider === "craftbot" ? "craftbot-chat" : (authority().preferences.agentCommand?.provider || "codex");
 const publishReview = (w) =>
   reviewHandoff(w, {
     readTask: taskReceipt,
@@ -417,6 +419,15 @@ async function stopConfirmed(w) {
   try {
     const file = join(dataDir(), "agent-processes", w.task + ".json"),
       v = JSON.parse(await fs.readFile(file, "utf8"));
+    if (w.delivery === "craftbot-chat") {
+      if (v.stopConfirmed) return true;
+      // Persisted exact session ownership permits recovery after a worker exit.
+      if (!v.session) return !!v.finished && !v.dispatched;
+      await stopCraftbotSession(v);
+      v.stopConfirmed = true; v.finished = new Date().toISOString();
+      await fs.writeFile(file, JSON.stringify(v));
+      return true;
+    }
     if (v.finished) return true;
     try {
       process.kill(v.pid, 0);
@@ -481,7 +492,7 @@ export const workRunners = {
         );
     }
     Object.assign(w, await prepare(w), {
-      delivery: w.mode === "craftbot" ? "craftbot" : (authority().preferences.agentCommand?.provider || "codex"),
+      delivery: selectedDelivery(w),
       status: "queued",
       started: new Date().toISOString(),
       summary: "",
@@ -696,7 +707,8 @@ export const workRunners = {
   },
   "agent-catalog": async (_args, ctx) => {
     requireHuman(ctx);
-    return { agents: await installedAgents() };
+    const [installed, craftbot] = await Promise.all([installedAgents(), craftbotAgent(authority().preferences.craftbotUrl)]);
+    return { agents: [...installed, craftbot] };
   },
   "agent-sign-in": async (args, ctx) => {
     requireHuman(ctx);
@@ -704,7 +716,8 @@ export const workRunners = {
   },
   "agent-connect": async (args, ctx, deps) => {
     requireHuman(ctx);
-    const agent = await inspectAgent(args.provider);
+    const agent = args.provider === "craftbot" ? await craftbotAgent(authority().preferences.craftbotUrl) : await inspectAgent(args.provider);
+    if (agent.service && !agent.available) throw Error("Start CraftBot and finish its setup, then check its backend address here.");
     if (!agent.installed) throw Error(`${agent.name} is not installed. Open its installation guide, then check again.`);
     if (agent.authentication === "required") throw Error(`Sign in to ${agent.name} first, then connect.`);
     if (authority().preferences.agentCommand?.provider !== args.provider)
@@ -715,8 +728,8 @@ export const workRunners = {
     requireHuman(ctx);
     const a = authority();
     if (a.preferences.bridgeJob) {
-      const current = await connectionState(a.preferences.bridgeJob, runtimeCall, a.preferences.bridgeHarness || "studio-codex");
-      if (current.connected || current.connecting) throw Error("Disconnect the current launcher before changing agents.");
+      const current = await connectionState(a.preferences.bridgeJob, runtimeCall, a.preferences.bridgeHarness || "studio-codex", a.preferences.craftbotUrl);
+      if (current.connected || current.connecting || current.bridgeActive) throw Error("Disconnect the current launcher before changing agents.");
     }
     if (Object.values(a.work).some(w => w.mode === "standalone" && ["queued", "running", "needs-input", "finalizing", "canceling"].includes(w.status)))
       throw Error("Finish or cancel current standalone work before changing agents.");
@@ -731,6 +744,10 @@ export const workRunners = {
     const a = authority(),
       id = a.preferences.bridgeJob;
     if (args.action === "disconnect") {
+      if (Object.values(a.work).some(w => ["queued", "running", "needs-input", "finalizing", "canceling"].includes(w.status) && w.delivery === "craftbot-chat"))
+        throw Error("Finish or cancel the active CraftBot task before disconnecting.");
+      for (const w of Object.values(a.work).filter(w => w.delivery === "craftbot-chat" && w.task))
+        if (!(await stopConfirmed(w))) throw Error("Wait for CraftBot to confirm this task has stopped before disconnecting.");
       if (id) await runtimeCall("job-stop", { id });
       a.preferences.bridgeJob = null;
       persist();
@@ -740,8 +757,8 @@ export const workRunners = {
       return { connected: false, external: true, message: "Direct A2App · waiting for your agent to claim a task. Studio does not start or stop your external agent process." };
     const harness = a.preferences.bridgeHarness || "studio-codex";
     if (id) {
-      const status = await connectionState(id, runtimeCall, harness);
-      if (status.connected || status.connecting || args.action === "status")
+      const status = await connectionState(id, runtimeCall, harness, a.preferences.craftbotUrl);
+      if (status.connected || status.connecting || status.bridgeActive || args.action === "status")
         return status;
     }
     if (args.action === "status")
@@ -763,6 +780,11 @@ export const workRunners = {
     const home = join(dataDir(), "bridge-home");
     await fs.mkdir(home, { recursive: true });
     const configuration = agentConfiguration(a.preferences.agentCommand);
+    if (configuration.provider === "craftbot") {
+      const agent = await craftbotAgent(a.preferences.craftbotUrl);
+      if (!agent.available) throw Error("Start CraftBot and finish its setup before connecting.");
+      configuration.url = agent.address;
+    }
     const selectedHarness = "studio-" + configuration.provider;
     const configPath = join(home, "agent-command.json");
     await fs.writeFile(configPath, JSON.stringify(configuration), { mode: 0o600 });
@@ -774,12 +796,12 @@ export const workRunners = {
         harnesses: [
           {
             id: selectedHarness,
-            name: configuration.provider === "custom" ? "Configured agent" : preset(configuration.provider).name,
+            name: configuration.provider === "craftbot" ? "CraftBot" : configuration.provider === "custom" ? "Configured agent" : preset(configuration.provider).name,
             routes: [
               {
                 mode: "headless",
                 command: process.execPath,
-                args: [join(ROOT, "scripts/development-agent.mjs"), dataDir(), configPath],
+                args: [join(ROOT, configuration.provider === "craftbot" ? "scripts/craftbot-agent.mjs" : "scripts/development-agent.mjs"), dataDir(), configPath],
                 input: "stdin",
                 cwd: "app",
                 timeoutMs: 900000,
@@ -789,10 +811,11 @@ export const workRunners = {
         ],
       }),
     );
+    const listening = configuration.provider === "craftbot" ? "--capability studio-development-craftbot-chat" : "--capability studio-development-standalone --capability studio-standalone-proof";
     const command =
       process.platform === "win32"
-        ? `$env:A2APP_HOME=${quote(home)}; & ${quote(process.execPath)} ${quote(join(ROOT, "node_modules/agent-app-framework/dist/agent-app.js"))} ${quote(ROOT)} bridge start --foreground --harness ${selectedHarness} --capability studio-development-standalone --capability studio-standalone-proof`
-        : `A2APP_HOME=${quote(home)} ${quote(process.execPath)} ${quote(join(ROOT, "node_modules/agent-app-framework/dist/agent-app.js"))} ${quote(ROOT)} bridge start --foreground --harness ${selectedHarness} --capability studio-development-standalone --capability studio-standalone-proof`;
+        ? `$env:A2APP_HOME=${quote(home)}; & ${quote(process.execPath)} ${quote(join(ROOT, "node_modules/agent-app-framework/dist/agent-app.js"))} ${quote(ROOT)} bridge start --foreground --harness ${selectedHarness} ${listening}`
+        : `A2APP_HOME=${quote(home)} ${quote(process.execPath)} ${quote(join(ROOT, "node_modules/agent-app-framework/dist/agent-app.js"))} ${quote(ROOT)} bridge start --foreground --harness ${selectedHarness} ${listening}`;
     const job = randomUUID();
     await runtimeCall("job-start", {
       id: job,
@@ -809,27 +832,21 @@ export const workRunners = {
     let status;
     do {
       await new Promise((resolve) => setTimeout(resolve, 150));
-      status = await connectionState(job, runtimeCall, selectedHarness);
+      status = await connectionState(job, runtimeCall, selectedHarness, a.preferences.craftbotUrl);
       if (!status.connecting) return status;
     } while (Date.now() < deadline);
     return status;
   },
-  "craftbot-configure": (args, ctx) => {
+  "craftbot-configure": async (args, ctx) => {
     requireHuman(ctx);
-    const u = new URL(args.url);
-    if (
-      u.protocol !== "http:" ||
-      !["127.0.0.1", "localhost"].includes(u.hostname) ||
-      u.username ||
-      u.password ||
-      u.pathname !== "/"
-    )
-      throw new Error(
-        "Use the local CraftBot HTTP base URL, for example http://127.0.0.1:8926.",
-      );
-    authority().preferences.craftbotUrl = u.origin;
+    const a = authority();
+    if (a.preferences.agentCommand?.provider === "craftbot" && (await bridgeRecord()))
+      throw Error("Disconnect CraftBot before changing its address.");
+    if (Object.values(a.work).some(w => w.delivery === "craftbot-chat" && ["queued", "running", "needs-input", "finalizing", "canceling"].includes(w.status)))
+      throw Error("Finish or cancel CraftBot work before changing its address.");
+    a.preferences.craftbotUrl = craftbotUrl(args.url);
     persist();
-    return { url: u.origin };
+    return { url: a.preferences.craftbotUrl };
   },
   "review-changes": async (args, _ctx, { store }) => {
     const w = authority().work[args.work];
@@ -1063,7 +1080,7 @@ workRunners["work-revise"] = async (args, ctx, { store, trigger }) => {
   w.submitted = null;
   w.finished = null;
   w.handoffError = null;
-  w.delivery = w.mode === "craftbot" ? "craftbot" : (authority().preferences.agentCommand?.provider || "codex");
+  w.delivery = selectedDelivery(w);
   w.task = trigger(
     "studio.development-requested",
     { work: w.id, attempt: w.attempt, delivery: randomUUID() },
