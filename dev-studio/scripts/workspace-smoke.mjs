@@ -1,0 +1,34 @@
+import {mkdtemp,writeFile,readFile,symlink,mkdir,rmdir} from "node:fs/promises";
+import {tmpdir} from "node:os";
+import {join} from "node:path";
+import assert from "node:assert/strict";
+import {operation as operationBase,request,base} from "./client.mjs";
+const op=(n,a={})=>operationBase(n,a,true);
+const root=await mkdtemp(join(tmpdir(),"development-studio-v1-"));
+const project=await op("project-create",{path:join(root,"javascript"),kind:"javascript"});
+console.log("PASS open/create real JavaScript project",project.id);
+assert.equal(project.trusted,false);
+const all=await op("workspace-state"),config=all.configs.find(c=>c.project===project.id&&c.kind==="test");assert.ok(config);
+await assert.rejects(()=>op("run-start",{config:config.id}));
+await op("project-trust",{project:project.id,enabled:true});
+let doc=await op("file-read",{project:project.id,path:"main.js"});
+const saved=await op("file-write",{project:project.id,path:"main.js",text:doc.text+"\n// manual change\n",expected:doc.digest});
+await assert.rejects(()=>op("file-write",{project:project.id,path:"main.js",text:"bad",expected:doc.digest}));
+assert.ok((await readFile(join(project.root,"main.js"),"utf8")).includes("manual change"));
+await assert.rejects(()=>op("file-read",{project:project.id,path:"../outside.txt"}));
+try{await symlink(root,join(project.root,"escape"),"junction");await assert.rejects(()=>op("file-read",{project:project.id,path:"escape/outside"}));await rmdir(join(project.root,"escape"));}catch(e){if(e.code!=="EPERM")throw e;}
+console.log("PASS CAS, trust and path/junction guards");
+const search=await op("project-search",{project:project.id,query:"manual change"});assert.equal(search.matches[0].path,"main.js");
+const preview=await op("replace-preview",{project:project.id,query:"manual change",replacement:"reviewed replacement"});
+await op("replace-apply",{project:project.id,query:"manual change",replacement:"reviewed replacement",files:preview.files.map(f=>({path:f.path,expected:f.expected}))});
+console.log("PASS search and reviewed replacement");
+const run=await op("run-start",{config:config.id});let result;
+for(let i=0;i<60;i++){result=await op("run-inspect",{run:run.id});if(result.status!=="running")break;await new Promise(r=>setTimeout(r,500));}
+assert.equal(result.status,"passed",result.output);assert.equal(result.exitCode,0);
+doc=await op("file-read",{project:project.id,path:"main.js"});await op("file-write",{project:project.id,path:"main.js",text:doc.text+"\n// later edit\n",expected:doc.digest});
+assert.equal((await op("run-inspect",{run:run.id})).stale,true);
+console.log("PASS actual tests and stale-source check");
+await op("git-init",{project:project.id});assert.equal((await op("git-status",{project:project.id})).available,true);
+const python=await op("project-create",{path:join(root,"python"),kind:"python"});
+console.log(JSON.stringify({root,project:project.id,python:python.id,base},null,2));
+await writeFile(new URL("../.a2app/workspace-fixtures.json",import.meta.url),JSON.stringify({root,project:project.id,python:python.id,base},null,2));

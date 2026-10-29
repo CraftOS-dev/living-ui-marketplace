@@ -1,0 +1,208 @@
+/* ============================================================================
+   UI components (AGENT-OWNED). Consumes ONLY semantic tokens from tokens.css.
+   Every interactive element carries cursor + hover + focus-visible + active +
+   disabled states; every screen region has loading / empty / error styling.
+   ============================================================================ */
+
+/* ---------------------------------------------------------------- base */
+*, *::before, *::after { box-sizing: border-box; }
+html { height: 100%; }
+body {
+  margin: 0; min-height: 100%;
+  font-family: var(--font-sans); font-size: var(--fs-md); line-height: var(--lh-normal);
+  color: var(--text-primary); background: var(--bg-canvas);
+  -webkit-font-smoothing: antialiased;
+}
+:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; border-radius: var(--r-sm); }
+::selection { background: var(--accent-bg); }
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+/* ---------------------------------------------------------------- layout */
+.app { max-width: 640px; margin: 0 auto; padding: var(--sp-8) var(--sp-4) var(--sp-12); }
+.app-header { margin-bottom: var(--sp-6); }
+.app-header h1 { margin: 0; font-size: var(--fs-2xl); font-weight: var(--fw-bold); line-height: var(--lh-tight); }
+.app-header .subtitle { margin: var(--sp-1) 0 0; color: var(--text-secondary); font-size: var(--fs-base); }
+.app-footer { margin-top: var(--sp-8); color: var(--text-tertiary); font-size: var(--fs-sm); display: flex; justify-content: space-between; gap: var(--sp-3); flex-wrap: wrap; }
+.card {
+  background: var(--bg-surface); border: 1px solid var(--border-subtle);
+  border-radius: var(--r-xl); box-shadow: var(--sh-1);
+}
+
+/* ---------------------------------------------------------------- buttons */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-2);
+  height: var(--control-h); padding: 0 var(--sp-4);
+  font: inherit; font-size: var(--fs-base); font-weight: var(--fw-medium);
+  border-radius: var(--r-md); border: 1px solid transparent;
+  cursor: pointer; user-select: none; white-space: nowrap;
+  transition: background var(--dur-fast) var(--ease-std), border-color var(--dur-fast) var(--ease-std),
+              color var(--dur-fast) var(--ease-std), box-shadow var(--dur-fast) var(--ease-std);
+}
+.btn:disabled { cursor: not-allowed; opacity: .55; }
+.btn:active:not(:disabled) { transform: translateY(0.5px); }
+
+.btn-primary { background: var(--accent-solid); color: var(--text-on-accent); }
+.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
+
+.btn-ghost { background: transparent; color: var(--text-secondary); border-color: var(--border-default); }
+.btn-ghost:hover:not(:disabled) { background: var(--bg-hover); color: var(--text-primary); }
+
+.btn-danger { background: transparent; color: var(--danger-text); border-color: var(--danger-border); }
+.btn-danger:hover:not(:disabled) { background: var(--danger-bg); }
+.btn-danger-solid { background: var(--danger-solid); color: var(--text-on-accent); }
+.btn-danger-solid:hover:not(:disabled) { filter: brightness(1.08); }
+
+/* icon-only buttons stay >= 24px pointer targets (comfortably above, at 32px) */
+.btn-icon {
+  width: 32px; height: 32px; min-width: 32px; padding: 0;
+  border-radius: var(--r-md); background: transparent; border: none;
+  color: var(--text-tertiary); cursor: pointer; display: inline-flex;
+  align-items: center; justify-content: center;
+  transition: background var(--dur-fast) var(--ease-std), color var(--dur-fast) var(--ease-std);
+}
+.btn-icon:hover:not(:disabled) { background: var(--bg-hover); color: var(--text-primary); }
+.btn-icon.danger:hover:not(:disabled) { background: var(--danger-bg); color: var(--danger-text); }
+.btn-icon:disabled { cursor: not-allowed; opacity: .5; }
+
+/* pending: the control acknowledges immediately and blocks double submission */
+.btn.pending { position: relative; color: transparent !important; pointer-events: none; }
+.btn.pending::after {
+  content: ""; position: absolute; width: 16px; height: 16px;
+  border: 2px solid currentColor; border-right-color: transparent; border-radius: var(--r-full);
+  color: var(--text-on-accent); animation: spin 600ms linear infinite;
+}
+.btn-ghost.pending::after, .btn-danger.pending::after { color: var(--text-secondary); }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ---------------------------------------------------------------- forms */
+.field { display: flex; flex-direction: column; gap: var(--sp-1); }
+.field label { font-size: var(--fs-sm); font-weight: var(--fw-medium); color: var(--text-secondary); }
+.input, .select {
+  height: var(--control-h); padding: 0 var(--sp-3);
+  font: inherit; font-size: var(--fs-base); color: var(--text-primary);
+  background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: var(--r-md);
+  transition: border-color var(--dur-fast) var(--ease-std), box-shadow var(--dur-fast) var(--ease-std);
+}
+.input::placeholder { color: var(--text-tertiary); }
+.input:hover, .select:hover { border-color: var(--border-strong); }
+.input:focus, .select:focus { outline: none; border-color: var(--focus-ring); box-shadow: 0 0 0 3px var(--accent-bg); }
+.input[aria-invalid="true"] { border-color: var(--danger-solid); }
+.input[aria-invalid="true"]:focus { box-shadow: 0 0 0 3px var(--danger-bg); }
+.select { cursor: pointer; }
+.field-error { color: var(--danger-text); font-size: var(--fs-sm); }
+
+.add-form { display: flex; gap: var(--sp-2); padding: var(--sp-4); align-items: flex-start; }
+.add-form .field { flex: 1; }
+
+/* ---------------------------------------------------------------- filters */
+.toolbar { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); margin: var(--sp-5) 0 var(--sp-3); flex-wrap: wrap; }
+.seg { display: inline-flex; background: var(--bg-sunken); border: 1px solid var(--border-subtle); border-radius: var(--r-lg); padding: 2px; gap: 2px; }
+.seg button {
+  font: inherit; font-size: var(--fs-sm); font-weight: var(--fw-medium);
+  color: var(--text-secondary); background: transparent; border: none; cursor: pointer;
+  padding: var(--sp-1) var(--sp-3); border-radius: var(--r-md); min-height: 28px;
+  transition: background var(--dur-fast) var(--ease-std), color var(--dur-fast) var(--ease-std);
+}
+.seg button:hover { color: var(--text-primary); }
+.seg button[aria-pressed="true"] { background: var(--bg-surface); color: var(--text-primary); box-shadow: var(--sh-1); }
+.seg .count { color: var(--text-tertiary); font-weight: var(--fw-regular); margin-left: var(--sp-1); }
+
+/* ---------------------------------------------------------------- task list */
+.task-list { list-style: none; margin: 0; padding: var(--sp-1) 0; }
+.task {
+  display: flex; align-items: center; gap: var(--sp-3);
+  min-height: var(--row-h); padding: var(--sp-2) var(--sp-4);
+  border-bottom: 1px solid var(--border-subtle);
+  transition: background var(--dur-fast) var(--ease-std), opacity var(--dur-mid) var(--ease-std);
+}
+.task:last-child { border-bottom: none; }
+.task:hover { background: var(--bg-hover); }
+.task.busy { opacity: .55; pointer-events: none; }
+.task .title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.task.done .title { color: var(--text-tertiary); text-decoration: line-through; }
+.task .due { font-size: var(--fs-xs); color: var(--text-tertiary); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.task .due.overdue { color: var(--danger-text); font-weight: var(--fw-medium); }
+
+/* status: a labelled 3-state control; colour is never the only channel (text names the state) */
+.status-btn {
+  font: inherit; font-size: var(--fs-xs); font-weight: var(--fw-medium);
+  border-radius: var(--r-full); border: 1px solid; cursor: pointer;
+  padding: 2px var(--sp-3); min-height: 24px; min-width: 56px; white-space: nowrap;
+  transition: filter var(--dur-fast) var(--ease-std), background var(--dur-fast) var(--ease-std);
+}
+.status-btn:hover:not(:disabled) { filter: brightness(.96); }
+.status-btn:disabled { cursor: not-allowed; opacity: .6; }
+.status-todo  { background: var(--neutral-bg); color: var(--neutral-text); border-color: var(--neutral-border); }
+.status-doing { background: var(--info-bg);    color: var(--info-text);    border-color: var(--info-border); }
+.status-done  { background: var(--success-bg); color: var(--success-text); border-color: var(--success-border); }
+
+.load-more { display: flex; justify-content: center; padding: var(--sp-3); border-top: 1px solid var(--border-subtle); }
+
+/* ---------------------------------------------------------------- states */
+.skel-row { display: flex; align-items: center; gap: var(--sp-3); min-height: var(--row-h); padding: var(--sp-2) var(--sp-4); border-bottom: 1px solid var(--border-subtle); }
+.skel-row:last-child { border-bottom: none; }
+.skel { border-radius: var(--r-sm); background: var(--bg-active); animation: pulse 1.2s var(--ease-std) infinite; }
+@keyframes pulse { 50% { opacity: .5; } }
+
+.empty { display: flex; flex-direction: column; align-items: center; gap: var(--sp-3); padding: var(--sp-12) var(--sp-6); text-align: center; }
+.empty .empty-icon { color: var(--text-disabled); }
+.empty h2 { margin: 0; font-size: var(--fs-lg); font-weight: var(--fw-semibold); }
+.empty p { margin: 0; color: var(--text-secondary); font-size: var(--fs-base); max-width: 36ch; }
+
+.banner {
+  display: flex; align-items: center; gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4); border-radius: var(--r-lg);
+  background: var(--danger-bg); border: 1px solid var(--danger-border); color: var(--danger-text);
+  margin-bottom: var(--sp-4);
+}
+.banner .msg { flex: 1; }
+
+/* ---------------------------------------------------------------- toasts */
+.toast-region { position: fixed; bottom: var(--sp-6); left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; gap: var(--sp-2); z-index: 60; width: max-content; max-width: min(92vw, 420px); }
+.toast {
+  display: flex; align-items: center; gap: var(--sp-2);
+  padding: var(--sp-3) var(--sp-4); border-radius: var(--r-lg); box-shadow: var(--sh-3);
+  background: var(--bg-raised); border: 1px solid var(--border-subtle);
+  color: var(--text-primary); font-size: var(--fs-base);
+  animation: toast-in var(--dur-mid) var(--ease-out);
+}
+.toast.success { border-color: var(--success-border); }
+.toast.success .toast-icon { color: var(--success-solid); }
+.toast.error { border-color: var(--danger-border); }
+.toast.error .toast-icon { color: var(--danger-solid); }
+.toast.leaving { opacity: 0; transition: opacity var(--dur-mid) var(--ease-std); }
+@keyframes toast-in { from { opacity: 0; transform: translateY(var(--sp-2)); } }
+
+/* ---------------------------------------------------------------- dialog */
+.dialog-backdrop {
+  position: fixed; inset: 0; z-index: 50;
+  background: rgb(2 6 23 / .45);
+  display: flex; align-items: center; justify-content: center; padding: var(--sp-4);
+  animation: fade-in var(--dur-fast) var(--ease-std);
+}
+.dialog {
+  width: 100%; max-width: 400px;
+  background: var(--bg-raised); border: 1px solid var(--border-subtle);
+  border-radius: var(--r-xl); box-shadow: var(--sh-4); padding: var(--sp-6);
+  animation: dialog-in var(--dur-mid) var(--ease-out);
+}
+.dialog h2 { margin: 0 0 var(--sp-2); font-size: var(--fs-lg); font-weight: var(--fw-semibold); }
+.dialog p { margin: 0 0 var(--sp-5); color: var(--text-secondary); overflow-wrap: break-word; }
+.dialog .dialog-actions { display: flex; justify-content: flex-end; gap: var(--sp-2); }
+@keyframes fade-in { from { opacity: 0; } }
+@keyframes dialog-in { from { opacity: 0; transform: translateY(var(--sp-2)) scale(.98); } }
+
+/* ---------------------------------------------------------------- narrow screens */
+@media (max-width: 480px) {
+  .app { padding: var(--sp-5) var(--sp-3) var(--sp-10); }
+  .add-form { flex-wrap: wrap; }
+  .add-form .field { flex-basis: 100%; }
+  .task .due { display: none; }
+  /* touch-first: primary controls grow toward the platform norm */
+  .btn, .input, .select { min-height: 44px; }
+  .btn-icon { width: 40px; height: 40px; }
+}

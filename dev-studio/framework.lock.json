@@ -1,0 +1,9 @@
+{
+  "repository": "https://github.com/CraftOS-dev/Agent-App",
+  "commit": "5e9c7a1e28fd4742cbb49e49188d63031f35c145",
+  "blueprint": "blueprint-react-node",
+  "localBlueprint": "blueprint-dev-studio",
+  "customisation": "Only the initial module declarations changed before scaffolding. Server and adapter are byte-identical to upstream.",
+  "format": "0.1.0",
+  "note": "MIT packages in vendor are rebuilt from this commit. No global CLI or sibling checkout required."
+}
