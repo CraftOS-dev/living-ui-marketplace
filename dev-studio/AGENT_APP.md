@@ -4,6 +4,8 @@ The user approved all first-release milestones on 25 October 2026. See reference
 ## Modules
 workspace, workbench, execution, changes, agents, settings.
 The initial modules were supplied before scaffolding. No system code was edited.
+
+Advanced connection presents separate shell-ready discovery and task-listening commands with individual Copy actions, selectable text and inline feedback. Full agent instructions remain collapsed separately. This is a presentation change over existing credential-free connection metadata; viewing/copying never executes commands or switches delivery. Older running instances remain compatible through the client-side path formatter.
 ## Plan
 Complete M1 manual workspace, M2 execution/language/debugging, M3 real agent development, M4 review/Git delivery and M5 packaged release verification. Keep internal verification receipts in maintenance tooling, outside IDE screens.
 ## Entities

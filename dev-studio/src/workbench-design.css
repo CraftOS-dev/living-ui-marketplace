@@ -1344,6 +1344,13 @@
 .agent-login .terminal-host { height:240px; min-height:180px; }
 .agent-login .terminal-panel { margin:12px 0; }
 .agent-advanced { border-top:1px solid var(--border-default); padding-top:12px; }
+.connection-command { margin:18px 0; min-width:0; }
+.connection-command-heading,.connection-command-actions { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+.connection-command-heading { justify-content:space-between; }
+.workspace-shell .connection-command h4 { margin:0; font-size:13px; }
+.connection-command-heading span,.connection-command-actions span { color:var(--text-secondary); font-size:12px; }
+.connection-command textarea { width:100%; box-sizing:border-box; min-height:84px; font-family:Consolas, "Courier New", monospace; font-size:12px; line-height:1.55; overflow-wrap:anywhere; }
+.connection-command-actions { margin-top:8px; }
 .settings-disclosure {
   margin-top: 20px;
 }
