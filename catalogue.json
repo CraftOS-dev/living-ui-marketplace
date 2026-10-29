@@ -33,11 +33,12 @@
     },
     {
       "id": "ledgerflow",
+      "livingUIVersion": 2,
       "name": "Ledgerflow",
-      "description": "Comprehensive bookkeeping app for personal and business use with income/expense tracking, invoicing, bills, contacts, and financial reports.",
+      "description": "Double-entry books for a business, a household or both. Import bank statements (OFX, QIF, CSV, CAMT, MT940) into an inbox where matches, open invoices, transfers, rules and your history suggest how to book every line; review by keyboard. Invoices and bills with tax and other currencies, reconciliation, profit and loss (accrual or cash), balance sheet, cash flow, aged balances, VAT/GST summary, budgets and month-end close with lock dates. Your AI agent categorizes what is left with its reasons, reads receipts, answers questions and prepares the close; its work stays proposed under your policy and every change can be reverted.",
       "folder": "ledgerflow",
-      "tags": ["bookkeeping", "finance", "productivity"],
-      "version": "1.0.0"
+      "tags": ["bookkeeping", "accounting", "finance", "invoicing", "tax", "AI"],
+      "version": "2.0.0"
     },
     {
       "id": "luolinglo",
@@ -60,9 +61,18 @@
       "id": "crm-system",
       "livingUIVersion": 2,
       "name": "CRM System",
-      "description": "Attio-class multi-user CRM: People, Companies, and Deals as linked records with custom attributes, saved table/kanban views with inline editing, drag-and-drop pipelines edited on the board, 3-panel record pages with activity timelines, tasks + My Work, Cmd+K palette, SMTP email, funnel/win-rate/velocity reports, and on-demand AI via CraftBot's LLM.",
+      "description": "A relationship CRM for founders and small teams: people, companies and deals in sales, fundraising, hiring and partnership pipelines. Home shows the pipeline, forecast, won and lost, your round against its target and who is going cold. Every email, call and meeting lands on one timeline with relationship strength and keep-in-touch reminders; a Today queue, boards with rotting deals, tables with inline editing and filters, CSV import, duplicate merging and reports with the formula behind every number. Your AI agent researches people, turns meeting notes into updates and follow-ups, drafts and sends email and answers questions; changes to your data wait in Review under your policy and every change can be undone.",
       "folder": "crm-system",
-      "tags": ["CRM", "sales", "pipeline", "productivity", "business"],
+      "tags": ["CRM", "sales", "pipeline", "fundraising", "relationships", "AI"],
+      "version": "2.0.0"
+    },
+    {
+      "id": "crm",
+      "livingUIVersion": 2,
+      "name": "CRM",
+      "description": "The relationship CRM in the Company OS look, with diagrams for everything that matters: won by month running into the forecast, your network as a constellation of your strongest and coldest relationships, a year of deals flowing stage to stage, and a month calendar of tasks, closes, people to get back to and birthdays. A Network map shows how your people, companies and deals connect. People, companies and deals across sales, fundraising, hiring and partnership pipelines; every email, call and meeting on one timeline with relationship strength; a Today queue, boards, tables with inline editing, CSV import, duplicate merging and reports. Your AI agent researches people, turns meeting notes into updates and follow-ups, drafts and sends email and answers questions; changes to your data wait in Review under your policy and every change can be undone.",
+      "folder": "crm",
+      "tags": ["CRM", "sales", "pipeline", "relationships", "dashboard", "AI"],
       "version": "1.0.0"
     },
     {

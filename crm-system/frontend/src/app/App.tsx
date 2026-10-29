@@ -1,98 +1,134 @@
 /**
- * App entry for the V2 platform (multi-user).
- *
- * Bootstraps the ORIGINAL V1 crm-system frontend unchanged — same shadcn UI,
- * same behavior. Adaptation to the V2 (PocketBase) platform is confined to:
- *   1. ./services/apiAdapter — translates the V1 /api/* calls to the V2
- *      backend (PocketBase collections + ops) and bridges V1 /api/auth/* onto
- *      the PocketBase session.
- *   2. syncAuthToken() — the platform kit LoginGate authenticates the user and
- *      persists the PocketBase session under localStorage 'pocketbase_auth';
- *      V1's AuthService gates on its own 'auth_token' key, so we mirror the
- *      platform token into it (no second login screen).
- *
- * The adapter import is FIRST so its module-eval sets the sentinel backend URL
- * before the component modules (which read it at their own top level) evaluate.
+ * CRM System: people, companies and deals for a founder or a small team,
+ * kept together with an AI agent. Home shows how the business is doing,
+ * Today what needs doing, People and Companies the relationships, Deals the
+ * pipelines; Review holds what the AI agent proposed for you to decide. The
+ * agent works through the same operations: everything it writes is marked
+ * as its own, what it may only propose waits in Review, and every change can
+ * be undone or reverted per agent run.
  */
-import { installApiAdapter } from './services/apiAdapter';
+import '@fontsource-variable/manrope';
+import './theme.css';
 import { useEffect, useState } from 'react';
-import { MainView } from './components/MainView';
-import { uiCapture } from './services/UICapture';
-import { AuthProvider, useAuth } from './components/auth/AuthProvider';
-import { LoginPage } from './components/auth/LoginPage';
-import { RegisterPage } from './components/auth/RegisterPage';
-import { Toaster } from './components/ui/sonner';
-import { TooltipProvider } from './components/ui/tooltip';
-import { Skeleton } from './components/ui/skeleton';
-import './styles/global.css';
+import { getPbClient, toast } from '../kit/index.ts';
+import { api, errMessage } from './lib/api.ts';
+import { startLive } from './lib/live.ts';
+import { useRoute } from './lib/router.ts';
+import { AppProvider, useApp } from './lib/store.tsx';
+import { startThemeColors } from './lib/themeColors.ts';
+import { DialogsProvider, useDialogs } from './components/dialogs.tsx';
+import { Frame } from './components/Shell.tsx';
+import { Palette } from './components/Palette.tsx';
+import { Spinner } from './components/ui.tsx';
+import { Onboarding, onboarding } from './views/Onboarding.tsx';
+import { HomeView } from './views/Home.tsx';
+import { TodayView } from './views/Today.tsx';
+import { RecordsView } from './views/Records.tsx';
+import { DealsView } from './views/Deals.tsx';
+import { ReviewView } from './views/Review.tsx';
+import { ReportsView } from './views/Reports.tsx';
+import { ActivityView } from './views/Activity.tsx';
+import { SetupView } from './views/Setup.tsx';
 
-installApiAdapter();
+// Views legitimately load the same operation twice; the SDK's auto-cancel
+// of same-path requests would blank one of them.
+getPbClient().pb.autoCancellation(false);
+// Colors follow the host theme (see themeColors.ts).
+startThemeColors();
+// All realtime subscriptions in one tick, before any view mounts (see live.ts).
+startLive();
 
-const backendUrl =
-  ((window as unknown as { __CRAFTBOT_BACKEND_URL__?: string }).__CRAFTBOT_BACKEND_URL__ ?? '') +
-  '/api';
-uiCapture.initialize(backendUrl, true, 2000);
-
-// Mirror the platform's PocketBase session token (set by the kit LoginGate)
-// into the key V1's AuthService reads, so V1 recognizes the existing session.
-function syncAuthToken(): void {
-  try {
-    const raw = localStorage.getItem('pocketbase_auth');
-    const token = raw ? (JSON.parse(raw) as { token?: string }).token : undefined;
-    if (token) localStorage.setItem('auth_token', token);
-    else localStorage.removeItem('auth_token');
-  } catch {
-    /* ignore malformed session */
-  }
+function typing(): boolean {
+  const el = document.activeElement;
+  return el instanceof HTMLElement && el.matches('input, textarea, select, [contenteditable="true"]');
 }
 
-function AuthGate(): React.JSX.Element {
-  const { isAuthenticated, loading } = useAuth();
-  const [page, setPage] = useState<'login' | 'register'>('login');
+function Main(): React.JSX.Element {
+  const app = useApp();
+  const route = useRoute();
+  const dialogs = useDialogs();
+  const [palette, setPalette] = useState(false);
 
-  if (loading) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent): void => {
+      const mod = e.ctrlKey || e.metaKey;
+      if (mod && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setPalette(true);
+        return;
+      }
+      if (typing() || document.querySelector('[role="dialog"]') !== null) return;
+      if (mod && !e.shiftKey && e.key.toLowerCase() === 'z') {
+        e.preventDefault();
+        api
+          .undo()
+          .then((r) => toast.success('Undone: ' + r.entry.summary))
+          .catch((err: unknown) => toast.error(errMessage(err)));
+        return;
+      }
+      if (mod && (e.key.toLowerCase() === 'y' || (e.shiftKey && e.key.toLowerCase() === 'z'))) {
+        e.preventDefault();
+        api
+          .redo()
+          .then((r) => toast.success('Redone: ' + r.entry.summary))
+          .catch((err: unknown) => toast.error(errMessage(err)));
+        return;
+      }
+      if (mod || e.altKey) return;
+      // Record pages and Today own their single keys (l, t, e, n, x, s, j, k).
+      const onRecord = route.q['id'] !== undefined;
+      if (e.key === 'p' && !onRecord) {
+        e.preventDefault();
+        dialogs.openNew('person');
+      } else if (e.key === 'd' && !onRecord) {
+        e.preventDefault();
+        dialogs.openNew('deal');
+      } else if (e.key === 'l' && !onRecord && route.view !== 'today') {
+        e.preventDefault();
+        dialogs.openLog();
+      } else if (e.key === 't' && !onRecord && route.view !== 'today') {
+        e.preventDefault();
+        dialogs.openTask();
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [route.view, route.q, dialogs]);
+
+  if (!app.ready || app.settings === null) {
     return (
-      <div className="flex h-full items-center justify-center bg-background">
-        <div className="w-full max-w-sm space-y-3 p-6">
-          <Skeleton className="h-10 w-10 rounded-lg mx-auto" />
-          <Skeleton className="h-8 w-full" />
-          <Skeleton className="h-8 w-full" />
-          <Skeleton className="h-8 w-2/3 mx-auto" />
-        </div>
+      <div className="flex h-dvh items-center justify-center bg-[var(--cr-card)] text-[var(--cr-muted)]">
+        <Spinner size={18} />
       </div>
     );
   }
-  if (!isAuthenticated) {
-    return page === 'login' ? (
-      <LoginPage onSwitchToRegister={() => setPage('register')} />
-    ) : (
-      <RegisterPage onSwitchToLogin={() => setPage('login')} />
-    );
-  }
-  return <MainView />;
+  if (!app.settings.setup_done || onboarding.step2) return <Onboarding />;
+
+  const v = route.view;
+  return (
+    <Frame view={v} onPalette={() => setPalette(true)}>
+      <div key={v + (route.q['id'] ? ':' + route.q['id'] : '')} className="cr-view h-full">
+        {v === 'home' && <HomeView />}
+        {v === 'today' && <TodayView />}
+        {v === 'people' && <RecordsView object="people" q={route.q} />}
+        {v === 'companies' && <RecordsView object="companies" q={route.q} />}
+        {v === 'deals' && <DealsView q={route.q} />}
+        {v === 'review' && <ReviewView q={route.q} />}
+        {v === 'reports' && <ReportsView q={route.q} />}
+        {v === 'activity' && <ActivityView q={route.q} />}
+        {v === 'setup' && <SetupView q={route.q} />}
+      </div>
+      <Palette open={palette} onClose={() => setPalette(false)} />
+    </Frame>
+  );
 }
 
 export function App(): React.JSX.Element {
-  // Seed V1's auth_token from the platform session once, at first render,
-  // before AuthProvider (a child) reads it in its state initializer.
-  useState(() => {
-    syncAuthToken();
-    return 0;
-  });
-
-  useEffect(() => {
-    uiCapture.registerComponent('App', { initialized: true, componentName: 'App' });
-    return () => uiCapture.unregisterComponent('App');
-  }, []);
-
   return (
-    <TooltipProvider delayDuration={300}>
-      <div className="h-screen">
-        <AuthProvider>
-          <AuthGate />
-        </AuthProvider>
-        <Toaster position="bottom-right" />
-      </div>
-    </TooltipProvider>
+    <AppProvider>
+      <DialogsProvider>
+        <Main />
+      </DialogsProvider>
+    </AppProvider>
   );
 }

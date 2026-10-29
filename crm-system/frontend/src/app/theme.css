@@ -1,0 +1,460 @@
+/*
+ * CRM System visual system: a compact bookkeeping workspace.
+ *
+ * A full-height app: a slim icon rail, a title bar, then the view edge to
+ * edge. Panels are one flat surface split by 1px hairlines; no shadows on
+ * panels, no second background. Dense: 28px controls, 30px table rows,
+ * 12 to 13px type, tabular numbers right-aligned. Near-monochrome: ink on
+ * the card; color only where it means something: money in (green), money
+ * owed or overdue and errors (red), warnings (amber), and the accent for
+ * the selection and for everything the AI agent proposes. Manrope.
+ *
+ * Colors follow the host theme: lib/themeColors.ts derives the --cr-*
+ * tokens from the kit's theme tokens with contrast checks and re-derives
+ * them when CraftBot switches theme pack, light or dark mode.
+ */
+
+html:root,
+html:root[data-theme='light'],
+html:root[data-theme='dark'] {
+  --agent-app-radius: 6px;
+  --agent-app-font: 'Manrope Variable', Manrope, system-ui, sans-serif;
+}
+
+html:root,
+html:root[data-theme='light'] {
+  color-scheme: light;
+}
+
+html:root[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+html,
+body {
+  background: var(--cr-card);
+  overflow: hidden;
+  color: var(--cr-ink);
+  font-family: 'Manrope Variable', Manrope, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  font-size: 13px;
+  line-height: 18px;
+}
+
+html .text-base,
+html .text-lg {
+  font-size: 14px;
+  line-height: 20px;
+}
+
+@layer base {
+  button:not(:disabled),
+  a[href],
+  [role='button'],
+  [role='tab'],
+  [role='menuitem'],
+  [role='option'],
+  [role='switch'],
+  [role='checkbox'],
+  select:not(:disabled),
+  label:has(input),
+  input[type='checkbox'] {
+    cursor: pointer;
+  }
+  button:disabled,
+  select:disabled {
+    cursor: not-allowed;
+  }
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}
+
+.mono {
+  font-family: ui-monospace, 'Cascadia Mono', 'SF Mono', Consolas, monospace;
+  font-size: 11.5px;
+}
+
+select option {
+  background-color: var(--cr-card);
+  color: var(--cr-ink);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--cr-muted);
+}
+
+input[type='date']::-webkit-calendar-picker-indicator {
+  opacity: 0.55;
+}
+
+:focus-visible {
+  outline: 2px solid var(--cr-accent);
+  outline-offset: -2px;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--cr-line);
+  border-radius: 999px;
+  border: 2px solid var(--cr-card);
+}
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* ---------------------------------------------------------------- tables */
+
+.cr-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+.cr-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  height: 28px;
+  padding: 0 10px;
+  background: var(--cr-card);
+  box-shadow: inset 0 -1px 0 var(--cr-line);
+  color: var(--cr-muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-align: left;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.cr-table td {
+  height: 30px;
+  padding: 0 10px;
+  border-bottom: 1px solid var(--cr-hair);
+  white-space: nowrap;
+}
+.cr-table tr[data-sel='true'] td {
+  background: var(--cr-accent-soft);
+}
+.cr-table tbody tr:hover td {
+  background: var(--cr-row);
+}
+.cr-table tbody tr[data-sel='true']:hover td {
+  background: var(--cr-accent-soft);
+}
+.cr-table tr[data-click='true'] {
+  cursor: pointer;
+}
+.cr-table .r {
+  text-align: right;
+}
+.cr-table tfoot td {
+  border-bottom: 0;
+  border-top: 1px solid var(--cr-line);
+  font-weight: 700;
+}
+
+/* Record tables: fixed columns, 32px rows, cells that edit in place. */
+.cr-grid {
+  table-layout: fixed;
+}
+.cr-grid td {
+  height: 32px;
+  font-size: 12.5px;
+  cursor: default;
+}
+.cr-grid td:nth-child(2) {
+  cursor: pointer;
+}
+.cr-grid tr.cr-active td {
+  background: var(--cr-row-hover);
+}
+.cr-grid tr.cr-active td:first-child {
+  box-shadow: inset 2px 0 0 var(--cr-accent);
+}
+.cr-grid td.cr-editable:hover {
+  box-shadow: inset 0 0 0 1px var(--cr-line);
+  cursor: text;
+}
+.cr-grid td.cr-editing {
+  padding: 0 3px;
+  overflow: visible;
+}
+.cr-grid .cr-cell-editor input,
+.cr-grid .cr-cell-editor select,
+.cr-grid .cr-cell-editor button {
+  height: 26px;
+}
+.cr-grid tfoot td {
+  position: sticky;
+  bottom: 0;
+  height: 30px;
+  background: var(--cr-card);
+  box-shadow: inset 0 1px 0 var(--cr-line);
+  border-top: 0;
+}
+
+/* Board cards while dragging. */
+.cr-dragging {
+  opacity: 0.4;
+}
+.cr-drop-before {
+  box-shadow: 0 -2px 0 var(--cr-accent);
+}
+
+/* Report rows: indented, totals ruled. */
+.cr-report td {
+  height: 26px;
+}
+.cr-report tr.cr-sec td {
+  height: 30px;
+  padding-top: 6px;
+  font-weight: 700;
+  border-bottom: 0;
+}
+.cr-report tr.cr-sum td {
+  font-weight: 700;
+  border-top: 1px solid var(--cr-line);
+}
+.cr-report tr.cr-grand td {
+  font-weight: 800;
+  border-top: 1px solid var(--cr-ink);
+  border-bottom: 3px double var(--cr-line);
+}
+
+/* --------------------------------------------------------------- motion */
+
+@keyframes cr-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.97) translateY(3px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.cr-pop {
+  animation: cr-pop 160ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes cr-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.cr-fade {
+  animation: cr-fade 160ms ease-out both;
+}
+
+@keyframes cr-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+.cr-pulse {
+  animation: cr-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes cr-shimmer {
+  from {
+    background-position: -200% 0;
+  }
+  to {
+    background-position: 200% 0;
+  }
+}
+.cr-skeleton {
+  background: linear-gradient(90deg, var(--cr-row) 0%, var(--cr-row-hover) 50%, var(--cr-row) 100%);
+  background-size: 200% 100%;
+  animation: cr-shimmer 1.4s ease-in-out infinite;
+}
+
+/* Views fade in; panels rise; charts grow from their baseline once, when they mount.
+   Fill is backwards only: a finished animation leaves no transform or opacity behind
+   (which would trap fixed-position inspectors inside the view). */
+@keyframes cr-rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.cr-view {
+  animation: cr-fade 180ms ease-out backwards;
+}
+.cr-rise {
+  animation: cr-rise 360ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+
+@keyframes cr-grow-y {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: none;
+  }
+}
+@keyframes cr-grow-x {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: none;
+  }
+}
+@keyframes cr-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes cr-sweep {
+  from {
+    opacity: 0;
+    transform: rotate(-30deg) scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.cr-grow-y {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: cr-grow-y 560ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+.cr-grow-y.cr-down {
+  transform-origin: 50% 0%;
+}
+.cr-grow-x {
+  transform-origin: 0 50%;
+  animation: cr-grow-x 640ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+.cr-draw {
+  stroke-dasharray: 1;
+  animation: cr-draw 900ms cubic-bezier(0.33, 1, 0.68, 1) backwards;
+}
+.cr-sweep {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: cr-sweep 640ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+.cr-fade-in {
+  animation: cr-fade 700ms ease-out 200ms backwards;
+}
+
+.cr-prose {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cr-pop,
+  .cr-fade,
+  .cr-pulse,
+  .cr-skeleton,
+  .cr-view,
+  .cr-rise,
+  .cr-grow-y,
+  .cr-grow-x,
+  .cr-draw,
+  .cr-sweep,
+  .cr-fade-in {
+    animation: none;
+  }
+}
+
+/* The kit's toasts in the app's language. */
+html .pointer-events-none.fixed.bottom-4.right-4 {
+  z-index: 80;
+}
+html .pointer-events-none.fixed.bottom-4.right-4 > button {
+  border: 0;
+  border-radius: 6px;
+  background: var(--cr-tooltip);
+  color: var(--cr-on-tooltip);
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 9px 13px;
+  box-shadow: 0 10px 30px -12px rgba(0, 0, 0, 0.45);
+}
+html .pointer-events-none.fixed.bottom-4.right-4 > button.text-red-700 {
+  background: var(--cr-neg);
+  color: #ffffff;
+}
+@media (max-width: 767px) {
+  html .pointer-events-none.fixed.bottom-4.right-4 {
+    bottom: 68px;
+    right: 12px;
+    left: 12px;
+    width: auto;
+  }
+}
+
+/* ----------------------------------------------------------------- print */
+
+/* Printing shows only the document or report marked .cr-print, on white. */
+.cr-print-only {
+  display: none;
+}
+@media print {
+  @page {
+    margin: 14mm;
+  }
+  html,
+  body {
+    overflow: visible !important;
+    background: #ffffff !important;
+    color: #111111 !important;
+  }
+  body * {
+    visibility: hidden;
+  }
+  .cr-print,
+  .cr-print * {
+    visibility: visible;
+  }
+  .cr-print {
+    position: absolute;
+    inset: 0 auto auto 0;
+    width: 100%;
+    color: #111111;
+    --cr-ink: #111111;
+    --cr-ink-2: #333333;
+    --cr-muted: #555555;
+    --cr-line: #bbbbbb;
+    --cr-hair: #dddddd;
+    --cr-card: #ffffff;
+    --cr-row: #ffffff;
+  }
+  .cr-print-only {
+    display: block;
+  }
+  .cr-no-print {
+    display: none !important;
+  }
+}
