@@ -127,11 +127,12 @@
     },
     {
       "id": "image-utility",
+      "livingUIVersion": 2,
       "name": "Image Utility",
-      "description": "Upload an image, crop it interactively, resize, compress, or convert to PNG/JPEG/WEBP, then download the edited file. All processing runs offline on the backend with Pillow.",
+      "description": "Crop, straighten, resize, frame, adjust, annotate, redact, watermark and cut out images on your computer, then export small files with real sizes before you save. A desktop-editor workspace in the CAD Workshop look: a toolbar with shortcuts, a non-destructive edit stack over the untouched original (reorder, turn off, undo and revert anything), a stage with zoom to real pixels and hold-to-compare, and live previews in every tool. Export WebP, AVIF, JPEG, PNG, GIF, ICO and TIFF with several formats at once, a size target, a 100 % before-and-after comparison, and the location stripped from metadata. Batches run one recipe over many images with rename patterns and a preview of every file. Your AI agent uses the same tools: it redacts screenshots, writes alt text and prepares folders for the web, as proposals you accept or reject. The image engine (about 32 MB) downloads once on first run; background removal is an optional 20 MB add-on.",
       "folder": "image-utility",
-      "tags": ["image", "editing", "files", "productivity"],
-      "version": "1.0.0"
+      "tags": ["image", "photo editing", "compression", "batch", "screenshots", "AI"],
+      "version": "2.0.0"
     },
     {
       "id": "brainstorm-graph",
