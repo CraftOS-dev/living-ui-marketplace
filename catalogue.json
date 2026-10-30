@@ -17,10 +17,10 @@
       "id": "kanban-board",
       "livingUIVersion": 2,
       "name": "Kanban Board",
-      "description": "Local single-user Kanban board with drag-and-drop, labels, priorities, checklists, and due dates (no auth)",
+      "description": "A Kanban board you share with your AI agent. Every card is yours or the agent's, and every column is a contract: let the agent work a column and any card you drag into it is handed over and picked up automatically, with WIP limits that bind the agent, a plan to approve first, acceptance criteria, and where finished work goes. The agent holds cards with leases, shows what it is doing live, asks when it would have to guess, and hands work back with evidence; you approve, request changes or reject, and only you move cards to Done. An inbox of what needs you, a review queue, flow insights with the agent's report card (aging work, cycle time, throughput, cumulative flow, first-pass approval), rules, an activity log where every change can be reverted, a limit on how many cards the agent works at once, and one switch that pauses it. Smooth drag and drop, in CraftBot's own look, light and dark.",
       "folder": "kanban-board",
-      "tags": ["kanban", "project management", "productivity"],
-      "version": "1.0.0"
+      "tags": ["kanban", "project management", "productivity", "AI agents", "review"],
+      "version": "2.0.0"
     },
     {
       "id": "kanban-online",

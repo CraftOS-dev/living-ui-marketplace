@@ -1,0 +1,381 @@
+/*
+ * Kanban Board look: CraftBot's own. Everything is read from the host's kit
+ * tokens (--agent-app-*): the warm-neutral surfaces, the borders, the 8px
+ * radius, Inter, the orange accent. Three clear grey steps on the board:
+ * the page, darker columns, and cards on the plain surface (in dark mode
+ * the columns sink below the page and the cards rise above it). Colour
+ * beyond the greys carries state only (working, waiting on you, needs
+ * attention, review).
+ */
+@import '@fontsource-variable/inter';
+
+/* Tailwind's own layer order, declared first: this file loads before Tailwind. */
+@layer theme, base, components, utilities;
+
+:root {
+  --kb-side: var(--agent-app-bg);
+  --kb-main: var(--agent-app-surface);
+  --kb-col: color-mix(in srgb, var(--agent-app-surface), var(--agent-app-text) 8%);
+  --kb-col-line: color-mix(in srgb, var(--agent-app-surface), var(--agent-app-text) 12%);
+  --kb-col-over: color-mix(in srgb, var(--agent-app-surface), var(--agent-app-text) 13%);
+  --kb-tile: var(--agent-app-surface);
+  --kb-tile-hover: color-mix(in srgb, var(--agent-app-surface), var(--agent-app-text) 2.5%);
+  --kb-tile-line: color-mix(in srgb, var(--agent-app-border), var(--agent-app-text) 9%);
+  --kb-card: color-mix(in srgb, var(--agent-app-surface), var(--agent-app-text) 5%);
+  --kb-card-hover: color-mix(in srgb, var(--agent-app-surface), var(--agent-app-text) 8%);
+  --kb-sunken: var(--kb-col);
+  --kb-line: color-mix(in srgb, var(--agent-app-border), var(--agent-app-text) 12%);
+  --kb-hair: color-mix(in srgb, var(--agent-app-border), var(--agent-app-text) 4%);
+  --kb-ink: var(--agent-app-text);
+  --kb-ink-2: color-mix(in srgb, var(--agent-app-text), var(--agent-app-muted) 28%);
+  --kb-muted: color-mix(in srgb, var(--agent-app-muted), var(--agent-app-text) 22%);
+  --kb-faint: color-mix(in srgb, var(--agent-app-muted), var(--agent-app-surface) 18%);
+  --kb-hover: color-mix(in srgb, var(--agent-app-bg), var(--agent-app-text) 6%);
+  --kb-active: color-mix(in srgb, var(--agent-app-bg), var(--agent-app-text) 10%);
+  --kb-main-hover: color-mix(in srgb, var(--agent-app-surface), var(--agent-app-text) 6%);
+  --kb-accent: var(--agent-app-accent);
+  --kb-accent-ink: var(--agent-app-accent-contrast);
+  --kb-accent-soft: color-mix(in srgb, var(--agent-app-accent), transparent 88%);
+  --kb-accent-text: color-mix(in srgb, var(--agent-app-accent), var(--agent-app-text) 12%);
+  --kb-radius: var(--agent-app-radius, 0.5rem);
+  --kb-radius-sm: calc(var(--kb-radius) * 0.75);
+  --kb-radius-lg: calc(var(--kb-radius) * 1.5);
+  --kb-font: 'Inter Variable', var(--agent-app-font);
+
+  --kb-green: #15803d;
+  --kb-amber: #b45309;
+  --kb-red: #c81e1e;
+  --kb-blue: #1d4ed8;
+  --kb-violet: #6d28d9;
+  --kb-shadow: 0 1px 2px rgb(0 0 0 / 0.06);
+  --kb-shadow-card: 0 1px 2px rgb(20 18 14 / 0.07);
+  --kb-shadow-lift: 0 18px 38px rgb(20 18 14 / 0.2), 0 4px 10px rgb(20 18 14 / 0.1);
+  --kb-shadow-lg: 0 12px 32px rgb(20 18 14 / 0.14), 0 2px 6px rgb(20 18 14 / 0.06);
+  --kb-overlay: rgb(20 18 14 / 0.28);
+}
+
+:root[data-theme='dark'] {
+  --kb-col: color-mix(in srgb, var(--agent-app-surface), #000 34%);
+  --kb-col-line: color-mix(in srgb, var(--agent-app-surface), var(--agent-app-text) 5%);
+  --kb-col-over: color-mix(in srgb, var(--agent-app-surface), #000 14%);
+  --kb-tile: color-mix(in srgb, var(--agent-app-surface), var(--agent-app-text) 6%);
+  --kb-tile-hover: color-mix(in srgb, var(--agent-app-surface), var(--agent-app-text) 9.5%);
+  --kb-tile-line: color-mix(in srgb, var(--agent-app-border), var(--agent-app-text) 10%);
+  --kb-card: color-mix(in srgb, var(--agent-app-surface), var(--agent-app-text) 6%);
+  --kb-card-hover: color-mix(in srgb, var(--agent-app-surface), var(--agent-app-text) 10%);
+  --kb-shadow-card: 0 1px 2px rgb(0 0 0 / 0.4);
+  --kb-shadow-lift: 0 20px 44px rgb(0 0 0 / 0.6), 0 4px 12px rgb(0 0 0 / 0.4);
+  --kb-green: #4ade80;
+  --kb-amber: #fbbf24;
+  --kb-red: #f87171;
+  --kb-blue: #7aa7ff;
+  --kb-violet: #b49bff;
+  --kb-shadow: 0 1px 2px rgb(0 0 0 / 0.3);
+  --kb-shadow-lg: 0 16px 40px rgb(0 0 0 / 0.55), 0 2px 8px rgb(0 0 0 / 0.35);
+  --kb-overlay: rgb(0 0 0 / 0.5);
+}
+
+:root {
+  --kb-green-soft: color-mix(in srgb, var(--kb-green), transparent 86%);
+  --kb-amber-soft: color-mix(in srgb, var(--kb-amber), transparent 86%);
+  --kb-red-soft: color-mix(in srgb, var(--kb-red), transparent 87%);
+  --kb-blue-soft: color-mix(in srgb, var(--kb-blue), transparent 87%);
+  --kb-violet-soft: color-mix(in srgb, var(--kb-violet), transparent 86%);
+  --kb-amber-line: color-mix(in srgb, var(--kb-amber), transparent 65%);
+}
+
+/* Everything you can click shows the hand (Tailwind's reset leaves buttons on the arrow). */
+@layer base {
+  button:not(:disabled),
+  [role='button']:not([aria-disabled='true']),
+  [role='switch']:not(:disabled),
+  [role='radio']:not(:disabled),
+  [role='tab'],
+  [role='menuitem'],
+  [role='option'],
+  a[href],
+  summary,
+  label[for],
+  select:not(:disabled),
+  input[type='checkbox']:not(:disabled),
+  input[type='radio']:not(:disabled),
+  input[type='color'],
+  input[type='range'],
+  input[type='file'] {
+    cursor: pointer;
+  }
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+body {
+  margin: 0;
+  background: var(--kb-main);
+  color: var(--kb-ink);
+  font-family: var(--kb-font);
+  font-size: 13px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: 'cv11', 'ss01';
+}
+.kb-num {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Thin scrollbars that fade into the surfaces. */
+.kb-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--kb-muted), transparent 60%) transparent;
+}
+.kb-scroll::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.kb-scroll::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--kb-muted), transparent 65%);
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+/* Agent avatar tones: a soft fill and a readable letter. */
+.kb-tone-orange { --t: #f97316; }
+.kb-tone-blue { --t: #3b82f6; }
+.kb-tone-green { --t: #22c55e; }
+.kb-tone-purple { --t: #8b5cf6; }
+.kb-tone-teal { --t: #14b8a6; }
+.kb-tone-pink { --t: #ec4899; }
+.kb-tone-yellow { --t: #eab308; }
+.kb-tone-red { --t: #ef4444; }
+.kb-tone-gray { --t: #78716c; }
+.kb-tone {
+  background: color-mix(in srgb, var(--t), transparent 82%);
+  color: color-mix(in srgb, var(--t), var(--kb-ink) 38%);
+}
+
+/* Label dots. */
+.kb-dot-gray { --d: #8a8780; }
+.kb-dot-red { --d: #ef4444; }
+.kb-dot-orange { --d: #f97316; }
+.kb-dot-yellow { --d: #eab308; }
+.kb-dot-green { --d: #22c55e; }
+.kb-dot-teal { --d: #14b8a6; }
+.kb-dot-blue { --d: #3b82f6; }
+.kb-dot-purple { --d: #8b5cf6; }
+.kb-dot-pink { --d: #ec4899; }
+
+@keyframes kb-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.45; transform: scale(0.8); }
+}
+.kb-pulse {
+  animation: kb-pulse 1.6s ease-in-out infinite;
+}
+@keyframes kb-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
+.kb-in {
+  animation: kb-in 0.16s ease-out;
+}
+@keyframes kb-slide {
+  from { opacity: 0.4; transform: translateX(24px); }
+  to { opacity: 1; transform: none; }
+}
+.kb-slide {
+  animation: kb-slide 0.18s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+/* The phone menu: the sidebar slides in from the left. */
+@keyframes kb-drawer {
+  from { transform: translateX(-100%); }
+  to { transform: none; }
+}
+.kb-drawer {
+  animation: kb-drawer 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+/* Columns snap one at a time on a phone; never while a card is being dragged. */
+@media (max-width: 767px) {
+  .kb-snap {
+    scroll-snap-type: x mandatory;
+    scroll-padding-left: 12px;
+  }
+  .kb-snap-col {
+    scroll-snap-align: start;
+  }
+}
+.kb-dragging .kb-snap {
+  scroll-snap-type: none;
+}
+/* Cards: no text selection or callout menu on a long press. */
+.kb-touch-card {
+  -webkit-touch-callout: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+@keyframes kb-sweep {
+  from { background-position: -160px 0; }
+  to { background-position: 260px 0; }
+}
+/* A working card's bottom edge: a slow light sweep. */
+.kb-working-bar {
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--kb-green), transparent 30%), transparent) no-repeat;
+  background-size: 160px 100%;
+  animation: kb-sweep 1.8s linear infinite;
+}
+
+@layer components {
+/* Behind a dialog: the page steps back (darker, softly blurred) so nothing behind competes with it. */
+.kb-scrim {
+  background: rgb(20 18 14 / 0.42);
+  backdrop-filter: blur(2px);
+}
+:root[data-theme='dark'] .kb-scrim {
+  background: rgb(0 0 0 / 0.62);
+}
+
+/* Cards: a crisp tile on the darker column that lifts a little under the pointer. */
+.kb-tile {
+  background: var(--kb-tile);
+  border-color: var(--kb-tile-line);
+  box-shadow: var(--kb-shadow-card);
+  transition: border-color 0.14s, background-color 0.14s, box-shadow 0.18s, transform 0.18s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.kb-tile:hover {
+  background: var(--kb-tile-hover);
+  border-color: var(--kb-line);
+  box-shadow: 0 4px 12px rgb(20 18 14 / 0.08), var(--kb-shadow-card);
+  transform: translateY(-1px);
+}
+:root[data-theme='dark'] .kb-tile:hover {
+  box-shadow: 0 6px 16px rgb(0 0 0 / 0.45);
+}
+.kb-tile:active {
+  transform: translateY(0) scale(0.995);
+}
+
+/* Columns: a darker band with an edge; the one under a dragged card lights up. */
+.kb-col {
+  background: var(--kb-col);
+  box-shadow: inset 0 0 0 1px var(--kb-col-line);
+  transition: background-color 0.18s, box-shadow 0.18s;
+}
+.kb-col-over {
+  background: var(--kb-col-over);
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--kb-accent), transparent 35%), 0 0 0 4px var(--kb-accent-soft);
+}
+
+}
+
+/* Dragging: the card lifts off the board, tilts with the pointer and settles where it lands. */
+.kb-dragging,
+.kb-dragging * {
+  cursor: grabbing !important;
+  user-select: none !important;
+}
+@keyframes kb-lift {
+  from {
+    transform: none;
+  }
+}
+.kb-ghost-lift {
+  transform: scale(1.035);
+  animation: kb-lift 0.18s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.kb-ghost {
+  box-shadow: var(--kb-shadow-lift) !important;
+  border-color: var(--kb-line) !important;
+  background: var(--kb-tile) !important;
+  transform: none !important;
+}
+@keyframes kb-ph-in {
+  from {
+    opacity: 0;
+    transform: scaleY(0.6);
+  }
+}
+.kb-ph {
+  background: color-mix(in srgb, var(--kb-col), var(--kb-ink) 6%);
+  border: 1.5px dashed color-mix(in srgb, var(--kb-ink), transparent 72%);
+  transform-origin: top;
+  animation: kb-ph-in 0.16s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+@keyframes kb-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.98);
+  }
+}
+.kb-card-in {
+  animation: kb-card-in 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .kb-ghost-lift,
+  .kb-ph,
+  .kb-card-in,
+  .kb-in,
+  .kb-slide,
+  .kb-drawer {
+    animation: none;
+  }
+  .kb-tile,
+  .kb-tile:hover {
+    transform: none;
+  }
+}
+
+/* Markdown. */
+.kb-md {
+  font-size: 13px;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+.kb-md > * + * {
+  margin-top: 0.55em;
+}
+.kb-md h3 { font-size: 15px; font-weight: 650; }
+.kb-md h4 { font-size: 14px; font-weight: 650; }
+.kb-md h5 { font-size: 13px; font-weight: 650; }
+.kb-md ul { list-style: disc; padding-left: 1.25em; }
+.kb-md ol { list-style: decimal; padding-left: 1.4em; }
+.kb-md li + li { margin-top: 0.2em; }
+.kb-md li.kb-md-task { list-style: none; margin-left: -1.25em; display: flex; gap: 0.5em; align-items: baseline; }
+.kb-md-box { display: inline-block; width: 12px; height: 12px; border: 1.5px solid var(--kb-muted); border-radius: 3px; flex: none; transform: translateY(1px); }
+.kb-md-box-on { background: var(--kb-ink); border-color: var(--kb-ink); }
+.kb-md a { color: var(--kb-accent-text); text-decoration: underline; text-underline-offset: 2px; }
+.kb-md code { font-family: ui-monospace, 'Cascadia Code', Consolas, monospace; font-size: 12px; background: var(--kb-card); border: 1px solid var(--kb-hair); border-radius: 4px; padding: 0 4px; }
+.kb-md pre { background: var(--kb-card); border: 1px solid var(--kb-hair); border-radius: var(--kb-radius-sm); padding: 8px 10px; overflow-x: auto; }
+.kb-md pre code { border: 0; padding: 0; background: none; }
+.kb-md blockquote { border-left: 2px solid var(--kb-line); padding-left: 10px; color: var(--kb-ink-2); }
+.kb-md-table { overflow-x: auto; }
+.kb-md table { border-collapse: collapse; font-size: 12.5px; }
+.kb-md th, .kb-md td { border: 1px solid var(--kb-line); padding: 4px 8px; text-align: left; }
+.kb-md th { background: var(--kb-card); font-weight: 600; }
+
+@layer components {
+/* Form controls follow the theme. */
+.kb-field {
+  background: var(--kb-main);
+  border: 1px solid var(--kb-line);
+  border-radius: var(--kb-radius-sm);
+  color: var(--kb-ink);
+  outline: none;
+  transition: border-color 0.12s, box-shadow 0.12s;
+}
+.kb-field:focus,
+.kb-field:focus-within {
+  border-color: color-mix(in srgb, var(--kb-accent), var(--kb-line) 35%);
+  box-shadow: 0 0 0 3px var(--kb-accent-soft);
+}
+.kb-field::placeholder,
+.kb-field input::placeholder,
+textarea.kb-field::placeholder {
+  color: var(--kb-faint);
+}
+.kb-focus:focus-visible {
+  outline: 2px solid var(--kb-accent);
+  outline-offset: 1px;
+}
+}
