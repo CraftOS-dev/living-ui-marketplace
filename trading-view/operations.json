@@ -6,48 +6,2308 @@
       "description": "Liveness check (PocketBase built-in).",
       "system": true,
       "params": {},
-      "executor": { "type": "http", "method": "GET", "path": "/api/health" }
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/health"
+      }
     },
     {
       "name": "ops.list",
       "description": "Return this operations manifest.",
       "system": true,
       "params": {},
-      "executor": { "type": "http", "method": "GET", "path": "/api/_ops" }
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/_ops"
+      }
     },
     {
-      "name": "quotes",
-      "description": "Live quotes for comma-separated symbols (Yahoo Finance proxy). Per-symbol failures return {symbol, error} entries.",
-      "params": {
-        "symbols": { "type": "string", "required": true, "description": "Comma-separated ticker symbols, e.g. AAPL,MSFT" }
-      },
-      "executor": { "type": "http", "method": "GET", "path": "/api/ops/quotes" }
+      "name": "app.guide",
+      "description": "START HERE: what is on screen, symbols and intervals, workspaces, widgets and link channels, indicators, drawings, alerts, and ready-to-run recipes for showing a chart, analyzing it, reviewing a watchlist, reacting to alerts and screening the market.",
+      "label": "App guide",
+      "readOnly": true,
+      "returns": "summary",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/app/guide"
+      }
     },
     {
-      "name": "search",
-      "description": "Symbol lookup against Yahoo's search API.",
-      "params": {
-        "q": { "type": "string", "required": true, "description": "Search text, e.g. company name or ticker." }
-      },
-      "executor": { "type": "http", "method": "GET", "path": "/api/ops/search" }
+      "name": "app.context",
+      "description": "The active workspace with every widget and the symbol and interval it shows, the link channels, settings, and counts of unseen alert events, active alerts and waiting analyses.",
+      "label": "What is on screen",
+      "readOnly": true,
+      "returns": "summary",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/app/context"
+      }
     },
     {
-      "name": "news",
-      "description": "Latest Yahoo Finance headlines for a symbol (or the general market when omitted).",
-      "params": {
-        "symbol": { "type": "string", "required": false, "description": "Ticker symbol, e.g. AAPL." }
-      },
-      "executor": { "type": "http", "method": "GET", "path": "/api/ops/news" }
+      "name": "settings.get",
+      "description": "Settings: up/down colors, time zone mode, agent markup visibility, alert sound, active workspace.",
+      "readOnly": true,
+      "returns": "record",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/settings/get"
+      }
     },
     {
-      "name": "candles",
-      "description": "OHLCV candle series for one symbol (Yahoo Finance proxy). Bars with missing prices are dropped.",
+      "name": "settings.update",
+      "description": "Change the up/down colors, the time zone of chart axes, whether the AI agent's markup shows on charts, or the alert sound.",
+      "label": "Change settings",
+      "returns": "record",
       "params": {
-        "symbol": { "type": "string", "required": true, "description": "Ticker symbol, e.g. AAPL" },
-        "range": { "type": "string", "required": false, "description": "1d|5d|1mo|3mo|6mo|1y|2y|5y (default 6mo)" },
-        "interval": { "type": "string", "required": false, "description": "1m|5m|15m|30m|60m|1d|1wk|1mo (default 1d)" }
+        "palette": {
+          "type": "string",
+          "description": "Up/down colors",
+          "enum": [
+            "green_red",
+            "blue_orange",
+            "red_green"
+          ]
+        },
+        "tz_mode": {
+          "type": "string",
+          "description": "Chart time zone: the exchange's, this computer's or UTC",
+          "enum": [
+            "exchange",
+            "local",
+            "utc"
+          ]
+        },
+        "agent_markup": {
+          "type": "boolean",
+          "description": "Show the AI agent's drawings and levels on charts"
+        },
+        "sound": {
+          "type": "boolean",
+          "description": "Play a sound when an alert fires"
+        }
       },
-      "executor": { "type": "http", "method": "GET", "path": "/api/ops/candles" }
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/settings/update"
+      }
+    },
+    {
+      "name": "market.search",
+      "description": "Find instruments by ticker, company or coin name across Yahoo Finance (stocks, ETFs, indices, forex, futures) and Binance (crypto pairs).",
+      "label": "Search symbols",
+      "readOnly": true,
+      "returns": "list",
+      "params": {
+        "q": {
+          "type": "string",
+          "description": "Ticker or name, e.g. \"apple\", \"eurusd\", \"sol\"",
+          "required": true
+        },
+        "limit": {
+          "type": "number",
+          "description": "At most this many (default 12, max 30)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/market/search"
+      }
+    },
+    {
+      "name": "market.quotes",
+      "description": "Latest price, change, day range, volume, 52-week range, market state (open, pre, post, closed), pre/post-market price and an intraday sparkline for many symbols at once.",
+      "label": "Quotes",
+      "readOnly": true,
+      "returns": "record",
+      "params": {
+        "symbols": {
+          "type": "string",
+          "description": "JSON list or comma-separated symbols (max 200)",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/market/quotes"
+      }
+    },
+    {
+      "name": "market.bars",
+      "description": "OHLCV bars, oldest first, as [time, open, high, low, close, volume] rows (time in unix seconds), with instrument details. Served from the app's bar cache; older history with --before.",
+      "label": "Price bars",
+      "readOnly": true,
+      "returns": "record",
+      "params": {
+        "symbol": {
+          "type": "string",
+          "description": "Symbol: AAPL, ^GSPC, EURUSD=X, GC=F, BTC-USD or BINANCE:BTCUSDT",
+          "required": true
+        },
+        "interval": {
+          "type": "string",
+          "description": "Bar interval (default 1D)",
+          "enum": [
+            "1m",
+            "5m",
+            "15m",
+            "30m",
+            "1h",
+            "4h",
+            "1D",
+            "1W",
+            "1M"
+          ]
+        },
+        "count": {
+          "type": "number",
+          "description": "How many bars (default 300, max 5000)"
+        },
+        "before": {
+          "type": "number",
+          "description": "Only bars before this unix time (seconds), to page back"
+        },
+        "ext": {
+          "type": "boolean",
+          "description": "Include pre- and post-market trading (intraday stocks)"
+        },
+        "fresh": {
+          "type": "boolean",
+          "description": "Refresh from the provider even if the cache is fresh"
+        },
+        "format": {
+          "type": "string",
+          "description": "rows (default) or objects {t,o,h,l,c,v}",
+          "enum": [
+            "rows",
+            "objects"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/market/bars"
+      }
+    },
+    {
+      "name": "market.info",
+      "description": "Name, exchange, currency, time zone, sessions, latest quote, daily statistics (open, 52-week range, average volume, ATR, performance, RSI...) and dividends and splits of one symbol.",
+      "label": "Instrument details",
+      "readOnly": true,
+      "returns": "record",
+      "params": {
+        "symbol": {
+          "type": "string",
+          "description": "Symbol: AAPL, ^GSPC, EURUSD=X, GC=F, BTC-USD or BINANCE:BTCUSDT",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/market/info"
+      }
+    },
+    {
+      "name": "market.news",
+      "description": "Latest headlines for a symbol (or a search phrase): title, publisher, link, time.",
+      "label": "News",
+      "readOnly": true,
+      "returns": "list",
+      "params": {
+        "symbol": {
+          "type": "string",
+          "description": "Symbol: AAPL, ^GSPC, EURUSD=X, GC=F, BTC-USD or BINANCE:BTCUSDT"
+        },
+        "q": {
+          "type": "string",
+          "description": "Search phrase when no symbol is given (default \"stock market\")"
+        },
+        "limit": {
+          "type": "number",
+          "description": "At most this many (default 12, max 30)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/market/news"
+      }
+    },
+    {
+      "name": "market.events",
+      "description": "Dividend and split history of a symbol.",
+      "label": "Dividends and splits",
+      "readOnly": true,
+      "returns": "record",
+      "params": {
+        "symbol": {
+          "type": "string",
+          "description": "Symbol: AAPL, ^GSPC, EURUSD=X, GC=F, BTC-USD or BINANCE:BTCUSDT",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/market/events"
+      }
+    },
+    {
+      "name": "market.health",
+      "description": "State of the market data providers (Yahoo Finance, Binance): ok, throttled or down, with the last error.",
+      "label": "Data providers",
+      "readOnly": true,
+      "returns": "record",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/market/health"
+      }
+    },
+    {
+      "name": "market.live",
+      "description": "One refresh tick of the open app: quotes for many symbols plus the newest bars of charts (\"SYMBOL|interval\" or \"SYMBOL|interval|x\" with extended hours). Checks price alerts of the quoted symbols.",
+      "label": "Live refresh",
+      "readOnly": true,
+      "returns": "record",
+      "params": {
+        "symbols": {
+          "type": "string",
+          "description": "JSON list of symbols to quote"
+        },
+        "series": {
+          "type": "string",
+          "description": "JSON list of \"SYMBOL|interval\" chart keys"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/market/live"
+      }
+    },
+    {
+      "name": "indicators.catalogue",
+      "description": "Every indicator the charts and ops support, with its parameters (defaults and ranges) and outputs.",
+      "label": "Indicators",
+      "readOnly": true,
+      "returns": "list",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/indicators/catalogue"
+      }
+    },
+    {
+      "name": "chart.indicators",
+      "description": "Indicator values on a symbol's bars: the latest reading and the last --tail points of every output. The same numbers the charts show.",
+      "label": "Indicator values",
+      "readOnly": true,
+      "returns": "record",
+      "params": {
+        "symbol": {
+          "type": "string",
+          "description": "Symbol: AAPL, ^GSPC, EURUSD=X, GC=F, BTC-USD or BINANCE:BTCUSDT",
+          "required": true
+        },
+        "interval": {
+          "type": "string",
+          "description": "Bar interval (default 1D)",
+          "enum": [
+            "1m",
+            "5m",
+            "15m",
+            "30m",
+            "1h",
+            "4h",
+            "1D",
+            "1W",
+            "1M"
+          ]
+        },
+        "indicators": {
+          "type": "string",
+          "description": "Names like \"rsi, macd, sma:50, bb:20/2\" or a JSON list [{\"id\":\"rsi\",\"params\":{\"length\":14}}] (default rsi, macd, sma 50, sma 200)"
+        },
+        "tail": {
+          "type": "number",
+          "description": "Points per output (default 20, max 500)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/chart/indicators"
+      }
+    },
+    {
+      "name": "chart.levels",
+      "description": "Support and resistance levels from swing highs and lows, with touches and distance from the price.",
+      "label": "Support and resistance",
+      "readOnly": true,
+      "returns": "record",
+      "params": {
+        "symbol": {
+          "type": "string",
+          "description": "Symbol: AAPL, ^GSPC, EURUSD=X, GC=F, BTC-USD or BINANCE:BTCUSDT",
+          "required": true
+        },
+        "interval": {
+          "type": "string",
+          "description": "Bar interval (default 1D)",
+          "enum": [
+            "1m",
+            "5m",
+            "15m",
+            "30m",
+            "1h",
+            "4h",
+            "1D",
+            "1W",
+            "1M"
+          ]
+        },
+        "count": {
+          "type": "number",
+          "description": "Bars to look at (default 400)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/chart/levels"
+      }
+    },
+    {
+      "name": "chart.explain",
+      "description": "The facts behind a symbol's move: price and change, performance (1W to 1Y), 52-week range, trend vs moving averages and crosses, RSI/MACD/ADX, volatility, relative volume, levels, notable recent bars, dividends and splits, and headlines. Use it before writing an analysis.",
+      "label": "Explain the move",
+      "readOnly": true,
+      "returns": "record",
+      "params": {
+        "symbol": {
+          "type": "string",
+          "description": "Symbol: AAPL, ^GSPC, EURUSD=X, GC=F, BTC-USD or BINANCE:BTCUSDT",
+          "required": true
+        },
+        "interval": {
+          "type": "string",
+          "description": "Bar interval (default 1D)",
+          "enum": [
+            "1m",
+            "5m",
+            "15m",
+            "30m",
+            "1h",
+            "4h",
+            "1D",
+            "1W",
+            "1M"
+          ]
+        },
+        "news": {
+          "type": "boolean",
+          "description": "Include headlines (default true)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/chart/explain"
+      }
+    },
+    {
+      "name": "workspaces.list",
+      "description": "The workspaces (tabs) with their link channels and widget counts, the active one and settings.",
+      "label": "Workspaces",
+      "readOnly": true,
+      "returns": "list",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/workspaces/list"
+      }
+    },
+    {
+      "name": "workspaces.get",
+      "description": "One workspace with every widget: type, grid box (24 columns), link channel, config and the symbol and interval it shows.",
+      "label": "Workspace",
+      "readOnly": true,
+      "returns": "record",
+      "params": {
+        "workspace": {
+          "type": "string",
+          "description": "Workspace id or name (default: the active one)",
+          "format": "ref:workspaces"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/workspaces/get"
+      }
+    },
+    {
+      "name": "workspaces.create",
+      "description": "Create a workspace from a template and make it active: markets (chart, watchlist, details, news, AI analyst), crypto, multi (multi-timeframe charts), research (chart, analyst, screener, heatmap) or blank (one chart).",
+      "label": "New workspace",
+      "returns": "record",
+      "params": {
+        "name": {
+          "type": "string",
+          "description": "Name (default from the template)"
+        },
+        "template": {
+          "type": "string",
+          "description": "Template (default blank)",
+          "enum": [
+            "markets",
+            "crypto",
+            "multi",
+            "research",
+            "blank"
+          ]
+        },
+        "activate": {
+          "type": "boolean",
+          "description": "Switch to it (default true)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/workspaces/create"
+      }
+    },
+    {
+      "name": "workspaces.update",
+      "description": "Rename a workspace or lock its layout.",
+      "label": "Rename workspace",
+      "returns": "record",
+      "params": {
+        "workspace": {
+          "type": "string",
+          "description": "Workspace id or name",
+          "required": true,
+          "format": "ref:workspaces"
+        },
+        "name": {
+          "type": "string",
+          "description": "New name"
+        },
+        "locked": {
+          "type": "boolean",
+          "description": "Lock the layout (no dragging or resizing)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/workspaces/update"
+      }
+    },
+    {
+      "name": "workspaces.delete",
+      "description": "Delete a workspace with its widgets (watchlists, drawings and alerts stay). Undo restores it.",
+      "label": "Delete workspace",
+      "destructive": true,
+      "confirm": "Delete this workspace and its widgets?",
+      "returns": "none",
+      "params": {
+        "workspace": {
+          "type": "string",
+          "description": "Workspace id or name",
+          "required": true,
+          "format": "ref:workspaces"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/workspaces/delete"
+      }
+    },
+    {
+      "name": "workspaces.duplicate",
+      "description": "Copy a workspace with its widgets and make the copy active.",
+      "label": "Duplicate workspace",
+      "returns": "record",
+      "params": {
+        "workspace": {
+          "type": "string",
+          "description": "Workspace id or name",
+          "required": true,
+          "format": "ref:workspaces"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the copy"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/workspaces/duplicate"
+      }
+    },
+    {
+      "name": "workspaces.activate",
+      "description": "Show another workspace.",
+      "label": "Switch workspace",
+      "returns": "record",
+      "params": {
+        "workspace": {
+          "type": "string",
+          "description": "Workspace id or name",
+          "required": true,
+          "format": "ref:workspaces"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/workspaces/activate"
+      }
+    },
+    {
+      "name": "workspaces.reorder",
+      "description": "Put the workspace tabs in a new order.",
+      "label": "Reorder workspaces",
+      "returns": "none",
+      "params": {
+        "order": {
+          "type": "string",
+          "description": "JSON list of every workspace id in the new order",
+          "required": true,
+          "format": "json"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/workspaces/reorder"
+      }
+    },
+    {
+      "name": "workspaces.focus",
+      "description": "Show a symbol and/or interval on a link channel of a workspace: every widget on the channel (charts, details, news, analyst) follows. The way to show the person something.",
+      "label": "Show symbol",
+      "returns": "record",
+      "params": {
+        "symbol": {
+          "type": "string",
+          "description": "Symbol: AAPL, ^GSPC, EURUSD=X, GC=F, BTC-USD or BINANCE:BTCUSDT"
+        },
+        "interval": {
+          "type": "string",
+          "description": "Bar interval (default 1D)",
+          "enum": [
+            "1m",
+            "5m",
+            "15m",
+            "30m",
+            "1h",
+            "4h",
+            "1D",
+            "1W",
+            "1M"
+          ]
+        },
+        "channel": {
+          "type": "string",
+          "description": "Link channel 1 to 6 (default 1)",
+          "enum": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6"
+          ]
+        },
+        "workspace": {
+          "type": "string",
+          "description": "Workspace id or name (default: the active one)",
+          "format": "ref:workspaces"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/workspaces/focus"
+      }
+    },
+    {
+      "name": "widgets.add",
+      "description": "Add a widget to a workspace. Without a position it goes below the others. Sizes are in grid cells (24 columns; a row is about 1/36 of the screen height).",
+      "label": "Add widget",
+      "returns": "record",
+      "params": {
+        "type": {
+          "type": "string",
+          "description": "Widget type",
+          "required": true,
+          "enum": [
+            "chart",
+            "watchlist",
+            "details",
+            "news",
+            "alerts",
+            "screener",
+            "heatmap",
+            "ticker",
+            "analyst",
+            "activity",
+            "chartgrid"
+          ]
+        },
+        "workspace": {
+          "type": "string",
+          "description": "Workspace id or name (default: the active one)",
+          "format": "ref:workspaces"
+        },
+        "link": {
+          "type": "string",
+          "description": "Link channel 1 to 6, or empty for its own symbol (default 1 for symbol widgets)"
+        },
+        "symbol": {
+          "type": "string",
+          "description": "Own symbol (unlinked widgets)"
+        },
+        "interval": {
+          "type": "string",
+          "description": "Own interval (unlinked charts)"
+        },
+        "config": {
+          "type": "string",
+          "description": "Widget settings as JSON (chart: interval, type, scale, indicators, compare, ext; watchlist: list; screener/heatmap: universe; ticker: symbols; chartgrid: intervals, layout)",
+          "format": "json"
+        },
+        "x": {
+          "type": "number",
+          "description": "Column 0 to 23"
+        },
+        "y": {
+          "type": "number",
+          "description": "Row"
+        },
+        "w": {
+          "type": "number",
+          "description": "Width in columns"
+        },
+        "h": {
+          "type": "number",
+          "description": "Height in rows"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/widgets/add"
+      }
+    },
+    {
+      "name": "widgets.update",
+      "description": "Change a widget's link channel or settings (merged into its config).",
+      "label": "Edit widget",
+      "returns": "record",
+      "params": {
+        "widget": {
+          "type": "string",
+          "description": "Widget id",
+          "required": true,
+          "format": "ref:widgets"
+        },
+        "link": {
+          "type": "string",
+          "description": "Link channel 1 to 6, or empty for its own symbol"
+        },
+        "symbol": {
+          "type": "string",
+          "description": "Own symbol"
+        },
+        "interval": {
+          "type": "string",
+          "description": "Own interval"
+        },
+        "config": {
+          "type": "string",
+          "description": "Settings to merge, as JSON",
+          "format": "json"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/widgets/update"
+      }
+    },
+    {
+      "name": "widgets.layout",
+      "description": "Move and resize widgets of a workspace in one step.",
+      "label": "Arrange widgets",
+      "returns": "summary",
+      "params": {
+        "workspace": {
+          "type": "string",
+          "description": "Workspace id or name (default: the active one)",
+          "format": "ref:workspaces"
+        },
+        "items": {
+          "type": "string",
+          "description": "JSON list [{\"id\":\"<widget>\",\"x\":0,\"y\":0,\"w\":12,\"h\":18}]",
+          "required": true,
+          "format": "json"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/widgets/layout"
+      }
+    },
+    {
+      "name": "widgets.remove",
+      "description": "Remove a widget from its workspace. Undo brings it back.",
+      "label": "Remove widget",
+      "destructive": true,
+      "confirm": "Remove this widget?",
+      "returns": "none",
+      "params": {
+        "widget": {
+          "type": "string",
+          "description": "Widget id",
+          "required": true,
+          "format": "ref:widgets"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/widgets/remove"
+      }
+    },
+    {
+      "name": "charts.set",
+      "description": "Change what a chart shows: symbol, interval, chart type, price scale, extended hours, comparison symbols. On a linked chart the symbol and interval go to its channel (linked widgets follow) unless own=true.",
+      "label": "Set chart",
+      "returns": "record",
+      "params": {
+        "widget": {
+          "type": "string",
+          "description": "Chart widget id (default: the main chart of the workspace)",
+          "format": "ref:widgets"
+        },
+        "workspace": {
+          "type": "string",
+          "description": "Workspace id or name (default: the active one)",
+          "format": "ref:workspaces"
+        },
+        "symbol": {
+          "type": "string",
+          "description": "Symbol: AAPL, ^GSPC, EURUSD=X, GC=F, BTC-USD or BINANCE:BTCUSDT"
+        },
+        "interval": {
+          "type": "string",
+          "description": "Bar interval (default 1D)",
+          "enum": [
+            "1m",
+            "5m",
+            "15m",
+            "30m",
+            "1h",
+            "4h",
+            "1D",
+            "1W",
+            "1M"
+          ]
+        },
+        "type": {
+          "type": "string",
+          "description": "Chart type",
+          "enum": [
+            "candles",
+            "hollow",
+            "bars",
+            "line",
+            "area",
+            "baseline",
+            "heikin"
+          ]
+        },
+        "scale": {
+          "type": "string",
+          "description": "Price scale: normal, log, percent (from the first visible bar) or indexed (to 100)",
+          "enum": [
+            "normal",
+            "log",
+            "percent",
+            "indexed"
+          ]
+        },
+        "ext": {
+          "type": "boolean",
+          "description": "Show pre- and post-market trading (intraday stocks)"
+        },
+        "compare": {
+          "type": "string",
+          "description": "JSON list of up to 5 symbols to overlay",
+          "format": "json"
+        },
+        "own": {
+          "type": "boolean",
+          "description": "Give this chart its own symbol instead of its link channel's"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/charts/set"
+      }
+    },
+    {
+      "name": "charts.add_indicator",
+      "description": "Add an indicator to a chart (see indicators.catalogue for ids and parameters).",
+      "label": "Add indicator",
+      "returns": "record",
+      "params": {
+        "indicator": {
+          "type": "string",
+          "description": "Indicator id, e.g. rsi, macd, ema, bb, vwap",
+          "required": true
+        },
+        "params": {
+          "type": "string",
+          "description": "Parameters as JSON, e.g. {\"length\":50}",
+          "format": "json"
+        },
+        "hidden": {
+          "type": "boolean",
+          "description": "Add it hidden"
+        },
+        "color": {
+          "type": "string",
+          "description": "Line color (#rrggbb)"
+        },
+        "widget": {
+          "type": "string",
+          "description": "Chart widget id (default: the main chart of the workspace)",
+          "format": "ref:widgets"
+        },
+        "workspace": {
+          "type": "string",
+          "description": "Workspace id or name (default: the active one)",
+          "format": "ref:workspaces"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/charts/add_indicator"
+      }
+    },
+    {
+      "name": "charts.remove_indicator",
+      "description": "Remove an indicator from a chart: the last one with that id, or by position.",
+      "label": "Remove indicator",
+      "returns": "record",
+      "params": {
+        "indicator": {
+          "type": "string",
+          "description": "Indicator id"
+        },
+        "index": {
+          "type": "number",
+          "description": "Position in the chart's indicator list (0 first)"
+        },
+        "widget": {
+          "type": "string",
+          "description": "Chart widget id (default: the main chart of the workspace)",
+          "format": "ref:widgets"
+        },
+        "workspace": {
+          "type": "string",
+          "description": "Workspace id or name (default: the active one)",
+          "format": "ref:workspaces"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/charts/remove_indicator"
+      }
+    },
+    {
+      "name": "watchlists.list",
+      "description": "Every watchlist with its symbol count.",
+      "label": "Watchlists",
+      "readOnly": true,
+      "returns": "list",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/watchlists/list"
+      }
+    },
+    {
+      "name": "watchlists.get",
+      "description": "A watchlist with its rows (symbols and section headers, flags, notes) and, with quotes=true, a quote per symbol.",
+      "label": "Watchlist",
+      "readOnly": true,
+      "returns": "record",
+      "params": {
+        "list": {
+          "type": "string",
+          "description": "Watchlist id or name",
+          "required": true,
+          "format": "ref:watchlists"
+        },
+        "quotes": {
+          "type": "boolean",
+          "description": "Include quotes"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/watchlists/get"
+      }
+    },
+    {
+      "name": "watchlists.create",
+      "description": "Create a watchlist, optionally with symbols.",
+      "label": "New watchlist",
+      "returns": "record",
+      "params": {
+        "name": {
+          "type": "string",
+          "description": "Name",
+          "required": true
+        },
+        "symbols": {
+          "type": "string",
+          "description": "JSON list or comma-separated symbols"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/watchlists/create"
+      }
+    },
+    {
+      "name": "watchlists.update",
+      "description": "Rename a watchlist or choose its columns.",
+      "label": "Edit watchlist",
+      "returns": "record",
+      "params": {
+        "list": {
+          "type": "string",
+          "description": "Watchlist id or name",
+          "required": true,
+          "format": "ref:watchlists"
+        },
+        "name": {
+          "type": "string",
+          "description": "New name"
+        },
+        "columns": {
+          "type": "string",
+          "description": "JSON list from: last, chg, chg_pct, ext, volume, high, low, range, spark, high_52w, low_52w",
+          "format": "json"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/watchlists/update"
+      }
+    },
+    {
+      "name": "watchlists.delete",
+      "description": "Delete a watchlist with its rows. Undo restores it.",
+      "label": "Delete watchlist",
+      "destructive": true,
+      "confirm": "Delete this watchlist?",
+      "returns": "none",
+      "params": {
+        "list": {
+          "type": "string",
+          "description": "Watchlist id or name",
+          "required": true,
+          "format": "ref:watchlists"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/watchlists/delete"
+      }
+    },
+    {
+      "name": "watchlists.add",
+      "description": "Add symbols (and/or a section header) to a watchlist; symbols already in it are skipped.",
+      "label": "Add to watchlist",
+      "returns": "summary",
+      "params": {
+        "list": {
+          "type": "string",
+          "description": "Watchlist id or name",
+          "required": true,
+          "format": "ref:watchlists"
+        },
+        "symbols": {
+          "type": "string",
+          "description": "JSON list or comma-separated symbols"
+        },
+        "section": {
+          "type": "string",
+          "description": "Add a section header with this label first"
+        },
+        "index": {
+          "type": "number",
+          "description": "Insert at this position (default: at the end)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/watchlists/add"
+      }
+    },
+    {
+      "name": "watchlists.remove",
+      "description": "Remove rows from a watchlist: by row id(s), or a symbol of a list.",
+      "label": "Remove from watchlist",
+      "returns": "summary",
+      "params": {
+        "item": {
+          "type": "string",
+          "description": "Row id",
+          "format": "ref:watch_items"
+        },
+        "items": {
+          "type": "string",
+          "description": "JSON list of row ids",
+          "format": "json"
+        },
+        "list": {
+          "type": "string",
+          "description": "Watchlist (with symbol)",
+          "format": "ref:watchlists"
+        },
+        "symbol": {
+          "type": "string",
+          "description": "Symbol to remove (with list)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/watchlists/remove"
+      }
+    },
+    {
+      "name": "watchlists.move",
+      "description": "Move a watchlist row to a new position, or to another watchlist.",
+      "label": "Move row",
+      "returns": "none",
+      "params": {
+        "item": {
+          "type": "string",
+          "description": "Row id",
+          "required": true,
+          "format": "ref:watch_items"
+        },
+        "index": {
+          "type": "number",
+          "description": "New position (0 = top)"
+        },
+        "list": {
+          "type": "string",
+          "description": "Move to this watchlist",
+          "format": "ref:watchlists"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/watchlists/move"
+      }
+    },
+    {
+      "name": "watchlists.item",
+      "description": "Flag a watchlist row with a color, give it a note, or rename a section header.",
+      "label": "Flag or note",
+      "returns": "record",
+      "params": {
+        "item": {
+          "type": "string",
+          "description": "Row id",
+          "required": true,
+          "format": "ref:watch_items"
+        },
+        "flag": {
+          "type": "string",
+          "description": "Flag color (empty to clear)",
+          "enum": [
+            "red",
+            "amber",
+            "green",
+            "blue",
+            "violet"
+          ]
+        },
+        "note": {
+          "type": "string",
+          "description": "Note (empty to clear)",
+          "format": "multiline"
+        },
+        "label": {
+          "type": "string",
+          "description": "New label of a section header"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/watchlists/item"
+      }
+    },
+    {
+      "name": "drawings.list",
+      "description": "Drawings of a symbol (or all), oldest first, with points in time/price.",
+      "label": "Drawings",
+      "readOnly": true,
+      "returns": "list",
+      "params": {
+        "symbol": {
+          "type": "string",
+          "description": "Symbol: AAPL, ^GSPC, EURUSD=X, GC=F, BTC-USD or BINANCE:BTCUSDT"
+        },
+        "added_by": {
+          "type": "string",
+          "description": "Only the person's or the AI agent's",
+          "enum": [
+            "user",
+            "agent"
+          ]
+        },
+        "run": {
+          "type": "string",
+          "description": "Only from this AI agent run"
+        },
+        "limit": {
+          "type": "number",
+          "description": "At most this many (default 500)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/drawings/list"
+      }
+    },
+    {
+      "name": "drawings.add",
+      "description": "Draw on a symbol's charts. points: [{\"t\":<unix seconds>,\"p\":<price>}]: two for trend, ray, extended, rect, fib, measure; three for channel; one for hline, hray, vline, text, arrows; long/short: entry {t,p}, target {t:end,p}, stop {p}. A horizontal line can be given as --price. The AI agent's drawings show as its markup until the person keeps them.",
+      "label": "Draw",
+      "returns": "record",
+      "params": {
+        "symbol": {
+          "type": "string",
+          "description": "Symbol: AAPL, ^GSPC, EURUSD=X, GC=F, BTC-USD or BINANCE:BTCUSDT",
+          "required": true
+        },
+        "tool": {
+          "type": "string",
+          "description": "Drawing tool",
+          "required": true,
+          "enum": [
+            "trend",
+            "ray",
+            "extended",
+            "hline",
+            "hray",
+            "vline",
+            "rect",
+            "channel",
+            "fib",
+            "long",
+            "short",
+            "measure",
+            "text",
+            "arrow_up",
+            "arrow_down"
+          ]
+        },
+        "points": {
+          "type": "string",
+          "description": "JSON list of points [{\"t\":1767225600,\"p\":182.5}]",
+          "format": "json"
+        },
+        "price": {
+          "type": "number",
+          "description": "Price of a horizontal line (instead of points)"
+        },
+        "text": {
+          "type": "string",
+          "description": "Label shown on the drawing"
+        },
+        "note": {
+          "type": "string",
+          "description": "Why it is there (shown on hover)",
+          "format": "multiline"
+        },
+        "style": {
+          "type": "string",
+          "description": "JSON: {\"color\":\"ink|accent|up|down|amber|violet|teal|muted\",\"width\":1-4,\"dash\":true,\"extend_right\":true,\"fill\":true}",
+          "format": "json"
+        },
+        "locked": {
+          "type": "boolean",
+          "description": "Lock it against moving"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/drawings/add"
+      }
+    },
+    {
+      "name": "drawings.update",
+      "description": "Move a drawing (new points), restyle, relabel, lock or hide it.",
+      "label": "Edit drawing",
+      "returns": "record",
+      "params": {
+        "drawing": {
+          "type": "string",
+          "description": "Drawing id",
+          "required": true,
+          "format": "ref:drawings"
+        },
+        "points": {
+          "type": "string",
+          "description": "JSON list of points",
+          "format": "json"
+        },
+        "style": {
+          "type": "string",
+          "description": "Style to merge, as JSON",
+          "format": "json"
+        },
+        "text": {
+          "type": "string",
+          "description": "Label"
+        },
+        "note": {
+          "type": "string",
+          "description": "Note",
+          "format": "multiline"
+        },
+        "locked": {
+          "type": "boolean",
+          "description": "Lock"
+        },
+        "hidden": {
+          "type": "boolean",
+          "description": "Hide"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/drawings/update"
+      }
+    },
+    {
+      "name": "drawings.delete",
+      "description": "Delete one or more drawings. Undo restores them.",
+      "label": "Delete drawing",
+      "returns": "summary",
+      "params": {
+        "drawing": {
+          "type": "string",
+          "description": "Drawing id",
+          "format": "ref:drawings"
+        },
+        "drawings": {
+          "type": "string",
+          "description": "JSON list of drawing ids",
+          "format": "json"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/drawings/delete"
+      }
+    },
+    {
+      "name": "drawings.clear",
+      "description": "Delete every drawing of a symbol (or only the AI agent's or the person's). Undo restores them.",
+      "label": "Clear drawings",
+      "destructive": true,
+      "confirm": "Delete these drawings?",
+      "returns": "summary",
+      "params": {
+        "symbol": {
+          "type": "string",
+          "description": "Symbol: AAPL, ^GSPC, EURUSD=X, GC=F, BTC-USD or BINANCE:BTCUSDT",
+          "required": true
+        },
+        "added_by": {
+          "type": "string",
+          "description": "Only these",
+          "enum": [
+            "user",
+            "agent"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/drawings/clear"
+      }
+    },
+    {
+      "name": "drawings.adopt",
+      "description": "Keep the AI agent's drawings as the person's own: one drawing, a symbol's, or a run's.",
+      "label": "Keep AI markup",
+      "returns": "summary",
+      "params": {
+        "drawing": {
+          "type": "string",
+          "description": "Drawing id",
+          "format": "ref:drawings"
+        },
+        "symbol": {
+          "type": "string",
+          "description": "Symbol: AAPL, ^GSPC, EURUSD=X, GC=F, BTC-USD or BINANCE:BTCUSDT"
+        },
+        "run": {
+          "type": "string",
+          "description": "AI agent run id"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/drawings/adopt"
+      }
+    },
+    {
+      "name": "alerts.list",
+      "description": "Alerts with their condition in words, status, last check and how often they fired, plus the number of unseen alert events.",
+      "label": "Alerts",
+      "readOnly": true,
+      "returns": "list",
+      "params": {
+        "status": {
+          "type": "string",
+          "description": "Filter (default any)",
+          "enum": [
+            "active",
+            "paused",
+            "triggered",
+            "expired",
+            "any"
+          ]
+        },
+        "symbol": {
+          "type": "string",
+          "description": "Symbol: AAPL, ^GSPC, EURUSD=X, GC=F, BTC-USD or BINANCE:BTCUSDT"
+        },
+        "limit": {
+          "type": "number",
+          "description": "At most this many (default 200)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/alerts/list"
+      }
+    },
+    {
+      "name": "alerts.create",
+      "description": "Create an alert the app checks every minute (also with the window closed). Left side: price (default), --indicator, or --watch change. Right side: --value, --against an indicator, or --drawing a line. Examples: --op crosses_up --value 200; --indicator rsi --op below --value 30 --interval 1h; --op crosses --against sma --against_params {\"length\":50}.",
+      "label": "New alert",
+      "returns": "record",
+      "params": {
+        "symbol": {
+          "type": "string",
+          "description": "Symbol: AAPL, ^GSPC, EURUSD=X, GC=F, BTC-USD or BINANCE:BTCUSDT",
+          "required": true
+        },
+        "interval": {
+          "type": "string",
+          "description": "Interval of the bars the condition is read on (default 1D)",
+          "enum": [
+            "1m",
+            "5m",
+            "15m",
+            "30m",
+            "1h",
+            "4h",
+            "1D",
+            "1W",
+            "1M"
+          ]
+        },
+        "op": {
+          "type": "string",
+          "description": "How the left side compares with the right side",
+          "enum": [
+            "crosses",
+            "crosses_up",
+            "crosses_down",
+            "above",
+            "below"
+          ]
+        },
+        "value": {
+          "type": "number",
+          "description": "Right side: a number (a price, an indicator level such as 30, or a percent with watch=change)"
+        },
+        "indicator": {
+          "type": "string",
+          "description": "Left side: an indicator instead of the price, e.g. rsi (see indicators.catalogue)"
+        },
+        "params": {
+          "type": "string",
+          "description": "Parameters of the left indicator as JSON, e.g. {\"length\":14}",
+          "format": "json"
+        },
+        "output": {
+          "type": "string",
+          "description": "Output of the left indicator when it has several (e.g. macd: macd, signal, hist)"
+        },
+        "against": {
+          "type": "string",
+          "description": "Right side: an indicator, e.g. sma (price crosses SMA 50)"
+        },
+        "against_params": {
+          "type": "string",
+          "description": "Parameters of the right indicator as JSON, e.g. {\"length\":50}",
+          "format": "json"
+        },
+        "against_output": {
+          "type": "string",
+          "description": "Output of the right indicator when it has several"
+        },
+        "drawing": {
+          "type": "string",
+          "description": "Right side: a trend line, ray or horizontal line drawing id",
+          "format": "ref:drawings"
+        },
+        "watch": {
+          "type": "string",
+          "description": "Left side: price (default) or change (today's % change)",
+          "enum": [
+            "price",
+            "change"
+          ]
+        },
+        "frequency": {
+          "type": "string",
+          "description": "once (default), once_per_bar or every",
+          "enum": [
+            "once",
+            "once_per_bar",
+            "every"
+          ]
+        },
+        "expires": {
+          "type": "string",
+          "description": "Expiry date, e.g. 2026-12-31"
+        },
+        "message": {
+          "type": "string",
+          "description": "Message shown when it fires"
+        },
+        "notify_agent": {
+          "type": "boolean",
+          "description": "Also send it to the AI agent, which explains what happened"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/alerts/create"
+      }
+    },
+    {
+      "name": "alerts.update",
+      "description": "Change an alert's condition, interval, frequency, expiry, message, agent notification, or pause/resume it.",
+      "label": "Edit alert",
+      "returns": "record",
+      "params": {
+        "alert": {
+          "type": "string",
+          "description": "Alert id",
+          "required": true,
+          "format": "ref:alerts"
+        },
+        "interval": {
+          "type": "string",
+          "description": "Interval",
+          "enum": [
+            "1m",
+            "5m",
+            "15m",
+            "30m",
+            "1h",
+            "4h",
+            "1D",
+            "1W",
+            "1M"
+          ]
+        },
+        "op": {
+          "type": "string",
+          "description": "How the left side compares with the right side",
+          "enum": [
+            "crosses",
+            "crosses_up",
+            "crosses_down",
+            "above",
+            "below"
+          ]
+        },
+        "value": {
+          "type": "number",
+          "description": "Right side: a number (a price, an indicator level such as 30, or a percent with watch=change)"
+        },
+        "indicator": {
+          "type": "string",
+          "description": "Left side: an indicator instead of the price, e.g. rsi (see indicators.catalogue)"
+        },
+        "params": {
+          "type": "string",
+          "description": "Parameters of the left indicator as JSON, e.g. {\"length\":14}",
+          "format": "json"
+        },
+        "output": {
+          "type": "string",
+          "description": "Output of the left indicator when it has several (e.g. macd: macd, signal, hist)"
+        },
+        "against": {
+          "type": "string",
+          "description": "Right side: an indicator, e.g. sma (price crosses SMA 50)"
+        },
+        "against_params": {
+          "type": "string",
+          "description": "Parameters of the right indicator as JSON, e.g. {\"length\":50}",
+          "format": "json"
+        },
+        "against_output": {
+          "type": "string",
+          "description": "Output of the right indicator when it has several"
+        },
+        "drawing": {
+          "type": "string",
+          "description": "Right side: a trend line, ray or horizontal line drawing id",
+          "format": "ref:drawings"
+        },
+        "watch": {
+          "type": "string",
+          "description": "Left side: price (default) or change (today's % change)",
+          "enum": [
+            "price",
+            "change"
+          ]
+        },
+        "frequency": {
+          "type": "string",
+          "description": "Frequency",
+          "enum": [
+            "once",
+            "once_per_bar",
+            "every"
+          ]
+        },
+        "expires": {
+          "type": "string",
+          "description": "Expiry date (empty to clear)"
+        },
+        "message": {
+          "type": "string",
+          "description": "Message"
+        },
+        "notify_agent": {
+          "type": "boolean",
+          "description": "Send to the AI agent"
+        },
+        "status": {
+          "type": "string",
+          "description": "Pause or resume",
+          "enum": [
+            "active",
+            "paused"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/alerts/update"
+      }
+    },
+    {
+      "name": "alerts.delete",
+      "description": "Delete an alert with its log. Undo restores it.",
+      "label": "Delete alert",
+      "destructive": true,
+      "confirm": "Delete this alert?",
+      "returns": "none",
+      "params": {
+        "alert": {
+          "type": "string",
+          "description": "Alert id",
+          "required": true,
+          "format": "ref:alerts"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/alerts/delete"
+      }
+    },
+    {
+      "name": "alerts.events",
+      "description": "Fired alerts, newest first, with the price, what happened and the AI agent's note.",
+      "label": "Alert log",
+      "readOnly": true,
+      "returns": "list",
+      "params": {
+        "alert": {
+          "type": "string",
+          "description": "Only this alert",
+          "format": "ref:alerts"
+        },
+        "symbol": {
+          "type": "string",
+          "description": "Symbol: AAPL, ^GSPC, EURUSD=X, GC=F, BTC-USD or BINANCE:BTCUSDT"
+        },
+        "unseen": {
+          "type": "boolean",
+          "description": "Only unseen ones"
+        },
+        "agent": {
+          "type": "string",
+          "description": "Only with this AI agent state",
+          "enum": [
+            "waiting",
+            "working",
+            "done",
+            "failed"
+          ]
+        },
+        "limit": {
+          "type": "number",
+          "description": "At most this many (default 100)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/alerts/events"
+      }
+    },
+    {
+      "name": "alerts.seen",
+      "description": "Mark alert events as seen (all unseen ones when no ids are given).",
+      "label": "Mark seen",
+      "returns": "summary",
+      "params": {
+        "events": {
+          "type": "string",
+          "description": "JSON list of event ids",
+          "format": "json"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/alerts/seen"
+      }
+    },
+    {
+      "name": "alerts.check",
+      "description": "Check every active alert now instead of waiting for the minute.",
+      "label": "Check alerts now",
+      "returns": "summary",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/alerts/check"
+      }
+    },
+    {
+      "name": "alerts.respond",
+      "description": "Your note on a fired alert sent to you (trigger alert_fired): what happened, the context and what to watch. Give reason instead when you could not look into it.",
+      "label": "Explain alert",
+      "returns": "record",
+      "params": {
+        "event": {
+          "type": "string",
+          "description": "Alert event id",
+          "required": true,
+          "format": "ref:alert_events"
+        },
+        "note": {
+          "type": "string",
+          "description": "2 to 5 sentences",
+          "format": "multiline"
+        },
+        "reason": {
+          "type": "string",
+          "description": "Why you could not look into it"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/alerts/respond"
+      }
+    },
+    {
+      "name": "analyses.request",
+      "description": "Ask the AI agent to analyze a symbol's chart (optionally with a question) or to review a watchlist. A waiting ask for the same thing is reused.",
+      "label": "Ask AI",
+      "returns": "record",
+      "params": {
+        "symbol": {
+          "type": "string",
+          "description": "Symbol: AAPL, ^GSPC, EURUSD=X, GC=F, BTC-USD or BINANCE:BTCUSDT"
+        },
+        "interval": {
+          "type": "string",
+          "description": "Bar interval (default 1D)",
+          "enum": [
+            "1m",
+            "5m",
+            "15m",
+            "30m",
+            "1h",
+            "4h",
+            "1D",
+            "1W",
+            "1M"
+          ]
+        },
+        "watchlist": {
+          "type": "string",
+          "description": "Review this watchlist instead of one symbol",
+          "format": "ref:watchlists"
+        },
+        "focus": {
+          "type": "string",
+          "description": "The person's question, e.g. \"Is the breakout holding?\"",
+          "format": "multiline"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/analyses/request"
+      }
+    },
+    {
+      "name": "analyses.list",
+      "description": "Analyses by state (waiting first when state=waiting), with summary, bias, levels and facts.",
+      "label": "Analyses",
+      "readOnly": true,
+      "returns": "list",
+      "params": {
+        "state": {
+          "type": "string",
+          "description": "Filter (default any)",
+          "enum": [
+            "waiting",
+            "working",
+            "done",
+            "failed",
+            "any"
+          ]
+        },
+        "symbol": {
+          "type": "string",
+          "description": "Symbol: AAPL, ^GSPC, EURUSD=X, GC=F, BTC-USD or BINANCE:BTCUSDT"
+        },
+        "watchlist": {
+          "type": "string",
+          "description": "Watchlist id",
+          "format": "ref:watchlists"
+        },
+        "limit": {
+          "type": "number",
+          "description": "At most this many (default 50)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/analyses/list"
+      }
+    },
+    {
+      "name": "analyses.get",
+      "description": "One analysis.",
+      "label": "Analysis",
+      "readOnly": true,
+      "returns": "record",
+      "params": {
+        "analysis": {
+          "type": "string",
+          "description": "Analysis id",
+          "required": true,
+          "format": "ref:analyses"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/analyses/get"
+      }
+    },
+    {
+      "name": "analyses.start",
+      "description": "Take a waiting analysis before working on it (a watchlist review returns the list with quotes).",
+      "label": "Start analysis",
+      "returns": "record",
+      "params": {
+        "analysis": {
+          "type": "string",
+          "description": "Analysis id",
+          "required": true,
+          "format": "ref:analyses"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/analyses/start"
+      }
+    },
+    {
+      "name": "analyses.complete",
+      "description": "Save your analysis: summary (120 to 250 words: trend, momentum, levels, volume, catalysts, scenarios with invalidation), bias and key levels (shown on the chart). The app adds a snapshot of the key numbers.",
+      "label": "Save analysis",
+      "returns": "record",
+      "params": {
+        "analysis": {
+          "type": "string",
+          "description": "Analysis id",
+          "required": true,
+          "format": "ref:analyses"
+        },
+        "summary": {
+          "type": "string",
+          "description": "The analysis",
+          "required": true,
+          "format": "multiline"
+        },
+        "bias": {
+          "type": "string",
+          "description": "Overall read",
+          "enum": [
+            "bullish",
+            "bearish",
+            "neutral",
+            "mixed"
+          ]
+        },
+        "levels": {
+          "type": "string",
+          "description": "JSON list [{\"price\":182.5,\"kind\":\"support|resistance|target|stop|entry|pivot\",\"label\":\"swing low\"}]",
+          "format": "json"
+        },
+        "replace": {
+          "type": "boolean",
+          "description": "Rewrite a finished analysis"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/analyses/complete"
+      }
+    },
+    {
+      "name": "analyses.fail",
+      "description": "Report that an analysis could not be done, with a reason the person can act on.",
+      "label": "Analysis failed",
+      "returns": "record",
+      "params": {
+        "analysis": {
+          "type": "string",
+          "description": "Analysis id",
+          "required": true,
+          "format": "ref:analyses"
+        },
+        "reason": {
+          "type": "string",
+          "description": "What went wrong",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/analyses/fail"
+      }
+    },
+    {
+      "name": "analyses.cancel",
+      "description": "Withdraw an analysis ask that is still waiting.",
+      "label": "Cancel ask",
+      "returns": "none",
+      "params": {
+        "analysis": {
+          "type": "string",
+          "description": "Analysis id",
+          "required": true,
+          "format": "ref:analyses"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/analyses/cancel"
+      }
+    },
+    {
+      "name": "analyses.delete",
+      "description": "Delete an analysis. Undo restores it.",
+      "label": "Delete analysis",
+      "destructive": true,
+      "confirm": "Delete this analysis?",
+      "returns": "none",
+      "params": {
+        "analysis": {
+          "type": "string",
+          "description": "Analysis id",
+          "required": true,
+          "format": "ref:analyses"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/analyses/delete"
+      }
+    },
+    {
+      "name": "screener.universes",
+      "description": "What a screen can run on: US large caps, ETFs, world indices, currencies, futures, crypto, Yahoo market lists (day gainers, most active...) and every watchlist.",
+      "label": "Universes",
+      "readOnly": true,
+      "returns": "list",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/screener/universes"
+      }
+    },
+    {
+      "name": "screener.fields",
+      "description": "Fields a screen can filter and sort on (quote, technical from daily bars, and fundamentals on Yahoo lists).",
+      "label": "Screener fields",
+      "readOnly": true,
+      "returns": "list",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/screener/fields"
+      }
+    },
+    {
+      "name": "screener.run",
+      "description": "Screen a universe: filter with criteria, sort and limit. Technical fields are computed from daily bars (up to 100 instruments).",
+      "label": "Run screen",
+      "readOnly": true,
+      "returns": "record",
+      "params": {
+        "universe": {
+          "type": "string",
+          "description": "Universe id (default us_mega), e.g. etfs, crypto, yahoo:day_gainers, watchlist:<id>"
+        },
+        "criteria": {
+          "type": "string",
+          "description": "JSON list [{\"field\":\"rsi14\",\"op\":\"<\",\"value\":30}] (ops > >= < <= between with value2)",
+          "format": "json"
+        },
+        "sort": {
+          "type": "string",
+          "description": "Field to sort by (default change_pct)"
+        },
+        "desc": {
+          "type": "boolean",
+          "description": "Largest first (default true)"
+        },
+        "limit": {
+          "type": "number",
+          "description": "At most this many rows (default 50, max 200)"
+        },
+        "technical": {
+          "type": "boolean",
+          "description": "Compute technical fields even when no criterion needs them"
+        },
+        "screen": {
+          "type": "string",
+          "description": "Run a saved screen",
+          "format": "ref:screens"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/screener/run"
+      }
+    },
+    {
+      "name": "screener.heatmap",
+      "description": "Heatmap tiles of a universe: change %, traded value and group (sector).",
+      "label": "Heatmap",
+      "readOnly": true,
+      "returns": "record",
+      "params": {
+        "universe": {
+          "type": "string",
+          "description": "Universe id (default us_mega)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/screener/heatmap"
+      }
+    },
+    {
+      "name": "screens.list",
+      "description": "Saved screens.",
+      "label": "Saved screens",
+      "readOnly": true,
+      "returns": "list",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/screens/list"
+      }
+    },
+    {
+      "name": "screens.save",
+      "description": "Save a screen (or update one with --screen).",
+      "label": "Save screen",
+      "returns": "record",
+      "params": {
+        "screen": {
+          "type": "string",
+          "description": "Screen to update",
+          "format": "ref:screens"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name"
+        },
+        "universe": {
+          "type": "string",
+          "description": "Universe id"
+        },
+        "criteria": {
+          "type": "string",
+          "description": "JSON criteria list",
+          "format": "json"
+        },
+        "sort": {
+          "type": "string",
+          "description": "Sort field"
+        },
+        "note": {
+          "type": "string",
+          "description": "What it finds",
+          "format": "multiline"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/screens/save"
+      }
+    },
+    {
+      "name": "screens.delete",
+      "description": "Delete a saved screen.",
+      "label": "Delete screen",
+      "destructive": true,
+      "confirm": "Delete this screen?",
+      "returns": "none",
+      "params": {
+        "screen": {
+          "type": "string",
+          "description": "Saved screen id",
+          "required": true,
+          "format": "ref:screens"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/screens/delete"
+      }
+    },
+    {
+      "name": "activity.list",
+      "description": "Every change by the person or the AI agent, newest first, with whether it can be undone or redone.",
+      "label": "Activity",
+      "readOnly": true,
+      "returns": "list",
+      "params": {
+        "actor": {
+          "type": "string",
+          "description": "Only the person's or the AI agent's",
+          "enum": [
+            "user",
+            "agent"
+          ]
+        },
+        "run": {
+          "type": "string",
+          "description": "Only this AI agent run"
+        },
+        "symbol": {
+          "type": "string",
+          "description": "Symbol: AAPL, ^GSPC, EURUSD=X, GC=F, BTC-USD or BINANCE:BTCUSDT"
+        },
+        "limit": {
+          "type": "number",
+          "description": "At most this many (default 100)"
+        },
+        "offset": {
+          "type": "number",
+          "description": "Skip this many"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/activity/list"
+      }
+    },
+    {
+      "name": "activity.undo",
+      "description": "Undo one change (by entry id), or the caller's latest change.",
+      "label": "Undo",
+      "returns": "record",
+      "params": {
+        "entry": {
+          "type": "string",
+          "description": "Activity entry id",
+          "format": "ref:activity"
+        },
+        "actor": {
+          "type": "string",
+          "description": "Whose latest change (default the caller)",
+          "enum": [
+            "user",
+            "agent"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/activity/undo"
+      }
+    },
+    {
+      "name": "activity.redo",
+      "description": "Redo an undone change (by entry id), or the caller's latest undone change.",
+      "label": "Redo",
+      "returns": "record",
+      "params": {
+        "entry": {
+          "type": "string",
+          "description": "Activity entry id",
+          "format": "ref:activity"
+        },
+        "actor": {
+          "type": "string",
+          "description": "Whose change (default the caller)",
+          "enum": [
+            "user",
+            "agent"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/activity/redo"
+      }
+    },
+    {
+      "name": "activity.runs",
+      "description": "The AI agent's runs, newest first: when, how many changes, symbols and a summary of each.",
+      "label": "AI agent runs",
+      "readOnly": true,
+      "returns": "list",
+      "params": {
+        "limit": {
+          "type": "number",
+          "description": "At most this many (default 20)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/activity/runs"
+      }
+    },
+    {
+      "name": "activity.revert_run",
+      "description": "Undo everything an AI agent run changed, newest first.",
+      "label": "Revert run",
+      "destructive": true,
+      "confirm": "Undo everything this AI agent run changed?",
+      "returns": "summary",
+      "params": {
+        "run": {
+          "type": "string",
+          "description": "Run id",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/activity/revert_run"
+      }
     }
   ]
 }

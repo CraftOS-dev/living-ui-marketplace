@@ -6,50 +6,4976 @@
       "description": "Liveness check (PocketBase built-in).",
       "system": true,
       "params": {},
-      "executor": { "type": "http", "method": "GET", "path": "/api/health" }
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/health"
+      }
     },
     {
       "name": "ops.list",
       "description": "Return this operations manifest.",
       "system": true,
       "params": {},
-      "executor": { "type": "http", "method": "GET", "path": "/api/_ops" }
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/_ops"
+      }
+    },
+    {
+      "name": "app.guide",
+      "description": "START HERE: the workspace, what you may write directly and what you only propose (policy and house rules), conventions (identity by email and domain, money in minor units in answers and decimals in params), the pipelines with their stages, lists, every field (custom ones with their AI instructions), the filter ops, what is on screen and recipes for each trigger.",
+      "label": "App guide",
+      "readOnly": true,
+      "returns": "summary",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/app/guide"
+      }
+    },
+    {
+      "name": "app.context",
+      "description": "The view the person has open, its filters and the selected person, company, deal, proposal or report, with the counts behind the badges and the settings.",
+      "label": "What is on screen",
+      "readOnly": true,
+      "returns": "summary",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/app/context"
+      }
+    },
+    {
+      "name": "app.summary",
+      "description": "Proposals waiting, tasks overdue and due today, keep-in-touch due, the AI agent's work waiting and in progress, emails queued or failed, and how many people, companies and open deals.",
+      "label": "Counts",
+      "readOnly": true,
+      "returns": "summary",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/app/summary"
+      }
+    },
+    {
+      "name": "app.dashboard",
+      "description": "The Home dashboard: open pipeline, weighted forecast, won, win rate, average deal and sales cycle for a period against the one before (revenue pipelines only: fundraising and hiring are left out of the money numbers); a revenue pipeline by stage; each fundraising and hiring pipeline (stages, committed or hired, the round target); the forecast by month; won and lost for 12 months; interactions per week; relationship strength and who is going cold; deal sources; what needs attention (overdue tasks, rotting deals, deals without a next step, keep in touch, birthdays, proposals, deals closing soon) and the AI agent's recent runs.",
+      "label": "Dashboard",
+      "readOnly": true,
+      "returns": "summary",
+      "params": {
+        "range": {
+          "type": "string",
+          "description": "Period (or custom with from/to)",
+          "enum": [
+            "this_month",
+            "last_month",
+            "this_quarter",
+            "last_quarter",
+            "ytd",
+            "this_year",
+            "last_year",
+            "last_12_months",
+            "custom"
+          ]
+        },
+        "from": {
+          "type": "string",
+          "description": "From (custom range) (YYYY-MM-DD)"
+        },
+        "to": {
+          "type": "string",
+          "description": "To (custom range) (YYYY-MM-DD)"
+        },
+        "pipeline": {
+          "type": "string",
+          "description": "Pipeline id, name or kind (sales, fundraising, hiring, partnerships)",
+          "format": "ref:pipelines"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/app/dashboard"
+      }
+    },
+    {
+      "name": "app.ui",
+      "description": "The UI reports what is on screen (view, selection, filters). Not for the AI agent.",
+      "label": "Report screen",
+      "returns": "none",
+      "params": {
+        "view": {
+          "type": "string",
+          "description": "View"
+        },
+        "selection": {
+          "type": "string",
+          "description": "JSON {\"type\":\"people|companies|deals|proposal|report\",\"id\":\"..\"}",
+          "format": "json"
+        },
+        "filters": {
+          "type": "string",
+          "description": "JSON filters",
+          "format": "json"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/app/ui"
+      }
+    },
+    {
+      "name": "search.all",
+      "description": "People, companies and deals matching words (names, emails, domains, companies, titles, tags).",
+      "label": "Search",
+      "readOnly": true,
+      "returns": "list",
+      "params": {
+        "q": {
+          "type": "string",
+          "description": "Words to find",
+          "required": true
+        },
+        "limit": {
+          "type": "number",
+          "description": "At most this many"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/search/all"
+      }
+    },
+    {
+      "name": "setup.get",
+      "description": "Settings, the policy, supported currencies and the pipeline templates.",
+      "label": "Setup",
+      "readOnly": true,
+      "returns": "record",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/setup/get"
+      }
+    },
+    {
+      "name": "setup.apply",
+      "description": "First run: workspace name, your name, home currency, which pipelines to start with and the default keep-in-touch cadence.",
+      "label": "Set up the CRM",
+      "returns": "record",
+      "params": {
+        "workspace": {
+          "type": "string",
+          "description": "Workspace or company name"
+        },
+        "owner_name": {
+          "type": "string",
+          "description": "Your name"
+        },
+        "home_currency": {
+          "type": "string",
+          "description": "ISO code, e.g. USD, EUR, GBP, MYR"
+        },
+        "pipelines": {
+          "type": "string",
+          "description": "JSON list from sales, fundraising, hiring, partnerships",
+          "format": "json"
+        },
+        "keep_in_touch_default": {
+          "type": "number",
+          "description": "Default keep-in-touch days for new people (0 = off)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/setup/apply"
+      }
+    },
+    {
+      "name": "settings.update",
+      "description": "Workspace name, your name, home currency (before any deal is won or lost), default keep-in-touch cadence.",
+      "label": "Change settings",
+      "returns": "record",
+      "params": {
+        "workspace": {
+          "type": "string",
+          "description": "Workspace name"
+        },
+        "owner_name": {
+          "type": "string",
+          "description": "Your name"
+        },
+        "home_currency": {
+          "type": "string",
+          "description": "Home currency"
+        },
+        "keep_in_touch_default": {
+          "type": "number",
+          "description": "Default keep-in-touch days"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/settings/update"
+      }
+    },
+    {
+      "name": "policy.update",
+      "description": "What the AI agent may do directly and what it only proposes, per kind of change (auto or propose), whether new records are researched, meetings reviewed and a daily brief prepared, and the house rules it follows. The person only.",
+      "label": "AI agent policy",
+      "returns": "record",
+      "params": {
+        "update": {
+          "type": "string",
+          "description": "Changing values the person entered",
+          "enum": [
+            "auto",
+            "propose"
+          ]
+        },
+        "stage": {
+          "type": "string",
+          "description": "Moving deals between stages",
+          "enum": [
+            "auto",
+            "propose"
+          ]
+        },
+        "close": {
+          "type": "string",
+          "description": "Won, lost and reopen",
+          "enum": [
+            "auto",
+            "propose"
+          ]
+        },
+        "deal_value": {
+          "type": "string",
+          "description": "Deal value, currency, close date, probability",
+          "enum": [
+            "auto",
+            "propose"
+          ]
+        },
+        "merge": {
+          "type": "string",
+          "description": "Merging duplicates",
+          "enum": [
+            "auto",
+            "propose"
+          ]
+        },
+        "delete": {
+          "type": "string",
+          "description": "Deleting records",
+          "enum": [
+            "auto",
+            "propose"
+          ]
+        },
+        "email": {
+          "type": "string",
+          "description": "Sending email",
+          "enum": [
+            "auto",
+            "propose"
+          ]
+        },
+        "autonomy": {
+          "type": "string",
+          "description": "JSON of the above at once",
+          "format": "json"
+        },
+        "auto_research": {
+          "type": "boolean",
+          "description": "Research new people and companies the person adds"
+        },
+        "meeting_review": {
+          "type": "boolean",
+          "description": "Review meetings and calls logged with notes"
+        },
+        "daily_brief": {
+          "type": "boolean",
+          "description": "Prepare a brief every morning"
+        },
+        "brief_hour": {
+          "type": "number",
+          "description": "Hour of the brief (0-23)"
+        },
+        "house_rules": {
+          "type": "string",
+          "description": "Standing instructions for the AI agent",
+          "format": "multiline"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/policy/update"
+      }
+    },
+    {
+      "name": "activity.list",
+      "description": "Every change by the person, the AI agent, imports and the system, newest first, with what changed and whether it can be undone.",
+      "label": "Activity",
+      "readOnly": true,
+      "returns": "list",
+      "params": {
+        "actor": {
+          "type": "string",
+          "description": "Only by",
+          "enum": [
+            "user",
+            "agent",
+            "import",
+            "system"
+          ]
+        },
+        "run": {
+          "type": "string",
+          "description": "Only this AI agent run"
+        },
+        "target": {
+          "type": "string",
+          "description": "Only changes to this record id"
+        },
+        "limit": {
+          "type": "number",
+          "description": "At most this many"
+        },
+        "offset": {
+          "type": "number",
+          "description": "Skip this many"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/activity/list"
+      }
+    },
+    {
+      "name": "activity.undo",
+      "description": "Undo one change (by entry id) or the caller's latest. The AI agent undoes only its own. Refused when something it touched changed again later.",
+      "label": "Undo",
+      "returns": "record",
+      "params": {
+        "entry": {
+          "type": "string",
+          "description": "Activity entry id",
+          "format": "ref:activity"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/activity/undo"
+      }
+    },
+    {
+      "name": "activity.redo",
+      "description": "Redo an undone change (by entry id) or the caller's latest undone change.",
+      "label": "Redo",
+      "returns": "record",
+      "params": {
+        "entry": {
+          "type": "string",
+          "description": "Activity entry id",
+          "format": "ref:activity"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/activity/redo"
+      }
+    },
+    {
+      "name": "activity.runs",
+      "description": "The AI agent's runs, newest first: when, how many changes and what.",
+      "label": "AI agent runs",
+      "readOnly": true,
+      "returns": "list",
+      "params": {
+        "limit": {
+          "type": "number",
+          "description": "At most this many"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/activity/runs"
+      }
+    },
+    {
+      "name": "activity.revert_run",
+      "description": "Undo everything an AI agent run changed, newest first (changes touched again later are skipped and listed).",
+      "label": "Revert run",
+      "destructive": true,
+      "confirm": "Undo everything this AI agent run changed?",
+      "returns": "summary",
+      "params": {
+        "run": {
+          "type": "string",
+          "description": "Run id",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/activity/revert_run"
+      }
+    },
+    {
+      "name": "asks.create",
+      "description": "Ask the AI agent a question or give it a job (research, a draft, fill the CRM from email, a brief, explain a report).",
+      "label": "Ask AI",
+      "returns": "record",
+      "params": {
+        "question": {
+          "type": "string",
+          "description": "The question or job",
+          "format": "multiline"
+        },
+        "kind": {
+          "type": "string",
+          "description": "Kind",
+          "enum": [
+            "question",
+            "job",
+            "explain",
+            "brief"
+          ]
+        },
+        "context": {
+          "type": "string",
+          "description": "JSON of what it is about (default what is on screen)",
+          "format": "json"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/asks/create"
+      }
+    },
+    {
+      "name": "asks.list",
+      "description": "Questions and jobs for the AI agent, newest first, with answers.",
+      "label": "Questions",
+      "readOnly": true,
+      "returns": "list",
+      "params": {
+        "status": {
+          "type": "string",
+          "description": "Status",
+          "enum": [
+            "waiting",
+            "working",
+            "done",
+            "failed"
+          ]
+        },
+        "limit": {
+          "type": "number",
+          "description": "At most this many"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/asks/list"
+      }
+    },
+    {
+      "name": "asks.get",
+      "description": "One question with its context and answer.",
+      "label": "Question",
+      "readOnly": true,
+      "returns": "record",
+      "params": {
+        "ask": {
+          "type": "string",
+          "description": "Ask id",
+          "required": true,
+          "format": "ref:asks"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/asks/get"
+      }
+    },
+    {
+      "name": "asks.start",
+      "description": "AI agent: take a waiting question or job.",
+      "label": "Take question",
+      "returns": "record",
+      "params": {
+        "ask": {
+          "type": "string",
+          "description": "Ask id",
+          "required": true,
+          "format": "ref:asks"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/asks/start"
+      }
+    },
+    {
+      "name": "asks.answer",
+      "description": "AI agent: answer in plain words with formatted amounts and links to the records you used.",
+      "label": "Answer",
+      "returns": "record",
+      "params": {
+        "ask": {
+          "type": "string",
+          "description": "Ask id",
+          "required": true,
+          "format": "ref:asks"
+        },
+        "answer": {
+          "type": "string",
+          "description": "The answer",
+          "required": true,
+          "format": "multiline"
+        },
+        "links": {
+          "type": "string",
+          "description": "JSON [{\"type\":\"people|companies|deals\",\"id\":\"..\",\"label\":\"..\"}]",
+          "format": "json"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/asks/answer"
+      }
+    },
+    {
+      "name": "asks.fail",
+      "description": "AI agent: give a question back with the reason.",
+      "label": "Cannot answer",
+      "returns": "record",
+      "params": {
+        "ask": {
+          "type": "string",
+          "description": "Ask id",
+          "required": true,
+          "format": "ref:asks"
+        },
+        "reason": {
+          "type": "string",
+          "description": "Why",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/asks/fail"
+      }
+    },
+    {
+      "name": "asks.delete",
+      "description": "Delete a question.",
+      "label": "Delete question",
+      "returns": "none",
+      "params": {
+        "ask": {
+          "type": "string",
+          "description": "Ask id",
+          "required": true,
+          "format": "ref:asks"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/asks/delete"
+      }
+    },
+    {
+      "name": "fx.list",
+      "description": "Currencies used by deals and pipelines with their latest rate, and stored rates (home currency per unit).",
+      "label": "Exchange rates",
+      "readOnly": true,
+      "returns": "list",
+      "params": {
+        "currency": {
+          "type": "string",
+          "description": "Only this currency"
+        },
+        "limit": {
+          "type": "number",
+          "description": "At most this many"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/fx/list"
+      }
+    },
+    {
+      "name": "fx.set",
+      "description": "Store a rate: 1 unit of currency = rate in the home currency, on a date.",
+      "label": "Set rate",
+      "returns": "record",
+      "params": {
+        "currency": {
+          "type": "string",
+          "description": "ISO currency",
+          "required": true
+        },
+        "rate": {
+          "type": "string",
+          "description": "Home currency per 1 unit, e.g. 1.0842",
+          "required": true
+        },
+        "date": {
+          "type": "string",
+          "description": "Date (default today) (YYYY-MM-DD)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/fx/set"
+      }
+    },
+    {
+      "name": "fx.fetch",
+      "description": "Fetch today's European Central Bank reference rates for the currencies in use (or given).",
+      "label": "Fetch rates",
+      "returns": "summary",
+      "params": {
+        "currencies": {
+          "type": "string",
+          "description": "JSON list of currencies (default those in use)",
+          "format": "json"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/fx/fetch"
+      }
+    },
+    {
+      "name": "fx.delete",
+      "description": "Remove a stored rate.",
+      "label": "Remove rate",
+      "returns": "none",
+      "params": {
+        "rate": {
+          "type": "string",
+          "description": "Rate id",
+          "required": true,
+          "format": "ref:fx_rates"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/fx/delete"
+      }
+    },
+    {
+      "name": "people.list",
+      "description": "People as rows: name, emails, title, company, strength (0-100), last interaction, next keep-in-touch date, open deals, lists, tags, custom fields, which values the AI agent wrote (prov) and pending proposals.",
+      "label": "People",
+      "readOnly": true,
+      "returns": "list",
+      "params": {
+        "q": {
+          "type": "string",
+          "description": "Words to find"
+        },
+        "preset": {
+          "type": "string",
+          "description": "A built-in view",
+          "enum": [
+            "all",
+            "keep_in_touch",
+            "recent",
+            "strong",
+            "cold",
+            "no_company",
+            "birthdays"
+          ]
+        },
+        "filters": {
+          "type": "string",
+          "description": "JSON list of conditions [{\"field\":\"strength\",\"op\":\"gte\",\"value\":60}] (ops: is, is_not, contains, not_contains, starts_with, empty, not_empty, gt, gte, lt, lte, before, after, within_days, older_than_days, in, has_tag; field in_list takes a list id; custom fields as custom.<key>)",
+          "format": "json"
+        },
+        "match": {
+          "type": "string",
+          "description": "Conditions joined by all (default) or any",
+          "enum": [
+            "all",
+            "any"
+          ]
+        },
+        "view": {
+          "type": "string",
+          "description": "A saved view id (its filters and sort)",
+          "format": "ref:views"
+        },
+        "sort": {
+          "type": "string",
+          "description": "Field to sort by (e.g. name, last_interaction, strength, created, value, expected_close)"
+        },
+        "dir": {
+          "type": "string",
+          "description": "Sort direction",
+          "enum": [
+            "asc",
+            "desc"
+          ]
+        },
+        "limit": {
+          "type": "number",
+          "description": "At most this many"
+        },
+        "offset": {
+          "type": "number",
+          "description": "Skip this many"
+        },
+        "deleted": {
+          "type": "boolean",
+          "description": "The trash instead"
+        },
+        "list": {
+          "type": "string",
+          "description": "Only members of this list id",
+          "format": "ref:lists"
+        },
+        "company": {
+          "type": "string",
+          "description": "Only people at this company id",
+          "format": "ref:companies"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/people/list"
+      }
+    },
+    {
+      "name": "people.get",
+      "description": "A person with their job history, deals (with roles), lists, open tasks, pinned notes and pending proposals.",
+      "label": "Person",
+      "readOnly": true,
+      "returns": "record",
+      "params": {
+        "id": {
+          "type": "string",
+          "description": "Person id or email",
+          "required": true,
+          "format": "ref:people"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/people/get"
+      }
+    },
+    {
+      "name": "people.create",
+      "description": "Add a person. Refused when an email already belongs to someone (the answer names them): use people.upsert to add-or-update. A work email finds or creates the company.",
+      "label": "New person",
+      "returns": "record",
+      "params": {
+        "name": {
+          "type": "string",
+          "description": "Full name (split into first and last)"
+        },
+        "first_name": {
+          "type": "string",
+          "description": "First name"
+        },
+        "last_name": {
+          "type": "string",
+          "description": "Last name"
+        },
+        "email": {
+          "type": "string",
+          "description": "Email (or several, comma separated)"
+        },
+        "emails": {
+          "type": "string",
+          "description": "JSON list of emails (the first is primary)",
+          "format": "json"
+        },
+        "phone": {
+          "type": "string",
+          "description": "Phone"
+        },
+        "phones": {
+          "type": "string",
+          "description": "JSON list of phones",
+          "format": "json"
+        },
+        "title": {
+          "type": "string",
+          "description": "Job title"
+        },
+        "company": {
+          "type": "string",
+          "description": "Company id, domain or name (created when new)",
+          "format": "ref:companies"
+        },
+        "linkedin": {
+          "type": "string",
+          "description": "LinkedIn URL"
+        },
+        "location": {
+          "type": "string",
+          "description": "City, country"
+        },
+        "birthday": {
+          "type": "string",
+          "description": "MM-DD or YYYY-MM-DD"
+        },
+        "how_met": {
+          "type": "string",
+          "description": "How you know them",
+          "format": "multiline"
+        },
+        "lead_source": {
+          "type": "string",
+          "description": "Where they came from (Referral, Event, Inbound ...); --source is for where a fact came from"
+        },
+        "tags": {
+          "type": "string",
+          "description": "Tags, comma separated or JSON list"
+        },
+        "keep_in_touch": {
+          "type": "number",
+          "description": "Keep in touch every N days (0 = off)"
+        },
+        "values": {
+          "type": "string",
+          "description": "JSON of more fields, including custom ones: {\"custom.tier\":\"Gold\"}",
+          "format": "json"
+        },
+        "list": {
+          "type": "string",
+          "description": "Add to this list",
+          "format": "ref:lists"
+        },
+        "auto_company": {
+          "type": "boolean",
+          "description": "Find or create the company from a work email (default true)"
+        },
+        "note": {
+          "type": "string",
+          "description": "A first note",
+          "format": "multiline"
+        },
+        "reason": {
+          "type": "string",
+          "description": "Why, in one line the person will read (AI agent)"
+        },
+        "evidence": {
+          "type": "string",
+          "description": "The exact quote that supports the change (AI agent)",
+          "format": "multiline"
+        },
+        "source": {
+          "type": "string",
+          "description": "Where it comes from: a URL, an email subject, a meeting (AI agent)"
+        },
+        "confidence": {
+          "type": "string",
+          "description": "How sure (AI agent)",
+          "enum": [
+            "high",
+            "medium",
+            "low"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/people/create"
+      }
+    },
+    {
+      "name": "people.upsert",
+      "description": "Add or update a person by email: one match updates it (lists such as emails and tags are added to), none creates it, several answer 409 with the candidates. Changing a value the person entered becomes a proposal for the AI agent.",
+      "label": "Add or update person",
+      "returns": "record",
+      "params": {
+        "name": {
+          "type": "string",
+          "description": "Full name (split into first and last)"
+        },
+        "first_name": {
+          "type": "string",
+          "description": "First name"
+        },
+        "last_name": {
+          "type": "string",
+          "description": "Last name"
+        },
+        "email": {
+          "type": "string",
+          "description": "Email (or several, comma separated)"
+        },
+        "emails": {
+          "type": "string",
+          "description": "JSON list of emails (the first is primary)",
+          "format": "json"
+        },
+        "phone": {
+          "type": "string",
+          "description": "Phone"
+        },
+        "phones": {
+          "type": "string",
+          "description": "JSON list of phones",
+          "format": "json"
+        },
+        "title": {
+          "type": "string",
+          "description": "Job title"
+        },
+        "company": {
+          "type": "string",
+          "description": "Company id, domain or name (created when new)",
+          "format": "ref:companies"
+        },
+        "linkedin": {
+          "type": "string",
+          "description": "LinkedIn URL"
+        },
+        "location": {
+          "type": "string",
+          "description": "City, country"
+        },
+        "birthday": {
+          "type": "string",
+          "description": "MM-DD or YYYY-MM-DD"
+        },
+        "how_met": {
+          "type": "string",
+          "description": "How you know them",
+          "format": "multiline"
+        },
+        "lead_source": {
+          "type": "string",
+          "description": "Where they came from (Referral, Event, Inbound ...); --source is for where a fact came from"
+        },
+        "tags": {
+          "type": "string",
+          "description": "Tags, comma separated or JSON list"
+        },
+        "keep_in_touch": {
+          "type": "number",
+          "description": "Keep in touch every N days (0 = off)"
+        },
+        "values": {
+          "type": "string",
+          "description": "JSON of more fields, including custom ones: {\"custom.tier\":\"Gold\"}",
+          "format": "json"
+        },
+        "reason": {
+          "type": "string",
+          "description": "Why, in one line the person will read (AI agent)"
+        },
+        "evidence": {
+          "type": "string",
+          "description": "The exact quote that supports the change (AI agent)",
+          "format": "multiline"
+        },
+        "source": {
+          "type": "string",
+          "description": "Where it comes from: a URL, an email subject, a meeting (AI agent)"
+        },
+        "confidence": {
+          "type": "string",
+          "description": "How sure (AI agent)",
+          "enum": [
+            "high",
+            "medium",
+            "low"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/people/upsert"
+      }
+    },
+    {
+      "name": "people.update",
+      "description": "Change fields. The AI agent writes empty fields, its own values and additions to list fields directly; changing a value the person entered (and, for deals, value, currency, close date or probability) comes back as a proposal (proposed: true) unless the policy makes it automatic.",
+      "label": "Edit person",
+      "returns": "record",
+      "params": {
+        "id": {
+          "type": "string",
+          "description": "Person id or email",
+          "required": true,
+          "format": "ref:people"
+        },
+        "name": {
+          "type": "string",
+          "description": "Full name (split into first and last)"
+        },
+        "first_name": {
+          "type": "string",
+          "description": "First name"
+        },
+        "last_name": {
+          "type": "string",
+          "description": "Last name"
+        },
+        "email": {
+          "type": "string",
+          "description": "Email (or several, comma separated)"
+        },
+        "emails": {
+          "type": "string",
+          "description": "JSON list of emails (the first is primary)",
+          "format": "json"
+        },
+        "phone": {
+          "type": "string",
+          "description": "Phone"
+        },
+        "phones": {
+          "type": "string",
+          "description": "JSON list of phones",
+          "format": "json"
+        },
+        "title": {
+          "type": "string",
+          "description": "Job title"
+        },
+        "company": {
+          "type": "string",
+          "description": "Company id, domain or name (created when new)",
+          "format": "ref:companies"
+        },
+        "linkedin": {
+          "type": "string",
+          "description": "LinkedIn URL"
+        },
+        "location": {
+          "type": "string",
+          "description": "City, country"
+        },
+        "birthday": {
+          "type": "string",
+          "description": "MM-DD or YYYY-MM-DD"
+        },
+        "how_met": {
+          "type": "string",
+          "description": "How you know them",
+          "format": "multiline"
+        },
+        "lead_source": {
+          "type": "string",
+          "description": "Where they came from (Referral, Event, Inbound ...); --source is for where a fact came from"
+        },
+        "tags": {
+          "type": "string",
+          "description": "Tags, comma separated or JSON list"
+        },
+        "keep_in_touch": {
+          "type": "number",
+          "description": "Keep in touch every N days (0 = off)"
+        },
+        "values": {
+          "type": "string",
+          "description": "JSON of more fields, including custom ones: {\"custom.tier\":\"Gold\"}",
+          "format": "json"
+        },
+        "reason": {
+          "type": "string",
+          "description": "Why, in one line the person will read (AI agent)"
+        },
+        "evidence": {
+          "type": "string",
+          "description": "The exact quote that supports the change (AI agent)",
+          "format": "multiline"
+        },
+        "source": {
+          "type": "string",
+          "description": "Where it comes from: a URL, an email subject, a meeting (AI agent)"
+        },
+        "confidence": {
+          "type": "string",
+          "description": "How sure (AI agent)",
+          "enum": [
+            "high",
+            "medium",
+            "low"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/people/update"
+      }
+    },
+    {
+      "name": "people.delete",
+      "description": "Move to the trash (restorable for 90 days). A proposal when the AI agent asks, unless the policy makes deleting automatic.",
+      "label": "Delete person",
+      "destructive": true,
+      "confirm": "Move this person to the trash?",
+      "returns": "summary",
+      "params": {
+        "id": {
+          "type": "string",
+          "description": "Person id or email",
+          "required": true,
+          "format": "ref:people"
+        },
+        "reason": {
+          "type": "string",
+          "description": "Why, in one line the person will read (AI agent)"
+        },
+        "evidence": {
+          "type": "string",
+          "description": "The exact quote that supports the change (AI agent)",
+          "format": "multiline"
+        },
+        "source": {
+          "type": "string",
+          "description": "Where it comes from: a URL, an email subject, a meeting (AI agent)"
+        },
+        "confidence": {
+          "type": "string",
+          "description": "How sure (AI agent)",
+          "enum": [
+            "high",
+            "medium",
+            "low"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/people/delete"
+      }
+    },
+    {
+      "name": "people.restore",
+      "description": "Bring back from the trash (refused when its email or domain now belongs to another record).",
+      "label": "Restore person",
+      "returns": "record",
+      "params": {
+        "id": {
+          "type": "string",
+          "description": "Id",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/people/restore"
+      }
+    },
+    {
+      "name": "people.merge",
+      "description": "Merge the secondary into the primary: the primary's values win, its blanks are filled, emails/phones/domains/tags are combined, every note, interaction, task, deal and list membership moves over, and the secondary's id keeps resolving to the primary. Undoable. A proposal for the AI agent unless automatic.",
+      "label": "Merge people",
+      "destructive": true,
+      "confirm": "Merge these two?",
+      "returns": "record",
+      "params": {
+        "primary": {
+          "type": "string",
+          "description": "The record that stays (id or key)",
+          "required": true
+        },
+        "secondary": {
+          "type": "string",
+          "description": "The record merged into it",
+          "required": true
+        },
+        "reason": {
+          "type": "string",
+          "description": "Why, in one line the person will read (AI agent)"
+        },
+        "evidence": {
+          "type": "string",
+          "description": "The exact quote that supports the change (AI agent)",
+          "format": "multiline"
+        },
+        "source": {
+          "type": "string",
+          "description": "Where it comes from: a URL, an email subject, a meeting (AI agent)"
+        },
+        "confidence": {
+          "type": "string",
+          "description": "How sure (AI agent)",
+          "enum": [
+            "high",
+            "medium",
+            "low"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/people/merge"
+      }
+    },
+    {
+      "name": "people.bulk",
+      "description": "One change to many people at once, logged (and undone) as one.",
+      "label": "Bulk people",
+      "returns": "summary",
+      "params": {
+        "ids": {
+          "type": "string",
+          "description": "JSON list of ids",
+          "required": true,
+          "format": "json"
+        },
+        "action": {
+          "type": "string",
+          "description": "What to do",
+          "required": true,
+          "enum": [
+            "tag",
+            "untag",
+            "add_to_list",
+            "remove_from_list",
+            "set",
+            "delete",
+            "research"
+          ]
+        },
+        "tag": {
+          "type": "string",
+          "description": "The tag (tag, untag)"
+        },
+        "list": {
+          "type": "string",
+          "description": "The list id (add_to_list, remove_from_list)",
+          "format": "ref:lists"
+        },
+        "field": {
+          "type": "string",
+          "description": "The field (set)"
+        },
+        "value": {
+          "type": "string",
+          "description": "The value (set)"
+        },
+        "note": {
+          "type": "string",
+          "description": "What to research (research)"
+        },
+        "reason": {
+          "type": "string",
+          "description": "Why, in one line the person will read (AI agent)"
+        },
+        "evidence": {
+          "type": "string",
+          "description": "The exact quote that supports the change (AI agent)",
+          "format": "multiline"
+        },
+        "source": {
+          "type": "string",
+          "description": "Where it comes from: a URL, an email subject, a meeting (AI agent)"
+        },
+        "confidence": {
+          "type": "string",
+          "description": "How sure (AI agent)",
+          "enum": [
+            "high",
+            "medium",
+            "low"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/people/bulk"
+      }
+    },
+    {
+      "name": "people.export",
+      "description": "The people (filtered like people.list) as CSV: file name, text and count.",
+      "label": "Export people",
+      "readOnly": true,
+      "returns": "record",
+      "params": {
+        "q": {
+          "type": "string",
+          "description": "Words to find"
+        },
+        "preset": {
+          "type": "string",
+          "description": "A built-in view",
+          "enum": [
+            "all",
+            "keep_in_touch",
+            "recent",
+            "strong",
+            "cold",
+            "no_company",
+            "birthdays"
+          ]
+        },
+        "filters": {
+          "type": "string",
+          "description": "JSON list of conditions [{\"field\":\"strength\",\"op\":\"gte\",\"value\":60}] (ops: is, is_not, contains, not_contains, starts_with, empty, not_empty, gt, gte, lt, lte, before, after, within_days, older_than_days, in, has_tag; field in_list takes a list id; custom fields as custom.<key>)",
+          "format": "json"
+        },
+        "match": {
+          "type": "string",
+          "description": "Conditions joined by all (default) or any",
+          "enum": [
+            "all",
+            "any"
+          ]
+        },
+        "view": {
+          "type": "string",
+          "description": "A saved view id",
+          "format": "ref:views"
+        },
+        "columns": {
+          "type": "string",
+          "description": "JSON list of field keys to export (default the main ones)",
+          "format": "json"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/people/export"
+      }
+    },
+    {
+      "name": "people.research",
+      "description": "Send people to the AI agent to research (what to look for in note).",
+      "label": "Research with AI",
+      "returns": "summary",
+      "params": {
+        "id": {
+          "type": "string",
+          "description": "One id"
+        },
+        "ids": {
+          "type": "string",
+          "description": "JSON list of ids",
+          "format": "json"
+        },
+        "note": {
+          "type": "string",
+          "description": "What to find out"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/people/research"
+      }
+    },
+    {
+      "name": "companies.list",
+      "description": "Companies as rows: name, domains, industry, size, location, people, open deals and their value, strength, last interaction, lists, tags, custom fields.",
+      "label": "Companies",
+      "readOnly": true,
+      "returns": "list",
+      "params": {
+        "q": {
+          "type": "string",
+          "description": "Words to find"
+        },
+        "preset": {
+          "type": "string",
+          "description": "A built-in view",
+          "enum": [
+            "all",
+            "recent",
+            "with_deals",
+            "cold"
+          ]
+        },
+        "filters": {
+          "type": "string",
+          "description": "JSON list of conditions [{\"field\":\"strength\",\"op\":\"gte\",\"value\":60}] (ops: is, is_not, contains, not_contains, starts_with, empty, not_empty, gt, gte, lt, lte, before, after, within_days, older_than_days, in, has_tag; field in_list takes a list id; custom fields as custom.<key>)",
+          "format": "json"
+        },
+        "match": {
+          "type": "string",
+          "description": "Conditions joined by all (default) or any",
+          "enum": [
+            "all",
+            "any"
+          ]
+        },
+        "view": {
+          "type": "string",
+          "description": "A saved view id (its filters and sort)",
+          "format": "ref:views"
+        },
+        "sort": {
+          "type": "string",
+          "description": "Field to sort by (e.g. name, last_interaction, strength, created, value, expected_close)"
+        },
+        "dir": {
+          "type": "string",
+          "description": "Sort direction",
+          "enum": [
+            "asc",
+            "desc"
+          ]
+        },
+        "limit": {
+          "type": "number",
+          "description": "At most this many"
+        },
+        "offset": {
+          "type": "number",
+          "description": "Skip this many"
+        },
+        "deleted": {
+          "type": "boolean",
+          "description": "The trash instead"
+        },
+        "list": {
+          "type": "string",
+          "description": "Only members of this list id",
+          "format": "ref:lists"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/companies/list"
+      }
+    },
+    {
+      "name": "companies.get",
+      "description": "A company with its people, former people, deals, lists, open tasks, pinned notes and pending proposals.",
+      "label": "Company",
+      "readOnly": true,
+      "returns": "record",
+      "params": {
+        "id": {
+          "type": "string",
+          "description": "Company id, domain (acme.com) or exact name",
+          "required": true,
+          "format": "ref:companies"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/companies/get"
+      }
+    },
+    {
+      "name": "companies.create",
+      "description": "Add a company. Refused when a domain already belongs to one: use companies.upsert.",
+      "label": "New company",
+      "returns": "record",
+      "params": {
+        "name": {
+          "type": "string",
+          "description": "Name"
+        },
+        "domain": {
+          "type": "string",
+          "description": "Website or domain (acme.com)"
+        },
+        "domains": {
+          "type": "string",
+          "description": "JSON list of domains (the first is primary)",
+          "format": "json"
+        },
+        "industry": {
+          "type": "string",
+          "description": "Industry"
+        },
+        "size": {
+          "type": "string",
+          "description": "Employees",
+          "enum": [
+            "1-10",
+            "11-50",
+            "51-200",
+            "201-1000",
+            "1001-5000",
+            "5000+"
+          ]
+        },
+        "location": {
+          "type": "string",
+          "description": "Headquarters"
+        },
+        "description": {
+          "type": "string",
+          "description": "What they do",
+          "format": "multiline"
+        },
+        "linkedin": {
+          "type": "string",
+          "description": "LinkedIn URL"
+        },
+        "lead_source": {
+          "type": "string",
+          "description": "Where they came from"
+        },
+        "tags": {
+          "type": "string",
+          "description": "Tags, comma separated or JSON list"
+        },
+        "values": {
+          "type": "string",
+          "description": "JSON of more fields, including custom ones: {\"custom.tier\":\"Gold\"}",
+          "format": "json"
+        },
+        "list": {
+          "type": "string",
+          "description": "Add to this list",
+          "format": "ref:lists"
+        },
+        "note": {
+          "type": "string",
+          "description": "A first note",
+          "format": "multiline"
+        },
+        "reason": {
+          "type": "string",
+          "description": "Why, in one line the person will read (AI agent)"
+        },
+        "evidence": {
+          "type": "string",
+          "description": "The exact quote that supports the change (AI agent)",
+          "format": "multiline"
+        },
+        "source": {
+          "type": "string",
+          "description": "Where it comes from: a URL, an email subject, a meeting (AI agent)"
+        },
+        "confidence": {
+          "type": "string",
+          "description": "How sure (AI agent)",
+          "enum": [
+            "high",
+            "medium",
+            "low"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/companies/create"
+      }
+    },
+    {
+      "name": "companies.upsert",
+      "description": "Add or update a company by domain (or exact name): one match updates it, none creates it, several answer 409 with the candidates.",
+      "label": "Add or update company",
+      "returns": "record",
+      "params": {
+        "name": {
+          "type": "string",
+          "description": "Name"
+        },
+        "domain": {
+          "type": "string",
+          "description": "Website or domain (acme.com)"
+        },
+        "domains": {
+          "type": "string",
+          "description": "JSON list of domains (the first is primary)",
+          "format": "json"
+        },
+        "industry": {
+          "type": "string",
+          "description": "Industry"
+        },
+        "size": {
+          "type": "string",
+          "description": "Employees",
+          "enum": [
+            "1-10",
+            "11-50",
+            "51-200",
+            "201-1000",
+            "1001-5000",
+            "5000+"
+          ]
+        },
+        "location": {
+          "type": "string",
+          "description": "Headquarters"
+        },
+        "description": {
+          "type": "string",
+          "description": "What they do",
+          "format": "multiline"
+        },
+        "linkedin": {
+          "type": "string",
+          "description": "LinkedIn URL"
+        },
+        "lead_source": {
+          "type": "string",
+          "description": "Where they came from"
+        },
+        "tags": {
+          "type": "string",
+          "description": "Tags, comma separated or JSON list"
+        },
+        "values": {
+          "type": "string",
+          "description": "JSON of more fields, including custom ones: {\"custom.tier\":\"Gold\"}",
+          "format": "json"
+        },
+        "reason": {
+          "type": "string",
+          "description": "Why, in one line the person will read (AI agent)"
+        },
+        "evidence": {
+          "type": "string",
+          "description": "The exact quote that supports the change (AI agent)",
+          "format": "multiline"
+        },
+        "source": {
+          "type": "string",
+          "description": "Where it comes from: a URL, an email subject, a meeting (AI agent)"
+        },
+        "confidence": {
+          "type": "string",
+          "description": "How sure (AI agent)",
+          "enum": [
+            "high",
+            "medium",
+            "low"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/companies/upsert"
+      }
+    },
+    {
+      "name": "companies.update",
+      "description": "Change fields. The AI agent writes empty fields, its own values and additions to list fields directly; changing a value the person entered (and, for deals, value, currency, close date or probability) comes back as a proposal (proposed: true) unless the policy makes it automatic.",
+      "label": "Edit company",
+      "returns": "record",
+      "params": {
+        "id": {
+          "type": "string",
+          "description": "Company id, domain (acme.com) or exact name",
+          "required": true,
+          "format": "ref:companies"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name"
+        },
+        "domain": {
+          "type": "string",
+          "description": "Website or domain (acme.com)"
+        },
+        "domains": {
+          "type": "string",
+          "description": "JSON list of domains (the first is primary)",
+          "format": "json"
+        },
+        "industry": {
+          "type": "string",
+          "description": "Industry"
+        },
+        "size": {
+          "type": "string",
+          "description": "Employees",
+          "enum": [
+            "1-10",
+            "11-50",
+            "51-200",
+            "201-1000",
+            "1001-5000",
+            "5000+"
+          ]
+        },
+        "location": {
+          "type": "string",
+          "description": "Headquarters"
+        },
+        "description": {
+          "type": "string",
+          "description": "What they do",
+          "format": "multiline"
+        },
+        "linkedin": {
+          "type": "string",
+          "description": "LinkedIn URL"
+        },
+        "lead_source": {
+          "type": "string",
+          "description": "Where they came from"
+        },
+        "tags": {
+          "type": "string",
+          "description": "Tags, comma separated or JSON list"
+        },
+        "values": {
+          "type": "string",
+          "description": "JSON of more fields, including custom ones: {\"custom.tier\":\"Gold\"}",
+          "format": "json"
+        },
+        "reason": {
+          "type": "string",
+          "description": "Why, in one line the person will read (AI agent)"
+        },
+        "evidence": {
+          "type": "string",
+          "description": "The exact quote that supports the change (AI agent)",
+          "format": "multiline"
+        },
+        "source": {
+          "type": "string",
+          "description": "Where it comes from: a URL, an email subject, a meeting (AI agent)"
+        },
+        "confidence": {
+          "type": "string",
+          "description": "How sure (AI agent)",
+          "enum": [
+            "high",
+            "medium",
+            "low"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/companies/update"
+      }
+    },
+    {
+      "name": "companies.delete",
+      "description": "Move to the trash (restorable for 90 days). A proposal when the AI agent asks, unless the policy makes deleting automatic.",
+      "label": "Delete company",
+      "destructive": true,
+      "confirm": "Move this company to the trash?",
+      "returns": "summary",
+      "params": {
+        "id": {
+          "type": "string",
+          "description": "Company id, domain (acme.com) or exact name",
+          "required": true,
+          "format": "ref:companies"
+        },
+        "reason": {
+          "type": "string",
+          "description": "Why, in one line the person will read (AI agent)"
+        },
+        "evidence": {
+          "type": "string",
+          "description": "The exact quote that supports the change (AI agent)",
+          "format": "multiline"
+        },
+        "source": {
+          "type": "string",
+          "description": "Where it comes from: a URL, an email subject, a meeting (AI agent)"
+        },
+        "confidence": {
+          "type": "string",
+          "description": "How sure (AI agent)",
+          "enum": [
+            "high",
+            "medium",
+            "low"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/companies/delete"
+      }
+    },
+    {
+      "name": "companies.restore",
+      "description": "Bring back from the trash (refused when its email or domain now belongs to another record).",
+      "label": "Restore company",
+      "returns": "record",
+      "params": {
+        "id": {
+          "type": "string",
+          "description": "Id",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/companies/restore"
+      }
+    },
+    {
+      "name": "companies.merge",
+      "description": "Merge the secondary into the primary: the primary's values win, its blanks are filled, emails/phones/domains/tags are combined, every note, interaction, task, deal and list membership moves over, and the secondary's id keeps resolving to the primary. Undoable. A proposal for the AI agent unless automatic.",
+      "label": "Merge companies",
+      "destructive": true,
+      "confirm": "Merge these two?",
+      "returns": "record",
+      "params": {
+        "primary": {
+          "type": "string",
+          "description": "The record that stays (id or key)",
+          "required": true
+        },
+        "secondary": {
+          "type": "string",
+          "description": "The record merged into it",
+          "required": true
+        },
+        "reason": {
+          "type": "string",
+          "description": "Why, in one line the person will read (AI agent)"
+        },
+        "evidence": {
+          "type": "string",
+          "description": "The exact quote that supports the change (AI agent)",
+          "format": "multiline"
+        },
+        "source": {
+          "type": "string",
+          "description": "Where it comes from: a URL, an email subject, a meeting (AI agent)"
+        },
+        "confidence": {
+          "type": "string",
+          "description": "How sure (AI agent)",
+          "enum": [
+            "high",
+            "medium",
+            "low"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/companies/merge"
+      }
+    },
+    {
+      "name": "companies.bulk",
+      "description": "One change to many companies at once, logged (and undone) as one.",
+      "label": "Bulk companies",
+      "returns": "summary",
+      "params": {
+        "ids": {
+          "type": "string",
+          "description": "JSON list of ids",
+          "required": true,
+          "format": "json"
+        },
+        "action": {
+          "type": "string",
+          "description": "What to do",
+          "required": true,
+          "enum": [
+            "tag",
+            "untag",
+            "add_to_list",
+            "remove_from_list",
+            "set",
+            "delete",
+            "research"
+          ]
+        },
+        "tag": {
+          "type": "string",
+          "description": "The tag (tag, untag)"
+        },
+        "list": {
+          "type": "string",
+          "description": "The list id (add_to_list, remove_from_list)",
+          "format": "ref:lists"
+        },
+        "field": {
+          "type": "string",
+          "description": "The field (set)"
+        },
+        "value": {
+          "type": "string",
+          "description": "The value (set)"
+        },
+        "note": {
+          "type": "string",
+          "description": "What to research (research)"
+        },
+        "reason": {
+          "type": "string",
+          "description": "Why, in one line the person will read (AI agent)"
+        },
+        "evidence": {
+          "type": "string",
+          "description": "The exact quote that supports the change (AI agent)",
+          "format": "multiline"
+        },
+        "source": {
+          "type": "string",
+          "description": "Where it comes from: a URL, an email subject, a meeting (AI agent)"
+        },
+        "confidence": {
+          "type": "string",
+          "description": "How sure (AI agent)",
+          "enum": [
+            "high",
+            "medium",
+            "low"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/companies/bulk"
+      }
+    },
+    {
+      "name": "companies.export",
+      "description": "The companies (filtered like companies.list) as CSV: file name, text and count.",
+      "label": "Export companies",
+      "readOnly": true,
+      "returns": "record",
+      "params": {
+        "q": {
+          "type": "string",
+          "description": "Words to find"
+        },
+        "preset": {
+          "type": "string",
+          "description": "A built-in view",
+          "enum": [
+            "all",
+            "recent",
+            "with_deals",
+            "cold"
+          ]
+        },
+        "filters": {
+          "type": "string",
+          "description": "JSON list of conditions [{\"field\":\"strength\",\"op\":\"gte\",\"value\":60}] (ops: is, is_not, contains, not_contains, starts_with, empty, not_empty, gt, gte, lt, lte, before, after, within_days, older_than_days, in, has_tag; field in_list takes a list id; custom fields as custom.<key>)",
+          "format": "json"
+        },
+        "match": {
+          "type": "string",
+          "description": "Conditions joined by all (default) or any",
+          "enum": [
+            "all",
+            "any"
+          ]
+        },
+        "view": {
+          "type": "string",
+          "description": "A saved view id",
+          "format": "ref:views"
+        },
+        "columns": {
+          "type": "string",
+          "description": "JSON list of field keys to export (default the main ones)",
+          "format": "json"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/companies/export"
+      }
+    },
+    {
+      "name": "companies.research",
+      "description": "Send companies to the AI agent to research (what to look for in note).",
+      "label": "Research with AI",
+      "returns": "summary",
+      "params": {
+        "id": {
+          "type": "string",
+          "description": "One id"
+        },
+        "ids": {
+          "type": "string",
+          "description": "JSON list of ids",
+          "format": "json"
+        },
+        "note": {
+          "type": "string",
+          "description": "What to find out"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/companies/research"
+      }
+    },
+    {
+      "name": "deals.list",
+      "description": "Deals as rows: pipeline and stage, status, value and currency, home value, weighted value, probability, expected close, company, people with roles, next step, days in stage, idle days, rotting, the next task.",
+      "label": "Deals",
+      "readOnly": true,
+      "returns": "list",
+      "params": {
+        "q": {
+          "type": "string",
+          "description": "Words to find"
+        },
+        "preset": {
+          "type": "string",
+          "description": "A built-in view",
+          "enum": [
+            "all",
+            "open",
+            "won",
+            "lost",
+            "rotting",
+            "no_next_step",
+            "closing"
+          ]
+        },
+        "filters": {
+          "type": "string",
+          "description": "JSON list of conditions [{\"field\":\"strength\",\"op\":\"gte\",\"value\":60}] (ops: is, is_not, contains, not_contains, starts_with, empty, not_empty, gt, gte, lt, lte, before, after, within_days, older_than_days, in, has_tag; field in_list takes a list id; custom fields as custom.<key>)",
+          "format": "json"
+        },
+        "match": {
+          "type": "string",
+          "description": "Conditions joined by all (default) or any",
+          "enum": [
+            "all",
+            "any"
+          ]
+        },
+        "view": {
+          "type": "string",
+          "description": "A saved view id (its filters and sort)",
+          "format": "ref:views"
+        },
+        "sort": {
+          "type": "string",
+          "description": "Field to sort by (e.g. name, last_interaction, strength, created, value, expected_close)"
+        },
+        "dir": {
+          "type": "string",
+          "description": "Sort direction",
+          "enum": [
+            "asc",
+            "desc"
+          ]
+        },
+        "limit": {
+          "type": "number",
+          "description": "At most this many"
+        },
+        "offset": {
+          "type": "number",
+          "description": "Skip this many"
+        },
+        "deleted": {
+          "type": "boolean",
+          "description": "The trash instead"
+        },
+        "pipeline": {
+          "type": "string",
+          "description": "Pipeline id, name or kind (sales, fundraising, hiring, partnerships)",
+          "format": "ref:pipelines"
+        },
+        "status": {
+          "type": "string",
+          "description": "Status",
+          "enum": [
+            "open",
+            "won",
+            "lost"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/deals/list"
+      }
+    },
+    {
+      "name": "deals.get",
+      "description": "A deal with its stages (days spent in each), people with roles, company, open tasks, pinned notes and pending proposals.",
+      "label": "Deal",
+      "readOnly": true,
+      "returns": "record",
+      "params": {
+        "id": {
+          "type": "string",
+          "description": "Deal id or exact name",
+          "required": true,
+          "format": "ref:deals"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/deals/get"
+      }
+    },
+    {
+      "name": "deals.create",
+      "description": "Add a deal to a pipeline (default the first) in a stage (default the first open one). The AI agent creates deals in open stages; closing is proposed with deals.close.",
+      "label": "New deal",
+      "returns": "record",
+      "params": {
+        "name": {
+          "type": "string",
+          "description": "Name",
+          "required": true
+        },
+        "value": {
+          "type": "string",
+          "description": "Value in the deal currency as a decimal as written, e.g. 2500 or 2500.00 (not cents)"
+        },
+        "currency": {
+          "type": "string",
+          "description": "ISO currency (default the pipeline's)"
+        },
+        "expected_close": {
+          "type": "string",
+          "description": "Expected close (YYYY-MM-DD)"
+        },
+        "probability": {
+          "type": "number",
+          "description": "Win probability 0-100 (empty: the stage's)"
+        },
+        "company": {
+          "type": "string",
+          "description": "Company id, domain or exact name",
+          "format": "ref:companies"
+        },
+        "lead_source": {
+          "type": "string",
+          "description": "Lead source"
+        },
+        "next_step": {
+          "type": "string",
+          "description": "The next step"
+        },
+        "next_step_date": {
+          "type": "string",
+          "description": "When the next step is due (YYYY-MM-DD)"
+        },
+        "lost_reason": {
+          "type": "string",
+          "description": "Why it was lost"
+        },
+        "tags": {
+          "type": "string",
+          "description": "Tags, comma separated or JSON list"
+        },
+        "values": {
+          "type": "string",
+          "description": "JSON of more fields, including custom ones: {\"custom.tier\":\"Gold\"}",
+          "format": "json"
+        },
+        "pipeline": {
+          "type": "string",
+          "description": "Pipeline id, name or kind (sales, fundraising, hiring, partnerships)",
+          "format": "ref:pipelines"
+        },
+        "stage": {
+          "type": "string",
+          "description": "Stage name or id (default the first open stage)"
+        },
+        "people": {
+          "type": "string",
+          "description": "JSON list of people ids or emails, or [{\"person\":\"..\",\"role\":\"Champion\"}]",
+          "format": "json"
+        },
+        "person": {
+          "type": "string",
+          "description": "Person id or email",
+          "format": "ref:people"
+        },
+        "role": {
+          "type": "string",
+          "description": "Role of the people on the deal"
+        },
+        "note": {
+          "type": "string",
+          "description": "A first note",
+          "format": "multiline"
+        },
+        "reason": {
+          "type": "string",
+          "description": "Why, in one line the person will read (AI agent)"
+        },
+        "evidence": {
+          "type": "string",
+          "description": "The exact quote that supports the change (AI agent)",
+          "format": "multiline"
+        },
+        "source": {
+          "type": "string",
+          "description": "Where it comes from: a URL, an email subject, a meeting (AI agent)"
+        },
+        "confidence": {
+          "type": "string",
+          "description": "How sure (AI agent)",
+          "enum": [
+            "high",
+            "medium",
+            "low"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/deals/create"
+      }
+    },
+    {
+      "name": "deals.update",
+      "description": "Change fields. The AI agent writes empty fields, its own values and additions to list fields directly; changing a value the person entered (and, for deals, value, currency, close date or probability) comes back as a proposal (proposed: true) unless the policy makes it automatic.",
+      "label": "Edit deal",
+      "returns": "record",
+      "params": {
+        "id": {
+          "type": "string",
+          "description": "Deal id or exact name",
+          "required": true,
+          "format": "ref:deals"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name"
+        },
+        "value": {
+          "type": "string",
+          "description": "Value in the deal currency as a decimal as written, e.g. 2500 or 2500.00 (not cents)"
+        },
+        "currency": {
+          "type": "string",
+          "description": "ISO currency (default the pipeline's)"
+        },
+        "expected_close": {
+          "type": "string",
+          "description": "Expected close (YYYY-MM-DD)"
+        },
+        "probability": {
+          "type": "number",
+          "description": "Win probability 0-100 (empty: the stage's)"
+        },
+        "company": {
+          "type": "string",
+          "description": "Company id, domain or exact name",
+          "format": "ref:companies"
+        },
+        "lead_source": {
+          "type": "string",
+          "description": "Lead source"
+        },
+        "next_step": {
+          "type": "string",
+          "description": "The next step"
+        },
+        "next_step_date": {
+          "type": "string",
+          "description": "When the next step is due (YYYY-MM-DD)"
+        },
+        "lost_reason": {
+          "type": "string",
+          "description": "Why it was lost"
+        },
+        "tags": {
+          "type": "string",
+          "description": "Tags, comma separated or JSON list"
+        },
+        "values": {
+          "type": "string",
+          "description": "JSON of more fields, including custom ones: {\"custom.tier\":\"Gold\"}",
+          "format": "json"
+        },
+        "reason": {
+          "type": "string",
+          "description": "Why, in one line the person will read (AI agent)"
+        },
+        "evidence": {
+          "type": "string",
+          "description": "The exact quote that supports the change (AI agent)",
+          "format": "multiline"
+        },
+        "source": {
+          "type": "string",
+          "description": "Where it comes from: a URL, an email subject, a meeting (AI agent)"
+        },
+        "confidence": {
+          "type": "string",
+          "description": "How sure (AI agent)",
+          "enum": [
+            "high",
+            "medium",
+            "low"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/deals/update"
+      }
+    },
+    {
+      "name": "deals.delete",
+      "description": "Move to the trash (restorable for 90 days). A proposal when the AI agent asks, unless the policy makes deleting automatic.",
+      "label": "Delete deal",
+      "destructive": true,
+      "confirm": "Move this deal to the trash?",
+      "returns": "summary",
+      "params": {
+        "id": {
+          "type": "string",
+          "description": "Deal id or exact name",
+          "required": true,
+          "format": "ref:deals"
+        },
+        "reason": {
+          "type": "string",
+          "description": "Why, in one line the person will read (AI agent)"
+        },
+        "evidence": {
+          "type": "string",
+          "description": "The exact quote that supports the change (AI agent)",
+          "format": "multiline"
+        },
+        "source": {
+          "type": "string",
+          "description": "Where it comes from: a URL, an email subject, a meeting (AI agent)"
+        },
+        "confidence": {
+          "type": "string",
+          "description": "How sure (AI agent)",
+          "enum": [
+            "high",
+            "medium",
+            "low"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/deals/delete"
+      }
+    },
+    {
+      "name": "deals.restore",
+      "description": "Bring back from the trash (refused when its email or domain now belongs to another record).",
+      "label": "Restore deal",
+      "returns": "record",
+      "params": {
+        "id": {
+          "type": "string",
+          "description": "Id",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/deals/restore"
+      }
+    },
+    {
+      "name": "deals.merge",
+      "description": "Merge the secondary into the primary: the primary's values win, its blanks are filled, emails/phones/domains/tags are combined, every note, interaction, task, deal and list membership moves over, and the secondary's id keeps resolving to the primary. Undoable. A proposal for the AI agent unless automatic.",
+      "label": "Merge deals",
+      "destructive": true,
+      "confirm": "Merge these two?",
+      "returns": "record",
+      "params": {
+        "primary": {
+          "type": "string",
+          "description": "The record that stays (id or key)",
+          "required": true
+        },
+        "secondary": {
+          "type": "string",
+          "description": "The record merged into it",
+          "required": true
+        },
+        "reason": {
+          "type": "string",
+          "description": "Why, in one line the person will read (AI agent)"
+        },
+        "evidence": {
+          "type": "string",
+          "description": "The exact quote that supports the change (AI agent)",
+          "format": "multiline"
+        },
+        "source": {
+          "type": "string",
+          "description": "Where it comes from: a URL, an email subject, a meeting (AI agent)"
+        },
+        "confidence": {
+          "type": "string",
+          "description": "How sure (AI agent)",
+          "enum": [
+            "high",
+            "medium",
+            "low"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/deals/merge"
+      }
+    },
+    {
+      "name": "deals.bulk",
+      "description": "One change to many deals at once, logged (and undone) as one.",
+      "label": "Bulk deals",
+      "returns": "summary",
+      "params": {
+        "ids": {
+          "type": "string",
+          "description": "JSON list of ids",
+          "required": true,
+          "format": "json"
+        },
+        "action": {
+          "type": "string",
+          "description": "What to do",
+          "required": true,
+          "enum": [
+            "tag",
+            "untag",
+            "set",
+            "delete"
+          ]
+        },
+        "tag": {
+          "type": "string",
+          "description": "The tag (tag, untag)"
+        },
+        "list": {
+          "type": "string",
+          "description": "The list id (add_to_list, remove_from_list)",
+          "format": "ref:lists"
+        },
+        "field": {
+          "type": "string",
+          "description": "The field (set)"
+        },
+        "value": {
+          "type": "string",
+          "description": "The value (set)"
+        },
+        "note": {
+          "type": "string",
+          "description": "What to research (research)"
+        },
+        "reason": {
+          "type": "string",
+          "description": "Why, in one line the person will read (AI agent)"
+        },
+        "evidence": {
+          "type": "string",
+          "description": "The exact quote that supports the change (AI agent)",
+          "format": "multiline"
+        },
+        "source": {
+          "type": "string",
+          "description": "Where it comes from: a URL, an email subject, a meeting (AI agent)"
+        },
+        "confidence": {
+          "type": "string",
+          "description": "How sure (AI agent)",
+          "enum": [
+            "high",
+            "medium",
+            "low"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/deals/bulk"
+      }
+    },
+    {
+      "name": "deals.export",
+      "description": "The deals (filtered like deals.list) as CSV: file name, text and count.",
+      "label": "Export deals",
+      "readOnly": true,
+      "returns": "record",
+      "params": {
+        "q": {
+          "type": "string",
+          "description": "Words to find"
+        },
+        "preset": {
+          "type": "string",
+          "description": "A built-in view",
+          "enum": [
+            "all",
+            "open",
+            "won",
+            "lost",
+            "rotting",
+            "no_next_step",
+            "closing"
+          ]
+        },
+        "filters": {
+          "type": "string",
+          "description": "JSON list of conditions [{\"field\":\"strength\",\"op\":\"gte\",\"value\":60}] (ops: is, is_not, contains, not_contains, starts_with, empty, not_empty, gt, gte, lt, lte, before, after, within_days, older_than_days, in, has_tag; field in_list takes a list id; custom fields as custom.<key>)",
+          "format": "json"
+        },
+        "match": {
+          "type": "string",
+          "description": "Conditions joined by all (default) or any",
+          "enum": [
+            "all",
+            "any"
+          ]
+        },
+        "view": {
+          "type": "string",
+          "description": "A saved view id",
+          "format": "ref:views"
+        },
+        "columns": {
+          "type": "string",
+          "description": "JSON list of field keys to export (default the main ones)",
+          "format": "json"
+        },
+        "pipeline": {
+          "type": "string",
+          "description": "Pipeline id, name or kind (sales, fundraising, hiring, partnerships)",
+          "format": "ref:pipelines"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/deals/export"
+      }
+    },
+    {
+      "name": "deals.move",
+      "description": "Move a deal to a stage (also into another pipeline by stage id) and/or reorder it (before another deal). A stage change by the AI agent is a proposal unless automatic.",
+      "label": "Move deal",
+      "returns": "record",
+      "params": {
+        "deal": {
+          "type": "string",
+          "description": "Deal id or exact name",
+          "required": true,
+          "format": "ref:deals"
+        },
+        "stage": {
+          "type": "string",
+          "description": "Stage id or name in the deal's pipeline",
+          "format": "ref:stages"
+        },
+        "before": {
+          "type": "string",
+          "description": "Place before this deal id (same stage)"
+        },
+        "lost_reason": {
+          "type": "string",
+          "description": "Why, when moving to a lost stage"
+        },
+        "reason": {
+          "type": "string",
+          "description": "Why, in one line the person will read (AI agent)"
+        },
+        "evidence": {
+          "type": "string",
+          "description": "The exact quote that supports the change (AI agent)",
+          "format": "multiline"
+        },
+        "source": {
+          "type": "string",
+          "description": "Where it comes from: a URL, an email subject, a meeting (AI agent)"
+        },
+        "confidence": {
+          "type": "string",
+          "description": "How sure (AI agent)",
+          "enum": [
+            "high",
+            "medium",
+            "low"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/deals/move"
+      }
+    },
+    {
+      "name": "deals.close",
+      "description": "Mark a deal won or lost (with a reason): its close date is set and its home-currency value frozen. A proposal for the AI agent unless automatic.",
+      "label": "Close deal",
+      "returns": "record",
+      "params": {
+        "deal": {
+          "type": "string",
+          "description": "Deal id or exact name",
+          "required": true,
+          "format": "ref:deals"
+        },
+        "outcome": {
+          "type": "string",
+          "description": "Outcome",
+          "required": true,
+          "enum": [
+            "won",
+            "lost"
+          ]
+        },
+        "reason": {
+          "type": "string",
+          "description": "Why, in one line the person will read (AI agent)"
+        },
+        "evidence": {
+          "type": "string",
+          "description": "The exact quote that supports the change (AI agent)",
+          "format": "multiline"
+        },
+        "source": {
+          "type": "string",
+          "description": "Where it comes from: a URL, an email subject, a meeting (AI agent)"
+        },
+        "confidence": {
+          "type": "string",
+          "description": "How sure (AI agent)",
+          "enum": [
+            "high",
+            "medium",
+            "low"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/deals/close"
+      }
+    },
+    {
+      "name": "deals.reopen",
+      "description": "Reopen a won or lost deal into an open stage (default the last one it was in).",
+      "label": "Reopen deal",
+      "returns": "record",
+      "params": {
+        "deal": {
+          "type": "string",
+          "description": "Deal id or exact name",
+          "required": true,
+          "format": "ref:deals"
+        },
+        "stage": {
+          "type": "string",
+          "description": "Stage id or name in the deal's pipeline",
+          "format": "ref:stages"
+        },
+        "reason": {
+          "type": "string",
+          "description": "Why, in one line the person will read (AI agent)"
+        },
+        "evidence": {
+          "type": "string",
+          "description": "The exact quote that supports the change (AI agent)",
+          "format": "multiline"
+        },
+        "source": {
+          "type": "string",
+          "description": "Where it comes from: a URL, an email subject, a meeting (AI agent)"
+        },
+        "confidence": {
+          "type": "string",
+          "description": "How sure (AI agent)",
+          "enum": [
+            "high",
+            "medium",
+            "low"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/deals/reopen"
+      }
+    },
+    {
+      "name": "deals.add_person",
+      "description": "Put people on a deal with a role (Champion, Decision maker, Investor, Candidate ...); unknown emails become people.",
+      "label": "Add person to deal",
+      "returns": "record",
+      "params": {
+        "deal": {
+          "type": "string",
+          "description": "Deal id or exact name",
+          "required": true,
+          "format": "ref:deals"
+        },
+        "person": {
+          "type": "string",
+          "description": "Person id or email",
+          "format": "ref:people"
+        },
+        "people": {
+          "type": "string",
+          "description": "JSON list of people ids or emails",
+          "format": "json"
+        },
+        "role": {
+          "type": "string",
+          "description": "Role"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/deals/add_person"
+      }
+    },
+    {
+      "name": "deals.remove_person",
+      "description": "Take a person off a deal (the person stays).",
+      "label": "Remove person from deal",
+      "returns": "record",
+      "params": {
+        "deal": {
+          "type": "string",
+          "description": "Deal id or exact name",
+          "required": true,
+          "format": "ref:deals"
+        },
+        "person": {
+          "type": "string",
+          "description": "Person id or email",
+          "required": true,
+          "format": "ref:people"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/deals/remove_person"
+      }
+    },
+    {
+      "name": "timeline.get",
+      "description": "A record's history, newest first: interactions, notes, tasks, emails, stage moves and field changes with who made them (a company's includes its people's interactions).",
+      "label": "Timeline",
+      "readOnly": true,
+      "returns": "list",
+      "params": {
+        "object": {
+          "type": "string",
+          "description": "Kind of record",
+          "required": true,
+          "enum": [
+            "people",
+            "companies",
+            "deals"
+          ]
+        },
+        "id": {
+          "type": "string",
+          "description": "Record id",
+          "required": true
+        },
+        "limit": {
+          "type": "number",
+          "description": "At most this many"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/timeline/get"
+      }
+    },
+    {
+      "name": "dupes.list",
+      "description": "Likely duplicate pairs with the reason (same email or domain, same name at the same company or email domain). Merge with people.merge / companies.merge or dismiss.",
+      "label": "Duplicates",
+      "readOnly": true,
+      "returns": "list",
+      "params": {
+        "object": {
+          "type": "string",
+          "description": "Which records",
+          "enum": [
+            "people",
+            "companies"
+          ]
+        },
+        "limit": {
+          "type": "number",
+          "description": "At most this many"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/dupes/list"
+      }
+    },
+    {
+      "name": "dupes.dismiss",
+      "description": "Mark a pair as not duplicates so it is not shown again.",
+      "label": "Not duplicates",
+      "returns": "none",
+      "params": {
+        "object": {
+          "type": "string",
+          "description": "Which records",
+          "enum": [
+            "people",
+            "companies"
+          ]
+        },
+        "a": {
+          "type": "string",
+          "description": "First id",
+          "required": true
+        },
+        "b": {
+          "type": "string",
+          "description": "Second id",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/dupes/dismiss"
+      }
+    },
+    {
+      "name": "trash.list",
+      "description": "People, companies and deals in the trash (kept 90 days), newest first.",
+      "label": "Trash",
+      "readOnly": true,
+      "returns": "list",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/trash/list"
+      }
+    },
+    {
+      "name": "pipelines.list",
+      "description": "Pipelines with their stages (kind, probability, rotting days, target days) and open deal counts.",
+      "label": "Pipelines",
+      "readOnly": true,
+      "returns": "list",
+      "params": {
+        "archived": {
+          "type": "boolean",
+          "description": "Include archived"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/pipelines/list"
+      }
+    },
+    {
+      "name": "pipelines.create",
+      "description": "Add a pipeline from a template (sales, fundraising, hiring, partnerships) or a simple one (other).",
+      "label": "New pipeline",
+      "returns": "record",
+      "params": {
+        "kind": {
+          "type": "string",
+          "description": "Template",
+          "enum": [
+            "sales",
+            "fundraising",
+            "hiring",
+            "partnerships",
+            "other"
+          ]
+        },
+        "name": {
+          "type": "string",
+          "description": "Name (default the template's)"
+        },
+        "currency": {
+          "type": "string",
+          "description": "Currency (default home)"
+        },
+        "target": {
+          "type": "string",
+          "description": "Target (e.g. the round size) as a decimal as written, e.g. 2500 or 2500.00 (not cents)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/pipelines/create"
+      }
+    },
+    {
+      "name": "pipelines.update",
+      "description": "Rename, change currency or target, archive or reorder a pipeline.",
+      "label": "Edit pipeline",
+      "returns": "record",
+      "params": {
+        "pipeline": {
+          "type": "string",
+          "description": "Pipeline id, name or kind (sales, fundraising, hiring, partnerships)",
+          "format": "ref:pipelines",
+          "required": true
+        },
+        "name": {
+          "type": "string",
+          "description": "Name"
+        },
+        "currency": {
+          "type": "string",
+          "description": "Currency"
+        },
+        "target": {
+          "type": "string",
+          "description": "Target as a decimal as written, e.g. 2500 or 2500.00 (not cents)"
+        },
+        "archived": {
+          "type": "boolean",
+          "description": "Archived"
+        },
+        "position": {
+          "type": "number",
+          "description": "Order"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/pipelines/update"
+      }
+    },
+    {
+      "name": "pipelines.delete",
+      "description": "Delete an empty pipeline (archive one with deals). The person only.",
+      "label": "Delete pipeline",
+      "destructive": true,
+      "confirm": "Delete this pipeline?",
+      "returns": "none",
+      "params": {
+        "pipeline": {
+          "type": "string",
+          "description": "Pipeline id, name or kind (sales, fundraising, hiring, partnerships)",
+          "format": "ref:pipelines",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/pipelines/delete"
+      }
+    },
+    {
+      "name": "stages.create",
+      "description": "Add a stage to a pipeline (open stages go before won and lost).",
+      "label": "New stage",
+      "returns": "record",
+      "params": {
+        "pipeline": {
+          "type": "string",
+          "description": "Pipeline id, name or kind (sales, fundraising, hiring, partnerships)",
+          "format": "ref:pipelines",
+          "required": true
+        },
+        "name": {
+          "type": "string",
+          "description": "Name",
+          "required": true
+        },
+        "kind": {
+          "type": "string",
+          "description": "Kind",
+          "enum": [
+            "open",
+            "won",
+            "lost"
+          ]
+        },
+        "probability": {
+          "type": "number",
+          "description": "Win probability 0-100"
+        },
+        "rot_days": {
+          "type": "number",
+          "description": "Days without activity before a deal rots (0 = off)"
+        },
+        "target_days": {
+          "type": "number",
+          "description": "Target days in this stage (0 = none)"
+        },
+        "color": {
+          "type": "string",
+          "description": "Color c1..c8"
+        },
+        "position": {
+          "type": "number",
+          "description": "Position"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/stages/create"
+      }
+    },
+    {
+      "name": "stages.update",
+      "description": "Rename a stage or change its kind, probability, rotting days, target days or color.",
+      "label": "Edit stage",
+      "returns": "record",
+      "params": {
+        "stage": {
+          "type": "string",
+          "description": "Stage id",
+          "required": true,
+          "format": "ref:stages"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name"
+        },
+        "kind": {
+          "type": "string",
+          "description": "Kind",
+          "enum": [
+            "open",
+            "won",
+            "lost"
+          ]
+        },
+        "probability": {
+          "type": "number",
+          "description": "Probability"
+        },
+        "rot_days": {
+          "type": "number",
+          "description": "Rotting days"
+        },
+        "target_days": {
+          "type": "number",
+          "description": "Target days"
+        },
+        "color": {
+          "type": "string",
+          "description": "Color"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/stages/update"
+      }
+    },
+    {
+      "name": "stages.reorder",
+      "description": "Set the order of a pipeline's stages.",
+      "label": "Reorder stages",
+      "returns": "record",
+      "params": {
+        "pipeline": {
+          "type": "string",
+          "description": "Pipeline id, name or kind (sales, fundraising, hiring, partnerships)",
+          "format": "ref:pipelines",
+          "required": true
+        },
+        "stages": {
+          "type": "string",
+          "description": "JSON list of every stage id in the new order",
+          "required": true,
+          "format": "json"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/stages/reorder"
+      }
+    },
+    {
+      "name": "stages.delete",
+      "description": "Delete a stage, moving its deals to move_to first. The person only.",
+      "label": "Delete stage",
+      "destructive": true,
+      "confirm": "Delete this stage?",
+      "returns": "none",
+      "params": {
+        "stage": {
+          "type": "string",
+          "description": "Stage id",
+          "required": true,
+          "format": "ref:stages"
+        },
+        "move_to": {
+          "type": "string",
+          "description": "Stage for its deals"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/stages/delete"
+      }
+    },
+    {
+      "name": "notes.list",
+      "description": "Notes on a person, company or deal (pinned first).",
+      "label": "Notes",
+      "readOnly": true,
+      "returns": "list",
+      "params": {
+        "person": {
+          "type": "string",
+          "description": "Person id or email",
+          "format": "ref:people"
+        },
+        "company": {
+          "type": "string",
+          "description": "Company id, domain or exact name",
+          "format": "ref:companies"
+        },
+        "deal": {
+          "type": "string",
+          "description": "Deal id or exact name",
+          "format": "ref:deals"
+        },
+        "limit": {
+          "type": "number",
+          "description": "At most this many"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/notes/list"
+      }
+    },
+    {
+      "name": "notes.create",
+      "description": "Add a note to a person, company or deal (markdown).",
+      "label": "Add note",
+      "returns": "record",
+      "params": {
+        "body": {
+          "type": "string",
+          "description": "The note",
+          "required": true,
+          "format": "multiline"
+        },
+        "person": {
+          "type": "string",
+          "description": "Person id or email",
+          "format": "ref:people"
+        },
+        "company": {
+          "type": "string",
+          "description": "Company id, domain or exact name",
+          "format": "ref:companies"
+        },
+        "deal": {
+          "type": "string",
+          "description": "Deal id or exact name",
+          "format": "ref:deals"
+        },
+        "pinned": {
+          "type": "boolean",
+          "description": "Pin it"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/notes/create"
+      }
+    },
+    {
+      "name": "notes.update",
+      "description": "Edit or pin a note (one pinned note per record). The AI agent edits only its own notes' text.",
+      "label": "Edit note",
+      "returns": "record",
+      "params": {
+        "note": {
+          "type": "string",
+          "description": "Note id",
+          "required": true,
+          "format": "ref:notes"
+        },
+        "body": {
+          "type": "string",
+          "description": "Text",
+          "format": "multiline"
+        },
+        "pinned": {
+          "type": "boolean",
+          "description": "Pinned"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/notes/update"
+      }
+    },
+    {
+      "name": "notes.delete",
+      "description": "Delete a note (the AI agent only its own).",
+      "label": "Delete note",
+      "destructive": true,
+      "confirm": "Delete this note?",
+      "returns": "none",
+      "params": {
+        "note": {
+          "type": "string",
+          "description": "Note id",
+          "required": true,
+          "format": "ref:notes"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/notes/delete"
+      }
+    },
+    {
+      "name": "interactions.list",
+      "description": "Emails, calls, meetings and messages, newest first, filtered by person, company, deal, kind and dates.",
+      "label": "Interactions",
+      "readOnly": true,
+      "returns": "list",
+      "params": {
+        "person": {
+          "type": "string",
+          "description": "Person id or email",
+          "format": "ref:people"
+        },
+        "company": {
+          "type": "string",
+          "description": "Company id, domain or exact name",
+          "format": "ref:companies"
+        },
+        "deal": {
+          "type": "string",
+          "description": "Deal id or exact name",
+          "format": "ref:deals"
+        },
+        "kind": {
+          "type": "string",
+          "description": "Kind",
+          "enum": [
+            "email",
+            "call",
+            "meeting",
+            "message"
+          ]
+        },
+        "from": {
+          "type": "string",
+          "description": "From (custom range) (YYYY-MM-DD)"
+        },
+        "to": {
+          "type": "string",
+          "description": "To (custom range) (YYYY-MM-DD)"
+        },
+        "limit": {
+          "type": "number",
+          "description": "At most this many"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/interactions/list"
+      }
+    },
+    {
+      "name": "interactions.log",
+      "description": "Log an email, call, meeting or message with people (ids or emails; unknown emails become people), a company or a deal. Updates last contact, strength and keep-in-touch dates and resets a deal's rotting clock. Pass ext_id when syncing so the same item is logged once. A meeting or call with notes goes to the AI agent's meeting review.",
+      "label": "Log interaction",
+      "returns": "record",
+      "params": {
+        "kind": {
+          "type": "string",
+          "description": "Kind",
+          "required": true,
+          "enum": [
+            "email",
+            "call",
+            "meeting",
+            "message"
+          ]
+        },
+        "people": {
+          "type": "string",
+          "description": "JSON list of people ids or emails",
+          "format": "json"
+        },
+        "person": {
+          "type": "string",
+          "description": "Person id or email",
+          "format": "ref:people"
+        },
+        "company": {
+          "type": "string",
+          "description": "Company id, domain or exact name",
+          "format": "ref:companies"
+        },
+        "deal": {
+          "type": "string",
+          "description": "Deal id or exact name",
+          "format": "ref:deals"
+        },
+        "at": {
+          "type": "string",
+          "description": "When: ISO date-time or YYYY-MM-DD (default now)"
+        },
+        "direction": {
+          "type": "string",
+          "description": "Emails and messages: in or out",
+          "enum": [
+            "in",
+            "out"
+          ]
+        },
+        "subject": {
+          "type": "string",
+          "description": "Subject or title"
+        },
+        "summary": {
+          "type": "string",
+          "description": "What happened",
+          "format": "multiline"
+        },
+        "source": {
+          "type": "string",
+          "description": "Where it came from (Gmail, Calendar ...)"
+        },
+        "ext_id": {
+          "type": "string",
+          "description": "The message or event id (dedupes)"
+        },
+        "create_people": {
+          "type": "boolean",
+          "description": "Create people for unknown emails (default true)"
+        },
+        "review": {
+          "type": "boolean",
+          "description": "Send it to the AI agent's meeting review (default true)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/interactions/log"
+      }
+    },
+    {
+      "name": "interactions.update",
+      "description": "Change an interaction's subject, summary, time or kind.",
+      "label": "Edit interaction",
+      "returns": "record",
+      "params": {
+        "interaction": {
+          "type": "string",
+          "description": "Interaction id",
+          "required": true,
+          "format": "ref:interactions"
+        },
+        "subject": {
+          "type": "string",
+          "description": "Subject"
+        },
+        "summary": {
+          "type": "string",
+          "description": "Summary",
+          "format": "multiline"
+        },
+        "at": {
+          "type": "string",
+          "description": "When"
+        },
+        "kind": {
+          "type": "string",
+          "description": "Kind",
+          "enum": [
+            "email",
+            "call",
+            "meeting",
+            "message"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/interactions/update"
+      }
+    },
+    {
+      "name": "interactions.delete",
+      "description": "Delete an interaction (the AI agent only its own).",
+      "label": "Delete interaction",
+      "destructive": true,
+      "confirm": "Delete this interaction?",
+      "returns": "none",
+      "params": {
+        "interaction": {
+          "type": "string",
+          "description": "Interaction id",
+          "required": true,
+          "format": "ref:interactions"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/interactions/delete"
+      }
+    },
+    {
+      "name": "tasks.today",
+      "description": "The Today queue: open tasks overdue, due today, upcoming and snoozed, and the ones done today.",
+      "label": "Today",
+      "readOnly": true,
+      "returns": "list",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/tasks/today"
+      }
+    },
+    {
+      "name": "tasks.list",
+      "description": "Tasks on a person, company or deal.",
+      "label": "Tasks",
+      "readOnly": true,
+      "returns": "list",
+      "params": {
+        "person": {
+          "type": "string",
+          "description": "Person id or email",
+          "format": "ref:people"
+        },
+        "company": {
+          "type": "string",
+          "description": "Company id, domain or exact name",
+          "format": "ref:companies"
+        },
+        "deal": {
+          "type": "string",
+          "description": "Deal id or exact name",
+          "format": "ref:deals"
+        },
+        "state": {
+          "type": "string",
+          "description": "Which",
+          "enum": [
+            "open",
+            "done",
+            "all"
+          ]
+        },
+        "limit": {
+          "type": "number",
+          "description": "At most this many"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/tasks/list"
+      }
+    },
+    {
+      "name": "tasks.create",
+      "description": "Add a task (optionally due and about a person, company or deal; a deal's task is its next activity).",
+      "label": "New task",
+      "returns": "record",
+      "params": {
+        "title": {
+          "type": "string",
+          "description": "What to do",
+          "required": true
+        },
+        "due": {
+          "type": "string",
+          "description": "Due (YYYY-MM-DD)"
+        },
+        "kind": {
+          "type": "string",
+          "description": "Kind",
+          "enum": [
+            "todo",
+            "call",
+            "email",
+            "meeting",
+            "follow_up"
+          ]
+        },
+        "notes": {
+          "type": "string",
+          "description": "Details",
+          "format": "multiline"
+        },
+        "person": {
+          "type": "string",
+          "description": "Person id or email",
+          "format": "ref:people"
+        },
+        "company": {
+          "type": "string",
+          "description": "Company id, domain or exact name",
+          "format": "ref:companies"
+        },
+        "deal": {
+          "type": "string",
+          "description": "Deal id or exact name",
+          "format": "ref:deals"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/tasks/create"
+      }
+    },
+    {
+      "name": "tasks.update",
+      "description": "Change a task.",
+      "label": "Edit task",
+      "returns": "record",
+      "params": {
+        "task": {
+          "type": "string",
+          "description": "Task id",
+          "required": true,
+          "format": "ref:tasks"
+        },
+        "title": {
+          "type": "string",
+          "description": "Title"
+        },
+        "due": {
+          "type": "string",
+          "description": "Due (YYYY-MM-DD)"
+        },
+        "kind": {
+          "type": "string",
+          "description": "Kind",
+          "enum": [
+            "todo",
+            "call",
+            "email",
+            "meeting",
+            "follow_up"
+          ]
+        },
+        "notes": {
+          "type": "string",
+          "description": "Details",
+          "format": "multiline"
+        },
+        "person": {
+          "type": "string",
+          "description": "Person id or email",
+          "format": "ref:people"
+        },
+        "company": {
+          "type": "string",
+          "description": "Company id, domain or exact name",
+          "format": "ref:companies"
+        },
+        "deal": {
+          "type": "string",
+          "description": "Deal id or exact name",
+          "format": "ref:deals"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/tasks/update"
+      }
+    },
+    {
+      "name": "tasks.complete",
+      "description": "Mark tasks done (or not done with done=false).",
+      "label": "Complete task",
+      "returns": "record",
+      "params": {
+        "task": {
+          "type": "string",
+          "description": "Task id",
+          "format": "ref:tasks"
+        },
+        "tasks": {
+          "type": "string",
+          "description": "JSON list of task ids",
+          "format": "json"
+        },
+        "done": {
+          "type": "boolean",
+          "description": "Done (default true)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/tasks/complete"
+      }
+    },
+    {
+      "name": "tasks.snooze",
+      "description": "Hide a task until a date (empty brings it back).",
+      "label": "Snooze task",
+      "returns": "record",
+      "params": {
+        "task": {
+          "type": "string",
+          "description": "Task id",
+          "required": true,
+          "format": "ref:tasks"
+        },
+        "until": {
+          "type": "string",
+          "description": "Until (YYYY-MM-DD)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/tasks/snooze"
+      }
+    },
+    {
+      "name": "tasks.delete",
+      "description": "Delete a task (the AI agent only its own).",
+      "label": "Delete task",
+      "destructive": true,
+      "confirm": "Delete this task?",
+      "returns": "none",
+      "params": {
+        "task": {
+          "type": "string",
+          "description": "Task id",
+          "required": true,
+          "format": "ref:tasks"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/tasks/delete"
+      }
+    },
+    {
+      "name": "emails.list",
+      "description": "Emails drafted, queued, sent or failed, on a person or deal.",
+      "label": "Emails",
+      "readOnly": true,
+      "returns": "list",
+      "params": {
+        "person": {
+          "type": "string",
+          "description": "Person id or email",
+          "format": "ref:people"
+        },
+        "deal": {
+          "type": "string",
+          "description": "Deal id or exact name",
+          "format": "ref:deals"
+        },
+        "status": {
+          "type": "string",
+          "description": "Status",
+          "enum": [
+            "draft",
+            "queued",
+            "sending",
+            "sent",
+            "failed"
+          ]
+        },
+        "limit": {
+          "type": "number",
+          "description": "At most this many"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/emails/list"
+      }
+    },
+    {
+      "name": "emails.draft",
+      "description": "Draft an email to a person (to defaults to their email). With send=true it is sent (queued for the AI agent) when the person sends it themselves, or proposed when the AI agent asks.",
+      "label": "Draft email",
+      "returns": "record",
+      "params": {
+        "to": {
+          "type": "string",
+          "description": "Recipients, comma separated"
+        },
+        "cc": {
+          "type": "string",
+          "description": "Cc"
+        },
+        "subject": {
+          "type": "string",
+          "description": "Subject"
+        },
+        "body": {
+          "type": "string",
+          "description": "Body (plain text)",
+          "format": "multiline"
+        },
+        "person": {
+          "type": "string",
+          "description": "Person id or email",
+          "format": "ref:people"
+        },
+        "deal": {
+          "type": "string",
+          "description": "Deal id or exact name",
+          "format": "ref:deals"
+        },
+        "send": {
+          "type": "boolean",
+          "description": "Send it now"
+        },
+        "reason": {
+          "type": "string",
+          "description": "Why, in one line the person will read (AI agent)"
+        },
+        "evidence": {
+          "type": "string",
+          "description": "The exact quote that supports the change (AI agent)",
+          "format": "multiline"
+        },
+        "source": {
+          "type": "string",
+          "description": "Where it comes from: a URL, an email subject, a meeting (AI agent)"
+        },
+        "confidence": {
+          "type": "string",
+          "description": "How sure (AI agent)",
+          "enum": [
+            "high",
+            "medium",
+            "low"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/emails/draft"
+      }
+    },
+    {
+      "name": "emails.update",
+      "description": "Change a draft.",
+      "label": "Edit draft",
+      "returns": "record",
+      "params": {
+        "email": {
+          "type": "string",
+          "description": "Email id",
+          "required": true,
+          "format": "ref:emails"
+        },
+        "to": {
+          "type": "string",
+          "description": "Recipients"
+        },
+        "cc": {
+          "type": "string",
+          "description": "Cc"
+        },
+        "subject": {
+          "type": "string",
+          "description": "Subject"
+        },
+        "body": {
+          "type": "string",
+          "description": "Body",
+          "format": "multiline"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/emails/update"
+      }
     },
     {
       "name": "emails.send",
-      "description": "Send an email via the CraftBot Gmail integration (falls back to logging locally when unavailable). Always records an emails row.",
+      "description": "Send a draft: it is queued for the AI agent to send through its email account. When the AI agent asks, it is a proposal unless email is automatic.",
+      "label": "Send email",
+      "returns": "record",
+      "params": {
+        "email": {
+          "type": "string",
+          "description": "Email id",
+          "required": true,
+          "format": "ref:emails"
+        },
+        "reason": {
+          "type": "string",
+          "description": "Why, in one line the person will read (AI agent)"
+        },
+        "evidence": {
+          "type": "string",
+          "description": "The exact quote that supports the change (AI agent)",
+          "format": "multiline"
+        },
+        "source": {
+          "type": "string",
+          "description": "Where it comes from: a URL, an email subject, a meeting (AI agent)"
+        },
+        "confidence": {
+          "type": "string",
+          "description": "How sure (AI agent)",
+          "enum": [
+            "high",
+            "medium",
+            "low"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/emails/send"
+      }
+    },
+    {
+      "name": "emails.start",
+      "description": "AI agent: take a queued email to send.",
+      "label": "Take email",
+      "returns": "record",
+      "params": {
+        "email": {
+          "type": "string",
+          "description": "Email id",
+          "required": true,
+          "format": "ref:emails"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/emails/start"
+      }
+    },
+    {
+      "name": "emails.sent",
+      "description": "AI agent: the email went out (it is logged on the person and deal).",
+      "label": "Email sent",
+      "returns": "record",
+      "params": {
+        "email": {
+          "type": "string",
+          "description": "Email id",
+          "required": true,
+          "format": "ref:emails"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/emails/sent"
+      }
+    },
+    {
+      "name": "emails.fail",
+      "description": "AI agent: the email could not be sent, with the reason.",
+      "label": "Email not sent",
+      "returns": "record",
+      "params": {
+        "email": {
+          "type": "string",
+          "description": "Email id",
+          "required": true,
+          "format": "ref:emails"
+        },
+        "reason": {
+          "type": "string",
+          "description": "Why",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/emails/fail"
+      }
+    },
+    {
+      "name": "emails.delete",
+      "description": "Delete a draft (sent emails stay).",
+      "label": "Delete draft",
       "destructive": true,
+      "confirm": "Delete this draft?",
+      "returns": "none",
       "params": {
-        "to": { "type": "string", "required": true, "description": "Recipient email." },
-        "subject": { "type": "string", "required": true, "description": "Email subject." },
-        "body": { "type": "string", "required": false, "description": "Plain-text body." },
-        "person_id": { "type": "string", "required": false, "description": "Optional person record to attach the email to." }
+        "email": {
+          "type": "string",
+          "description": "Email id",
+          "required": true,
+          "format": "ref:emails"
+        }
       },
-      "executor": { "type": "http", "method": "POST", "path": "/api/ops/emails/send" }
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/emails/delete"
+      }
     },
     {
-      "name": "ai.chat",
-      "description": "One CRM assistant chat turn via the CraftBot LLM bridge (client keeps history; 503 outside CraftBot).",
+      "name": "research.queue",
+      "description": "AI agent: take up to 20 people and 20 companies waiting to be researched, each with the person's note on what to find and the fields you can fill.",
+      "label": "Take research",
+      "returns": "list",
       "params": {
-        "message": { "type": "string", "required": true, "description": "The user message." },
-        "history": { "type": "string", "required": false, "description": "Optional prior turns as [{role, content}]." }
+        "limit": {
+          "type": "number",
+          "description": "At most this many"
+        }
       },
-      "executor": { "type": "http", "method": "POST", "path": "/api/ops/ai/chat" }
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/research/queue"
+      }
     },
     {
-      "name": "records.summarize",
-      "description": "AI summary of a person/company/deal with its notes, tasks and activity (CraftBot LLM bridge; 503 outside CraftBot).",
+      "name": "research.done",
+      "description": "AI agent: finish researching a person or company with a one-line note.",
+      "label": "Research done",
+      "returns": "record",
       "params": {
-        "kind": { "type": "string", "required": true, "description": "people | companies | deals" },
-        "id": { "type": "string", "required": true, "description": "The record id." }
+        "id": {
+          "type": "string",
+          "description": "Person or company id",
+          "required": true
+        },
+        "note": {
+          "type": "string",
+          "description": "What you filled"
+        }
       },
-      "executor": { "type": "http", "method": "POST", "path": "/api/ops/records/summarize" }
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/research/done"
+      }
     },
     {
-      "name": "pipeline.summary",
-      "description": "Deal count and total value per pipeline stage.",
+      "name": "research.fail",
+      "description": "AI agent: give a person or company back with the reason.",
+      "label": "Research failed",
+      "returns": "record",
+      "params": {
+        "id": {
+          "type": "string",
+          "description": "Person or company id",
+          "required": true
+        },
+        "reason": {
+          "type": "string",
+          "description": "Why",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/research/fail"
+      }
+    },
+    {
+      "name": "meetings.queue",
+      "description": "AI agent: take the meetings and calls waiting for review, each with its deal and the people's open deals.",
+      "label": "Take meetings",
+      "returns": "list",
+      "params": {
+        "limit": {
+          "type": "number",
+          "description": "At most this many"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/meetings/queue"
+      }
+    },
+    {
+      "name": "meetings.done",
+      "description": "AI agent: finish a meeting review with what you proposed.",
+      "label": "Meeting reviewed",
+      "returns": "record",
+      "params": {
+        "interaction": {
+          "type": "string",
+          "description": "Interaction id",
+          "required": true,
+          "format": "ref:interactions"
+        },
+        "note": {
+          "type": "string",
+          "description": "What you proposed"
+        },
+        "failed": {
+          "type": "boolean",
+          "description": "Could not review it"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/meetings/done"
+      }
+    },
+    {
+      "name": "proposals.list",
+      "description": "The AI agent's proposals: what would change (from, to), the evidence, source, reason and confidence.",
+      "label": "Proposals",
+      "readOnly": true,
+      "returns": "list",
+      "params": {
+        "status": {
+          "type": "string",
+          "description": "Status",
+          "enum": [
+            "pending",
+            "accepted",
+            "edited",
+            "rejected"
+          ]
+        },
+        "target": {
+          "type": "string",
+          "description": "Only for this record id"
+        },
+        "kind": {
+          "type": "string",
+          "description": "Kind",
+          "enum": [
+            "update",
+            "deal_value",
+            "stage",
+            "close",
+            "merge",
+            "delete",
+            "email"
+          ]
+        },
+        "limit": {
+          "type": "number",
+          "description": "At most this many"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/proposals/list"
+      }
+    },
+    {
+      "name": "proposals.stats",
+      "description": "Per kind of change over 90 days: accepted, edited, rejected, pending and the acceptance rate.",
+      "label": "Acceptance",
+      "readOnly": true,
+      "returns": "list",
       "params": {},
-      "executor": { "type": "http", "method": "GET", "path": "/api/ops/pipeline/summary" }
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/proposals/stats"
+      }
+    },
+    {
+      "name": "proposals.decide",
+      "description": "Accept (optionally with edits) or reject proposals. The person only; accepting applies the change as theirs.",
+      "label": "Decide proposal",
+      "returns": "summary",
+      "params": {
+        "proposal": {
+          "type": "string",
+          "description": "Proposal id",
+          "format": "ref:proposals"
+        },
+        "proposals": {
+          "type": "string",
+          "description": "JSON list of proposal ids",
+          "format": "json"
+        },
+        "decision": {
+          "type": "string",
+          "description": "Decision",
+          "required": true,
+          "enum": [
+            "accept",
+            "reject"
+          ]
+        },
+        "edits": {
+          "type": "string",
+          "description": "JSON of values to apply instead (one proposal)",
+          "format": "json"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/proposals/decide"
+      }
+    },
+    {
+      "name": "proposals.withdraw",
+      "description": "AI agent: take back one of your pending proposals.",
+      "label": "Withdraw proposal",
+      "returns": "none",
+      "params": {
+        "proposal": {
+          "type": "string",
+          "description": "Proposal id",
+          "required": true,
+          "format": "ref:proposals"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/proposals/withdraw"
+      }
+    },
+    {
+      "name": "lists.list",
+      "description": "Lists over people or companies with their counts.",
+      "label": "Lists",
+      "readOnly": true,
+      "returns": "list",
+      "params": {
+        "object": {
+          "type": "string",
+          "description": "Which",
+          "enum": [
+            "people",
+            "companies"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/lists/list"
+      }
+    },
+    {
+      "name": "lists.create",
+      "description": "Add a list (optionally with members).",
+      "label": "New list",
+      "returns": "record",
+      "params": {
+        "name": {
+          "type": "string",
+          "description": "Name",
+          "required": true
+        },
+        "object": {
+          "type": "string",
+          "description": "Of people or companies",
+          "enum": [
+            "people",
+            "companies"
+          ]
+        },
+        "color": {
+          "type": "string",
+          "description": "Color c1..c8"
+        },
+        "description": {
+          "type": "string",
+          "description": "What it is for"
+        },
+        "ids": {
+          "type": "string",
+          "description": "JSON list of people or company ids",
+          "format": "json"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/lists/create"
+      }
+    },
+    {
+      "name": "lists.update",
+      "description": "Rename, recolor, describe or reorder a list.",
+      "label": "Edit list",
+      "returns": "record",
+      "params": {
+        "list": {
+          "type": "string",
+          "description": "List id or name",
+          "required": true,
+          "format": "ref:lists"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name"
+        },
+        "color": {
+          "type": "string",
+          "description": "Color"
+        },
+        "description": {
+          "type": "string",
+          "description": "Description"
+        },
+        "position": {
+          "type": "number",
+          "description": "Order"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/lists/update"
+      }
+    },
+    {
+      "name": "lists.delete",
+      "description": "Delete a list (its people or companies stay). The person only.",
+      "label": "Delete list",
+      "destructive": true,
+      "confirm": "Delete this list?",
+      "returns": "none",
+      "params": {
+        "list": {
+          "type": "string",
+          "description": "List id or name",
+          "required": true,
+          "format": "ref:lists"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/lists/delete"
+      }
+    },
+    {
+      "name": "lists.add",
+      "description": "Add people or companies to a list.",
+      "label": "Add to list",
+      "returns": "summary",
+      "params": {
+        "list": {
+          "type": "string",
+          "description": "List id or name",
+          "required": true,
+          "format": "ref:lists"
+        },
+        "ids": {
+          "type": "string",
+          "description": "JSON list of ids (or emails / domains)",
+          "required": true,
+          "format": "json"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/lists/add"
+      }
+    },
+    {
+      "name": "lists.remove",
+      "description": "Take people or companies off a list.",
+      "label": "Remove from list",
+      "returns": "summary",
+      "params": {
+        "list": {
+          "type": "string",
+          "description": "List id or name",
+          "required": true,
+          "format": "ref:lists"
+        },
+        "ids": {
+          "type": "string",
+          "description": "JSON list of ids",
+          "required": true,
+          "format": "json"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/lists/remove"
+      }
+    },
+    {
+      "name": "views.list",
+      "description": "Saved views (filters, sort, columns, table or board).",
+      "label": "Saved views",
+      "readOnly": true,
+      "returns": "list",
+      "params": {
+        "object": {
+          "type": "string",
+          "description": "Which",
+          "enum": [
+            "people",
+            "companies",
+            "deals"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/views/list"
+      }
+    },
+    {
+      "name": "views.save",
+      "description": "Save a new view or change one (with view).",
+      "label": "Save view",
+      "returns": "record",
+      "params": {
+        "view": {
+          "type": "string",
+          "description": "View id to change",
+          "format": "ref:views"
+        },
+        "object": {
+          "type": "string",
+          "description": "Which",
+          "enum": [
+            "people",
+            "companies",
+            "deals"
+          ]
+        },
+        "name": {
+          "type": "string",
+          "description": "Name"
+        },
+        "filters": {
+          "type": "string",
+          "description": "JSON list of conditions [{\"field\":\"strength\",\"op\":\"gte\",\"value\":60}] (ops: is, is_not, contains, not_contains, starts_with, empty, not_empty, gt, gte, lt, lte, before, after, within_days, older_than_days, in, has_tag; field in_list takes a list id; custom fields as custom.<key>)",
+          "format": "json"
+        },
+        "match": {
+          "type": "string",
+          "description": "Conditions joined by all (default) or any",
+          "enum": [
+            "all",
+            "any"
+          ]
+        },
+        "sort": {
+          "type": "string",
+          "description": "Field to sort by (e.g. name, last_interaction, strength, created, value, expected_close)"
+        },
+        "dir": {
+          "type": "string",
+          "description": "Sort direction",
+          "enum": [
+            "asc",
+            "desc"
+          ]
+        },
+        "columns": {
+          "type": "string",
+          "description": "JSON list of column keys",
+          "format": "json"
+        },
+        "mode": {
+          "type": "string",
+          "description": "Mode",
+          "enum": [
+            "table",
+            "board"
+          ]
+        },
+        "pipeline": {
+          "type": "string",
+          "description": "Pipeline id, name or kind (sales, fundraising, hiring, partnerships)",
+          "format": "ref:pipelines"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/views/save"
+      }
+    },
+    {
+      "name": "views.delete",
+      "description": "Delete a saved view.",
+      "label": "Delete view",
+      "returns": "none",
+      "params": {
+        "view": {
+          "type": "string",
+          "description": "View id",
+          "required": true,
+          "format": "ref:views"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/views/delete"
+      }
+    },
+    {
+      "name": "fields.list",
+      "description": "Built-in and custom fields per object (custom ones with type, options and AI instructions).",
+      "label": "Fields",
+      "readOnly": true,
+      "returns": "list",
+      "params": {
+        "object": {
+          "type": "string",
+          "description": "Which",
+          "enum": [
+            "people",
+            "companies",
+            "deals"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/fields/list"
+      }
+    },
+    {
+      "name": "fields.create",
+      "description": "Add a custom field (its values are written as custom.<key>). ai_prompt tells the AI agent how to fill it when researching.",
+      "label": "New field",
+      "returns": "record",
+      "params": {
+        "object": {
+          "type": "string",
+          "description": "Which",
+          "required": true,
+          "enum": [
+            "people",
+            "companies",
+            "deals"
+          ]
+        },
+        "label": {
+          "type": "string",
+          "description": "Label",
+          "required": true
+        },
+        "key": {
+          "type": "string",
+          "description": "Key (default from the label)"
+        },
+        "type": {
+          "type": "string",
+          "description": "Type",
+          "enum": [
+            "text",
+            "number",
+            "currency",
+            "date",
+            "select",
+            "multi_select",
+            "checkbox",
+            "url",
+            "rating"
+          ]
+        },
+        "options": {
+          "type": "string",
+          "description": "JSON list of options (select, multi_select)",
+          "format": "json"
+        },
+        "ai_prompt": {
+          "type": "string",
+          "description": "How the AI agent fills it",
+          "format": "multiline"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/fields/create"
+      }
+    },
+    {
+      "name": "fields.update",
+      "description": "Change a custom field's label, options, AI instructions or order.",
+      "label": "Edit field",
+      "returns": "record",
+      "params": {
+        "field": {
+          "type": "string",
+          "description": "Field id",
+          "required": true,
+          "format": "ref:fields"
+        },
+        "label": {
+          "type": "string",
+          "description": "Label"
+        },
+        "options": {
+          "type": "string",
+          "description": "JSON list of options",
+          "format": "json"
+        },
+        "ai_prompt": {
+          "type": "string",
+          "description": "AI instructions",
+          "format": "multiline"
+        },
+        "position": {
+          "type": "number",
+          "description": "Order"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/fields/update"
+      }
+    },
+    {
+      "name": "fields.delete",
+      "description": "Delete a custom field (values are kept and return if it is added again). The person only.",
+      "label": "Delete field",
+      "destructive": true,
+      "confirm": "Delete this field?",
+      "returns": "none",
+      "params": {
+        "field": {
+          "type": "string",
+          "description": "Field id",
+          "required": true,
+          "format": "ref:fields"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/fields/delete"
+      }
+    },
+    {
+      "name": "import.preview",
+      "description": "Read a CSV (comma, semicolon or tab): the columns matched to fields (or the mapping given), and per row whether it creates, updates (people by email, companies by domain or name), is skipped or matches several records.",
+      "label": "Preview import",
+      "readOnly": true,
+      "returns": "summary",
+      "params": {
+        "object": {
+          "type": "string",
+          "description": "What the rows are",
+          "enum": [
+            "people",
+            "companies",
+            "deals"
+          ]
+        },
+        "csv": {
+          "type": "string",
+          "description": "The CSV text",
+          "required": true,
+          "format": "multiline"
+        },
+        "mapping": {
+          "type": "string",
+          "description": "JSON list: the field for each column (\"\" to skip)",
+          "format": "json"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/import/preview"
+      }
+    },
+    {
+      "name": "import.apply",
+      "description": "Import a CSV as one change (undone at once): new records are created, matching ones get their empty fields filled (overwrite replaces values; the person only).",
+      "label": "Import",
+      "returns": "summary",
+      "params": {
+        "object": {
+          "type": "string",
+          "description": "What the rows are",
+          "enum": [
+            "people",
+            "companies",
+            "deals"
+          ]
+        },
+        "csv": {
+          "type": "string",
+          "description": "The CSV text",
+          "required": true,
+          "format": "multiline"
+        },
+        "mapping": {
+          "type": "string",
+          "description": "JSON list of fields per column",
+          "format": "json"
+        },
+        "overwrite": {
+          "type": "boolean",
+          "description": "Replace existing values"
+        },
+        "list": {
+          "type": "string",
+          "description": "Also add them to this list id",
+          "format": "ref:lists"
+        },
+        "file_name": {
+          "type": "string",
+          "description": "File name, for the activity log"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/import/apply"
+      }
+    },
+    {
+      "name": "reports.pipeline",
+      "description": "Open deals by stage of a pipeline: count, value and weighted value (home currency), rotting counts.",
+      "label": "Pipeline report",
+      "readOnly": true,
+      "returns": "summary",
+      "params": {
+        "pipeline": {
+          "type": "string",
+          "description": "Pipeline id, name or kind (sales, fundraising, hiring, partnerships)",
+          "format": "ref:pipelines"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/reports/pipeline"
+      }
+    },
+    {
+      "name": "reports.funnel",
+      "description": "Of the deals created in a period, the share that reached each stage (first entry; skipped stages count as passed; won deals passed every open stage) and the overall win rate.",
+      "label": "Conversion",
+      "readOnly": true,
+      "returns": "summary",
+      "params": {
+        "pipeline": {
+          "type": "string",
+          "description": "Pipeline id, name or kind (sales, fundraising, hiring, partnerships)",
+          "format": "ref:pipelines"
+        },
+        "range": {
+          "type": "string",
+          "description": "Period (or custom with from/to)",
+          "enum": [
+            "this_month",
+            "last_month",
+            "this_quarter",
+            "last_quarter",
+            "ytd",
+            "this_year",
+            "last_year",
+            "last_12_months",
+            "custom"
+          ]
+        },
+        "from": {
+          "type": "string",
+          "description": "From (custom range) (YYYY-MM-DD)"
+        },
+        "to": {
+          "type": "string",
+          "description": "To (custom range) (YYYY-MM-DD)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/reports/funnel"
+      }
+    },
+    {
+      "name": "reports.forecast",
+      "description": "By month from this month: won value, open deals expected to close (weighted and best case; overdue ones count now) and undated open deals. One pipeline, or without one every revenue pipeline (all but fundraising and hiring).",
+      "label": "Forecast",
+      "readOnly": true,
+      "returns": "summary",
+      "params": {
+        "pipeline": {
+          "type": "string",
+          "description": "Pipeline id, name or kind (sales, fundraising, hiring, partnerships)",
+          "format": "ref:pipelines"
+        },
+        "months": {
+          "type": "number",
+          "description": "Months ahead (default 6)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/reports/forecast"
+      }
+    },
+    {
+      "name": "reports.winloss",
+      "description": "Won and lost by month in a period, win rate (won / (won + lost)), average deal, sales cycle, lost reasons, and the previous period's numbers. One pipeline, or without one every revenue pipeline.",
+      "label": "Won and lost",
+      "readOnly": true,
+      "returns": "summary",
+      "params": {
+        "pipeline": {
+          "type": "string",
+          "description": "Pipeline id, name or kind (sales, fundraising, hiring, partnerships)",
+          "format": "ref:pipelines"
+        },
+        "range": {
+          "type": "string",
+          "description": "Period (or custom with from/to)",
+          "enum": [
+            "this_month",
+            "last_month",
+            "this_quarter",
+            "last_quarter",
+            "ytd",
+            "this_year",
+            "last_year",
+            "last_12_months",
+            "custom"
+          ]
+        },
+        "from": {
+          "type": "string",
+          "description": "From (custom range) (YYYY-MM-DD)"
+        },
+        "to": {
+          "type": "string",
+          "description": "To (custom range) (YYYY-MM-DD)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/reports/winloss"
+      }
+    },
+    {
+      "name": "reports.stage_time",
+      "description": "Days deals spend in each open stage (min, average, max) against the stage target.",
+      "label": "Time in stage",
+      "readOnly": true,
+      "returns": "summary",
+      "params": {
+        "pipeline": {
+          "type": "string",
+          "description": "Pipeline id, name or kind (sales, fundraising, hiring, partnerships)",
+          "format": "ref:pipelines"
+        },
+        "range": {
+          "type": "string",
+          "description": "Period (or custom with from/to)",
+          "enum": [
+            "this_month",
+            "last_month",
+            "this_quarter",
+            "last_quarter",
+            "ytd",
+            "this_year",
+            "last_year",
+            "last_12_months",
+            "custom"
+          ]
+        },
+        "from": {
+          "type": "string",
+          "description": "From (custom range) (YYYY-MM-DD)"
+        },
+        "to": {
+          "type": "string",
+          "description": "To (custom range) (YYYY-MM-DD)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/reports/stage_time"
+      }
+    },
+    {
+      "name": "reports.sources",
+      "description": "Deals created in a period by source (count, won, win rate, won value) and new people by source. One pipeline, or without one every revenue pipeline.",
+      "label": "Sources",
+      "readOnly": true,
+      "returns": "summary",
+      "params": {
+        "pipeline": {
+          "type": "string",
+          "description": "Pipeline id, name or kind (sales, fundraising, hiring, partnerships)",
+          "format": "ref:pipelines"
+        },
+        "range": {
+          "type": "string",
+          "description": "Period (or custom with from/to)",
+          "enum": [
+            "this_month",
+            "last_month",
+            "this_quarter",
+            "last_quarter",
+            "ytd",
+            "this_year",
+            "last_year",
+            "last_12_months",
+            "custom"
+          ]
+        },
+        "from": {
+          "type": "string",
+          "description": "From (custom range) (YYYY-MM-DD)"
+        },
+        "to": {
+          "type": "string",
+          "description": "To (custom range) (YYYY-MM-DD)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/reports/sources"
+      }
+    },
+    {
+      "name": "reports.activity",
+      "description": "Interactions per week by kind, the people touched most, tasks done and notes in a period.",
+      "label": "Activity report",
+      "readOnly": true,
+      "returns": "summary",
+      "params": {
+        "range": {
+          "type": "string",
+          "description": "Period (or custom with from/to)",
+          "enum": [
+            "this_month",
+            "last_month",
+            "this_quarter",
+            "last_quarter",
+            "ytd",
+            "this_year",
+            "last_year",
+            "last_12_months",
+            "custom"
+          ]
+        },
+        "from": {
+          "type": "string",
+          "description": "From (custom range) (YYYY-MM-DD)"
+        },
+        "to": {
+          "type": "string",
+          "description": "To (custom range) (YYYY-MM-DD)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/reports/activity"
+      }
+    },
+    {
+      "name": "reports.relationships",
+      "description": "Relationship strength mix, who is going cold, keep-in-touch due, the strongest relationships and birthdays in the next 30 days.",
+      "label": "Relationships",
+      "readOnly": true,
+      "returns": "summary",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/reports/relationships"
+      }
     }
   ]
 }

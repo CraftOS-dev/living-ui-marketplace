@@ -6,14 +6,1214 @@
       "description": "Liveness check (PocketBase built-in).",
       "system": true,
       "params": {},
-      "executor": { "type": "http", "method": "GET", "path": "/api/health" }
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/health"
+      }
     },
     {
       "name": "ops.list",
       "description": "Return this operations manifest.",
       "system": true,
       "params": {},
-      "executor": { "type": "http", "method": "GET", "path": "/api/_ops" }
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/_ops"
+      }
+    },
+    {
+      "name": "app.guide",
+      "description": "START HERE: the boards, conventions (kinds of cards, links, tags, positions) and ready-to-run recipes for adding sources, summarizing cards, reviewing a board and laying out cards.",
+      "label": "App guide",
+      "readOnly": true,
+      "returns": "summary",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/app/guide"
+      }
+    },
+    {
+      "name": "settings.get",
+      "description": "The workspace name and whether added links get a preview (page title, description, image).",
+      "returns": "record",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/settings/get"
+      }
+    },
+    {
+      "name": "settings.update",
+      "description": "Rename the workspace and/or turn link previews on or off.",
+      "label": "Change settings",
+      "returns": "record",
+      "params": {
+        "title": {
+          "type": "string",
+          "description": "Workspace name"
+        },
+        "link_previews": {
+          "type": "boolean",
+          "description": "Read the title, description and preview image of links when they are added"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/settings/update"
+      }
+    },
+    {
+      "name": "summary.home",
+      "description": "Home overview: boards with previews, cards by kind, cards added per day of a month, latest cards, top tags, and what is waiting on the AI agent or the person.",
+      "label": "Overview",
+      "returns": "summary",
+      "params": {
+        "month": {
+          "type": "string",
+          "description": "YYYY-MM (default this month)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/summary/home"
+      }
+    },
+    {
+      "name": "boards.list",
+      "description": "Every board with its counts (cards, links, proposed links, cards by kind) and review state.",
+      "returns": "list",
+      "params": {
+        "preview": {
+          "type": "boolean",
+          "description": "Also return each board's card boxes and links for a thumbnail"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/boards/list"
+      }
+    },
+    {
+      "name": "boards.get",
+      "description": "One board with all its cards (position, size, content, tags, summary) and links.",
+      "returns": "record",
+      "params": {
+        "board": {
+          "type": "string",
+          "description": "Board id",
+          "required": true,
+          "format": "ref:boards"
+        },
+        "paths": {
+          "type": "boolean",
+          "description": "Include file_path (absolute path on disk) for uploaded files"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/boards/get"
+      }
+    },
+    {
+      "name": "boards.create",
+      "description": "Create a board.",
+      "label": "New board",
+      "returns": "record",
+      "params": {
+        "name": {
+          "type": "string",
+          "description": "Board name",
+          "required": true
+        },
+        "description": {
+          "type": "string",
+          "description": "What the board is for",
+          "format": "multiline"
+        },
+        "color": {
+          "type": "string",
+          "description": "Board color",
+          "enum": [
+            "ink",
+            "accent",
+            "amber",
+            "green",
+            "blue",
+            "violet",
+            "red",
+            "teal"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/boards/create"
+      }
+    },
+    {
+      "name": "boards.update",
+      "description": "Rename a board, change its description or color, or store its last view.",
+      "label": "Edit board",
+      "returns": "record",
+      "params": {
+        "board": {
+          "type": "string",
+          "description": "Board id",
+          "required": true,
+          "format": "ref:boards"
+        },
+        "name": {
+          "type": "string",
+          "description": "New name"
+        },
+        "description": {
+          "type": "string",
+          "description": "New description",
+          "format": "multiline"
+        },
+        "color": {
+          "type": "string",
+          "description": "Board color",
+          "enum": [
+            "ink",
+            "accent",
+            "amber",
+            "green",
+            "blue",
+            "violet",
+            "red",
+            "teal"
+          ]
+        },
+        "viewport": {
+          "type": "string",
+          "description": "Last view as JSON: {\"x\":0,\"y\":0,\"zoom\":1}",
+          "format": "json"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/boards/update"
+      }
+    },
+    {
+      "name": "boards.delete",
+      "description": "Delete a board with all its cards and links, for good. Only when the person asked.",
+      "label": "Delete board",
+      "destructive": true,
+      "confirm": "Delete this board with all its cards and links for good?",
+      "returns": "none",
+      "params": {
+        "board": {
+          "type": "string",
+          "description": "Board id",
+          "required": true,
+          "format": "ref:boards"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/boards/delete"
+      }
+    },
+    {
+      "name": "boards.duplicate",
+      "description": "Copy a board with its cards (and their files) and links.",
+      "label": "Duplicate board",
+      "returns": "record",
+      "params": {
+        "board": {
+          "type": "string",
+          "description": "Board id",
+          "required": true,
+          "format": "ref:boards"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the copy (default \"<name> copy\")"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/boards/duplicate"
+      }
+    },
+    {
+      "name": "boards.export",
+      "description": "A board as a Markdown document: sections with their cards, other cards, then the links as sentences. Returns { filename, content }.",
+      "label": "Export as Markdown",
+      "returns": "record",
+      "params": {
+        "board": {
+          "type": "string",
+          "description": "Board id",
+          "required": true,
+          "format": "ref:boards"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/boards/export"
+      }
+    },
+    {
+      "name": "cards.list",
+      "description": "Search cards across boards (sections excluded). Newest first by default.",
+      "returns": "list",
+      "params": {
+        "q": {
+          "type": "string",
+          "description": "Words to find in title, text, url, source, summary or tags"
+        },
+        "board": {
+          "type": "string",
+          "description": "Only this board",
+          "format": "ref:boards"
+        },
+        "kind": {
+          "type": "string",
+          "description": "Only this kind",
+          "enum": [
+            "note",
+            "link",
+            "image",
+            "video",
+            "youtube",
+            "doc",
+            "quote",
+            "section"
+          ]
+        },
+        "tag": {
+          "type": "string",
+          "description": "Only cards with this tag"
+        },
+        "starred": {
+          "type": "boolean",
+          "description": "Only starred cards"
+        },
+        "digest": {
+          "type": "string",
+          "description": "Filter by summary state",
+          "enum": [
+            "any",
+            "none",
+            "waiting",
+            "reading",
+            "done",
+            "failed"
+          ]
+        },
+        "added_by": {
+          "type": "string",
+          "description": "Only cards added by the app (the person) or the AI agent",
+          "enum": [
+            "app",
+            "agent"
+          ]
+        },
+        "sort": {
+          "type": "string",
+          "description": "Order",
+          "enum": [
+            "newest",
+            "oldest",
+            "title",
+            "updated"
+          ]
+        },
+        "limit": {
+          "type": "number",
+          "description": "At most this many (default 100, max 500)"
+        },
+        "offset": {
+          "type": "number",
+          "description": "Skip this many"
+        },
+        "paths": {
+          "type": "boolean",
+          "description": "Include file_path for uploaded files"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/cards/list"
+      }
+    },
+    {
+      "name": "cards.get",
+      "description": "One card with its links (each with the card at the other end) and file_path when it holds a file.",
+      "returns": "record",
+      "params": {
+        "card": {
+          "type": "string",
+          "description": "Card id",
+          "required": true,
+          "format": "ref:cards"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/cards/get"
+      }
+    },
+    {
+      "name": "cards.preview",
+      "description": "Read a url's preview without saving anything: the kind it would make, title, description, site, image.",
+      "readOnly": true,
+      "returns": "record",
+      "params": {
+        "url": {
+          "type": "string",
+          "description": "https://... address",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/cards/preview"
+      }
+    },
+    {
+      "name": "cards.add",
+      "description": "Add a card to a board. Kind is detected from the url or file when left out (YouTube, image, video, document, else link; a note without either). Without x and y the card gets a free spot next to the others.",
+      "label": "Add card",
+      "returns": "record",
+      "params": {
+        "board": {
+          "type": "string",
+          "description": "Board id",
+          "required": true,
+          "format": "ref:boards"
+        },
+        "kind": {
+          "type": "string",
+          "description": "Card kind",
+          "enum": [
+            "note",
+            "link",
+            "image",
+            "video",
+            "youtube",
+            "doc",
+            "quote",
+            "section"
+          ]
+        },
+        "title": {
+          "type": "string",
+          "description": "Title (links and videos get the page title when left out)"
+        },
+        "body": {
+          "type": "string",
+          "description": "Note text, the quoted passage of a quote, or your note about a link or file",
+          "format": "multiline"
+        },
+        "url": {
+          "type": "string",
+          "description": "https://... address of the page, video, image or document"
+        },
+        "path": {
+          "type": "string",
+          "description": "Absolute path of a file on this computer to upload (image, video or document)"
+        },
+        "source": {
+          "type": "string",
+          "description": "Author or work a quote comes from"
+        },
+        "tags": {
+          "type": "string",
+          "description": "Tags: JSON list or comma-separated words"
+        },
+        "color": {
+          "type": "string",
+          "description": "Card color",
+          "enum": [
+            "plain",
+            "amber",
+            "green",
+            "blue",
+            "violet",
+            "red",
+            "teal",
+            "accent"
+          ]
+        },
+        "starred": {
+          "type": "boolean",
+          "description": "Star the card"
+        },
+        "x": {
+          "type": "number",
+          "description": "Left edge (world coordinates)"
+        },
+        "y": {
+          "type": "number",
+          "description": "Top edge"
+        },
+        "w": {
+          "type": "number",
+          "description": "Width (120 to 4000)"
+        },
+        "h": {
+          "type": "number",
+          "description": "Height (60 to 4000)"
+        },
+        "near_x": {
+          "type": "number",
+          "description": "Place at the free spot nearest this x"
+        },
+        "near_y": {
+          "type": "number",
+          "description": "Place at the free spot nearest this y"
+        },
+        "preview": {
+          "type": "boolean",
+          "description": "Read the page for a preview (default true)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/cards/add"
+      }
+    },
+    {
+      "name": "cards.update",
+      "description": "Change a card's content, tags, color, star, position or size. A new url reads a fresh preview.",
+      "label": "Edit card",
+      "returns": "record",
+      "params": {
+        "card": {
+          "type": "string",
+          "description": "Card id",
+          "required": true,
+          "format": "ref:cards"
+        },
+        "title": {
+          "type": "string",
+          "description": "Title"
+        },
+        "body": {
+          "type": "string",
+          "description": "Text",
+          "format": "multiline"
+        },
+        "url": {
+          "type": "string",
+          "description": "https://... address"
+        },
+        "source": {
+          "type": "string",
+          "description": "Source of a quote"
+        },
+        "tags": {
+          "type": "string",
+          "description": "Replace the tags: JSON list or comma-separated words"
+        },
+        "color": {
+          "type": "string",
+          "description": "Card color",
+          "enum": [
+            "plain",
+            "amber",
+            "green",
+            "blue",
+            "violet",
+            "red",
+            "teal",
+            "accent"
+          ]
+        },
+        "starred": {
+          "type": "boolean",
+          "description": "Star or unstar"
+        },
+        "x": {
+          "type": "number",
+          "description": "Left edge"
+        },
+        "y": {
+          "type": "number",
+          "description": "Top edge"
+        },
+        "w": {
+          "type": "number",
+          "description": "Width"
+        },
+        "h": {
+          "type": "number",
+          "description": "Height"
+        },
+        "refresh_preview": {
+          "type": "boolean",
+          "description": "Read the link's page again"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/cards/update"
+      }
+    },
+    {
+      "name": "cards.move",
+      "description": "Move and/or resize many cards at once.",
+      "label": "Move cards",
+      "returns": "summary",
+      "params": {
+        "positions": {
+          "type": "string",
+          "description": "JSON list: [{\"card\":\"<id>\",\"x\":0,\"y\":0,\"w\":260,\"h\":160}] (w and h optional)",
+          "required": true,
+          "format": "json"
+        },
+        "front": {
+          "type": "boolean",
+          "description": "Also bring the moved cards to the front"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/cards/move"
+      }
+    },
+    {
+      "name": "cards.delete",
+      "description": "Move cards to the trash (their links are hidden). cards.restore brings them back within a day; after that they are gone.",
+      "label": "Delete cards",
+      "destructive": true,
+      "confirm": "Move these cards to the trash?",
+      "returns": "summary",
+      "params": {
+        "ids": {
+          "type": "string",
+          "description": "JSON list of card ids",
+          "required": true,
+          "format": "json"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/cards/delete"
+      }
+    },
+    {
+      "name": "cards.restore",
+      "description": "Bring trashed cards back (with their links).",
+      "label": "Restore cards",
+      "returns": "summary",
+      "params": {
+        "ids": {
+          "type": "string",
+          "description": "JSON list of card ids",
+          "required": true,
+          "format": "json"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/cards/restore"
+      }
+    },
+    {
+      "name": "cards.duplicate",
+      "description": "Copy cards (and the links among them) on their board, slightly offset.",
+      "label": "Duplicate cards",
+      "returns": "summary",
+      "params": {
+        "ids": {
+          "type": "string",
+          "description": "JSON list of card ids from one board",
+          "required": true,
+          "format": "json"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/cards/duplicate"
+      }
+    },
+    {
+      "name": "cards.transfer",
+      "description": "Move or copy cards to another board. Links among them come along; on a move, links to cards left behind are removed.",
+      "label": "Move to board",
+      "returns": "summary",
+      "params": {
+        "ids": {
+          "type": "string",
+          "description": "JSON list of card ids",
+          "required": true,
+          "format": "json"
+        },
+        "board": {
+          "type": "string",
+          "description": "Target board id",
+          "required": true,
+          "format": "ref:boards"
+        },
+        "mode": {
+          "type": "string",
+          "description": "move (default) or copy",
+          "enum": [
+            "move",
+            "copy"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/cards/transfer"
+      }
+    },
+    {
+      "name": "cards.tag",
+      "description": "Add and/or remove tags on many cards.",
+      "label": "Tag cards",
+      "returns": "summary",
+      "params": {
+        "ids": {
+          "type": "string",
+          "description": "JSON list of card ids",
+          "required": true,
+          "format": "json"
+        },
+        "add": {
+          "type": "string",
+          "description": "Tags to add: JSON list or comma-separated"
+        },
+        "remove": {
+          "type": "string",
+          "description": "Tags to remove: JSON list or comma-separated"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/cards/tag"
+      }
+    },
+    {
+      "name": "tags.list",
+      "description": "Every tag in use with how many cards carry it, most used first.",
+      "returns": "list",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/tags/list"
+      }
+    },
+    {
+      "name": "tags.rename",
+      "description": "Rename a tag on every card (merges into an existing tag of that name).",
+      "label": "Rename tag",
+      "returns": "summary",
+      "params": {
+        "tag": {
+          "type": "string",
+          "description": "Current tag",
+          "required": true
+        },
+        "to": {
+          "type": "string",
+          "description": "New tag",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/tags/rename"
+      }
+    },
+    {
+      "name": "tags.delete",
+      "description": "Remove a tag from every card (the cards stay).",
+      "label": "Remove tag",
+      "destructive": true,
+      "confirm": "Remove this tag from every card?",
+      "returns": "summary",
+      "params": {
+        "tag": {
+          "type": "string",
+          "description": "Tag to remove",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/tags/delete"
+      }
+    },
+    {
+      "name": "links.add",
+      "description": "Link two cards on the same board. Propose (dashed, the person confirms) with proposed=true and a reason. When the cards are already linked the existing link is returned.",
+      "label": "Link cards",
+      "returns": "record",
+      "params": {
+        "source": {
+          "type": "string",
+          "description": "Card the arrow starts from",
+          "required": true,
+          "format": "ref:cards"
+        },
+        "target": {
+          "type": "string",
+          "description": "Card the arrow points to",
+          "required": true,
+          "format": "ref:cards"
+        },
+        "kind": {
+          "type": "string",
+          "description": "relates (default), supports, contradicts or leads (to)",
+          "enum": [
+            "relates",
+            "supports",
+            "contradicts",
+            "leads"
+          ]
+        },
+        "label": {
+          "type": "string",
+          "description": "Short label shown on the link"
+        },
+        "proposed": {
+          "type": "boolean",
+          "description": "A proposal the person confirms or rejects"
+        },
+        "reason": {
+          "type": "string",
+          "description": "Why (shown with a proposal)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/links/add"
+      }
+    },
+    {
+      "name": "links.update",
+      "description": "Change a link's kind or label, or flip its direction.",
+      "label": "Edit link",
+      "returns": "record",
+      "params": {
+        "link": {
+          "type": "string",
+          "description": "Link id",
+          "required": true,
+          "format": "ref:links"
+        },
+        "kind": {
+          "type": "string",
+          "description": "Link kind",
+          "enum": [
+            "relates",
+            "supports",
+            "contradicts",
+            "leads"
+          ]
+        },
+        "label": {
+          "type": "string",
+          "description": "Label"
+        },
+        "flip": {
+          "type": "boolean",
+          "description": "Reverse the direction"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/links/update"
+      }
+    },
+    {
+      "name": "links.delete",
+      "description": "Remove a link (the cards stay).",
+      "label": "Remove link",
+      "destructive": true,
+      "confirm": "Remove this link?",
+      "returns": "none",
+      "params": {
+        "link": {
+          "type": "string",
+          "description": "Link id",
+          "required": true,
+          "format": "ref:links"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/links/delete"
+      }
+    },
+    {
+      "name": "links.decide",
+      "description": "Confirm or reject proposed links: give ids, or a board to decide all of its proposals.",
+      "label": "Confirm or reject",
+      "returns": "summary",
+      "params": {
+        "decision": {
+          "type": "string",
+          "description": "confirm or reject",
+          "required": true,
+          "enum": [
+            "confirm",
+            "reject"
+          ]
+        },
+        "ids": {
+          "type": "string",
+          "description": "JSON list of proposed link ids",
+          "format": "json"
+        },
+        "board": {
+          "type": "string",
+          "description": "Decide every proposal on this board",
+          "format": "ref:boards"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/links/decide"
+      }
+    },
+    {
+      "name": "digests.request",
+      "description": "Ask the AI agent to summarize a card (it reads the page, file or video).",
+      "label": "Ask for a summary",
+      "returns": "record",
+      "params": {
+        "card": {
+          "type": "string",
+          "description": "Card id",
+          "required": true,
+          "format": "ref:cards"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/digests/request"
+      }
+    },
+    {
+      "name": "digests.cancel",
+      "description": "Withdraw a summary ask that is still waiting.",
+      "label": "Cancel summary",
+      "returns": "record",
+      "params": {
+        "card": {
+          "type": "string",
+          "description": "Card id",
+          "required": true,
+          "format": "ref:cards"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/digests/cancel"
+      }
+    },
+    {
+      "name": "digests.clear",
+      "description": "Remove a card's summary.",
+      "label": "Remove summary",
+      "destructive": true,
+      "confirm": "Remove this summary?",
+      "returns": "record",
+      "params": {
+        "card": {
+          "type": "string",
+          "description": "Card id",
+          "required": true,
+          "format": "ref:cards"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/digests/clear"
+      }
+    },
+    {
+      "name": "digests.list",
+      "description": "Cards by summary state (default waiting), with file_path for uploaded files.",
+      "returns": "list",
+      "params": {
+        "state": {
+          "type": "string",
+          "description": "Summary state",
+          "enum": [
+            "waiting",
+            "reading",
+            "failed",
+            "done"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/digests/list"
+      }
+    },
+    {
+      "name": "digests.start",
+      "description": "Take a waiting card before reading it.",
+      "label": "Start summary",
+      "returns": "record",
+      "params": {
+        "card": {
+          "type": "string",
+          "description": "Card id",
+          "required": true,
+          "format": "ref:cards"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/digests/start"
+      }
+    },
+    {
+      "name": "digests.complete",
+      "description": "Save the summary of a card you read (3 to 6 sentences). Optionally improve its title and add tags.",
+      "label": "Save summary",
+      "returns": "record",
+      "params": {
+        "card": {
+          "type": "string",
+          "description": "Card id",
+          "required": true,
+          "format": "ref:cards"
+        },
+        "summary": {
+          "type": "string",
+          "description": "The summary",
+          "required": true,
+          "format": "multiline"
+        },
+        "title": {
+          "type": "string",
+          "description": "Better title (optional)"
+        },
+        "tags": {
+          "type": "string",
+          "description": "Tags to add: JSON list or comma-separated"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/digests/complete"
+      }
+    },
+    {
+      "name": "digests.fail",
+      "description": "Report that a card cannot be summarized, with a reason the person can act on.",
+      "label": "Summary failed",
+      "returns": "record",
+      "params": {
+        "card": {
+          "type": "string",
+          "description": "Card id",
+          "required": true,
+          "format": "ref:cards"
+        },
+        "reason": {
+          "type": "string",
+          "description": "What you saw and what the person can do",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/digests/fail"
+      }
+    },
+    {
+      "name": "reviews.request",
+      "description": "Ask the AI agent to review a board: notes on what is missing, proposed links and a short review.",
+      "label": "Ask for a review",
+      "returns": "record",
+      "params": {
+        "board": {
+          "type": "string",
+          "description": "Board id",
+          "required": true,
+          "format": "ref:boards"
+        },
+        "focus": {
+          "type": "string",
+          "description": "What the review should look at (optional)",
+          "format": "multiline"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/reviews/request"
+      }
+    },
+    {
+      "name": "reviews.cancel",
+      "description": "Withdraw a review ask that is still waiting.",
+      "label": "Cancel review",
+      "returns": "record",
+      "params": {
+        "board": {
+          "type": "string",
+          "description": "Board id",
+          "required": true,
+          "format": "ref:boards"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/reviews/cancel"
+      }
+    },
+    {
+      "name": "reviews.dismiss",
+      "description": "Hide a finished or failed review from the board.",
+      "label": "Dismiss review",
+      "returns": "record",
+      "params": {
+        "board": {
+          "type": "string",
+          "description": "Board id",
+          "required": true,
+          "format": "ref:boards"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/reviews/dismiss"
+      }
+    },
+    {
+      "name": "reviews.list",
+      "description": "Boards by review state (default waiting), with the person's focus.",
+      "returns": "list",
+      "params": {
+        "state": {
+          "type": "string",
+          "description": "Review state",
+          "enum": [
+            "waiting",
+            "working",
+            "failed",
+            "done"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/reviews/list"
+      }
+    },
+    {
+      "name": "reviews.start",
+      "description": "Take a waiting board before reviewing it.",
+      "label": "Start review",
+      "returns": "record",
+      "params": {
+        "board": {
+          "type": "string",
+          "description": "Board id",
+          "required": true,
+          "format": "ref:boards"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/reviews/start"
+      }
+    },
+    {
+      "name": "reviews.complete",
+      "description": "Save the review of a board (themes, gaps, contradictions, next steps; under 1500 characters).",
+      "label": "Save review",
+      "returns": "record",
+      "params": {
+        "board": {
+          "type": "string",
+          "description": "Board id",
+          "required": true,
+          "format": "ref:boards"
+        },
+        "summary": {
+          "type": "string",
+          "description": "The review",
+          "required": true,
+          "format": "multiline"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/reviews/complete"
+      }
+    },
+    {
+      "name": "reviews.fail",
+      "description": "Report that a board could not be reviewed, with a reason.",
+      "label": "Review failed",
+      "returns": "record",
+      "params": {
+        "board": {
+          "type": "string",
+          "description": "Board id",
+          "required": true,
+          "format": "ref:boards"
+        },
+        "reason": {
+          "type": "string",
+          "description": "What went wrong",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/reviews/fail"
+      }
     }
   ]
 }
