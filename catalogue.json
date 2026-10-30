@@ -26,10 +26,10 @@
       "id": "kanban-online",
       "livingUIVersion": 2,
       "name": "Kanban Online",
-      "description": "Multi-user online Kanban board with sign-up/login auth, drag-and-drop, labels, priorities, checklists, and due dates",
+      "description": "Kanban boards your team shares with several AI agents. People sign in (the first account runs the workspace; admins let others in) and every agent that connects through the CLI joins under its own name, with its own queue, limit and pause switch. A card is a person's, one agent's, or any agent's, and has a requester who gets the questions and the result. Every column is a contract: let any agent or one named agent work it and the cards dragged in are handed over and picked up automatically, with WIP limits that bind agents, a plan to approve first, acceptance criteria, and where finished work goes. Agents hold cards with leases, never take each other's, show what they are doing live, ask when they would have to guess, and hand work back with evidence; people approve, request changes (back to the agent that did it) or reject, and only people move cards to Done. Each person's inbox and review queue (theirs or everyone's), a Team page with presence, approvals and each agent's report card, flow insights split between agents and people, rules, an activity log where every change can be reverted, and switches that pause one agent or all of them. Smooth drag and drop that everyone sees live, in CraftBot's own look, light and dark, on desktop and phone.",
       "folder": "kanban-online",
-      "tags": ["kanban", "project management", "productivity", "multi-user"],
-      "version": "1.0.0"
+      "tags": ["kanban", "project management", "productivity", "multi-user", "team", "AI agents", "review"],
+      "version": "2.0.0"
     },
     {
       "id": "ledgerflow",
