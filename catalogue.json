@@ -41,14 +41,6 @@
       "version": "2.0.0"
     },
     {
-      "id": "luolinglo",
-      "name": "Luolinglo",
-      "description": "Language learning app with vocabulary, flashcards, quizzes, AI teacher, and heavy gamification.",
-      "folder": "luolinglo",
-      "tags": ["language", "education"],
-      "version": "1.0.0"
-    },
-    {
       "id": "trading-view",
       "livingUIVersion": 2,
       "name": "Trading View",
