@@ -6,21 +6,2111 @@
       "description": "Liveness check (PocketBase built-in).",
       "system": true,
       "params": {},
-      "executor": { "type": "http", "method": "GET", "path": "/api/health" }
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/health"
+      }
     },
     {
       "name": "ops.list",
       "description": "Return this operations manifest.",
       "system": true,
       "params": {},
-      "executor": { "type": "http", "method": "GET", "path": "/api/_ops" }
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/_ops"
+      }
     },
     {
-      "name": "cards.clear-archived",
-      "description": "Delete all archived cards and return how many were removed.",
-      "destructive": true,
+      "name": "app.guide",
+      "description": "START HERE: who you are on the team, the model (boards, columns as contracts, assignees: people, agents and the pool, requesters, agent states, reviews), the work protocol (work.next, heartbeat, submit, ask, return, fail), the rules agents are held to, error codes, and the boards with who works each column.",
+      "label": "Guide",
+      "readOnly": true,
+      "returns": "summary",
       "params": {},
-      "executor": { "type": "http", "method": "POST", "path": "/api/ops/cards/clear-archived" }
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/app/guide"
+      }
+    },
+    {
+      "name": "app.status",
+      "description": "The team's agents at a glance (each one's status, cards it works and waiting for it), whether every agent is paused, how many people are online, how many cards wait on people, and (for an agent) where you stand.",
+      "label": "Status",
+      "readOnly": true,
+      "returns": "summary",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/app/status"
+      }
+    },
+    {
+      "name": "app.state",
+      "description": "What the app frame shows, in one call: you, the workspace settings, boards with live counts, the people (online, where) and the agents (working, waiting, idle, paused), and the cards that need you (reviews, questions, attention, proposals) with the team's totals.",
+      "label": "App state",
+      "readOnly": true,
+      "returns": "summary",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/app/state"
+      }
+    },
+    {
+      "name": "app.context",
+      "description": "What the people online are looking at, the most recent first, with that person's open board and card.",
+      "label": "On screen",
+      "readOnly": true,
+      "returns": "summary",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/app/context"
+      }
+    },
+    {
+      "name": "app.ui",
+      "description": "The app reports where the signed-in person is (used by the app itself for presence; app.context reads it).",
+      "label": "Report screen",
+      "returns": "none",
+      "params": {
+        "view": {
+          "type": "string",
+          "description": "View"
+        },
+        "board": {
+          "type": "string",
+          "description": "Board id or key (OPS)",
+          "format": "ref:boards"
+        },
+        "card": {
+          "type": "string",
+          "description": "Open card id"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/app/ui"
+      }
+    },
+    {
+      "name": "settings.get",
+      "description": "The workspace: its name, how new accounts join (open or admin approval), whether every agent is paused, how many cards an agent works at once by default.",
+      "label": "Settings",
+      "readOnly": true,
+      "returns": "summary",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/settings/get"
+      }
+    },
+    {
+      "name": "settings.update",
+      "description": "People: pause or resume every agent (any member). Admins: the workspace name, how new accounts join, the default cards an agent works at once, defaults for new columns.",
+      "label": "Change settings",
+      "returns": "summary",
+      "params": {
+        "name": {
+          "type": "string",
+          "description": "Workspace name"
+        },
+        "joining": {
+          "type": "string",
+          "description": "New accounts: open (in at once) or approval (an admin lets them in)",
+          "enum": [
+            "open",
+            "approval"
+          ]
+        },
+        "paused": {
+          "type": "boolean",
+          "description": "Pause every agent (claims, heartbeats and writes are refused)"
+        },
+        "max_working": {
+          "type": "number",
+          "description": "Cards each agent works at once by default, across its sessions (1..10, default 2)"
+        },
+        "defaults": {
+          "type": "string",
+          "description": "JSON {\"lease_minutes\":15,\"max_attempts\":3} for new columns",
+          "format": "json"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/settings/update"
+      }
+    },
+    {
+      "name": "me.get",
+      "description": "The caller: a person's account (name, colour, role, status, inbox preferences), or for an agent, its own entry (status, limit, cards it works).",
+      "label": "My account",
+      "readOnly": true,
+      "returns": "record",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/me/get"
+      }
+    },
+    {
+      "name": "me.update",
+      "description": "The person: your display name, avatar colour and inbox preferences (what interrupts you, what waits in the inbox or the digest; whether the inbox opens on your cards or everyone's).",
+      "label": "Change my account",
+      "returns": "record",
+      "params": {
+        "name": {
+          "type": "string",
+          "description": "The name your team sees"
+        },
+        "tone": {
+          "type": "string",
+          "description": "Avatar colour",
+          "enum": [
+            "orange",
+            "blue",
+            "green",
+            "purple",
+            "teal",
+            "pink",
+            "yellow",
+            "red",
+            "gray"
+          ]
+        },
+        "prefs": {
+          "type": "string",
+          "description": "JSON {\"attention\":{\"reviews\",\"questions\",\"attention\",\"updates\"}: each interrupt, inbox or digest, \"inbox\":\"mine\"|\"all\"}",
+          "format": "json"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/me/update"
+      }
+    },
+    {
+      "name": "people.list",
+      "description": "The team's members: name, email, role, status, online and where, open cards assigned to them. Admins also see accounts waiting to join and suspended ones.",
+      "label": "People",
+      "readOnly": true,
+      "returns": "list",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/people/list"
+      }
+    },
+    {
+      "name": "people.update",
+      "description": "Admins: let a waiting account in (status active), suspend or restore a member, make someone an admin or a member. You cannot change your own role or status, and the workspace keeps at least one admin.",
+      "label": "Change member",
+      "returns": "record",
+      "params": {
+        "person": {
+          "type": "string",
+          "description": "Email, name or id",
+          "required": true,
+          "format": "ref:users"
+        },
+        "status": {
+          "type": "string",
+          "description": "Status",
+          "enum": [
+            "active",
+            "suspended"
+          ]
+        },
+        "role": {
+          "type": "string",
+          "description": "Role",
+          "enum": [
+            "admin",
+            "member"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/people/update"
+      }
+    },
+    {
+      "name": "agents.list",
+      "description": "Every agent on the team, live: status (working, waiting, idle, paused), the cards it works now, how many wait for it, its limit, when it was last seen, and its report card over the last days.",
+      "label": "Agents",
+      "readOnly": true,
+      "returns": "list",
+      "params": {
+        "days": {
+          "type": "number",
+          "description": "Report card window in days (1..90, default 7)"
+        },
+        "all": {
+          "type": "boolean",
+          "description": "Include removed agents"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/agents/list"
+      }
+    },
+    {
+      "name": "agents.update",
+      "description": "People: pause or resume one agent (any member). Admins: rename it, recolour it, set how many cards it works at once (0 = the workspace default), bring a removed agent back.",
+      "label": "Change agent",
+      "returns": "record",
+      "params": {
+        "agent": {
+          "type": "string",
+          "description": "Agent handle, name or id (agents.list)",
+          "required": true,
+          "format": "ref:agents"
+        },
+        "paused": {
+          "type": "boolean",
+          "description": "Paused: it takes no cards and its writes are refused"
+        },
+        "name": {
+          "type": "string",
+          "description": "Display name"
+        },
+        "tone": {
+          "type": "string",
+          "description": "Colour",
+          "enum": [
+            "orange",
+            "blue",
+            "green",
+            "purple",
+            "teal",
+            "pink",
+            "yellow",
+            "red",
+            "gray"
+          ]
+        },
+        "max_working": {
+          "type": "number",
+          "description": "Cards at once (0 = workspace default, up to 10)"
+        },
+        "restore": {
+          "type": "boolean",
+          "description": "Bring a removed agent back"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/agents/update"
+      }
+    },
+    {
+      "name": "agents.remove",
+      "description": "Admins: remove an agent from the team. Cards it works or holds go back to the pool (or to nobody), columns it worked go to any agent. It is refused if it calls again, until restored.",
+      "label": "Remove agent",
+      "destructive": true,
+      "confirm": "Remove this agent from the team?",
+      "returns": "summary",
+      "params": {
+        "agent": {
+          "type": "string",
+          "description": "Agent handle, name or id (agents.list)",
+          "required": true,
+          "format": "ref:agents"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/agents/remove"
+      }
+    },
+    {
+      "name": "boards.list",
+      "description": "Boards with their key, how-we-work instructions, frozen flag and live counts (cards, agents working, queued, waiting on people).",
+      "label": "Boards",
+      "readOnly": true,
+      "returns": "list",
+      "params": {
+        "archived": {
+          "type": "boolean",
+          "description": "Include archived boards"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/boards/list"
+      }
+    },
+    {
+      "name": "boards.get",
+      "description": "A board with its columns (each column's contract: category, WIP, policy, who works it, gates, next, lease) and its cards (key, title, column, priority, labels, assignee, requester, agent state, review state, blocked, age) and labels.",
+      "label": "Board",
+      "readOnly": true,
+      "returns": "record",
+      "params": {
+        "board": {
+          "type": "string",
+          "description": "Board id or key (OPS)",
+          "required": true,
+          "format": "ref:boards"
+        },
+        "full": {
+          "type": "boolean",
+          "description": "Include each card's description, acceptance criteria, checklist and review"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/boards/get"
+      }
+    },
+    {
+      "name": "boards.templates",
+      "description": "Starting points for a new board: simple, agent pipeline, content studio, software, three columns.",
+      "label": "Board templates",
+      "readOnly": true,
+      "returns": "list",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/boards/templates"
+      }
+    },
+    {
+      "name": "boards.create",
+      "description": "People: create a board from a template.",
+      "label": "New board",
+      "returns": "record",
+      "params": {
+        "name": {
+          "type": "string",
+          "description": "Board name",
+          "required": true
+        },
+        "key": {
+          "type": "string",
+          "description": "Card key prefix (2 to 6 letters or digits, e.g. OPS); default from the name"
+        },
+        "template": {
+          "type": "string",
+          "description": "Template",
+          "enum": [
+            "simple",
+            "pipeline",
+            "content",
+            "software",
+            "basic"
+          ]
+        },
+        "description": {
+          "type": "string",
+          "description": "One line"
+        },
+        "instructions": {
+          "type": "string",
+          "description": "How we work: standing instructions every agent run receives",
+          "format": "multiline"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/boards/create"
+      }
+    },
+    {
+      "name": "boards.update",
+      "description": "People: rename, change the key or description, the how-we-work instructions, freeze (agents cannot change the board), swimlanes, archive.",
+      "label": "Change board",
+      "returns": "record",
+      "params": {
+        "board": {
+          "type": "string",
+          "description": "Board id or key (OPS)",
+          "required": true,
+          "format": "ref:boards"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name"
+        },
+        "key": {
+          "type": "string",
+          "description": "Card key prefix"
+        },
+        "description": {
+          "type": "string",
+          "description": "One line"
+        },
+        "instructions": {
+          "type": "string",
+          "description": "How we work",
+          "format": "multiline"
+        },
+        "frozen": {
+          "type": "boolean",
+          "description": "Frozen: agents cannot change anything on this board"
+        },
+        "swimlanes": {
+          "type": "string",
+          "description": "Rows on the board",
+          "enum": [
+            "none",
+            "assignee",
+            "priority"
+          ]
+        },
+        "archived": {
+          "type": "boolean",
+          "description": "Archived"
+        },
+        "sort": {
+          "type": "number",
+          "description": "Order in the sidebar"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/boards/update"
+      }
+    },
+    {
+      "name": "boards.delete",
+      "description": "Admins: delete a board with its columns, cards, labels, rules and activity.",
+      "label": "Delete board",
+      "destructive": true,
+      "confirm": "Delete this board and everything on it?",
+      "returns": "none",
+      "params": {
+        "board": {
+          "type": "string",
+          "description": "Board id or key (OPS)",
+          "required": true,
+          "format": "ref:boards"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/boards/delete"
+      }
+    },
+    {
+      "name": "columns.add",
+      "description": "People: add a column (a stage with its contract).",
+      "label": "Add column",
+      "returns": "record",
+      "params": {
+        "board": {
+          "type": "string",
+          "description": "Board id or key (OPS)",
+          "required": true,
+          "format": "ref:boards"
+        },
+        "index": {
+          "type": "number",
+          "description": "Position (0 = first; default last)"
+        },
+        "name": {
+          "type": "string",
+          "description": "Column name"
+        },
+        "category": {
+          "type": "string",
+          "description": "What the column means: triage (agent proposals), backlog, todo, doing, review (waits for a person), done, canceled",
+          "enum": [
+            "triage",
+            "backlog",
+            "todo",
+            "doing",
+            "review",
+            "done",
+            "canceled"
+          ]
+        },
+        "wip": {
+          "type": "number",
+          "description": "WIP limit (0 = none): binding for agents, a warning for people"
+        },
+        "policy": {
+          "type": "string",
+          "description": "Entry and exit policy shown in the column header",
+          "format": "multiline"
+        },
+        "instructions": {
+          "type": "string",
+          "description": "Instructions an agent receives when it works here",
+          "format": "multiline"
+        },
+        "agent_mode": {
+          "type": "string",
+          "description": "Who works the column: off (people), any (every card that enters goes to the pool, any agent takes it) or one (every card that enters goes to the agent named in agent). To-do and started columns only.",
+          "enum": [
+            "off",
+            "any",
+            "one"
+          ]
+        },
+        "agent": {
+          "type": "string",
+          "description": "The one agent that works this column (handle or name; sets agent_mode one). Empty clears it.",
+          "format": "ref:agents"
+        },
+        "plan_first": {
+          "type": "boolean",
+          "description": "An agent posts a plan a person approves before it works"
+        },
+        "need_criteria": {
+          "type": "boolean",
+          "description": "Cards need acceptance criteria before an agent takes them"
+        },
+        "need_checklist": {
+          "type": "boolean",
+          "description": "Cards leave this column only with every checklist item ticked (binding for agents)"
+        },
+        "next": {
+          "type": "string",
+          "description": "The column work goes to when an agent submits (default: the next column)",
+          "format": "ref:columns"
+        },
+        "return_to": {
+          "type": "string",
+          "description": "Review columns: where Request changes sends the card (default: the column it was worked in)",
+          "format": "ref:columns"
+        },
+        "lease_minutes": {
+          "type": "number",
+          "description": "How long a claim holds without a heartbeat (2..240, default 15)"
+        },
+        "max_attempts": {
+          "type": "number",
+          "description": "Tries before the card needs a person (1..10, default 3)"
+        },
+        "aging_days": {
+          "type": "number",
+          "description": "Flag cards older than this many days here (0 = from the board's history)"
+        },
+        "collapsed": {
+          "type": "boolean",
+          "description": "Collapsed on the board"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/columns/add"
+      }
+    },
+    {
+      "name": "columns.update",
+      "description": "People: change a column's contract. Handing it to agents (or another agent) queues the cards already there, except cards assigned to a person.",
+      "label": "Change column",
+      "returns": "record",
+      "params": {
+        "column": {
+          "type": "string",
+          "description": "Column id",
+          "required": true,
+          "format": "ref:columns"
+        },
+        "name": {
+          "type": "string",
+          "description": "Column name"
+        },
+        "category": {
+          "type": "string",
+          "description": "What the column means: triage (agent proposals), backlog, todo, doing, review (waits for a person), done, canceled",
+          "enum": [
+            "triage",
+            "backlog",
+            "todo",
+            "doing",
+            "review",
+            "done",
+            "canceled"
+          ]
+        },
+        "wip": {
+          "type": "number",
+          "description": "WIP limit (0 = none): binding for agents, a warning for people"
+        },
+        "policy": {
+          "type": "string",
+          "description": "Entry and exit policy shown in the column header",
+          "format": "multiline"
+        },
+        "instructions": {
+          "type": "string",
+          "description": "Instructions an agent receives when it works here",
+          "format": "multiline"
+        },
+        "agent_mode": {
+          "type": "string",
+          "description": "Who works the column: off (people), any (every card that enters goes to the pool, any agent takes it) or one (every card that enters goes to the agent named in agent). To-do and started columns only.",
+          "enum": [
+            "off",
+            "any",
+            "one"
+          ]
+        },
+        "agent": {
+          "type": "string",
+          "description": "The one agent that works this column (handle or name; sets agent_mode one). Empty clears it.",
+          "format": "ref:agents"
+        },
+        "plan_first": {
+          "type": "boolean",
+          "description": "An agent posts a plan a person approves before it works"
+        },
+        "need_criteria": {
+          "type": "boolean",
+          "description": "Cards need acceptance criteria before an agent takes them"
+        },
+        "need_checklist": {
+          "type": "boolean",
+          "description": "Cards leave this column only with every checklist item ticked (binding for agents)"
+        },
+        "next": {
+          "type": "string",
+          "description": "The column work goes to when an agent submits (default: the next column)",
+          "format": "ref:columns"
+        },
+        "return_to": {
+          "type": "string",
+          "description": "Review columns: where Request changes sends the card (default: the column it was worked in)",
+          "format": "ref:columns"
+        },
+        "lease_minutes": {
+          "type": "number",
+          "description": "How long a claim holds without a heartbeat (2..240, default 15)"
+        },
+        "max_attempts": {
+          "type": "number",
+          "description": "Tries before the card needs a person (1..10, default 3)"
+        },
+        "aging_days": {
+          "type": "number",
+          "description": "Flag cards older than this many days here (0 = from the board's history)"
+        },
+        "collapsed": {
+          "type": "boolean",
+          "description": "Collapsed on the board"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/columns/update"
+      }
+    },
+    {
+      "name": "columns.move",
+      "description": "People: reorder a column.",
+      "label": "Move column",
+      "returns": "none",
+      "params": {
+        "column": {
+          "type": "string",
+          "description": "Column id",
+          "required": true,
+          "format": "ref:columns"
+        },
+        "index": {
+          "type": "number",
+          "description": "New position (0 = first)",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/columns/move"
+      }
+    },
+    {
+      "name": "columns.remove",
+      "description": "People: remove a column; its cards move to move_to first.",
+      "label": "Remove column",
+      "destructive": true,
+      "confirm": "Remove this column?",
+      "returns": "none",
+      "params": {
+        "column": {
+          "type": "string",
+          "description": "Column id",
+          "required": true,
+          "format": "ref:columns"
+        },
+        "move_to": {
+          "type": "string",
+          "description": "Where its cards go",
+          "format": "ref:columns"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/columns/remove"
+      }
+    },
+    {
+      "name": "labels.save",
+      "description": "People: add a label to a board or rename / recolour one.",
+      "label": "Save label",
+      "returns": "record",
+      "params": {
+        "board": {
+          "type": "string",
+          "description": "Board id or key (OPS)",
+          "format": "ref:boards"
+        },
+        "label": {
+          "type": "string",
+          "description": "Label id to change",
+          "format": "ref:labels"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name"
+        },
+        "color": {
+          "type": "string",
+          "description": "Colour",
+          "enum": [
+            "gray",
+            "red",
+            "orange",
+            "yellow",
+            "green",
+            "teal",
+            "blue",
+            "purple",
+            "pink"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/labels/save"
+      }
+    },
+    {
+      "name": "labels.remove",
+      "description": "People: remove a label from the board and its cards.",
+      "label": "Remove label",
+      "destructive": true,
+      "confirm": "Remove this label?",
+      "returns": "none",
+      "params": {
+        "label": {
+          "type": "string",
+          "description": "Label id",
+          "required": true,
+          "format": "ref:labels"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/labels/remove"
+      }
+    },
+    {
+      "name": "rules.list",
+      "description": "A board's rules (When, If, Then) in order, with how often each ran and why a rule was switched off; plus the triggers and actions available.",
+      "label": "Rules",
+      "readOnly": true,
+      "returns": "list",
+      "params": {
+        "board": {
+          "type": "string",
+          "description": "Board id or key (OPS)",
+          "required": true,
+          "format": "ref:boards"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/rules/list"
+      }
+    },
+    {
+      "name": "rules.save",
+      "description": "People: add or change a rule. when: enters_column (with column), created, checklist_done, approved, changes_requested, needs_attention, blocked, idle (days), due_soon (days). conditions {\"priority\":[1,2],\"labels\":[\"<id>\"],\"assignee\":\"person|agent|none|<member email>|<agent handle>\"}. actions [{\"do\":\"move\",\"column\":\"<id>\"},{\"do\":\"assign\",\"to\":\"requester|pool|<member email>|<agent handle>|\"},{\"do\":\"priority\",\"value\":1},{\"do\":\"label\",\"label\":\"<id>\"},{\"do\":\"request_review\"},{\"do\":\"block\",\"reason\":\"...\"},{\"do\":\"comment\",\"text\":\"...\"},{\"do\":\"archive\"}]. A rule's actions never trigger other rules.",
+      "label": "Save rule",
+      "returns": "record",
+      "params": {
+        "rule": {
+          "type": "string",
+          "description": "Rule id to change",
+          "format": "ref:rules"
+        },
+        "board": {
+          "type": "string",
+          "description": "Board id or key (OPS)",
+          "format": "ref:boards"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name"
+        },
+        "enabled": {
+          "type": "boolean",
+          "description": "On"
+        },
+        "when": {
+          "type": "string",
+          "description": "When",
+          "enum": [
+            "enters_column",
+            "created",
+            "checklist_done",
+            "approved",
+            "changes_requested",
+            "needs_attention",
+            "blocked",
+            "idle",
+            "due_soon"
+          ]
+        },
+        "column": {
+          "type": "string",
+          "description": "Column id or name (on the card's board)",
+          "format": "ref:columns"
+        },
+        "days": {
+          "type": "number",
+          "description": "idle / due_soon: days"
+        },
+        "conditions": {
+          "type": "string",
+          "description": "JSON conditions",
+          "format": "json"
+        },
+        "actions": {
+          "type": "string",
+          "description": "JSON list of actions",
+          "format": "json"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/rules/save"
+      }
+    },
+    {
+      "name": "rules.remove",
+      "description": "People: remove a rule.",
+      "label": "Remove rule",
+      "destructive": true,
+      "confirm": "Remove this rule?",
+      "returns": "none",
+      "params": {
+        "rule": {
+          "type": "string",
+          "description": "Rule id",
+          "required": true,
+          "format": "ref:rules"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/rules/remove"
+      }
+    },
+    {
+      "name": "cards.list",
+      "description": "Cards with filters: board, column, assignee (me, none, pool (any agent), a person (email or name) or an agent (handle or name)), requester (me or a person), agent state, waiting for review, text, label, archived.",
+      "label": "Cards",
+      "readOnly": true,
+      "returns": "list",
+      "params": {
+        "board": {
+          "type": "string",
+          "description": "Board id or key (OPS)",
+          "format": "ref:boards"
+        },
+        "column": {
+          "type": "string",
+          "description": "Column id or name (on the card's board)",
+          "format": "ref:columns"
+        },
+        "assignee": {
+          "type": "string",
+          "description": "Assigned to: me, none, pool (any agent), a person (email or name) or an agent (handle or name)"
+        },
+        "requester": {
+          "type": "string",
+          "description": "Asked for by: me or a person (email or name)"
+        },
+        "state": {
+          "type": "string",
+          "description": "Agent state",
+          "enum": [
+            "queued",
+            "working",
+            "needs_input",
+            "needs_attention",
+            "idle"
+          ]
+        },
+        "review": {
+          "type": "boolean",
+          "description": "Only cards waiting for review"
+        },
+        "q": {
+          "type": "string",
+          "description": "Text in the title or description"
+        },
+        "label": {
+          "type": "string",
+          "description": "Label name or id"
+        },
+        "archived": {
+          "type": "boolean",
+          "description": "Archived cards instead"
+        },
+        "full": {
+          "type": "boolean",
+          "description": "Include description, criteria, checklist and review"
+        },
+        "limit": {
+          "type": "number",
+          "description": "At most this many"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/cards/list"
+      }
+    },
+    {
+      "name": "cards.get",
+      "description": "One card in full (description, acceptance criteria, checklist, plan, question, review packet, feedback, assignee, requester, the agent on it), its column's contract, its activity (who said and did what) and its runs.",
+      "label": "Card",
+      "readOnly": true,
+      "returns": "record",
+      "params": {
+        "card": {
+          "type": "string",
+          "description": "Card key (OPS-12) or id",
+          "required": true,
+          "format": "ref:cards"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/cards/get"
+      }
+    },
+    {
+      "name": "cards.add",
+      "description": "Add a card. From an agent it is a PROPOSAL: it waits in Proposed until a person accepts it (at most 20 a day per agent). From a person it lands in the column given (default the first to-do column), assigned as they say (default nobody) with them as its requester; a column agents work hands it to them.",
+      "label": "New card",
+      "returns": "record",
+      "params": {
+        "board": {
+          "type": "string",
+          "description": "Board id or key (OPS)",
+          "required": true,
+          "format": "ref:boards"
+        },
+        "title": {
+          "type": "string",
+          "description": "Title",
+          "required": true
+        },
+        "column": {
+          "type": "string",
+          "description": "Column id or name (on the card's board)",
+          "format": "ref:columns"
+        },
+        "description": {
+          "type": "string",
+          "description": "Description (markdown)",
+          "format": "multiline"
+        },
+        "acceptance": {
+          "type": "string",
+          "description": "Acceptance criteria: what done means",
+          "format": "multiline"
+        },
+        "priority": {
+          "type": "string",
+          "description": "urgent, high, medium, low or none (or 1-4, 0 = none)"
+        },
+        "labels": {
+          "type": "string",
+          "description": "JSON list of label names or ids, e.g. [\"Bug\"]",
+          "format": "json"
+        },
+        "due": {
+          "type": "string",
+          "description": "Due date (2026-11-15)"
+        },
+        "estimate": {
+          "type": "number",
+          "description": "Estimate (points or hours)"
+        },
+        "checklist": {
+          "type": "string",
+          "description": "JSON list of checklist items, e.g. [\"Draft\",\"Check links\"]",
+          "format": "json"
+        },
+        "assignee": {
+          "type": "string",
+          "description": "Assign it (people only): me, none, pool (any agent), a person (email or name) or an agent (handle or name)"
+        },
+        "position": {
+          "type": "string",
+          "description": "Top or bottom of the column",
+          "enum": [
+            "top",
+            "bottom"
+          ]
+        },
+        "reason": {
+          "type": "string",
+          "description": "An agent: why you propose it"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/cards/add"
+      }
+    },
+    {
+      "name": "cards.update",
+      "description": "Change a card's text and fields; every change is logged and can be reverted. An agent changes cards in started columns only while it works on them (work.next), and should send version.",
+      "label": "Change card",
+      "returns": "record",
+      "params": {
+        "card": {
+          "type": "string",
+          "description": "Card key (OPS-12) or id",
+          "required": true,
+          "format": "ref:cards"
+        },
+        "version": {
+          "type": "number",
+          "description": "The card version you read; a newer card refuses the write (re-read and redo)"
+        },
+        "title": {
+          "type": "string",
+          "description": "Title"
+        },
+        "description": {
+          "type": "string",
+          "description": "Description (markdown)",
+          "format": "multiline"
+        },
+        "acceptance": {
+          "type": "string",
+          "description": "Acceptance criteria",
+          "format": "multiline"
+        },
+        "priority": {
+          "type": "string",
+          "description": "urgent, high, medium, low or none (or 1-4, 0 = none)"
+        },
+        "labels": {
+          "type": "string",
+          "description": "JSON list of label names or ids, e.g. [\"Bug\"]",
+          "format": "json"
+        },
+        "due": {
+          "type": "string",
+          "description": "Due date, or empty to clear"
+        },
+        "estimate": {
+          "type": "number",
+          "description": "Estimate"
+        },
+        "checklist": {
+          "type": "string",
+          "description": "JSON list replacing the checklist: strings or {\"text\",\"done\"}",
+          "format": "json"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/cards/update"
+      }
+    },
+    {
+      "name": "cards.move",
+      "description": "Move a card to a column (and a place in it). Entering a column agents work hands it to them and queues it. Agents cannot move cards to Done or Canceled, nor a card another agent holds, and a full column (WIP) refuses them.",
+      "label": "Move card",
+      "returns": "record",
+      "params": {
+        "card": {
+          "type": "string",
+          "description": "Card key (OPS-12) or id",
+          "required": true,
+          "format": "ref:cards"
+        },
+        "version": {
+          "type": "number",
+          "description": "The card version you read; a newer card refuses the write (re-read and redo)"
+        },
+        "column": {
+          "type": "string",
+          "description": "Column id or name",
+          "required": true,
+          "format": "ref:columns"
+        },
+        "position": {
+          "type": "string",
+          "description": "Top or bottom",
+          "enum": [
+            "top",
+            "bottom"
+          ]
+        },
+        "index": {
+          "type": "number",
+          "description": "Index in the column (0 = top)"
+        },
+        "before": {
+          "type": "string",
+          "description": "Place it before this card"
+        },
+        "after": {
+          "type": "string",
+          "description": "Place it after this card"
+        },
+        "reason": {
+          "type": "string",
+          "description": "Why (shown in the activity)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/cards/move"
+      }
+    },
+    {
+      "name": "cards.assign",
+      "description": "People: assign a card to a person, one agent, the pool (any agent; it queues at once in to-do and started columns) or nobody. Handing it to agents makes you its requester. Taking a card from an agent while it works on it stops that work.",
+      "label": "Assign card",
+      "returns": "record",
+      "params": {
+        "card": {
+          "type": "string",
+          "description": "Card key (OPS-12) or id",
+          "required": true,
+          "format": "ref:cards"
+        },
+        "assignee": {
+          "type": "string",
+          "description": "Assign to: me, none, pool (any agent), a person (email or name) or an agent (handle or name)",
+          "required": true
+        },
+        "note": {
+          "type": "string",
+          "description": "A note for the activity"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/cards/assign"
+      }
+    },
+    {
+      "name": "cards.comment",
+      "description": "Comment on a card (markdown). A person's comment reaches the agent working on it with its next heartbeat.",
+      "label": "Comment",
+      "returns": "summary",
+      "params": {
+        "card": {
+          "type": "string",
+          "description": "Card key (OPS-12) or id",
+          "required": true,
+          "format": "ref:cards"
+        },
+        "text": {
+          "type": "string",
+          "description": "Comment",
+          "required": true,
+          "format": "multiline"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/cards/comment"
+      }
+    },
+    {
+      "name": "cards.check",
+      "description": "Tick or untick a checklist item (by number, id or text), reword it, add one, or (people) remove one.",
+      "label": "Checklist item",
+      "returns": "summary",
+      "params": {
+        "card": {
+          "type": "string",
+          "description": "Card key (OPS-12) or id",
+          "required": true,
+          "format": "ref:cards"
+        },
+        "item": {
+          "type": "string",
+          "description": "Item number (1 = first), id or text"
+        },
+        "done": {
+          "type": "boolean",
+          "description": "Ticked (default: toggle)"
+        },
+        "text": {
+          "type": "string",
+          "description": "New wording"
+        },
+        "add": {
+          "type": "string",
+          "description": "Add an item with this text"
+        },
+        "remove": {
+          "type": "boolean",
+          "description": "Remove the item (people)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/cards/check"
+      }
+    },
+    {
+      "name": "cards.block",
+      "description": "Flag a card blocked with a reason (it stays in its column; agents skip it).",
+      "label": "Flag blocked",
+      "returns": "summary",
+      "params": {
+        "card": {
+          "type": "string",
+          "description": "Card key (OPS-12) or id",
+          "required": true,
+          "format": "ref:cards"
+        },
+        "reason": {
+          "type": "string",
+          "description": "What it waits for",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/cards/block"
+      }
+    },
+    {
+      "name": "cards.unblock",
+      "description": "Clear the blocked flag.",
+      "label": "Unblock",
+      "returns": "summary",
+      "params": {
+        "card": {
+          "type": "string",
+          "description": "Card key (OPS-12) or id",
+          "required": true,
+          "format": "ref:cards"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/cards/unblock"
+      }
+    },
+    {
+      "name": "cards.archive",
+      "description": "People: archive cards (they leave the board; restore brings them back).",
+      "label": "Archive cards",
+      "returns": "summary",
+      "params": {
+        "card": {
+          "type": "string",
+          "description": "Card key or id",
+          "format": "ref:cards"
+        },
+        "cards": {
+          "type": "string",
+          "description": "JSON list of card keys or ids",
+          "format": "json"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/cards/archive"
+      }
+    },
+    {
+      "name": "cards.restore",
+      "description": "People: bring archived cards back.",
+      "label": "Restore cards",
+      "returns": "summary",
+      "params": {
+        "card": {
+          "type": "string",
+          "description": "Card key or id",
+          "format": "ref:cards"
+        },
+        "cards": {
+          "type": "string",
+          "description": "JSON list of card keys or ids",
+          "format": "json"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/cards/restore"
+      }
+    },
+    {
+      "name": "cards.delete",
+      "description": "People: delete a card and its activity for good.",
+      "label": "Delete card",
+      "destructive": true,
+      "confirm": "Delete this card for good?",
+      "returns": "none",
+      "params": {
+        "card": {
+          "type": "string",
+          "description": "Card key (OPS-12) or id",
+          "required": true,
+          "format": "ref:cards"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/cards/delete"
+      }
+    },
+    {
+      "name": "cards.accept",
+      "description": "People: accept a card an agent proposed (into the backlog, or the column given); you become its requester.",
+      "label": "Accept proposal",
+      "returns": "record",
+      "params": {
+        "card": {
+          "type": "string",
+          "description": "Card key (OPS-12) or id",
+          "required": true,
+          "format": "ref:cards"
+        },
+        "column": {
+          "type": "string",
+          "description": "Column id or name (on the card's board)",
+          "format": "ref:columns"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/cards/accept"
+      }
+    },
+    {
+      "name": "cards.answer",
+      "description": "People: answer an agent's question (or give the acceptance criteria a card waits for, or say how to revise a plan); the card goes back to the agent.",
+      "label": "Answer agent",
+      "returns": "summary",
+      "params": {
+        "card": {
+          "type": "string",
+          "description": "Card key (OPS-12) or id",
+          "required": true,
+          "format": "ref:cards"
+        },
+        "text": {
+          "type": "string",
+          "description": "Your answer",
+          "required": true,
+          "format": "multiline"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/cards/answer"
+      }
+    },
+    {
+      "name": "cards.approve_plan",
+      "description": "People: approve the plan an agent posted; it goes ahead.",
+      "label": "Approve plan",
+      "returns": "summary",
+      "params": {
+        "card": {
+          "type": "string",
+          "description": "Card key (OPS-12) or id",
+          "required": true,
+          "format": "ref:cards"
+        },
+        "note": {
+          "type": "string",
+          "description": "Anything to add"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/cards/approve_plan"
+      }
+    },
+    {
+      "name": "cards.stop",
+      "description": "People: stop the agent on a card now; the card becomes yours until you hand it to an agent again.",
+      "label": "Stop agent",
+      "returns": "summary",
+      "params": {
+        "card": {
+          "type": "string",
+          "description": "Card key (OPS-12) or id",
+          "required": true,
+          "format": "ref:cards"
+        },
+        "reason": {
+          "type": "string",
+          "description": "Why"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/cards/stop"
+      }
+    },
+    {
+      "name": "cards.retry",
+      "description": "People: give a card that needs attention another go with its agent (or the pool); attempts start again.",
+      "label": "Retry",
+      "returns": "summary",
+      "params": {
+        "card": {
+          "type": "string",
+          "description": "Card key (OPS-12) or id",
+          "required": true,
+          "format": "ref:cards"
+        },
+        "note": {
+          "type": "string",
+          "description": "What to do differently (the agent reads it)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/cards/retry"
+      }
+    },
+    {
+      "name": "review.list",
+      "description": "Cards waiting for a person's review, with the agent's review packet (summary, evidence, unverified, criteria) and who did the work.",
+      "label": "Review queue",
+      "readOnly": true,
+      "returns": "list",
+      "params": {
+        "board": {
+          "type": "string",
+          "description": "Board id or key (OPS)",
+          "format": "ref:boards"
+        },
+        "mine": {
+          "type": "boolean",
+          "description": "Only cards you asked for (and ones nobody owns)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/review/list"
+      }
+    },
+    {
+      "name": "review.approve",
+      "description": "People: approve the work; the card moves on (to Done by default). Agents cannot.",
+      "label": "Approve",
+      "returns": "summary",
+      "params": {
+        "card": {
+          "type": "string",
+          "description": "Card key (OPS-12) or id",
+          "required": true,
+          "format": "ref:cards"
+        },
+        "note": {
+          "type": "string",
+          "description": "A note"
+        },
+        "column": {
+          "type": "string",
+          "description": "Column id or name (on the card's board)",
+          "format": "ref:columns"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/review/approve"
+      }
+    },
+    {
+      "name": "review.changes",
+      "description": "People: send the work back to the agent that did it, with what to change; it goes back to the column it was worked in.",
+      "label": "Request changes",
+      "returns": "summary",
+      "params": {
+        "card": {
+          "type": "string",
+          "description": "Card key (OPS-12) or id",
+          "required": true,
+          "format": "ref:cards"
+        },
+        "reason": {
+          "type": "string",
+          "description": "What to change (the agent reads it)",
+          "required": true,
+          "format": "multiline"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/review/changes"
+      }
+    },
+    {
+      "name": "review.reject",
+      "description": "People: reject the work; the card goes back to its requester.",
+      "label": "Reject",
+      "returns": "summary",
+      "params": {
+        "card": {
+          "type": "string",
+          "description": "Card key (OPS-12) or id",
+          "required": true,
+          "format": "ref:cards"
+        },
+        "reason": {
+          "type": "string",
+          "description": "Why",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/review/reject"
+      }
+    },
+    {
+      "name": "work.queue",
+      "description": "An agent: how many cards wait for you (assigned to you or to the pool), per board, and how many you work now against your limit.",
+      "label": "Work waiting",
+      "readOnly": true,
+      "returns": "list",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/work/queue"
+      }
+    },
+    {
+      "name": "work.next",
+      "description": "An agent: claim ONE card for you atomically (yours or from the pool, most urgent first) and get everything to work it: the card, the board's how_we_work, the column's instructions and policy, feedback, the requester and the recent conversation (who said what), your run id and lease. No card = nothing waiting for you, or you already work your limit: then it lists your held cards and which ones a session left behind (resumable) for work.resume.",
+      "label": "Take next card",
+      "returns": "record",
+      "params": {
+        "board": {
+          "type": "string",
+          "description": "Board id or key (OPS)",
+          "format": "ref:boards"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/work/next"
+      }
+    },
+    {
+      "name": "work.heartbeat",
+      "description": "An agent: keep your lease on a card and say what you are doing now; answers with anything the team said meanwhile.",
+      "label": "Heartbeat",
+      "returns": "summary",
+      "params": {
+        "card": {
+          "type": "string",
+          "description": "Card key (OPS-12) or id",
+          "required": true,
+          "format": "ref:cards"
+        },
+        "run": {
+          "type": "string",
+          "description": "Your run id from work.next or work.resume. Always pass it: if another session took the card over, your call is refused (stale_run) instead of both working on it."
+        },
+        "progress": {
+          "type": "string",
+          "description": "What you are doing (one line, shown on the card)"
+        },
+        "cost": {
+          "type": "number",
+          "description": "Cost of this stretch of work, if you track it"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/work/heartbeat"
+      }
+    },
+    {
+      "name": "work.log",
+      "description": "An agent: add a step to the card's live activity (thought, action, note or result); it also renews the lease.",
+      "label": "Log step",
+      "returns": "none",
+      "params": {
+        "card": {
+          "type": "string",
+          "description": "Card key (OPS-12) or id",
+          "required": true,
+          "format": "ref:cards"
+        },
+        "run": {
+          "type": "string",
+          "description": "Your run id from work.next or work.resume. Always pass it: if another session took the card over, your call is refused (stale_run) instead of both working on it."
+        },
+        "kind": {
+          "type": "string",
+          "description": "Kind",
+          "enum": [
+            "thought",
+            "action",
+            "note",
+            "result"
+          ]
+        },
+        "text": {
+          "type": "string",
+          "description": "What happened",
+          "required": true,
+          "format": "multiline"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/work/log"
+      }
+    },
+    {
+      "name": "work.plan",
+      "description": "An agent: post (or update) your plan for a card: a list of steps, each pending, doing, done or skipped. In a column that needs a plan first, the card then waits for a person to approve it.",
+      "label": "Post plan",
+      "returns": "summary",
+      "params": {
+        "card": {
+          "type": "string",
+          "description": "Card key (OPS-12) or id",
+          "required": true,
+          "format": "ref:cards"
+        },
+        "run": {
+          "type": "string",
+          "description": "Your run id from work.next or work.resume. Always pass it: if another session took the card over, your call is refused (stale_run) instead of both working on it."
+        },
+        "steps": {
+          "type": "string",
+          "description": "JSON list of steps: strings or {\"text\",\"status\"}",
+          "required": true,
+          "format": "json"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/work/plan"
+      }
+    },
+    {
+      "name": "work.ask",
+      "description": "An agent: ask ONE clear question instead of guessing; you release the card and it waits on its requester (or anyone on the team), then comes back to you with the answer.",
+      "label": "Ask the team",
+      "returns": "summary",
+      "params": {
+        "card": {
+          "type": "string",
+          "description": "Card key (OPS-12) or id",
+          "required": true,
+          "format": "ref:cards"
+        },
+        "run": {
+          "type": "string",
+          "description": "Your run id from work.next or work.resume. Always pass it: if another session took the card over, your call is refused (stale_run) instead of both working on it."
+        },
+        "question": {
+          "type": "string",
+          "description": "The question",
+          "required": true,
+          "format": "multiline"
+        },
+        "options": {
+          "type": "string",
+          "description": "JSON list of suggested answers",
+          "format": "json"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/work/ask"
+      }
+    },
+    {
+      "name": "work.submit",
+      "description": "An agent: finish a card with your result and its evidence. It moves to review for people (or on to the next column agents work). Report every acceptance criterion.",
+      "label": "Submit work",
+      "returns": "summary",
+      "params": {
+        "card": {
+          "type": "string",
+          "description": "Card key (OPS-12) or id",
+          "required": true,
+          "format": "ref:cards"
+        },
+        "run": {
+          "type": "string",
+          "description": "Your run id from work.next or work.resume. Always pass it: if another session took the card over, your call is refused (stale_run) instead of both working on it."
+        },
+        "summary": {
+          "type": "string",
+          "description": "What you did and where the result is",
+          "required": true,
+          "format": "multiline"
+        },
+        "evidence": {
+          "type": "string",
+          "description": "JSON list: how you checked it (sources, tests, links)",
+          "format": "json"
+        },
+        "unverified": {
+          "type": "string",
+          "description": "JSON list: what you could not check or assumed",
+          "format": "json"
+        },
+        "criteria": {
+          "type": "string",
+          "description": "JSON list [{\"text\":\"<criterion>\",\"met\":true,\"note\":\"...\"}] (required when the card has acceptance criteria)",
+          "format": "json"
+        },
+        "cost": {
+          "type": "number",
+          "description": "Cost of the work, if you track it"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/work/submit"
+      }
+    },
+    {
+      "name": "work.return",
+      "description": "An agent: hand a card back to its requester with the reason (it is not agent work, out of scope, needs their judgment, access or budget).",
+      "label": "Hand back",
+      "returns": "summary",
+      "params": {
+        "card": {
+          "type": "string",
+          "description": "Card key (OPS-12) or id",
+          "required": true,
+          "format": "ref:cards"
+        },
+        "run": {
+          "type": "string",
+          "description": "Your run id from work.next or work.resume. Always pass it: if another session took the card over, your call is refused (stale_run) instead of both working on it."
+        },
+        "reason": {
+          "type": "string",
+          "description": "Why",
+          "required": true
+        },
+        "why": {
+          "type": "string",
+          "description": "Kind of reason",
+          "enum": [
+            "cant",
+            "scope",
+            "judgment",
+            "access",
+            "budget",
+            "other"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/work/return"
+      }
+    },
+    {
+      "name": "work.fail",
+      "description": "An agent: you tried and could not finish; the card is retried (a pool card by any agent) until the column's max attempts, then needs a person.",
+      "label": "Report failure",
+      "returns": "summary",
+      "params": {
+        "card": {
+          "type": "string",
+          "description": "Card key (OPS-12) or id",
+          "required": true,
+          "format": "ref:cards"
+        },
+        "run": {
+          "type": "string",
+          "description": "Your run id from work.next or work.resume. Always pass it: if another session took the card over, your call is refused (stale_run) instead of both working on it."
+        },
+        "reason": {
+          "type": "string",
+          "description": "What went wrong",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/work/fail"
+      }
+    },
+    {
+      "name": "work.resume",
+      "description": "An agent: take over a card of yours a previous session left behind (still marked working but nobody checked in for 1.5 heartbeat intervals). work.next lists such cards as resumable when you are at your limit. Returns the same as work.next with a new run; a card another session is still working is refused (code active), and a card another agent holds is not yours (not_yours).",
+      "label": "Take over",
+      "returns": "record",
+      "params": {
+        "card": {
+          "type": "string",
+          "description": "Card key (OPS-12) or id",
+          "required": true,
+          "format": "ref:cards"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/work/resume"
+      }
+    },
+    {
+      "name": "work.release",
+      "description": "An agent: let go of a card without finishing (it goes back to the queue; a pool card back to the pool).",
+      "label": "Release",
+      "returns": "none",
+      "params": {
+        "card": {
+          "type": "string",
+          "description": "Card key (OPS-12) or id",
+          "required": true,
+          "format": "ref:cards"
+        },
+        "run": {
+          "type": "string",
+          "description": "Your run id from work.next or work.resume. Always pass it: if another session took the card over, your call is refused (stale_run) instead of both working on it."
+        },
+        "reason": {
+          "type": "string",
+          "description": "Why"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/work/release"
+      }
+    },
+    {
+      "name": "inbox.list",
+      "description": "What needs the caller (reviews, questions, cards needing attention, proposals, blocked, overdue): their own cards (asked for by them, assigned to them, or owned by nobody) or everyone's; and what the others did since they last looked.",
+      "label": "Inbox",
+      "readOnly": true,
+      "returns": "summary",
+      "params": {
+        "scope": {
+          "type": "string",
+          "description": "mine or all (default: your preference)",
+          "enum": [
+            "mine",
+            "all"
+          ]
+        },
+        "since": {
+          "type": "string",
+          "description": "Updates after this time (default: since you last looked)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/inbox/list"
+      }
+    },
+    {
+      "name": "inbox.seen",
+      "description": "The person looked at the updates.",
+      "label": "Mark seen",
+      "returns": "none",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/inbox/seen"
+      }
+    },
+    {
+      "name": "insights.flow",
+      "description": "Flow of work over a window: WIP by column, aging work in progress, cycle times with 50/85/95th percentiles, weekly throughput, cumulative flow, review wait and first-pass approval, split by agents and people, and each agent's report card (runs, approval and first-pass rates, questions, failures, expiries, median run time).",
+      "label": "Flow",
+      "readOnly": true,
+      "returns": "summary",
+      "params": {
+        "board": {
+          "type": "string",
+          "description": "Board id or key (OPS)",
+          "format": "ref:boards"
+        },
+        "days": {
+          "type": "number",
+          "description": "Window in days (7..180, default 30)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/insights/flow"
+      }
+    },
+    {
+      "name": "activity.list",
+      "description": "The activity log, newest first: every change with who made it (a person, an agent, a rule, the board), before and after, the run, and whether it can be reverted.",
+      "label": "Activity",
+      "readOnly": true,
+      "returns": "list",
+      "params": {
+        "board": {
+          "type": "string",
+          "description": "Board id or key (OPS)",
+          "format": "ref:boards"
+        },
+        "card": {
+          "type": "string",
+          "description": "Card key or id",
+          "format": "ref:cards"
+        },
+        "actor": {
+          "type": "string",
+          "description": "Kind of actor",
+          "enum": [
+            "person",
+            "agent",
+            "rule",
+            "system"
+          ]
+        },
+        "who": {
+          "type": "string",
+          "description": "One actor: me, a member (email or name) or an agent (handle)"
+        },
+        "before": {
+          "type": "string",
+          "description": "Older than this time (paging)"
+        },
+        "limit": {
+          "type": "number",
+          "description": "At most this many"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/activity/list"
+      }
+    },
+    {
+      "name": "activity.revert",
+      "description": "People: revert changes (one event, several, or everything one agent run changed).",
+      "label": "Revert",
+      "returns": "summary",
+      "params": {
+        "event": {
+          "type": "string",
+          "description": "Event id"
+        },
+        "events": {
+          "type": "string",
+          "description": "JSON list of event ids",
+          "format": "json"
+        },
+        "run": {
+          "type": "string",
+          "description": "Revert everything a run changed"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/activity/revert"
+      }
+    },
+    {
+      "name": "activity.undo",
+      "description": "The person: undo your own last change (within 30 minutes).",
+      "label": "Undo",
+      "returns": "summary",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/activity/undo"
+      }
     }
   ]
 }

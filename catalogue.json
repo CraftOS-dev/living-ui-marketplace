@@ -3,65 +3,68 @@
   "apps": [
     {
       "id": "research-board",
+      "livingUIVersion": 2,
       "name": "Research Board",
-      "description": "Organize research with notes, images, videos, YouTube links, and documents on a visual board. Features categories, search, and detail views.",
+      "description": "A sidebar of boards and a zoomable canvas: notes, web links, YouTube videos, images, videos, documents and quotes, grouped in sections and joined by links that support, contradict or lead to each other. Link previews, drag and drop, paste, find, tags and Markdown export. Your AI agent summarizes cards and reviews a board, proposing the links it sees.",
       "folder": "research-board",
-      "tags": ["research", "media", "productivity"],
-      "version": "1.0.0",
+      "tags": ["research", "whiteboard", "knowledge", "AI", "productivity"],
+      "version": "2.0.0",
       "customizable": [
-        {"key": "APP_TITLE", "label": "Board Title", "type": "text", "default": "Research Board", "placeholder": "e.g., Game Design Board"}
+        {"key": "APP_TITLE", "label": "Workspace name", "type": "text", "default": "Research Board", "placeholder": "e.g., Game Design Board"}
       ]
     },
     {
       "id": "kanban-board",
       "livingUIVersion": 2,
       "name": "Kanban Board",
-      "description": "Local single-user Kanban board with drag-and-drop, labels, priorities, checklists, and due dates (no auth)",
+      "description": "A Kanban board you share with your AI agent. Every card is yours or the agent's, and every column is a contract: let the agent work a column and any card you drag into it is handed over and picked up automatically, with WIP limits that bind the agent, a plan to approve first, acceptance criteria, and where finished work goes. The agent holds cards with leases, shows what it is doing live, asks when it would have to guess, and hands work back with evidence; you approve, request changes or reject, and only you move cards to Done. An inbox of what needs you, a review queue, flow insights with the agent's report card (aging work, cycle time, throughput, cumulative flow, first-pass approval), rules, an activity log where every change can be reverted, a limit on how many cards the agent works at once, and one switch that pauses it. Smooth drag and drop, in CraftBot's own look, light and dark.",
       "folder": "kanban-board",
-      "tags": ["kanban", "project management", "productivity"],
-      "version": "1.0.0"
+      "tags": ["kanban", "project management", "productivity", "AI agents", "review"],
+      "version": "2.0.0"
     },
     {
       "id": "kanban-online",
       "livingUIVersion": 2,
       "name": "Kanban Online",
-      "description": "Multi-user online Kanban board with sign-up/login auth, drag-and-drop, labels, priorities, checklists, and due dates",
+      "description": "Kanban boards your team shares with several AI agents. People sign in (the first account runs the workspace; admins let others in) and every agent that connects through the CLI joins under its own name, with its own queue, limit and pause switch. A card is a person's, one agent's, or any agent's, and has a requester who gets the questions and the result. Every column is a contract: let any agent or one named agent work it and the cards dragged in are handed over and picked up automatically, with WIP limits that bind agents, a plan to approve first, acceptance criteria, and where finished work goes. Agents hold cards with leases, never take each other's, show what they are doing live, ask when they would have to guess, and hand work back with evidence; people approve, request changes (back to the agent that did it) or reject, and only people move cards to Done. Each person's inbox and review queue (theirs or everyone's), a Team page with presence, approvals and each agent's report card, flow insights split between agents and people, rules, an activity log where every change can be reverted, and switches that pause one agent or all of them. Smooth drag and drop that everyone sees live, in CraftBot's own look, light and dark, on desktop and phone.",
       "folder": "kanban-online",
-      "tags": ["kanban", "project management", "productivity", "multi-user"],
-      "version": "1.0.0"
+      "tags": ["kanban", "project management", "productivity", "multi-user", "team", "AI agents", "review"],
+      "version": "2.0.0"
     },
     {
       "id": "ledgerflow",
+      "livingUIVersion": 2,
       "name": "Ledgerflow",
-      "description": "Comprehensive bookkeeping app for personal and business use with income/expense tracking, invoicing, bills, contacts, and financial reports.",
+      "description": "Double-entry books for a business, a household or both. Import bank statements (OFX, QIF, CSV, CAMT, MT940) into an inbox where matches, open invoices, transfers, rules and your history suggest how to book every line; review by keyboard. Invoices and bills with tax and other currencies, reconciliation, profit and loss (accrual or cash), balance sheet, cash flow, aged balances, VAT/GST summary, budgets and month-end close with lock dates. Your AI agent categorizes what is left with its reasons, reads receipts, answers questions and prepares the close; its work stays proposed under your policy and every change can be reverted.",
       "folder": "ledgerflow",
-      "tags": ["bookkeeping", "finance", "productivity"],
-      "version": "1.0.0"
-    },
-    {
-      "id": "luolinglo",
-      "name": "Luolinglo",
-      "description": "Language learning app with vocabulary, flashcards, quizzes, AI teacher, and heavy gamification.",
-      "folder": "luolinglo",
-      "tags": ["language", "education"],
-      "version": "1.0.0"
+      "tags": ["bookkeeping", "accounting", "finance", "invoicing", "tax", "AI"],
+      "version": "2.0.0"
     },
     {
       "id": "trading-view",
       "livingUIVersion": 2,
       "name": "Trading View",
-      "description": "TradingView-like trading dashboard with interactive charts, technical indicators, and customizable widget layout.",
+      "description": "A trading terminal of drag-and-resize widgets: charts with 31 indicators, 15 drawing tools, comparisons and pre/post-market, multi-timeframe grids, watchlists, details, news, screener and heatmap over stocks, ETFs, indices, forex and futures (Yahoo Finance) and crypto (Binance). Alerts run on the server around the clock. Your AI agent analyzes charts and watchlists, draws its levels, sets and explains alerts, and every change it makes can be reverted.",
       "folder": "trading-view",
-      "tags": ["finance", "stock"],
-      "version": "1.0.0"
+      "tags": ["finance", "trading", "stocks", "crypto", "charts", "AI"],
+      "version": "2.0.0"
     },
     {
       "id": "crm-system",
       "livingUIVersion": 2,
       "name": "CRM System",
-      "description": "Attio-class multi-user CRM: People, Companies, and Deals as linked records with custom attributes, saved table/kanban views with inline editing, drag-and-drop pipelines edited on the board, 3-panel record pages with activity timelines, tasks + My Work, Cmd+K palette, SMTP email, funnel/win-rate/velocity reports, and on-demand AI via CraftBot's LLM.",
+      "description": "A relationship CRM for founders and small teams: people, companies and deals in sales, fundraising, hiring and partnership pipelines. Home shows the pipeline, forecast, won and lost, your round against its target and who is going cold. Every email, call and meeting lands on one timeline with relationship strength and keep-in-touch reminders; a Today queue, boards with rotting deals, tables with inline editing and filters, CSV import, duplicate merging and reports with the formula behind every number. Your AI agent researches people, turns meeting notes into updates and follow-ups, drafts and sends email and answers questions; changes to your data wait in Review under your policy and every change can be undone.",
       "folder": "crm-system",
-      "tags": ["CRM", "sales", "pipeline", "productivity", "business"],
+      "tags": ["CRM", "sales", "pipeline", "fundraising", "relationships", "AI"],
+      "version": "2.0.0"
+    },
+    {
+      "id": "crm",
+      "livingUIVersion": 2,
+      "name": "CRM",
+      "description": "The relationship CRM in the Company OS look, with diagrams for everything that matters: won by month running into the forecast, your network as a constellation of your strongest and coldest relationships, a year of deals flowing stage to stage, and a month calendar of tasks, closes, people to get back to and birthdays. A Network map shows how your people, companies and deals connect. People, companies and deals across sales, fundraising, hiring and partnership pipelines; every email, call and meeting on one timeline with relationship strength; a Today queue, boards, tables with inline editing, CSV import, duplicate merging and reports. Your AI agent researches people, turns meeting notes into updates and follow-ups, drafts and sends email and answers questions; changes to your data wait in Review under your policy and every change can be undone.",
+      "folder": "crm",
+      "tags": ["CRM", "sales", "pipeline", "relationships", "dashboard", "AI"],
       "version": "1.0.0"
     },
     {
@@ -116,11 +119,12 @@
     },
     {
       "id": "image-utility",
+      "livingUIVersion": 2,
       "name": "Image Utility",
-      "description": "Upload an image, crop it interactively, resize, compress, or convert to PNG/JPEG/WEBP, then download the edited file. All processing runs offline on the backend with Pillow.",
+      "description": "Crop, straighten, resize, frame, adjust, annotate, redact, watermark and cut out images on your computer, then export small files with real sizes before you save. A desktop-editor workspace in the CAD Workshop look: a toolbar with shortcuts, a non-destructive edit stack over the untouched original (reorder, turn off, undo and revert anything), a stage with zoom to real pixels and hold-to-compare, and live previews in every tool. Export WebP, AVIF, JPEG, PNG, GIF, ICO and TIFF with several formats at once, a size target, a 100 % before-and-after comparison, and the location stripped from metadata. Batches run one recipe over many images with rename patterns and a preview of every file. Your AI agent uses the same tools: it redacts screenshots, writes alt text and prepares folders for the web, as proposals you accept or reject. The image engine (about 32 MB) downloads once on first run; background removal is an optional 20 MB add-on.",
       "folder": "image-utility",
-      "tags": ["image", "editing", "files", "productivity"],
-      "version": "1.0.0"
+      "tags": ["image", "photo editing", "compression", "batch", "screenshots", "AI"],
+      "version": "2.0.0"
     },
     {
       "id": "brainstorm-graph",

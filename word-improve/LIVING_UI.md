@@ -32,7 +32,7 @@ Relationships: Session has many Chunks; paragraph Chunks have many sentence Chun
 ### Features
 
 1. **Session input** — textarea with paragraph parsing, mode picker (4 modes), tone selector (when "Tone shift" is chosen), custom instruction field (when "Custom" is chosen), variant-count selector (2–5, default 3), and a "Generate variants" button.
-2. **LLM bridge** — backend service that pulls the user's CraftBot-configured LLM provider/model/api-key (same pattern as `luolinglo/backend/llm_service.py`) and prompts it to produce N variants per chunk.
+2. **LLM bridge** — backend service that pulls the user's CraftBot-configured LLM provider/model/api-key and prompts it to produce N variants per chunk.
 3. **Paragraph variant picker** — for each paragraph: original card + N variant cards in a horizontal row. Click to lock a selection. "Regenerate" button per chunk to re-prompt the LLM (with a different temperature seed).
 4. **Sentence-level drill-down** — expand a paragraph row into its constituent sentences, each with its own variants. Per-sentence picks roll up into the paragraph's compiled output.
 5. **Compile** — when the user has picked a variant for every chunk, the "Compile" CTA enables. Click → backend stitches selected variants into the final text, persists it on the Session, and reveals the diff + result panel.
@@ -103,7 +103,7 @@ Relationships: Session has many Chunks; paragraph Chunks have many sentence Chun
 |-------------------------------------|----------------------------------------------------------------------------------|
 | backend/models.py                   | Session / Chunk / Variant / LLMCache SQLAlchemy models + agent observation models|
 | backend/routes.py                   | Session lifecycle + variant generation + compile + chunk select/drill/regenerate |
-| backend/llm_service.py              | Bridge to CraftBot's configured LLM provider (mirrors luolinglo's pattern)       |
+| backend/llm_service.py              | Bridge to CraftBot's configured LLM provider                                     |
 | backend/prompts.py                  | Per-mode prompt templates (improve / auto_complete / tone_shift / custom)        |
 | backend/text_utils.py               | Paragraph + sentence splitters; word-level LCS diff                              |
 | backend/test_runner.py              | Marketplace pre/post-server test runner (patched: anyOf handler in `_generate_value`) |

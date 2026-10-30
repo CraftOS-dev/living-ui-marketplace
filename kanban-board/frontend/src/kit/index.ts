@@ -1,7 +1,35 @@
 /**
- * Living UI kit — PUBLIC API (spec K6).
+ * Agent App kit — PUBLIC API (spec K6).
  * Anything exported here is the contract (append-only within a major version).
  * Anything not exported is internal and may change without notice.
+ *
+ * ── RECOMMENDED APP SKELETON ─────────────────────────────────────────────
+ * Do NOT render a bare centered column of Cards. Build a real app: an
+ * AppShell with a SidebarNav for anything that has more than one view, a
+ * PageHeader on every page, and the structural primitives below (Section,
+ * StatGrid/Stat, ListRow, EmptyState, Pill) instead of hand-rolled <div>s.
+ *
+ *   import { AppShell, SidebarNav, PageHeader, StatGrid, Stat, Section,
+ *            ListRow, Pill } from '../kit/index.ts';
+ *
+ *   <AppShell sidebar={
+ *     <SidebarNav brand={<Brand/>} active={page} onSelect={setPage}
+ *       sections={[{ items: [{ key:'home', label:'Home', icon:<HomeIcon/> }] }]} />
+ *   }>
+ *     <PageHeader title="Customers" meta="128" actions={<Button>New</Button>} />
+ *     <StatGrid><Stat label="MRR" value="$1,938" tone="good" /></StatGrid>
+ *     <Section title="Recent" flush>
+ *       <ListRow primary="Acme" secondary="added today"
+ *                trailing={<Pill tone="good">Active</Pill>} />
+ *     </Section>
+ *   </AppShell>
+ *
+ * Design rules: hierarchy from weight + muted grays (not size); the accent is
+ * for interaction and the current thing only; other color means STATE (Pill
+ * tones); numbers are tabular and right-aligned; every empty view uses
+ * <EmptyState>. Never hardcode colors: read var(--agent-app-*) so dark mode and
+ * every host style pack keep working.
+ * ─────────────────────────────────────────────────────────────────────────
  */
 
 // Shell & feedback
@@ -13,6 +41,10 @@ export { getPbClient, setPbClient, PbClient } from './pb/client.ts';
 export type { NormalizedPbError } from './pb/client.ts';
 export { useCollection, useRecord } from './pb/hooks.ts';
 export type { CollectionQuery, CollectionState, RecordState } from './pb/hooks.ts';
+
+// App→agent trigger plane (spec TRIGGERS-PLAN)
+export { fireAgentTrigger, useAgentRequest } from './pb/agent.ts';
+export type { AgentRequestRecord, AgentRequestState, FireResult } from './pb/agent.ts';
 
 // Auth (multi-user mode)
 export { useAuth } from './pb/auth.ts';
@@ -97,6 +129,37 @@ export { SortableList, reorderAndSave } from './components/dnd.tsx';
 export type { SortableListProps } from './components/dnd.tsx';
 export { FileUpload, ImageInput } from './components/upload.tsx';
 export type { FileUploadProps, ImageInputProps, UploadedFile } from './components/upload.tsx';
+
+// Structural layer — app skeleton + display primitives (kit 0.6.0)
+export {
+  AppShell,
+  SidebarNav,
+  PageHeader,
+  Section,
+  GroupHeader,
+  ListRow,
+  Stat,
+  StatGrid,
+  DashboardGrid,
+  Toolbar,
+  EmptyState,
+  Pill,
+  Dot,
+  IdentityChip,
+  initialsOf,
+  MoneyAmount,
+  fmtMoney,
+  RelDate,
+  relDay,
+  ProgressRing,
+} from './components/layout.tsx';
+export type {
+  Tone,
+  AppShellProps,
+  SidebarNavProps,
+  SidebarNavItem,
+  SidebarNavSection,
+} from './components/layout.tsx';
 
 // Hooks
 export { useDebounce, useHotkey } from './lib/hooks.ts';

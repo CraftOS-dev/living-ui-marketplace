@@ -6,14 +6,2200 @@
       "description": "Liveness check (PocketBase built-in).",
       "system": true,
       "params": {},
-      "executor": { "type": "http", "method": "GET", "path": "/api/health" }
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/health"
+      }
     },
     {
       "name": "ops.list",
       "description": "Return this operations manifest.",
       "system": true,
       "params": {},
-      "executor": { "type": "http", "method": "GET", "path": "/api/_ops" }
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/_ops"
+      }
+    },
+    {
+      "name": "app.guide",
+      "description": "START HERE: how images, edit stacks, proposals, exports and batches work; every edit kind's params, error codes, ready-to-run recipes, your policy and the recent images.",
+      "label": "Guide",
+      "readOnly": true,
+      "returns": "summary",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/app/guide"
+      }
+    },
+    {
+      "name": "app.schema",
+      "description": "Every edit kind with its label, the filters, the adjust sliders and their ranges, resample filters, fonts and the layer types.",
+      "label": "Edit kinds",
+      "readOnly": true,
+      "returns": "summary",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/app/schema"
+      }
+    },
+    {
+      "name": "app.status",
+      "description": "The image engine (state, running, busy) and its setup (the one-off download on a new computer: state, groups installed, progress), images (and how many wait for the engine), pending proposals, open requests, running batches and exports.",
+      "label": "Status",
+      "readOnly": true,
+      "returns": "summary",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/app/status"
+      }
+    },
+    {
+      "name": "app.context",
+      "description": "What the person is looking at in the app: the view, the open image (with its stack, proposals and exports), the selected tool and edit, a region they drew and the images selected in the library.",
+      "label": "On screen",
+      "readOnly": true,
+      "returns": "summary",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/app/context"
+      }
+    },
+    {
+      "name": "app.ui",
+      "description": "The app reports what is on screen (used by the app itself; app.context reads it).",
+      "label": "Report screen",
+      "returns": "none",
+      "params": {
+        "view": {
+          "type": "string",
+          "description": "View"
+        },
+        "image": {
+          "type": "string",
+          "description": "Image id",
+          "format": "ref:images"
+        },
+        "tool": {
+          "type": "string",
+          "description": "Selected tool"
+        },
+        "edit": {
+          "type": "string",
+          "description": "Selected edit"
+        },
+        "selection": {
+          "type": "string",
+          "description": "JSON region {x,y,w,h} in pixels of the result",
+          "format": "json"
+        },
+        "images": {
+          "type": "string",
+          "description": "JSON list of selected image ids",
+          "format": "json"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/app/ui"
+      }
+    },
+    {
+      "name": "settings.get",
+      "description": "Export defaults (format, quality, metadata, strip_gps, matte, effort, resample), the AI agent policy (agent_edits propose or apply, agent_batches propose or run, house rules) and the export folder.",
+      "label": "Settings",
+      "readOnly": true,
+      "returns": "summary",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/settings/get"
+      }
+    },
+    {
+      "name": "settings.update",
+      "description": "Change the export defaults; the policy and the export folder are the person's to change.",
+      "label": "Change settings",
+      "returns": "summary",
+      "params": {
+        "defaults": {
+          "type": "string",
+          "description": "JSON of defaults to change {\"format\":\"webp\",\"quality\":\"balanced\",\"metadata\":\"basic\",\"strip_gps\":true,\"matte\":\"#ffffff\",\"effort\":\"normal\"}",
+          "format": "json"
+        },
+        "policy": {
+          "type": "string",
+          "description": "JSON {\"agent_edits\":\"propose|apply\",\"agent_batches\":\"propose|run\",\"house_rules\":\"...\"} (the person only)",
+          "format": "json"
+        },
+        "export_folder": {
+          "type": "string",
+          "description": "Absolute folder the AI agent may write exports into (the person only)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/settings/update"
+      }
+    },
+    {
+      "name": "engine.status",
+      "description": "The image engine: installed, running, busy, the job running now and its log tail.",
+      "label": "Engine",
+      "readOnly": true,
+      "returns": "summary",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/engine/status"
+      }
+    },
+    {
+      "name": "engine.install",
+      "description": "Start (or retry) the one-off download: core (the image engine, about 32 MB), bg (background removal with the fast model, about 20 MB) or bg_detailed (the detailed model, 179 MB). It runs in the background; app.status shows progress. Background models are the person's decision.",
+      "label": "Install engine",
+      "returns": "summary",
+      "params": {
+        "what": {
+          "type": "string",
+          "description": "What to install",
+          "enum": [
+            "core",
+            "bg",
+            "bg_detailed"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/engine/install"
+      }
+    },
+    {
+      "name": "engine.test",
+      "description": "Start the engine if needed and answer with its versions and features (formats, AVIF, models).",
+      "label": "Test engine",
+      "returns": "summary",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/engine/test"
+      }
+    },
+    {
+      "name": "images.list",
+      "description": "Images with size, format, bytes, edit and export counts, status, preview and thumbnail; pinned first. Totals of images, bytes and edited ones.",
+      "label": "Images",
+      "readOnly": true,
+      "returns": "list",
+      "params": {
+        "q": {
+          "type": "string",
+          "description": "Search name, title, alt text and keywords"
+        },
+        "show": {
+          "type": "string",
+          "description": "Only these",
+          "enum": [
+            "all",
+            "edited",
+            "original",
+            "exported",
+            "pinned",
+            "agent",
+            "proposals"
+          ]
+        },
+        "format": {
+          "type": "string",
+          "description": "Only this format (JPEG, PNG, WEBP, AVIF, GIF, TIFF, BMP, ICO)"
+        },
+        "sort": {
+          "type": "string",
+          "description": "Order",
+          "enum": [
+            "recent",
+            "name",
+            "size",
+            "pixels",
+            "edited"
+          ]
+        },
+        "limit": {
+          "type": "number",
+          "description": "At most this many"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/images/list"
+      }
+    },
+    {
+      "name": "images.get",
+      "description": "One image: its facts (size, format, colour profile, alpha, frames, camera and GPS), the edit stack (each edit with its size in and out), pending proposals, exports, requests and undo state.",
+      "label": "Image",
+      "readOnly": true,
+      "returns": "record",
+      "params": {
+        "image": {
+          "type": "string",
+          "description": "Image id",
+          "required": true,
+          "format": "ref:images"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/images/get"
+      }
+    },
+    {
+      "name": "images.info",
+      "description": "Everything the engine reads from the original file: format, mode, bit depth, ICC profile, frames, DPI, EXIF summary (camera, lens, exposure, date), GPS, orientation, hash and a histogram.",
+      "label": "Image facts",
+      "readOnly": true,
+      "returns": "summary",
+      "params": {
+        "image": {
+          "type": "string",
+          "description": "Image id",
+          "required": true,
+          "format": "ref:images"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/images/info"
+      }
+    },
+    {
+      "name": "images.render",
+      "description": "A picture of the image to look at: the current result (default), the result just before an edit (upto), a pending proposal's result, the untouched original, or a region at full resolution. Answers with the file path, its URL and size.",
+      "label": "Render",
+      "readOnly": true,
+      "returns": "summary",
+      "params": {
+        "image": {
+          "type": "string",
+          "description": "Image id",
+          "required": true,
+          "format": "ref:images"
+        },
+        "upto": {
+          "type": "string",
+          "description": "Render the stack up to (not including) this edit id"
+        },
+        "proposal": {
+          "type": "string",
+          "description": "Render with this pending proposal applied",
+          "format": "ref:proposals"
+        },
+        "original": {
+          "type": "boolean",
+          "description": "The untouched original"
+        },
+        "layers": {
+          "type": "boolean",
+          "description": "Draw the layers (default true; false shows the photo edits alone)"
+        },
+        "draft": {
+          "type": "string",
+          "description": "JSON {kind, params}: one more edit on top, not saved (how the app shows an open tool)",
+          "format": "json"
+        },
+        "region": {
+          "type": "string",
+          "description": "JSON {x,y,w,h} in pixels of the result: that part at full resolution",
+          "format": "json"
+        },
+        "max": {
+          "type": "number",
+          "description": "Preview size: longest edge in pixels (256..4000, default 1600)"
+        },
+        "histogram": {
+          "type": "boolean",
+          "description": "Also the histogram"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/images/render"
+      }
+    },
+    {
+      "name": "images.import",
+      "description": "Bring images in from this computer: one path, a JSON list of paths or every image in a folder (JPEG, PNG, WebP, AVIF, GIF, TIFF, BMP, ICO). The app keeps a copy of each original. Answers with the new images and any files it could not read.",
+      "label": "Import images",
+      "returns": "summary",
+      "params": {
+        "path": {
+          "type": "string",
+          "description": "Absolute path of an image file"
+        },
+        "paths": {
+          "type": "string",
+          "description": "JSON list of absolute paths",
+          "format": "json"
+        },
+        "folder": {
+          "type": "string",
+          "description": "Absolute path of a folder: every image in it (not subfolders)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/images/import"
+      }
+    },
+    {
+      "name": "images.update",
+      "description": "Rename an image or set its title, alt text (written into exports as the description), caption, notes, keywords or pin.",
+      "label": "Edit image details",
+      "returns": "record",
+      "params": {
+        "image": {
+          "type": "string",
+          "description": "Image id",
+          "required": true,
+          "format": "ref:images"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name (the base of export file names)"
+        },
+        "title": {
+          "type": "string",
+          "description": "Title"
+        },
+        "alt_text": {
+          "type": "string",
+          "description": "Alt text: what the image shows, under 125 characters",
+          "format": "multiline"
+        },
+        "caption": {
+          "type": "string",
+          "description": "Caption",
+          "format": "multiline"
+        },
+        "notes": {
+          "type": "string",
+          "description": "Notes",
+          "format": "multiline"
+        },
+        "keywords": {
+          "type": "string",
+          "description": "JSON list of keywords",
+          "format": "json"
+        },
+        "pinned": {
+          "type": "boolean",
+          "description": "Pin to the top"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/images/update"
+      }
+    },
+    {
+      "name": "images.duplicate",
+      "description": "A copy of the image (the same original) with or without its edits, to try another version.",
+      "label": "Duplicate image",
+      "returns": "record",
+      "params": {
+        "image": {
+          "type": "string",
+          "description": "Image id",
+          "required": true,
+          "format": "ref:images"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the copy"
+        },
+        "with_edits": {
+          "type": "boolean",
+          "description": "Copy the edits too (default true)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/images/duplicate"
+      }
+    },
+    {
+      "name": "images.delete",
+      "description": "Delete images with their edits and history (their exports stay in Exports). Confirm with the person first.",
+      "label": "Delete images",
+      "destructive": true,
+      "confirm": "Delete these images and their edits?",
+      "returns": "summary",
+      "params": {
+        "image": {
+          "type": "string",
+          "description": "Image id",
+          "format": "ref:images"
+        },
+        "images": {
+          "type": "string",
+          "description": "JSON list of image ids",
+          "format": "json"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/images/delete"
+      }
+    },
+    {
+      "name": "analyze.image",
+      "description": "Numbers to edit with: auto (the levels, gamma and white balance Auto would use), trim (the content box inside a flat border), smart (the most interesting crop for a ratio), colors (the main colours), histogram (clipped shadows and highlights) and alpha (the transparent margin).",
+      "label": "Analyze",
+      "readOnly": true,
+      "returns": "summary",
+      "params": {
+        "image": {
+          "type": "string",
+          "description": "Image id",
+          "required": true,
+          "format": "ref:images"
+        },
+        "what": {
+          "type": "string",
+          "description": "JSON list of: auto, trim, smart, colors, histogram, alpha (default all but alpha)",
+          "format": "json"
+        },
+        "ratio": {
+          "type": "string",
+          "description": "For smart: the ratio (default 1:1)"
+        },
+        "upto": {
+          "type": "string",
+          "description": "Analyze the result just before this edit id"
+        },
+        "tolerance": {
+          "type": "number",
+          "description": "For trim: how different from the border colour counts as content (0..255, default 12)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/analyze/image"
+      }
+    },
+    {
+      "name": "filters.previews",
+      "description": "Small previews of every filter look on this image (paths and URLs).",
+      "label": "Filter previews",
+      "readOnly": true,
+      "returns": "list",
+      "params": {
+        "image": {
+          "type": "string",
+          "description": "Image id",
+          "required": true,
+          "format": "ref:images"
+        },
+        "upto": {
+          "type": "string",
+          "description": "Preview on the result just before this edit id"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/filters/previews"
+      }
+    },
+    {
+      "name": "edits.add",
+      "description": "Add a photo edit (crop, resize, canvas, adjust, filter, remove_bg) to an image's stack; objects over the photo are layers (layers.add) (at the end, or at a position). Answers with the stack, the preview and warnings. Under the propose policy, the AI agent's edits become a proposal the person accepts or rejects.",
+      "label": "Add edit",
+      "returns": "summary",
+      "params": {
+        "image": {
+          "type": "string",
+          "description": "Image id",
+          "required": true,
+          "format": "ref:images"
+        },
+        "kind": {
+          "type": "string",
+          "description": "Edit kind",
+          "required": true,
+          "enum": [
+            "crop",
+            "resize",
+            "canvas",
+            "adjust",
+            "filter",
+            "remove_bg",
+            "layer"
+          ]
+        },
+        "params": {
+          "type": "string",
+          "description": "JSON object of the edit's params (app.guide edit_kinds, app.schema), e.g. {\"mode\":\"longest\",\"longest\":2048} for resize",
+          "format": "json"
+        },
+        "at": {
+          "type": "number",
+          "description": "Position in the stack (0 = first; default the end)"
+        },
+        "dry_run": {
+          "type": "boolean",
+          "description": "Render the result without saving it (answers with a preview path)"
+        },
+        "max": {
+          "type": "number",
+          "description": "Preview size: longest edge in pixels (256..4000, default 1600)"
+        },
+        "title": {
+          "type": "string",
+          "description": "AI agent: a short title for your proposal (when your edits are proposed)"
+        },
+        "reason": {
+          "type": "string",
+          "description": "AI agent: why, in one or two lines the person reads with your proposal",
+          "format": "multiline"
+        },
+        "note": {
+          "type": "string",
+          "description": "A note shown on the edit"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/edits/add"
+      }
+    },
+    {
+      "name": "edits.update",
+      "description": "Change an edit's params (merged into the current ones; a null removes a key; replace=true replaces them all), turn it on or off, or change its note.",
+      "label": "Change edit",
+      "returns": "summary",
+      "params": {
+        "edit": {
+          "type": "string",
+          "description": "Edit id (from the stack in images.get)",
+          "required": true,
+          "format": "ref:edits"
+        },
+        "params": {
+          "type": "string",
+          "description": "JSON object of the edit's params (app.guide edit_kinds, app.schema), e.g. {\"mode\":\"longest\",\"longest\":2048} for resize",
+          "format": "json"
+        },
+        "replace": {
+          "type": "boolean",
+          "description": "Replace all params instead of merging"
+        },
+        "enabled": {
+          "type": "boolean",
+          "description": "On or off"
+        },
+        "dry_run": {
+          "type": "boolean",
+          "description": "Render the result without saving it (answers with a preview path)"
+        },
+        "max": {
+          "type": "number",
+          "description": "Preview size: longest edge in pixels (256..4000, default 1600)"
+        },
+        "title": {
+          "type": "string",
+          "description": "AI agent: a short title for your proposal (when your edits are proposed)"
+        },
+        "reason": {
+          "type": "string",
+          "description": "AI agent: why, in one or two lines the person reads with your proposal",
+          "format": "multiline"
+        },
+        "note": {
+          "type": "string",
+          "description": "A note shown on the edit"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/edits/update"
+      }
+    },
+    {
+      "name": "edits.move",
+      "description": "Move an edit to another position in the stack (0 = first).",
+      "label": "Move edit",
+      "returns": "summary",
+      "params": {
+        "edit": {
+          "type": "string",
+          "description": "Edit id (from the stack in images.get)",
+          "required": true,
+          "format": "ref:edits"
+        },
+        "to": {
+          "type": "number",
+          "description": "New position",
+          "required": true
+        },
+        "dry_run": {
+          "type": "boolean",
+          "description": "Render the result without saving it (answers with a preview path)"
+        },
+        "title": {
+          "type": "string",
+          "description": "AI agent: a short title for your proposal (when your edits are proposed)"
+        },
+        "reason": {
+          "type": "string",
+          "description": "AI agent: why, in one or two lines the person reads with your proposal",
+          "format": "multiline"
+        },
+        "note": {
+          "type": "string",
+          "description": "A note shown on the edit"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/edits/move"
+      }
+    },
+    {
+      "name": "edits.remove",
+      "description": "Remove one edit or several of the same image (undoable).",
+      "label": "Remove edits",
+      "returns": "summary",
+      "params": {
+        "edit": {
+          "type": "string",
+          "description": "Edit id",
+          "format": "ref:edits"
+        },
+        "edits": {
+          "type": "string",
+          "description": "JSON list of edit ids",
+          "format": "json"
+        },
+        "dry_run": {
+          "type": "boolean",
+          "description": "Render the result without saving it (answers with a preview path)"
+        },
+        "title": {
+          "type": "string",
+          "description": "AI agent: a short title for your proposal (when your edits are proposed)"
+        },
+        "reason": {
+          "type": "string",
+          "description": "AI agent: why, in one or two lines the person reads with your proposal",
+          "format": "multiline"
+        },
+        "note": {
+          "type": "string",
+          "description": "A note shown on the edit"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/edits/remove"
+      }
+    },
+    {
+      "name": "edits.apply",
+      "description": "Add several edits at once: a recipe or size preset (by id or name), or a JSON list of {kind, params}; replace=true replaces the stack.",
+      "label": "Apply recipe",
+      "returns": "summary",
+      "params": {
+        "image": {
+          "type": "string",
+          "description": "Image id",
+          "required": true,
+          "format": "ref:images"
+        },
+        "preset": {
+          "type": "string",
+          "description": "A recipe or size preset (id or name)",
+          "format": "ref:presets"
+        },
+        "edits": {
+          "type": "string",
+          "description": "JSON list [{\"kind\":\"adjust\",\"params\":{\"auto\":true}},{\"kind\":\"resize\",\"params\":{\"mode\":\"longest\",\"longest\":2048}}]",
+          "format": "json"
+        },
+        "replace": {
+          "type": "boolean",
+          "description": "Replace the current edits"
+        },
+        "dry_run": {
+          "type": "boolean",
+          "description": "Render the result without saving it (answers with a preview path)"
+        },
+        "max": {
+          "type": "number",
+          "description": "Preview size: longest edge in pixels (256..4000, default 1600)"
+        },
+        "title": {
+          "type": "string",
+          "description": "AI agent: a short title for your proposal (when your edits are proposed)"
+        },
+        "reason": {
+          "type": "string",
+          "description": "AI agent: why, in one or two lines the person reads with your proposal",
+          "format": "multiline"
+        },
+        "note": {
+          "type": "string",
+          "description": "A note shown on the edit"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/edits/apply"
+      }
+    },
+    {
+      "name": "edits.copy",
+      "description": "Copy an image's edits onto other images; positions and sizes scale to each image. Edits that do not fit are skipped and reported.",
+      "label": "Copy edits",
+      "returns": "summary",
+      "params": {
+        "from": {
+          "type": "string",
+          "description": "Source image id",
+          "required": true,
+          "format": "ref:images"
+        },
+        "to": {
+          "type": "string",
+          "description": "JSON list of target image ids",
+          "required": true,
+          "format": "json"
+        },
+        "kinds": {
+          "type": "string",
+          "description": "JSON list of edit kinds to copy (default all)",
+          "format": "json"
+        },
+        "replace": {
+          "type": "boolean",
+          "description": "Replace the targets' edits"
+        },
+        "title": {
+          "type": "string",
+          "description": "AI agent: a short title for your proposal (when your edits are proposed)"
+        },
+        "reason": {
+          "type": "string",
+          "description": "AI agent: why, in one or two lines the person reads with your proposal",
+          "format": "multiline"
+        },
+        "note": {
+          "type": "string",
+          "description": "A note shown on the edit"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/edits/copy"
+      }
+    },
+    {
+      "name": "edits.reset",
+      "description": "Remove every edit of an image in one undoable step.",
+      "label": "Back to original",
+      "destructive": true,
+      "confirm": "Remove every edit of this image?",
+      "returns": "summary",
+      "params": {
+        "image": {
+          "type": "string",
+          "description": "Image id",
+          "required": true,
+          "format": "ref:images"
+        },
+        "dry_run": {
+          "type": "boolean",
+          "description": "Render the result without saving it (answers with a preview path)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/edits/reset"
+      }
+    },
+    {
+      "name": "layers.list",
+      "description": "An image's layers, bottom first: id, type, name, visible, locked, anchor (photo or frame), its params in its own space and in_result (centre, size, rotation or end points in result pixels, as images.render shows them).",
+      "label": "Layers",
+      "readOnly": true,
+      "returns": "list",
+      "params": {
+        "image": {
+          "type": "string",
+          "description": "Image id",
+          "required": true,
+          "format": "ref:images"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/layers/list"
+      }
+    },
+    {
+      "name": "layers.add",
+      "description": "Put a layer on top: text, rect, ellipse, arrow, line, highlight, step, pen, redact or logo (app.guide layer_types gives each one's props). Numbers are result pixels unless space=layer. Pinned to the photo by default (it follows crops and turns); anchor=frame pins it to the frame. Under the propose policy, the AI agent's layers are a proposal.",
+      "label": "Add layer",
+      "returns": "summary",
+      "params": {
+        "image": {
+          "type": "string",
+          "description": "Image id",
+          "required": true,
+          "format": "ref:images"
+        },
+        "type": {
+          "type": "string",
+          "description": "Layer type",
+          "required": true,
+          "enum": [
+            "text",
+            "rect",
+            "ellipse",
+            "arrow",
+            "line",
+            "highlight",
+            "step",
+            "pen",
+            "redact",
+            "logo"
+          ]
+        },
+        "props": {
+          "type": "string",
+          "description": "JSON of the layer: {\"cx\":640,\"cy\":90,\"size\":56,\"text\":\"New\",\"color\":\"#ffffff\",\"bg\":\"#111111\"} for text; {\"cx\",\"cy\",\"w\",\"h\",\"rotation\"} for boxes; {\"x1\",\"y1\",\"x2\",\"y2\"} for arrows and lines",
+          "required": true,
+          "format": "json"
+        },
+        "anchor": {
+          "type": "string",
+          "description": "Pinned to the photo (default) or the frame",
+          "enum": [
+            "photo",
+            "frame"
+          ]
+        },
+        "name": {
+          "type": "string",
+          "description": "A name shown in the Layers panel"
+        },
+        "space": {
+          "type": "string",
+          "description": "Numbers in result pixels (default) or the layer's own space",
+          "enum": [
+            "result",
+            "layer"
+          ]
+        },
+        "dry_run": {
+          "type": "boolean",
+          "description": "Render the result without saving it (answers with a preview path)"
+        },
+        "max": {
+          "type": "number",
+          "description": "Preview size: longest edge in pixels (256..4000, default 1600)"
+        },
+        "title": {
+          "type": "string",
+          "description": "AI agent: a short title for your proposal (when your edits are proposed)"
+        },
+        "reason": {
+          "type": "string",
+          "description": "AI agent: why, in one or two lines the person reads with your proposal",
+          "format": "multiline"
+        },
+        "note": {
+          "type": "string",
+          "description": "A note shown on the edit"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/layers/add"
+      }
+    },
+    {
+      "name": "layers.update",
+      "description": "Move, resize, rotate or restyle a layer (props merge into the current ones; a null removes a key), rename it, show or hide it, lock it, change its opacity or what it is pinned to.",
+      "label": "Change layer",
+      "returns": "summary",
+      "params": {
+        "layer": {
+          "type": "string",
+          "description": "Layer id (layers.list)",
+          "required": true,
+          "format": "ref:edits"
+        },
+        "props": {
+          "type": "string",
+          "description": "JSON of what changes, e.g. {\"cx\":700,\"cy\":120} or {\"rotation\":-8} or {\"text\":\"Done\"}",
+          "format": "json"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name"
+        },
+        "visible": {
+          "type": "boolean",
+          "description": "Shown or hidden"
+        },
+        "locked": {
+          "type": "boolean",
+          "description": "Locked (the person cannot drag it by accident)"
+        },
+        "opacity": {
+          "type": "number",
+          "description": "Opacity 0.05..1"
+        },
+        "anchor": {
+          "type": "string",
+          "description": "Pinned to",
+          "enum": [
+            "photo",
+            "frame"
+          ]
+        },
+        "space": {
+          "type": "string",
+          "description": "Numbers in result pixels (default) or the layer's own space",
+          "enum": [
+            "result",
+            "layer"
+          ]
+        },
+        "dry_run": {
+          "type": "boolean",
+          "description": "Render the result without saving it (answers with a preview path)"
+        },
+        "max": {
+          "type": "number",
+          "description": "Preview size: longest edge in pixels (256..4000, default 1600)"
+        },
+        "title": {
+          "type": "string",
+          "description": "AI agent: a short title for your proposal (when your edits are proposed)"
+        },
+        "reason": {
+          "type": "string",
+          "description": "AI agent: why, in one or two lines the person reads with your proposal",
+          "format": "multiline"
+        },
+        "note": {
+          "type": "string",
+          "description": "A note shown on the edit"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/layers/update"
+      }
+    },
+    {
+      "name": "layers.arrange",
+      "description": "Bring a layer to the front, send it to the back, or one step forward or backward among the layers.",
+      "label": "Arrange layer",
+      "returns": "summary",
+      "params": {
+        "layer": {
+          "type": "string",
+          "description": "Layer id",
+          "required": true,
+          "format": "ref:edits"
+        },
+        "to": {
+          "type": "string",
+          "description": "Where",
+          "required": true,
+          "enum": [
+            "front",
+            "back",
+            "forward",
+            "backward"
+          ]
+        },
+        "dry_run": {
+          "type": "boolean",
+          "description": "Render the result without saving it (answers with a preview path)"
+        },
+        "title": {
+          "type": "string",
+          "description": "AI agent: a short title for your proposal (when your edits are proposed)"
+        },
+        "reason": {
+          "type": "string",
+          "description": "AI agent: why, in one or two lines the person reads with your proposal",
+          "format": "multiline"
+        },
+        "note": {
+          "type": "string",
+          "description": "A note shown on the edit"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/layers/arrange"
+      }
+    },
+    {
+      "name": "layers.remove",
+      "description": "Remove one layer or several (undoable).",
+      "label": "Remove layers",
+      "destructive": true,
+      "confirm": "Remove these layers?",
+      "returns": "summary",
+      "params": {
+        "layer": {
+          "type": "string",
+          "description": "Layer id",
+          "format": "ref:edits"
+        },
+        "layers": {
+          "type": "string",
+          "description": "JSON list of layer ids",
+          "format": "json"
+        },
+        "dry_run": {
+          "type": "boolean",
+          "description": "Render the result without saving it (answers with a preview path)"
+        },
+        "title": {
+          "type": "string",
+          "description": "AI agent: a short title for your proposal (when your edits are proposed)"
+        },
+        "reason": {
+          "type": "string",
+          "description": "AI agent: why, in one or two lines the person reads with your proposal",
+          "format": "multiline"
+        },
+        "note": {
+          "type": "string",
+          "description": "A note shown on the edit"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/layers/remove"
+      }
+    },
+    {
+      "name": "history.list",
+      "description": "History, newest first (one image, or every image): batches of changes with kind (edit, undo or redo), who, when, the note and each change (before and after); reverted_by shows a batch already undone.",
+      "label": "History",
+      "readOnly": true,
+      "returns": "list",
+      "params": {
+        "image": {
+          "type": "string",
+          "description": "Image id",
+          "format": "ref:images"
+        },
+        "actor": {
+          "type": "string",
+          "description": "Only changes by",
+          "enum": [
+            "you",
+            "agent",
+            "system"
+          ]
+        },
+        "limit": {
+          "type": "number",
+          "description": "At most this many"
+        },
+        "page": {
+          "type": "number",
+          "description": "Page (1 = newest)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/history/list"
+      }
+    },
+    {
+      "name": "history.undo",
+      "description": "Undo the image's last change (a batch of edits).",
+      "label": "Undo",
+      "returns": "summary",
+      "params": {
+        "image": {
+          "type": "string",
+          "description": "Image id",
+          "required": true,
+          "format": "ref:images"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/history/undo"
+      }
+    },
+    {
+      "name": "history.redo",
+      "description": "Redo the change undone last.",
+      "label": "Redo",
+      "returns": "summary",
+      "params": {
+        "image": {
+          "type": "string",
+          "description": "Image id",
+          "required": true,
+          "format": "ref:images"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/history/redo"
+      }
+    },
+    {
+      "name": "history.revert",
+      "description": "Undo one batch of changes (a revert is itself a batch, so it can be undone). dry_run=true renders the result first.",
+      "label": "Revert change",
+      "returns": "summary",
+      "params": {
+        "batch": {
+          "type": "string",
+          "description": "Batch id from history.list",
+          "required": true
+        },
+        "dry_run": {
+          "type": "boolean",
+          "description": "Render the result without saving it (answers with a preview path)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/history/revert"
+      }
+    },
+    {
+      "name": "proposals.list",
+      "description": "The AI agent's proposals (edits for one image, or a batch): title, reason, the edits, before and after previews.",
+      "label": "Proposals",
+      "readOnly": true,
+      "returns": "list",
+      "params": {
+        "image": {
+          "type": "string",
+          "description": "Image id",
+          "format": "ref:images"
+        },
+        "status": {
+          "type": "string",
+          "description": "Status (default pending)",
+          "enum": [
+            "pending",
+            "accepted",
+            "rejected",
+            "superseded"
+          ]
+        },
+        "limit": {
+          "type": "number",
+          "description": "At most this many"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/proposals/list"
+      }
+    },
+    {
+      "name": "proposals.accept",
+      "description": "Accept a proposal: its edits become the image's (or the batch is ready to run). The person only.",
+      "label": "Accept proposal",
+      "returns": "summary",
+      "params": {
+        "proposal": {
+          "type": "string",
+          "description": "Proposal id",
+          "required": true,
+          "format": "ref:proposals"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/proposals/accept"
+      }
+    },
+    {
+      "name": "proposals.reject",
+      "description": "Reject a proposal: its edits are removed. The person only.",
+      "label": "Reject proposal",
+      "returns": "summary",
+      "params": {
+        "proposal": {
+          "type": "string",
+          "description": "Proposal id",
+          "required": true,
+          "format": "ref:proposals"
+        },
+        "reason": {
+          "type": "string",
+          "description": "Why (the AI agent reads it)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/proposals/reject"
+      }
+    },
+    {
+      "name": "export.estimate",
+      "description": "Encode the current result with one or more outputs without keeping them: real file sizes, dimensions, saving against the original, the quality chosen for a target size and whether it was met.",
+      "label": "Estimate export",
+      "readOnly": true,
+      "returns": "summary",
+      "params": {
+        "image": {
+          "type": "string",
+          "description": "Image id",
+          "required": true,
+          "format": "ref:images"
+        },
+        "outputs": {
+          "type": "string",
+          "description": "JSON list of outputs [{\"format\":\"webp\",\"quality\":\"balanced\"},{\"format\":\"jpeg\",\"mode\":\"size\",\"target_kb\":500,\"longest\":2048}]. Per output: format, quality (best, balanced, small or 1..100), mode (quality, size, lossless), target_kb, longest, scale, square, enlarge, suffix, name, ico_sizes, palette (auto, on, off), progressive, subsampling (auto, 420, 444), effort (fast, normal, max)",
+          "format": "json"
+        },
+        "preset": {
+          "type": "string",
+          "description": "An export preset (id or name, presets.list --kind export) instead of outputs",
+          "format": "ref:presets"
+        },
+        "format": {
+          "type": "string",
+          "description": "One output: its format (instead of outputs)",
+          "enum": [
+            "webp",
+            "avif",
+            "jpeg",
+            "png",
+            "gif",
+            "ico",
+            "tiff"
+          ]
+        },
+        "quality": {
+          "type": "string",
+          "description": "One output: best, balanced, small or 1..100"
+        },
+        "mode": {
+          "type": "string",
+          "description": "One output: quality (default), size (fit target_kb) or lossless",
+          "enum": [
+            "quality",
+            "size",
+            "lossless"
+          ]
+        },
+        "target_kb": {
+          "type": "number",
+          "description": "One output, mode size: the largest file in KB"
+        },
+        "longest": {
+          "type": "number",
+          "description": "One output: longest edge in pixels (it never enlarges)"
+        },
+        "scale": {
+          "type": "number",
+          "description": "One output: scale factor (0.5 = half size)"
+        },
+        "metadata": {
+          "type": "string",
+          "description": "keep (all), basic (camera, date, author, copyright, description) or none",
+          "enum": [
+            "keep",
+            "basic",
+            "none"
+          ]
+        },
+        "strip_gps": {
+          "type": "boolean",
+          "description": "Remove the location (default true)"
+        },
+        "matte": {
+          "type": "string",
+          "description": "Background for transparency in formats without it (#ffffff)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/export/estimate"
+      }
+    },
+    {
+      "name": "export.compare",
+      "description": "The same region before and after encoding with one output's settings, at 100 % (two PNG paths), with the encoded size, to judge artefacts.",
+      "label": "Compare quality",
+      "readOnly": true,
+      "returns": "summary",
+      "params": {
+        "image": {
+          "type": "string",
+          "description": "Image id",
+          "required": true,
+          "format": "ref:images"
+        },
+        "cx": {
+          "type": "number",
+          "description": "Centre x of the region (pixels of the result; default the most detailed part)"
+        },
+        "cy": {
+          "type": "number",
+          "description": "Centre y"
+        },
+        "w": {
+          "type": "number",
+          "description": "Region width (default 900)"
+        },
+        "h": {
+          "type": "number",
+          "description": "Region height (default 600)"
+        },
+        "outputs": {
+          "type": "string",
+          "description": "JSON list of outputs [{\"format\":\"webp\",\"quality\":\"balanced\"},{\"format\":\"jpeg\",\"mode\":\"size\",\"target_kb\":500,\"longest\":2048}]. Per output: format, quality (best, balanced, small or 1..100), mode (quality, size, lossless), target_kb, longest, scale, square, enlarge, suffix, name, ico_sizes, palette (auto, on, off), progressive, subsampling (auto, 420, 444), effort (fast, normal, max)",
+          "format": "json"
+        },
+        "preset": {
+          "type": "string",
+          "description": "An export preset (id or name, presets.list --kind export) instead of outputs",
+          "format": "ref:presets"
+        },
+        "format": {
+          "type": "string",
+          "description": "One output: its format (instead of outputs)",
+          "enum": [
+            "webp",
+            "avif",
+            "jpeg",
+            "png",
+            "gif",
+            "ico",
+            "tiff"
+          ]
+        },
+        "quality": {
+          "type": "string",
+          "description": "One output: best, balanced, small or 1..100"
+        },
+        "mode": {
+          "type": "string",
+          "description": "One output: quality (default), size (fit target_kb) or lossless",
+          "enum": [
+            "quality",
+            "size",
+            "lossless"
+          ]
+        },
+        "target_kb": {
+          "type": "number",
+          "description": "One output, mode size: the largest file in KB"
+        },
+        "longest": {
+          "type": "number",
+          "description": "One output: longest edge in pixels (it never enlarges)"
+        },
+        "scale": {
+          "type": "number",
+          "description": "One output: scale factor (0.5 = half size)"
+        },
+        "metadata": {
+          "type": "string",
+          "description": "keep (all), basic (camera, date, author, copyright, description) or none",
+          "enum": [
+            "keep",
+            "basic",
+            "none"
+          ]
+        },
+        "strip_gps": {
+          "type": "boolean",
+          "description": "Remove the location (default true)"
+        },
+        "matte": {
+          "type": "string",
+          "description": "Background for transparency in formats without it (#ffffff)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/export/compare"
+      }
+    },
+    {
+      "name": "export.create",
+      "description": "Encode the current result and keep the files (Exports). With folder, also copy them there (the AI agent only inside the export folder the person set). Answers with each file's path, size and saving.",
+      "label": "Export",
+      "returns": "summary",
+      "params": {
+        "image": {
+          "type": "string",
+          "description": "Image id",
+          "required": true,
+          "format": "ref:images"
+        },
+        "name": {
+          "type": "string",
+          "description": "Base file name (default the image name)"
+        },
+        "folder": {
+          "type": "string",
+          "description": "Also copy into this absolute folder"
+        },
+        "outputs": {
+          "type": "string",
+          "description": "JSON list of outputs [{\"format\":\"webp\",\"quality\":\"balanced\"},{\"format\":\"jpeg\",\"mode\":\"size\",\"target_kb\":500,\"longest\":2048}]. Per output: format, quality (best, balanced, small or 1..100), mode (quality, size, lossless), target_kb, longest, scale, square, enlarge, suffix, name, ico_sizes, palette (auto, on, off), progressive, subsampling (auto, 420, 444), effort (fast, normal, max)",
+          "format": "json"
+        },
+        "preset": {
+          "type": "string",
+          "description": "An export preset (id or name, presets.list --kind export) instead of outputs",
+          "format": "ref:presets"
+        },
+        "format": {
+          "type": "string",
+          "description": "One output: its format (instead of outputs)",
+          "enum": [
+            "webp",
+            "avif",
+            "jpeg",
+            "png",
+            "gif",
+            "ico",
+            "tiff"
+          ]
+        },
+        "quality": {
+          "type": "string",
+          "description": "One output: best, balanced, small or 1..100"
+        },
+        "mode": {
+          "type": "string",
+          "description": "One output: quality (default), size (fit target_kb) or lossless",
+          "enum": [
+            "quality",
+            "size",
+            "lossless"
+          ]
+        },
+        "target_kb": {
+          "type": "number",
+          "description": "One output, mode size: the largest file in KB"
+        },
+        "longest": {
+          "type": "number",
+          "description": "One output: longest edge in pixels (it never enlarges)"
+        },
+        "scale": {
+          "type": "number",
+          "description": "One output: scale factor (0.5 = half size)"
+        },
+        "metadata": {
+          "type": "string",
+          "description": "keep (all), basic (camera, date, author, copyright, description) or none",
+          "enum": [
+            "keep",
+            "basic",
+            "none"
+          ]
+        },
+        "strip_gps": {
+          "type": "boolean",
+          "description": "Remove the location (default true)"
+        },
+        "matte": {
+          "type": "string",
+          "description": "Background for transparency in formats without it (#ffffff)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/export/create"
+      }
+    },
+    {
+      "name": "exports.list",
+      "description": "Kept exports, newest first: file name, path, format, size, dimensions, saving, image, batch and who made it.",
+      "label": "Exports",
+      "readOnly": true,
+      "returns": "list",
+      "params": {
+        "image": {
+          "type": "string",
+          "description": "Image id",
+          "format": "ref:images"
+        },
+        "batch": {
+          "type": "string",
+          "description": "Only from this batch",
+          "format": "ref:batches"
+        },
+        "format": {
+          "type": "string",
+          "description": "Only this format",
+          "enum": [
+            "webp",
+            "avif",
+            "jpeg",
+            "png",
+            "gif",
+            "ico",
+            "tiff"
+          ]
+        },
+        "limit": {
+          "type": "number",
+          "description": "At most this many"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/exports/list"
+      }
+    },
+    {
+      "name": "exports.delete",
+      "description": "Delete kept exports (copies already written to a folder stay).",
+      "label": "Delete exports",
+      "destructive": true,
+      "confirm": "Delete these exports?",
+      "returns": "summary",
+      "params": {
+        "export": {
+          "type": "string",
+          "description": "Export id",
+          "format": "ref:exports"
+        },
+        "exports": {
+          "type": "string",
+          "description": "JSON list of export ids",
+          "format": "json"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/exports/delete"
+      }
+    },
+    {
+      "name": "presets.list",
+      "description": "Presets: export (outputs and metadata), size (social and web sizes, applied as a cover resize) and recipe (a list of edits).",
+      "label": "Presets",
+      "readOnly": true,
+      "returns": "list",
+      "params": {
+        "kind": {
+          "type": "string",
+          "description": "Only this kind",
+          "enum": [
+            "export",
+            "size",
+            "recipe"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/presets/list"
+      }
+    },
+    {
+      "name": "presets.save",
+      "description": "Save a new preset or change one of yours (built-in ones are kept). export: data {\"outputs\":[..],\"metadata\":\"basic\"}; size: {\"width\":1080,\"height\":1350}; recipe: {\"edits\":[{kind, params}]} (no crop boxes: crops by ratio; layers only when pinned to the frame).",
+      "label": "Save preset",
+      "returns": "record",
+      "params": {
+        "preset": {
+          "type": "string",
+          "description": "Preset id or name to change",
+          "format": "ref:presets"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name"
+        },
+        "kind": {
+          "type": "string",
+          "description": "Kind",
+          "enum": [
+            "export",
+            "size",
+            "recipe"
+          ]
+        },
+        "description": {
+          "type": "string",
+          "description": "One line"
+        },
+        "data": {
+          "type": "string",
+          "description": "JSON of the preset",
+          "format": "json"
+        },
+        "from_image": {
+          "type": "string",
+          "description": "recipe: take the edits of this image",
+          "format": "ref:images"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/presets/save"
+      }
+    },
+    {
+      "name": "presets.delete",
+      "description": "Delete a preset you saved (built-in ones cannot be deleted).",
+      "label": "Delete preset",
+      "destructive": true,
+      "confirm": "Delete this preset?",
+      "returns": "none",
+      "params": {
+        "preset": {
+          "type": "string",
+          "description": "Preset id or name",
+          "required": true,
+          "format": "ref:presets"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/presets/delete"
+      }
+    },
+    {
+      "name": "batches.list",
+      "description": "Batches with status (draft, proposed, queued, running, done, failed, cancelled), progress, files written and bytes saved.",
+      "label": "Batches",
+      "readOnly": true,
+      "returns": "list",
+      "params": {
+        "status": {
+          "type": "string",
+          "description": "Only this status",
+          "enum": [
+            "draft",
+            "proposed",
+            "queued",
+            "running",
+            "done",
+            "failed",
+            "cancelled"
+          ]
+        },
+        "limit": {
+          "type": "number",
+          "description": "At most this many"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/batches/list"
+      }
+    },
+    {
+      "name": "batches.get",
+      "description": "One batch: the images, the recipe, the outputs, the rename pattern, the folder, per-image results (files, sizes, errors) and the zip of everything when it is done.",
+      "label": "Batch",
+      "readOnly": true,
+      "returns": "record",
+      "params": {
+        "batch": {
+          "type": "string",
+          "description": "Batch id",
+          "required": true,
+          "format": "ref:batches"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/batches/get"
+      }
+    },
+    {
+      "name": "batches.create",
+      "description": "Plan a batch: one recipe and one set of outputs for many images, file names from a rename pattern ({name} {n} {n:3} {date} {taken} {width} {height} {format} {batch}). It does not run yet: batches.preview, then batches.run. Created by the AI agent under the propose policy, it waits for the person.",
+      "label": "New batch",
+      "returns": "record",
+      "params": {
+        "images": {
+          "type": "string",
+          "description": "JSON list of image ids",
+          "required": true,
+          "format": "json"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the batch"
+        },
+        "recipe_preset": {
+          "type": "string",
+          "description": "A recipe or size preset to apply (id or name)",
+          "format": "ref:presets"
+        },
+        "edits": {
+          "type": "string",
+          "description": "JSON list of {kind, params} to apply (after the preset); layers must be pinned to the frame (anchor frame)",
+          "format": "json"
+        },
+        "use_edits": {
+          "type": "boolean",
+          "description": "Start from each image's own edits (default true) or from the original"
+        },
+        "rename": {
+          "type": "string",
+          "description": "File name pattern (default {name})"
+        },
+        "folder": {
+          "type": "string",
+          "description": "Also copy the files into this absolute folder"
+        },
+        "collision": {
+          "type": "string",
+          "description": "When a file exists in the folder",
+          "enum": [
+            "rename",
+            "skip",
+            "overwrite"
+          ]
+        },
+        "outputs": {
+          "type": "string",
+          "description": "JSON list of outputs [{\"format\":\"webp\",\"quality\":\"balanced\"},{\"format\":\"jpeg\",\"mode\":\"size\",\"target_kb\":500,\"longest\":2048}]. Per output: format, quality (best, balanced, small or 1..100), mode (quality, size, lossless), target_kb, longest, scale, square, enlarge, suffix, name, ico_sizes, palette (auto, on, off), progressive, subsampling (auto, 420, 444), effort (fast, normal, max)",
+          "format": "json"
+        },
+        "preset": {
+          "type": "string",
+          "description": "An export preset (id or name, presets.list --kind export) instead of outputs",
+          "format": "ref:presets"
+        },
+        "format": {
+          "type": "string",
+          "description": "One output: its format (instead of outputs)",
+          "enum": [
+            "webp",
+            "avif",
+            "jpeg",
+            "png",
+            "gif",
+            "ico",
+            "tiff"
+          ]
+        },
+        "quality": {
+          "type": "string",
+          "description": "One output: best, balanced, small or 1..100"
+        },
+        "mode": {
+          "type": "string",
+          "description": "One output: quality (default), size (fit target_kb) or lossless",
+          "enum": [
+            "quality",
+            "size",
+            "lossless"
+          ]
+        },
+        "target_kb": {
+          "type": "number",
+          "description": "One output, mode size: the largest file in KB"
+        },
+        "longest": {
+          "type": "number",
+          "description": "One output: longest edge in pixels (it never enlarges)"
+        },
+        "scale": {
+          "type": "number",
+          "description": "One output: scale factor (0.5 = half size)"
+        },
+        "metadata": {
+          "type": "string",
+          "description": "keep (all), basic (camera, date, author, copyright, description) or none",
+          "enum": [
+            "keep",
+            "basic",
+            "none"
+          ]
+        },
+        "strip_gps": {
+          "type": "boolean",
+          "description": "Remove the location (default true)"
+        },
+        "matte": {
+          "type": "string",
+          "description": "Background for transparency in formats without it (#ffffff)"
+        },
+        "title": {
+          "type": "string",
+          "description": "AI agent: a short title for your proposal (when your edits are proposed)"
+        },
+        "reason": {
+          "type": "string",
+          "description": "AI agent: why, in one or two lines the person reads with your proposal",
+          "format": "multiline"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/batches/create"
+      }
+    },
+    {
+      "name": "batches.preview",
+      "description": "Before running: every planned file name with its size in pixels, duplicate names, files already in the folder, a few real encodes and the estimated total.",
+      "label": "Preview batch",
+      "readOnly": true,
+      "returns": "summary",
+      "params": {
+        "batch": {
+          "type": "string",
+          "description": "Batch id",
+          "required": true,
+          "format": "ref:batches"
+        },
+        "samples": {
+          "type": "number",
+          "description": "How many images to encode as samples (0..5, default 3)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/batches/preview"
+      }
+    },
+    {
+      "name": "batches.run",
+      "description": "Queue a batch; the worker runs it in the background (batches.get shows progress). The AI agent may run only when the policy allows it.",
+      "label": "Run batch",
+      "returns": "record",
+      "params": {
+        "batch": {
+          "type": "string",
+          "description": "Batch id",
+          "required": true,
+          "format": "ref:batches"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/batches/run"
+      }
+    },
+    {
+      "name": "batches.cancel",
+      "description": "Stop a queued or running batch (finished files stay).",
+      "label": "Cancel batch",
+      "returns": "record",
+      "params": {
+        "batch": {
+          "type": "string",
+          "description": "Batch id",
+          "required": true,
+          "format": "ref:batches"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/batches/cancel"
+      }
+    },
+    {
+      "name": "batches.retry",
+      "description": "Run the images that failed again.",
+      "label": "Retry batch",
+      "returns": "record",
+      "params": {
+        "batch": {
+          "type": "string",
+          "description": "Batch id",
+          "required": true,
+          "format": "ref:batches"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/batches/retry"
+      }
+    },
+    {
+      "name": "batches.delete",
+      "description": "Delete a batch and the exports it made in the app (files copied to a folder stay).",
+      "label": "Delete batch",
+      "destructive": true,
+      "confirm": "Delete this batch and its exports?",
+      "returns": "none",
+      "params": {
+        "batch": {
+          "type": "string",
+          "description": "Batch id",
+          "required": true,
+          "format": "ref:batches"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/batches/delete"
+      }
+    },
+    {
+      "name": "requests.create",
+      "description": "The person asks the AI agent: edit (do something to an image or several, optionally in a region they drew) or describe (alt text, title and keywords). Fires a trigger for the AI agent.",
+      "label": "Ask the AI agent",
+      "returns": "record",
+      "params": {
+        "kind": {
+          "type": "string",
+          "description": "What to ask",
+          "enum": [
+            "edit",
+            "describe"
+          ]
+        },
+        "image": {
+          "type": "string",
+          "description": "Image id",
+          "format": "ref:images"
+        },
+        "images": {
+          "type": "string",
+          "description": "JSON list of image ids",
+          "format": "json"
+        },
+        "title": {
+          "type": "string",
+          "description": "Title"
+        },
+        "body": {
+          "type": "string",
+          "description": "What to do",
+          "format": "multiline"
+        },
+        "region": {
+          "type": "string",
+          "description": "JSON {x,y,w,h}: the part of the image meant",
+          "format": "json"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/requests/create"
+      }
+    },
+    {
+      "name": "requests.list",
+      "description": "Requests to the AI agent with status (sent, working, done, failed) and result.",
+      "label": "Requests",
+      "readOnly": true,
+      "returns": "list",
+      "params": {
+        "image": {
+          "type": "string",
+          "description": "Image id",
+          "format": "ref:images"
+        },
+        "status": {
+          "type": "string",
+          "description": "Only this status",
+          "enum": [
+            "sent",
+            "working",
+            "done",
+            "failed"
+          ]
+        },
+        "limit": {
+          "type": "number",
+          "description": "At most this many"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/requests/list"
+      }
+    },
+    {
+      "name": "requests.get",
+      "description": "One request: kind, image or images, the person's words, the region they drew, status and result.",
+      "label": "Request",
+      "readOnly": true,
+      "returns": "record",
+      "params": {
+        "request": {
+          "type": "string",
+          "description": "Request id",
+          "required": true,
+          "format": "ref:requests"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/requests/get"
+      }
+    },
+    {
+      "name": "requests.update",
+      "description": "AI agent: working when you start; done or failed with a one-paragraph result when you finish.",
+      "label": "Update request",
+      "returns": "record",
+      "params": {
+        "request": {
+          "type": "string",
+          "description": "Request id",
+          "required": true,
+          "format": "ref:requests"
+        },
+        "status": {
+          "type": "string",
+          "description": "Status",
+          "enum": [
+            "working",
+            "done",
+            "failed"
+          ]
+        },
+        "result": {
+          "type": "string",
+          "description": "What you did or proposed, or why you could not",
+          "format": "multiline"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/requests/update"
+      }
+    },
+    {
+      "name": "assets.list",
+      "description": "Logos for logo layers and watermarks (id, name, size).",
+      "label": "Logos",
+      "readOnly": true,
+      "returns": "list",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/assets/list"
+      }
+    },
+    {
+      "name": "assets.add",
+      "description": "Add a logo (PNG with transparency works best) from this computer.",
+      "label": "Add logo",
+      "returns": "record",
+      "params": {
+        "path": {
+          "type": "string",
+          "description": "Absolute path of the image file",
+          "required": true
+        },
+        "name": {
+          "type": "string",
+          "description": "Name"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/assets/add"
+      }
+    },
+    {
+      "name": "assets.delete",
+      "description": "Delete a logo no logo layer uses.",
+      "label": "Delete logo",
+      "destructive": true,
+      "confirm": "Delete this logo?",
+      "returns": "none",
+      "params": {
+        "asset": {
+          "type": "string",
+          "description": "Logo id",
+          "required": true,
+          "format": "ref:assets"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/assets/delete"
+      }
     }
   ]
 }

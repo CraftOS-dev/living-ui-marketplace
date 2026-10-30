@@ -1,109 +1,83 @@
 /**
- * App entry for the V2 platform.
- *
- * Bootstraps the ORIGINAL V1 image-utility frontend unchanged — same
- * components, same "CraftBot Browser Interface" design system, same behavior.
- * The adaptation to the V2 (PocketBase) platform is a client-side API adapter
- * (./services/apiAdapter): it translates the V1 REST calls into PocketBase
- * collection ops AND performs all image work (decode, crop, resize, format
- * convert, compress) in the browser via <canvas>, since PocketBase has no
- * server-side compute runtime (V1 did this with Pillow). Look and interactions
- * are unchanged.
- *
- * The adapter import is FIRST on purpose — it sets
- * window.__CRAFTBOT_BACKEND_URL__ to a sentinel host at module-eval time,
- * before the component/controller modules (which read that global at their own
- * top level) are evaluated. installApiAdapter() also runs BEFORE the module
- * singleton controller is constructed, because its constructor immediately
- * lists images through the (patched) fetch.
+ * Image Utility: crop, resize, adjust, cut out, mark up with layers (text,
+ * arrows, boxes, steps, redactions, logos) and export images on this
+ * computer, one at a time or in batches. Edits are a stack over the
+ * untouched original, rendered by a local image engine. An AI agent operates the same operations through the agent-app
+ * CLI, and everything it does shows up here live (as proposals, unless the
+ * person lets it edit directly).
  */
-import { installApiAdapter } from './services/apiAdapter'
-import { useEffect, useRef } from 'react'
-import { ToastContainer } from 'react-toastify'
-import 'react-toastify/dist/ReactToastify.css'
-import { MainView } from './components/MainView'
-import { AppController } from './AppController'
-import { uiCapture } from './services/UICapture'
-import {
-  applyThemeToDocument,
-  DEFAULT_CUSTOM_COLORS,
-  type CustomColors,
-  type ThemeId,
-} from './theme/themes'
-import './styles/global.css'
+import '@fontsource-variable/manrope';
+import './theme.css';
+import { getPbClient } from '../kit/index.ts';
+import { ImporterProvider } from './components/Importer.tsx';
+import { Frame } from './components/Shell.tsx';
+import { AppDataProvider, useApp } from './lib/context.tsx';
+import { startLive } from './lib/live.ts';
+import { trackTrail, useRoute } from './lib/router.ts';
+import type { Page } from './lib/router.ts';
+import { startThemeColors } from './lib/themeColors.ts';
+import { ActivityPage } from './pages/Activity.tsx';
+import { BatchesPage } from './pages/Batches.tsx';
+import { ExportsPage } from './pages/Exports.tsx';
+import { HomePage } from './pages/Home.tsx';
+import { ImagePage } from './pages/Image.tsx';
+import { RequestsPage } from './pages/Requests.tsx';
+import { SettingsPage } from './pages/Settings.tsx';
 
-// Patch fetch before the controller (constructed below) fires its first request.
-installApiAdapter()
+// Views legitimately load the same operation twice; the SDK's auto-cancel
+// of same-path requests would blank one of them.
+getPbClient().pb.autoCancellation(false);
+// Colors follow the host theme (see themeColors.ts).
+startThemeColors();
+// All realtime subscriptions in one tick, before any view mounts (see live.ts).
+startLive();
+// Back buttons follow the app's own trail (see router.ts).
+trackTrail();
 
-// Preserve V1 main.tsx behavior: point instrumentation at the (sentinel)
-// backend with auto-capture; the adapter neutralizes those calls.
-const backendUrl =
-  ((window as unknown as { __CRAFTBOT_BACKEND_URL__?: string }).__CRAFTBOT_BACKEND_URL__ ?? '') +
-  '/api'
-uiCapture.initialize(backendUrl, true, 2000)
+function Content({ page, query }: { page: Page; query: URLSearchParams }): React.JSX.Element {
+  switch (page) {
+    case 'image':
+      return <ImagePage id={query.get('id') ?? ''} />;
+    case 'batches':
+      return <BatchesPage />;
+    case 'exports':
+      return <ExportsPage query={query} />;
+    case 'requests':
+      return <RequestsPage />;
+    case 'activity':
+      return <ActivityPage />;
+    case 'settings':
+      return <SettingsPage />;
+    default:
+      return <HomePage />;
+  }
+}
 
-// Initialize the controller (module singleton, exactly as in V1). Its
-// constructor lists images — hence installApiAdapter() must run first.
-const controller = new AppController()
+function Root(): React.JSX.Element {
+  const { ready } = useApp();
+  const route = useRoute();
+  const wide = route.page === 'image';
+  return (
+    <Frame page={route.page} wide={wide}>
+      {ready ? (
+        <div key={wide ? 'image:' + (route.query.get('id') ?? '') : route.page} className={wide ? 'h-full' : undefined}>
+          <Content page={route.page} query={route.query} />
+        </div>
+      ) : (
+        <div className="flex h-[60vh] items-center justify-center">
+          <span aria-label="Loading" className="size-5 animate-spin rounded-full border-2 border-[var(--iu-ink)] border-t-transparent" />
+        </div>
+      )}
+    </Frame>
+  );
+}
 
 export function App(): React.JSX.Element {
-  const themeIdRef = useRef<ThemeId>('craftbot')
-  const modeRef = useRef<'dark' | 'light'>('dark')
-  const customColorsRef = useRef<CustomColors>({ ...DEFAULT_CUSTOM_COLORS })
-
-  useEffect(() => {
-    uiCapture.registerComponent('App', {
-      initialized: true,
-      componentName: 'App',
-    })
-
-    applyThemeToDocument(themeIdRef.current, modeRef.current, customColorsRef.current)
-
-    const onMessage = (e: MessageEvent): void => {
-      if (!e.data) return
-
-      if (e.data.type === 'craftbot-theme') {
-        const mode: 'dark' | 'light' = e.data.theme === 'light' ? 'light' : 'dark'
-        modeRef.current = mode
-        applyThemeToDocument(themeIdRef.current, mode, customColorsRef.current)
-      }
-
-      if (e.data.type === 'livingui-theme') {
-        const themeId = e.data.themeId as ThemeId
-        themeIdRef.current = themeId
-        if (e.data.customColors) {
-          customColorsRef.current = e.data.customColors as CustomColors
-        }
-        applyThemeToDocument(themeId, modeRef.current, customColorsRef.current)
-      }
-    }
-
-    window.addEventListener('message', onMessage)
-
-    try {
-      window.parent.postMessage({ type: 'craftbot-theme-request' }, '*')
-    } catch {
-      /* not embedded */
-    }
-
-    return () => {
-      uiCapture.unregisterComponent('App')
-      window.removeEventListener('message', onMessage)
-    }
-  }, [])
-
   return (
-    <div className="app">
-      <MainView controller={controller} />
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop
-        closeOnClick
-        pauseOnHover
-        theme="colored"
-      />
-    </div>
-  )
+    <AppDataProvider>
+      <ImporterProvider>
+        <Root />
+      </ImporterProvider>
+    </AppDataProvider>
+  );
 }
