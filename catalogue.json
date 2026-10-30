@@ -278,6 +278,15 @@
       "folder": "yc-application",
       "tags": ["startup", "fundraising", "yc", "applications", "writing", "productivity"],
       "version": "1.0.0"
+    },
+    {
+      "id": "store-os",
+      "livingUIVersion": 2,
+      "name": "Store OS",
+      "description": "Run every online shop from one place. Add the shops you already run or open new ones on 16 platforms (Shopify, WooCommerce, Shopee, Lazada, TikTok Shop, Amazon, eBay, Etsy, Tokopedia, Zalora and more), each with a setup checklist that links to the platform's own sign-up and seller centre. One catalog keeps a listing per shop with its own title, text and price, checked against that platform's rules before it goes live. One stock ledger feeds every shop with a stock rule per shop. Every order, shipment and buyer message from every shop lands in one queue with ship-by and reply clocks, and the overview shows net sales, profit and margin by shop against the period before. Bring in seller-centre exports (CSV or Excel) with column matching. CraftBot syncs shops, writes listings, drafts buyer replies with its reasons, checks tracking and helps set new shops up; its listing, price, stock and order changes wait in Approvals with before and after, and listing text, prices and stock can be undone.",
+      "folder": "store-os",
+      "tags": ["ecommerce", "multichannel", "orders", "inventory", "marketplaces", "business"],
+      "version": "1.0.0"
     }
   ]
 }
