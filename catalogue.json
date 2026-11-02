@@ -287,6 +287,15 @@
       "folder": "store-os",
       "tags": ["ecommerce", "multichannel", "orders", "inventory", "marketplaces", "business"],
       "version": "1.0.0"
+    },
+    {
+      "id": "piano-coach",
+      "livingUIVersion": 2,
+      "name": "Piano Coach",
+      "description": "Learn piano from the first keys to concert level, with your AI agent as coach. 62 interactive lessons in twelve units teach the keyboard, rhythm, reading, scales and keys, intervals, chords, harmony and accompaniment, technique, musicianship, advanced harmony, practice and performance, and playing by ear and improvising, with pictures you can hear and tasks you play on the keys. Drills train every skill: note reading in both clefs, intervals, chords, key signatures, Roman numerals, terms, ear training (intervals, chords, scales, cadences, melodies), rhythm, every scale and arpeggio in every key with your best tempo per key, progressions in accompaniment patterns, and adaptive sight-reading over 30 levels. A ten-level path from First steps to Virtuoso shows what each level asks for and moves you up when it is done; a reference plays any chord, scale, key or interval. Play on a digital piano (MIDI), the computer keys, the keys on screen or an acoustic piano through the microphone, and every note is judged for pitch and timing, as falling notes or sheet music. Songs climb a tempo ladder from learning to steady to mastered, with spaced reviews; a daily plan mixes pieces, lessons and drills. Ask CraftBot for any piece and it writes it at your level, checked bar by bar; it reviews sessions, plans days and answers questions. Starts with 32 pieces from Ode to Joy to Moonlight, Chopin, Joplin and Clair de Lune; import ABC or MusicXML; light and dark.",
+      "folder": "piano-coach",
+      "tags": ["piano", "music", "learning", "practice", "AI coach", "education"],
+      "version": "1.1.0"
     }
   ]
 }

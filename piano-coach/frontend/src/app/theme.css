@@ -1,0 +1,595 @@
+/*
+ * Piano Coach look: a quiet instrument. Cool light greys from the host's
+ * kit tokens (--agent-app-*), hairline panels, small monospaced readouts,
+ * and two colours that carry meaning: blue for the right hand, teal for the
+ * left. Red marks a wrong note. The coach (the AI agent) is black and white
+ * with a star. Light and dark follow the host.
+ */
+@import '@fontsource-variable/inter';
+@import '@fontsource-variable/jetbrains-mono';
+
+/* Tailwind's own layer order, declared first: this file loads before Tailwind. */
+@layer theme, base, components, utilities;
+
+:root {
+  --pc-page: color-mix(in srgb, var(--agent-app-bg) 62%, #dfe5e8);
+  --pc-side: color-mix(in srgb, var(--agent-app-bg) 72%, #d9dfe2);
+  --pc-panel: color-mix(in srgb, var(--agent-app-surface) 90%, #eef2f4);
+  --pc-raised: var(--agent-app-surface);
+  --pc-sunk: color-mix(in srgb, var(--pc-page), var(--agent-app-text) 4%);
+  --pc-line: color-mix(in srgb, var(--agent-app-border), #8a959b 34%);
+  --pc-line-2: color-mix(in srgb, var(--agent-app-border), #8a959b 58%);
+  --pc-hair: color-mix(in srgb, var(--agent-app-border), #8a959b 14%);
+  --pc-ink: var(--agent-app-text);
+  --pc-ink-2: color-mix(in srgb, var(--agent-app-text), var(--agent-app-muted) 35%);
+  --pc-muted: color-mix(in srgb, var(--agent-app-muted), var(--agent-app-text) 12%);
+  --pc-faint: color-mix(in srgb, var(--agent-app-muted), var(--pc-page) 38%);
+  --pc-hover: color-mix(in srgb, var(--pc-page), var(--agent-app-text) 6%);
+  --pc-active: color-mix(in srgb, var(--pc-page), var(--agent-app-text) 11%);
+  /* The coach (the AI agent): black and white, like the ink (white on dark in dark mode). */
+  --pc-coach: var(--pc-ink);
+  --pc-coach-ink: var(--pc-page);
+  --pc-coach-soft: color-mix(in srgb, var(--pc-ink), transparent 92%);
+  --pc-radius: min(var(--agent-app-radius, 0.5rem), 8px);
+  --pc-radius-sm: calc(var(--pc-radius) * 0.75);
+  --pc-font: 'Inter Variable', var(--agent-app-font);
+  --pc-mono: 'JetBrains Mono Variable', ui-monospace, 'Cascadia Mono', Consolas, monospace;
+
+  --pc-rh: #2563eb;
+  --pc-lh: #0d9488;
+  --pc-bad: #dc2626;
+  --pc-warn: #c2700c;
+  --pc-good: #15803d;
+  --pc-key-white: #fbfcfc;
+  --pc-key-white-2: #e9edef;
+  --pc-key-black: #20262a;
+  --pc-key-black-2: #3a4247;
+  --pc-shadow: 0 1px 2px rgb(16 24 32 / 0.06);
+  --pc-shadow-lg: 0 18px 40px rgb(16 24 32 / 0.16), 0 3px 8px rgb(16 24 32 / 0.08);
+  --pc-overlay: rgb(16 22 26 / 0.3);
+}
+
+:root[data-theme='dark'] {
+  --pc-page: color-mix(in srgb, var(--agent-app-bg) 70%, #0e1316);
+  --pc-side: color-mix(in srgb, var(--agent-app-bg) 60%, #0b0f12);
+  --pc-panel: color-mix(in srgb, var(--agent-app-surface) 80%, #121a1f);
+  --pc-raised: color-mix(in srgb, var(--agent-app-surface) 82%, #1a242a);
+  --pc-sunk: color-mix(in srgb, var(--pc-page), #000 22%);
+  --pc-line: color-mix(in srgb, var(--agent-app-border), #5b6970 30%);
+  --pc-line-2: color-mix(in srgb, var(--agent-app-border), #7a8a92 45%);
+  --pc-hair: color-mix(in srgb, var(--agent-app-border), #5b6970 10%);
+  --pc-rh: #6b9cff;
+  --pc-lh: #34d1c0;
+  --pc-bad: #f87171;
+  --pc-warn: #f2a541;
+  --pc-good: #4ade80;
+  --pc-key-white: #d9dee1;
+  --pc-key-white-2: #b4bcc1;
+  --pc-key-black: #0b0e10;
+  --pc-key-black-2: #2b3338;
+  --pc-shadow: 0 1px 2px rgb(0 0 0 / 0.35);
+  --pc-shadow-lg: 0 20px 44px rgb(0 0 0 / 0.55), 0 3px 10px rgb(0 0 0 / 0.35);
+  --pc-overlay: rgb(0 0 0 / 0.5);
+}
+
+:root {
+  --pc-rh-soft: color-mix(in srgb, var(--pc-rh), transparent 86%);
+  --pc-lh-soft: color-mix(in srgb, var(--pc-lh), transparent 86%);
+  --pc-bad-soft: color-mix(in srgb, var(--pc-bad), transparent 86%);
+  --pc-warn-soft: color-mix(in srgb, var(--pc-warn), transparent 86%);
+  --pc-good-soft: color-mix(in srgb, var(--pc-good), transparent 86%);
+}
+
+/* Everything you can click shows the hand (Tailwind's reset leaves buttons on the arrow). */
+@layer base {
+  button:not(:disabled),
+  [role='button']:not([aria-disabled='true']),
+  [role='switch']:not(:disabled),
+  [role='radio']:not(:disabled),
+  [role='tab'],
+  [role='menuitem'],
+  [role='option'],
+  a[href],
+  summary,
+  label[for],
+  select:not(:disabled),
+  input[type='checkbox']:not(:disabled),
+  input[type='radio']:not(:disabled),
+  input[type='range'],
+  input[type='file'] {
+    cursor: pointer;
+  }
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+body {
+  margin: 0;
+  background: var(--pc-page);
+  color: var(--pc-ink);
+  font-family: var(--pc-font);
+  font-size: 13px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: 'cv11', 'ss01';
+}
+
+.pc-mono {
+  font-family: var(--pc-mono);
+  font-feature-settings: 'zero' 0;
+  letter-spacing: 0;
+}
+.pc-num {
+  font-variant-numeric: tabular-nums;
+}
+/* The small uppercase readout labels of an instrument panel. */
+.pc-label {
+  font-family: var(--pc-mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--pc-muted);
+}
+
+.pc-focus:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--pc-rh), transparent 30%);
+  outline-offset: 1px;
+}
+
+.pc-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--pc-muted), transparent 60%) transparent;
+}
+.pc-scroll::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.pc-scroll::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--pc-muted), transparent 65%);
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+/* A panel: hairline border on the page, faint inner surface. */
+.pc-panel {
+  background: var(--pc-panel);
+  border: 1px solid var(--pc-line);
+  border-radius: var(--pc-radius);
+}
+
+/* The faint measuring grid behind the dashboard and the practice stage. */
+.pc-grid {
+  background-image: linear-gradient(to right, color-mix(in srgb, var(--pc-line), transparent 55%) 1px, transparent 1px), linear-gradient(to bottom, color-mix(in srgb, var(--pc-line), transparent 55%) 1px, transparent 1px);
+  background-size: 24px 24px;
+  background-position: -1px -1px;
+}
+
+/* ------------------------------------------------------------- motion */
+
+@keyframes pc-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.pc-in {
+  animation: pc-in 260ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+@keyframes pc-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.pc-fade {
+  animation: pc-fade 220ms ease both;
+}
+@keyframes pc-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.pc-rise {
+  animation: pc-rise 340ms cubic-bezier(0.16, 0.84, 0.3, 1) both;
+}
+@keyframes pc-pop {
+  0% {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.pc-pop {
+  animation: pc-pop 420ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@keyframes pc-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.pc-draw {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+  animation: pc-draw 900ms cubic-bezier(0.3, 0.6, 0.2, 1) both;
+}
+@keyframes pc-grow {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+.pc-grow {
+  transform-box: fill-box;
+  transform-origin: bottom;
+  animation: pc-grow 600ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+@keyframes pc-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+.pc-pulse {
+  animation: pc-pulse 1.4s ease-in-out infinite;
+}
+@keyframes pc-ring {
+  from {
+    transform: scale(0.4);
+    opacity: 0.9;
+  }
+  to {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+}
+@keyframes pc-sweep {
+  from {
+    transform: translateX(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  to {
+    transform: translateX(var(--pc-sweep, 200px));
+    opacity: 0;
+  }
+}
+@keyframes pc-shimmer {
+  from {
+    background-position: -200px 0;
+  }
+  to {
+    background-position: 200px 0;
+  }
+}
+.pc-skel {
+  background: linear-gradient(90deg, var(--pc-sunk) 0px, var(--pc-hover) 80px, var(--pc-sunk) 160px);
+  background-size: 400px 100%;
+  animation: pc-shimmer 1.3s linear infinite;
+  border-radius: 4px;
+}
+
+/* ------------------------------------------------------------ dialogs */
+
+.pc-scrim {
+  background: var(--pc-overlay);
+  backdrop-filter: blur(3px);
+  animation: pc-fade 160ms ease both;
+}
+@keyframes pc-dialog {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.pc-dialog {
+  animation: pc-dialog 220ms cubic-bezier(0.16, 0.84, 0.3, 1) both;
+}
+@keyframes pc-sheet {
+  from {
+    transform: translateX(28px);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+.pc-sheet {
+  animation: pc-sheet 240ms cubic-bezier(0.16, 0.84, 0.3, 1) both;
+}
+@keyframes pc-drawer {
+  from {
+    transform: translateX(-24px);
+    opacity: 0.6;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+.pc-drawer {
+  animation: pc-drawer 200ms cubic-bezier(0.16, 0.84, 0.3, 1) both;
+}
+
+/* -------------------------------------------------------- the keyboard */
+
+.pc-key {
+  position: absolute;
+  top: 0;
+  box-sizing: border-box;
+  transition:
+    transform 70ms ease,
+    background-color 90ms ease,
+    box-shadow 90ms ease;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+}
+.pc-key.white {
+  height: 100%;
+  background: linear-gradient(to bottom, var(--pc-key-white-2) 0%, var(--pc-key-white) 10%, var(--pc-key-white) 100%);
+  border: 1px solid var(--pc-line-2);
+  border-top: 0;
+  border-radius: 0 0 5px 5px;
+  z-index: 1;
+}
+.pc-key.black {
+  height: 62%;
+  background: linear-gradient(to bottom, var(--pc-key-black) 0%, var(--pc-key-black-2) 92%, var(--pc-key-black) 100%);
+  border-radius: 0 0 4px 4px;
+  z-index: 2;
+  box-shadow: 0 2px 2px rgb(0 0 0 / 0.25);
+}
+.pc-key.down {
+  transform: translateY(2px);
+}
+.pc-key.white.down {
+  background: linear-gradient(to bottom, var(--pc-key-white-2) 0%, color-mix(in srgb, var(--pc-key-white), var(--pc-key-white-2) 55%) 100%);
+}
+.pc-key.black.down {
+  background: var(--pc-key-black-2);
+  box-shadow: none;
+}
+.pc-key.hit-r {
+  background: color-mix(in srgb, var(--pc-rh), var(--pc-key-white) 22%) !important;
+}
+.pc-key.hit-l {
+  background: color-mix(in srgb, var(--pc-lh), var(--pc-key-white) 22%) !important;
+}
+.pc-key.bad {
+  background: color-mix(in srgb, var(--pc-bad), var(--pc-key-white) 18%) !important;
+}
+.pc-key .pc-cue {
+  position: absolute;
+  left: 50%;
+  bottom: 8px;
+  width: 58%;
+  max-width: 18px;
+  aspect-ratio: 1;
+  transform: translateX(-50%) scale(0.5);
+  border-radius: 999px;
+  opacity: 0;
+  transition:
+    opacity 120ms ease,
+    transform 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--pc-mono);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--pc-raised);
+}
+.pc-key.cue-r .pc-cue,
+.pc-key.cue-l .pc-cue {
+  opacity: 1;
+  transform: translateX(-50%) scale(1);
+}
+.pc-key.cue-r .pc-cue {
+  background: var(--pc-rh);
+}
+.pc-key.cue-l .pc-cue {
+  background: var(--pc-lh);
+}
+.pc-key.black .pc-cue {
+  bottom: 6px;
+}
+.pc-key .pc-ripple {
+  position: absolute;
+  left: 50%;
+  top: -10px;
+  width: 22px;
+  height: 22px;
+  margin-left: -11px;
+  border-radius: 999px;
+  border: 2px solid currentColor;
+  pointer-events: none;
+  animation: pc-ring 520ms cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
+}
+
+/* Range inputs in the instrument style. */
+.pc-range {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 18px;
+  background: transparent;
+}
+.pc-range::-webkit-slider-runnable-track {
+  height: 3px;
+  border-radius: 3px;
+  background: var(--pc-line-2);
+}
+.pc-range::-moz-range-track {
+  height: 3px;
+  border-radius: 3px;
+  background: var(--pc-line-2);
+}
+.pc-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  margin-top: -5.5px;
+  border-radius: 999px;
+  background: var(--pc-raised);
+  border: 1.5px solid var(--pc-ink);
+}
+.pc-range::-moz-range-thumb {
+  width: 13px;
+  height: 13px;
+  border-radius: 999px;
+  background: var(--pc-raised);
+  border: 1.5px solid var(--pc-ink);
+}
+
+/* The engraved score: ink follows the theme. */
+.pc-sheet-ink svg {
+  color: var(--pc-ink);
+}
+.pc-sheet-ink svg .vf-stavenote,
+.pc-sheet-ink svg .vf-stavenote * {
+  transition:
+    fill 120ms ease,
+    stroke 120ms ease;
+}
+.pc-sheet-ink .is-hit-r,
+.pc-sheet-ink .is-hit-r * {
+  fill: var(--pc-rh) !important;
+  stroke: var(--pc-rh) !important;
+}
+.pc-sheet-ink .is-hit-l,
+.pc-sheet-ink .is-hit-l * {
+  fill: var(--pc-lh) !important;
+  stroke: var(--pc-lh) !important;
+}
+.pc-sheet-ink .is-miss,
+.pc-sheet-ink .is-miss * {
+  fill: var(--pc-bad) !important;
+  stroke: var(--pc-bad) !important;
+}
+.pc-sheet-ink .is-dim,
+.pc-sheet-ink .is-dim * {
+  opacity: 0.32;
+}
+
+/* The sustain pedal on the deck: dark while the music holds it, a ring while yours is down. */
+.pc-ped {
+  width: 22px;
+  height: 15px;
+  border-radius: 3px 3px 7px 7px;
+  border: 1.5px solid var(--pc-line-2);
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease,
+    box-shadow 120ms ease,
+    transform 120ms ease;
+}
+.pc-ped[data-state^='down'] {
+  background: var(--pc-ink);
+  border-color: var(--pc-ink);
+  transform: translateY(1px);
+}
+.pc-ped[data-state$='|you'] {
+  box-shadow: 0 0 0 2.5px color-mix(in srgb, var(--pc-rh), transparent 25%);
+}
+
+/* Lesson examples: the notes sounding now light up. */
+.pc-score svg .vf-stavenote,
+.pc-score svg .vf-stavenote * {
+  transition:
+    fill 90ms ease,
+    stroke 90ms ease;
+}
+.pc-score .pc-sound-on,
+.pc-score .pc-sound-on * {
+  fill: var(--pc-rh) !important;
+  stroke: var(--pc-rh) !important;
+}
+
+/* A right answer glows green, a wrong one shakes. */
+@keyframes pc-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-5px);
+  }
+  40% {
+    transform: translateX(5px);
+  }
+  60% {
+    transform: translateX(-3px);
+  }
+  80% {
+    transform: translateX(3px);
+  }
+}
+.pc-shake {
+  animation: pc-shake 360ms ease both;
+}
+@keyframes pc-glow {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--pc-good), transparent 50%);
+  }
+  100% {
+    box-shadow: 0 0 0 10px color-mix(in srgb, var(--pc-good), transparent 100%);
+  }
+}
+.pc-glow {
+  animation: pc-glow 600ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pc-in,
+  .pc-rise,
+  .pc-pop,
+  .pc-fade,
+  .pc-dialog,
+  .pc-sheet,
+  .pc-drawer,
+  .pc-grow {
+    animation: none;
+  }
+  .pc-draw {
+    animation: none;
+  }
+}
