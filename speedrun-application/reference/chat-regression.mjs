@@ -1,0 +1,38 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import vm from 'node:vm';
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const rec = (id, collection, fields = {}) => ({ id, collection, fields, getString(k) { return String(this.fields[k] ?? ''); }, set(k, v) { this.fields[k] = v; } });
+const util = { byId(app, collection, id) { return app.rows.find(r => r.collection === collection && r.id === id) ?? null; }, fail(status, message, code) { return Object.assign(new Error(message), { status, code }); }, now: () => '2026-10-31T00:00:00Z' };
+const settings = rec('settings', 'settings');
+const store = { settings: () => settings, assertPreparing() {}, answerRecords: () => ({}), log() {} };
+function load(file) {
+ const mod = { exports: {} };
+ const libs = { lib_util: util, lib_store: store, lib_answers: {} };
+ vm.runInNewContext(fs.readFileSync(path.join(root, 'pb/pb_hooks', file), 'utf8'), { module: mod, __hooks: '/hooks', require: p => libs[path.basename(p, '.js')], console, Record: function() {} });
+ return mod.exports;
+}
+const agent = load('lib_agent.js');
+const pipeline = load('lib_pipeline.js');
+const app = { rows: [], deleted: [], findRecordsByFilter(c) { return this.rows.filter(r => r.collection === c); }, save() {}, delete(r) { this.deleted.push(r.id); this.rows = this.rows.filter(x => x.id !== r.id); } };
+app.rows = [rec('p','messages',{role:'person',state:'queued'}), rec('a','messages',{role:'agent',state:'answered'}), rec('keep','founders')];
+assert.throws(() => pipeline.reset({app}, {confirm:false}), /confirm must be true/);
+assert.equal(app.rows.filter(r => r.collection === 'messages').length, 2);
+const reset = pipeline.reset({app}, {confirm:true});
+assert.equal(reset.messages_removed, 2);
+assert.equal(agent.messages({app}, {}).messages.length, 0);
+assert.equal(app.rows[0].id, 'keep');
+app.rows = [rec('one','messages'), rec('two','messages'), rec('answer','answers')];
+assert.equal(agent.remove({app}, {message:'one'}).removed, 'one');
+assert.deepEqual(app.rows.map(r => r.id), ['two','answer']);
+assert.throws(() => agent.remove({app}, {message:'missing'}), /No message/);
+const { messageStatus } = await import('../frontend/src/app/lib/message-status.ts');
+const m = {role:'person',state:'sent'};
+for (const [status, expected] of [['pending','waiting'], ['claimed','working on it'], ['done','completed'], ['rejected','canceled']]) assert.equal(messageStatus(m,status),expected);
+assert.equal(messageStatus({...m,state:'answered'},'pending'),null);
+assert.equal(messageStatus({...m,state:'failed'}),'not delivered');
+assert.equal(messageStatus({...m,state:'completed'}),'completed');
+assert.equal(messageStatus({...m,state:'canceled'}),'canceled');
+console.log('PASS: reset confirmation, chat clearing including queued/replies, targeted removal, terminal message views and six UI lifecycle states.');

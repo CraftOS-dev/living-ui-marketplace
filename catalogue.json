@@ -296,6 +296,15 @@
       "folder": "piano-coach",
       "tags": ["piano", "music", "learning", "practice", "AI coach", "education"],
       "version": "1.1.0"
+    },
+    {
+      "id": "speedrun-application",
+      "livingUIVersion": 2,
+      "name": "a16z speedrun Application",
+      "description": "Takes founders from their links to a submitted a16z speedrun application. Add your website, each founder's LinkedIn and GitHub, or your deck, and CraftBot reads them and fills every part of speedrun's form (the team, startup details, traction with revenue and usage metrics, funding history, the active round and each founder's profile and relevant experience), asking you only for what it cannot find. Its words never overwrite yours: they arrive as answers for a founder to read and confirm. When you ask, every answer is reviewed the way a speedrun investor reads it (buzzwords, jargon, vague claims, overclaims, the best news buried, wins undersold, text that sounds machine-written, a shorter version), then the whole application for track record, founder-market fit, earned insight, differentiation and momentum. About 50 checks from speedrun's own guidance, metric sanity checks and a 100 point odds model weighted to the team show your chance of getting in and the moves worth most, with the open cohort and its deadline, team video rules and the confirmations only founders can make. When it is ready, CraftBot types the application into speedrun's form in its browser and stops before Submit; you press it, and the app keeps what was sent. Copy by hand or export Markdown any time.",
+      "folder": "speedrun-application",
+      "tags": ["startup", "fundraising", "a16z", "speedrun", "applications", "writing", "productivity"],
+      "version": "1.0.0"
     }
   ]
 }
