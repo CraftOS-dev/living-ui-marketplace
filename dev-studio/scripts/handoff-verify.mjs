@@ -1,0 +1,25 @@
+// Protocol integration fixture, not a claim that a real provider ran.
+import assert from "node:assert/strict";
+import { mkdtemp, readFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { operation, request, base } from "./client.mjs";
+const human=(name,args={})=>operation(name,args,true);
+const home=await mkdtemp(join(tmpdir(),"studio-handoff-"));
+const project=await human("project-create",{path:join(home,"fixture"),kind:"javascript"});
+await human("project-trust",{project:project.id,enabled:true});
+const work=await human("work-create",{project:project.id,title:"Protocol handoff fixture",goal:"Exercise submission boundary",criteria:"Immediate human apply without another completion",mode:"craftbot"});
+const started=await human("work-start",{work:work.id});
+await request(`/api/_a2app/tasks/${started.task}/claim`,{method:"POST",body:"{}"});
+await operation("work-context",{work:work.id});
+const before=await operation("file-read",{work:work.id,path:"main.js"});
+await operation("file-write",{work:work.id,path:"main.js",text:before.text+"\n// Submitted protocol fixture\n",expected:before.digest});
+const began=Date.now();
+const submitted=await operation("work-finish",{work:work.id,summary:"One comment added for handoff integration testing; no provider execution claimed."});
+assert.equal(submitted.status,"ready");
+const task=await request(`/api/_a2app/tasks/${started.task}`);assert.equal(task.status,"completed");
+await assert.rejects(()=>operation("file-write",{work:work.id,path:"late.txt",text:"forbidden",create:true}),/lease|closed|claimed|active/);
+const applied=await human("review-apply",{work:work.id,paths:["main.js"]});
+assert.deepEqual(applied.conflicts,[]);assert.deepEqual(applied.applied,["main.js"]);
+assert.match(await readFile(join(project.root,"main.js"),"utf8"),/Submitted protocol fixture/);
+console.log(JSON.stringify({passed:true,providerProof:false,base,work:work.id,task:task.id,delivery:task.status,readyToApplyMs:Date.now()-began,immediateFirstApply:true,lateWritesRefused:true},null,2));

@@ -1,0 +1,5 @@
+import WebSocket from 'ws';import {readFile} from 'node:fs/promises';
+const {host,project}=JSON.parse(await readFile(new URL('../.a2app/evidence/native-release.json',import.meta.url),'utf8'));
+const action=process.argv[2];if(!['agent_app_stop','agent_app_launch'].includes(action))throw Error('Choose agent_app_stop or agent_app_launch.');
+const {token}=await fetch(host+'/api/session-token').then(r=>r.json());const ws=new WebSocket(host.replace('http','ws')+'/ws',['craftbot','craftbot-auth.'+token],{origin:host});await new Promise((y,n)=>{ws.once('open',y);ws.once('error',n);});
+try{const response=new Promise((y,n)=>{const t=setTimeout(()=>n(Error('Native lifecycle timeout')),60000);ws.on('message',b=>{const m=JSON.parse(b);if(m.type===action&&m.data?.projectId===project.id){clearTimeout(t);y(m.data);}});});ws.send(JSON.stringify({type:action,projectId:project.id}));const result=await response;console.log(JSON.stringify(result));if(!result.success)process.exitCode=1;}finally{ws.close();}
