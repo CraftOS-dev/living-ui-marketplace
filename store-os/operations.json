@@ -1,0 +1,2998 @@
+{
+  "opsVersion": 1,
+  "operations": [
+    {
+      "name": "health",
+      "description": "Liveness check (PocketBase built-in).",
+      "system": true,
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/health"
+      }
+    },
+    {
+      "name": "ops.list",
+      "description": "Return this operations manifest.",
+      "system": true,
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/_ops"
+      }
+    },
+    {
+      "name": "app.guide",
+      "description": "START HERE: how Store OS works, the rules, the row formats for bringing in orders, conversations and products, and the recipe for every kind of task.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/app/guide"
+      }
+    },
+    {
+      "name": "app.status",
+      "description": "Where the store stands: set up or not, the shops (with their sync and setup state), what needs attention (orders to ship and late, messages due, approvals, listing issues, low stock, missing costs) and your open tasks.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/app/status"
+      }
+    },
+    {
+      "name": "app.convert",
+      "description": "Convert an amount between currencies at the store's exchange rates (to price a listing in a shop's currency).",
+      "params": {
+        "amount": {
+          "type": "number",
+          "description": "The amount (major units)",
+          "required": true
+        },
+        "from": {
+          "type": "string",
+          "description": "Its currency, e.g. MYR (default: the base currency)"
+        },
+        "to": {
+          "type": "string",
+          "description": "The currency wanted, e.g. SGD",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/app/convert"
+      }
+    },
+    {
+      "name": "app.home",
+      "description": "Everything the Home page shows (about 14 KB): settings, shops, attention counts, the sales report with its daily series, recent orders and activity. To answer the seller, reports.overview (figures) and reports.attention (what needs them, late orders named) are a quarter of the size.",
+      "params": {
+        "range": {
+          "type": "string",
+          "description": "7d | 30d | 90d | 12m (default 30d)",
+          "enum": [
+            "7d",
+            "30d",
+            "90d",
+            "12m"
+          ]
+        },
+        "shop": {
+          "type": "string",
+          "description": "Only this shop (id or name)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/app/home"
+      }
+    },
+    {
+      "name": "app.search",
+      "description": "Search orders (number, buyer), products (title, SKU, barcode), customers and conversations at once.",
+      "params": {
+        "q": {
+          "type": "string",
+          "description": "What to look for",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/app/search"
+      }
+    },
+    {
+      "name": "app.export",
+      "description": "Everything in the store as one JSON document (shops, catalog, stock ledger, orders, customers, conversations, proposals).",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/app/export"
+      }
+    },
+    {
+      "name": "platforms.list",
+      "description": "The platforms a shop can be on (id, kind, countries, title limit (0: no fixed limit known, not checked), seller sign-up and seller centre links), the countries and the currencies.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/platforms/list"
+      }
+    },
+    {
+      "name": "settings.get",
+      "description": "The business, base currency, country, time zone, your AI agent's limits (autonomy), guards, buyer-data period, low-stock default and exchange rates.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/settings/get"
+      }
+    },
+    {
+      "name": "settings.update",
+      "description": "Change the business details and rules. The base currency cannot change once products have prices.",
+      "params": {
+        "business_name": {
+          "type": "string",
+          "description": "The business name"
+        },
+        "owner_name": {
+          "type": "string",
+          "description": "What to call the seller"
+        },
+        "country": {
+          "type": "string",
+          "description": "Country code, e.g. MY"
+        },
+        "base_currency": {
+          "type": "string",
+          "description": "Currency of product prices, costs and reports, e.g. MYR"
+        },
+        "timezone": {
+          "type": "string",
+          "description": "IANA time zone, e.g. Asia/Kuala_Lumpur"
+        },
+        "utc_offset": {
+          "type": "number",
+          "description": "Minutes east of UTC in the seller's time zone (Malaysia 480); reports count days by it. The app keeps it equal to timezone, so set timezone instead."
+        },
+        "pii_days": {
+          "type": "number",
+          "description": "Days to keep buyer addresses and phone numbers after an order is finished (7 to 3650)"
+        },
+        "low_stock": {
+          "type": "number",
+          "description": "Default low-stock level per SKU"
+        },
+        "max_price_drop_pct": {
+          "type": "number",
+          "description": "A proposed price drop larger than this percentage is marked high risk"
+        },
+        "min_margin_pct": {
+          "type": "number",
+          "description": "Margin below which prices are flagged"
+        },
+        "onboarded": {
+          "type": "boolean",
+          "description": "The seller finished the first-run setup"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/settings/update"
+      }
+    },
+    {
+      "name": "settings.autonomy",
+      "description": "What your AI agent may change without asking: ask (it proposes, the seller approves) or auto, per kind of change. [The seller only.]",
+      "params": {
+        "listings": {
+          "type": "string",
+          "description": "Listing text and price",
+          "enum": [
+            "ask",
+            "auto"
+          ]
+        },
+        "prices": {
+          "type": "string",
+          "description": "SKU prices",
+          "enum": [
+            "ask",
+            "auto"
+          ]
+        },
+        "stock": {
+          "type": "string",
+          "description": "Stock changes",
+          "enum": [
+            "ask",
+            "auto"
+          ]
+        },
+        "replies": {
+          "type": "string",
+          "description": "Sending buyer replies",
+          "enum": [
+            "ask",
+            "auto"
+          ]
+        },
+        "orders": {
+          "type": "string",
+          "description": "Cancelling, refunding and returns",
+          "enum": [
+            "ask",
+            "auto"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/settings/autonomy"
+      }
+    },
+    {
+      "name": "settings.fx-refresh",
+      "description": "Fetch today's exchange rates against the base currency now (they also refresh every six hours).",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/settings/fx-refresh"
+      }
+    },
+    {
+      "name": "activity.list",
+      "description": "Who changed what, newest first.",
+      "params": {
+        "limit": {
+          "type": "number",
+          "description": "Rows (default 40)"
+        },
+        "target": {
+          "type": "string",
+          "description": "Only this target, e.g. order:<id>, shop:<id>, product:<id>"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/activity/list"
+      }
+    },
+    {
+      "name": "shops.list",
+      "description": "Every shop with its platform, currency, status, connection, setup progress, last sync, orders to ship, open conversations, live listings and any task your AI agent is on.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/shops/list"
+      }
+    },
+    {
+      "name": "shops.get",
+      "description": "One shop: everything in shops.list plus its setup checklist (steps with links), fee rates, ship-by days, reply hours, stock rule, policies, recent imports and tasks.",
+      "params": {
+        "shop": {
+          "type": "string",
+          "description": "The shop (id or name)",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/shops/get"
+      }
+    },
+    {
+      "name": "shops.add",
+      "description": "Add a shop you have, or start opening a new one (opening=true starts its setup checklist). Two shops on one platform are two shops with their own names.",
+      "params": {
+        "platform": {
+          "type": "string",
+          "description": "The platform",
+          "required": true,
+          "enum": [
+            "shopify",
+            "woocommerce",
+            "shopee",
+            "lazada",
+            "tiktok_shop",
+            "amazon",
+            "ebay",
+            "etsy",
+            "tokopedia",
+            "zalora",
+            "rakuten",
+            "yahoo_shopping",
+            "walmart",
+            "mercado_libre",
+            "direct",
+            "other"
+          ]
+        },
+        "opening": {
+          "type": "boolean",
+          "description": "true when the shop is not open yet (shows the setup checklist)"
+        },
+        "name": {
+          "type": "string",
+          "description": "Shop name (unique), e.g. \"Shopee MY\""
+        },
+        "region": {
+          "type": "string",
+          "description": "Country code the shop sells in, e.g. MY"
+        },
+        "currency": {
+          "type": "string",
+          "description": "Currency of the shop's prices and orders, e.g. MYR"
+        },
+        "url": {
+          "type": "string",
+          "description": "The shop's public link"
+        },
+        "admin_url": {
+          "type": "string",
+          "description": "The shop's seller centre or admin link"
+        },
+        "connection": {
+          "type": "string",
+          "description": "How its data comes in: agent (your AI agent syncs it), files (seller-centre exports), manual",
+          "enum": [
+            "agent",
+            "files",
+            "manual"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/shops/add"
+      }
+    },
+    {
+      "name": "shops.update",
+      "description": "Change a shop: details, status, connection, fee rates (used to estimate profit until real fees arrive), days to ship, reply hours and the stock rule.",
+      "params": {
+        "shop": {
+          "type": "string",
+          "description": "The shop (id or name)",
+          "required": true
+        },
+        "status": {
+          "type": "string",
+          "description": "setting_up | active | paused",
+          "enum": [
+            "setting_up",
+            "active",
+            "paused"
+          ]
+        },
+        "commission_pct": {
+          "type": "number",
+          "description": "Commission the platform takes on items, in percent"
+        },
+        "payment_pct": {
+          "type": "number",
+          "description": "Payment or transaction fee on the order total, in percent"
+        },
+        "fixed_fee": {
+          "type": "number",
+          "description": "Fixed fee per order, in the shop's currency"
+        },
+        "ship_days": {
+          "type": "number",
+          "description": "Days from order to hand-over (the ship-by clock)"
+        },
+        "reply_hours": {
+          "type": "number",
+          "description": "Hours to answer a buyer (the reply clock)"
+        },
+        "stock_share": {
+          "type": "number",
+          "description": "Percent of available stock the shop shows (0 to 100)"
+        },
+        "stock_buffer": {
+          "type": "number",
+          "description": "Units held back from this shop"
+        },
+        "stock_max": {
+          "type": "number",
+          "description": "Most units the shop shows (0: no limit)"
+        },
+        "name": {
+          "type": "string",
+          "description": "Shop name (unique), e.g. \"Shopee MY\""
+        },
+        "region": {
+          "type": "string",
+          "description": "Country code the shop sells in, e.g. MY"
+        },
+        "currency": {
+          "type": "string",
+          "description": "Currency of the shop's prices and orders, e.g. MYR"
+        },
+        "url": {
+          "type": "string",
+          "description": "The shop's public link"
+        },
+        "admin_url": {
+          "type": "string",
+          "description": "The shop's seller centre or admin link"
+        },
+        "connection": {
+          "type": "string",
+          "description": "How its data comes in: agent (your AI agent syncs it), files (seller-centre exports), manual",
+          "enum": [
+            "agent",
+            "files",
+            "manual"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/shops/update"
+      }
+    },
+    {
+      "name": "shops.policies",
+      "description": "Write the shop's return, shipping and FAQ text and the reply voice; your AI agent quotes them when it answers buyers.",
+      "params": {
+        "shop": {
+          "type": "string",
+          "description": "The shop (id or name)",
+          "required": true
+        },
+        "returns": {
+          "type": "string",
+          "description": "Return and refund policy"
+        },
+        "shipping": {
+          "type": "string",
+          "description": "Shipping and delivery policy"
+        },
+        "faq": {
+          "type": "string",
+          "description": "Answers to common questions"
+        },
+        "voice": {
+          "type": "string",
+          "description": "How replies should sound, e.g. \"friendly, short, sign as Aina\""
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/shops/policies"
+      }
+    },
+    {
+      "name": "shops.step",
+      "description": "Tick (or untick) a step of the shop's setup checklist. When every step is done, a shop being opened becomes active.",
+      "params": {
+        "shop": {
+          "type": "string",
+          "description": "The shop (id or name)",
+          "required": true
+        },
+        "step": {
+          "type": "string",
+          "description": "Step key from shops.get steps",
+          "required": true
+        },
+        "done": {
+          "type": "boolean",
+          "description": "false to untick (default true)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/shops/step"
+      }
+    },
+    {
+      "name": "shops.remove",
+      "description": "Delete a shop with its orders, listings and conversations. The Direct shop stays. [The seller only.]",
+      "params": {
+        "shop": {
+          "type": "string",
+          "description": "The shop (id or name)",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/shops/remove"
+      },
+      "destructive": true
+    },
+    {
+      "name": "shops.sync",
+      "description": "Ask your AI agent to bring in the shop's new orders, buyer messages and listings (a sync task).",
+      "params": {
+        "shop": {
+          "type": "string",
+          "description": "The shop (id or name)",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/shops/sync"
+      }
+    },
+    {
+      "name": "shops.help",
+      "description": "Ask your AI agent to help with one setup step of a shop (a setup_help task).",
+      "params": {
+        "shop": {
+          "type": "string",
+          "description": "The shop (id or name)",
+          "required": true
+        },
+        "step": {
+          "type": "string",
+          "description": "Step key",
+          "required": true
+        },
+        "note": {
+          "type": "string",
+          "description": "Anything the seller wants it to know"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/shops/help"
+      }
+    },
+    {
+      "name": "shops.sync-finish",
+      "description": "Your AI agent: record that a sync ended (sets the last sync time unless failed) and finish the sync task.",
+      "params": {
+        "shop": {
+          "type": "string",
+          "description": "The shop (id or name)",
+          "required": true
+        },
+        "note": {
+          "type": "string",
+          "description": "What came in, e.g. \"12 new orders, 3 updated, 4 messages\""
+        },
+        "failed": {
+          "type": "boolean",
+          "description": "true when the sync could not be done"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/shops/sync-finish"
+      }
+    },
+    {
+      "name": "products.list",
+      "description": "The catalog: each product with its SKUs, price range (base currency), available stock, stock state, missing costs and its listing status on every shop (with blocking issues). counts gives the totals per filter.",
+      "params": {
+        "q": {
+          "type": "string",
+          "description": "Search title, brand, category, SKU or barcode"
+        },
+        "status": {
+          "type": "string",
+          "description": "active_draft (default) | active | draft | archived | all",
+          "enum": [
+            "active_draft",
+            "active",
+            "draft",
+            "archived",
+            "all"
+          ]
+        },
+        "shop": {
+          "type": "string",
+          "description": "Only products listed on this shop"
+        },
+        "filter": {
+          "type": "string",
+          "description": "issues | unlisted | low | out | missing_cost",
+          "enum": [
+            "issues",
+            "unlisted",
+            "low",
+            "out",
+            "missing_cost"
+          ]
+        },
+        "limit": {
+          "type": "number",
+          "description": "Rows (default 100)"
+        },
+        "offset": {
+          "type": "number",
+          "description": "Skip this many"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/products/list"
+      }
+    },
+    {
+      "name": "products.get",
+      "description": "One product: facts (with where each came from), pictures (image_paths on this machine for your AI agent), SKUs with price, cost and stock (on hand, reserved, available), every listing with its pre-flight issues, the shops it is not on, units sold in 30 days and tasks.",
+      "params": {
+        "product": {
+          "type": "string",
+          "description": "The product (id, exact title or one of its SKUs)",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/products/get"
+      }
+    },
+    {
+      "name": "products.add",
+      "description": "Add a product with its first SKU (a SKU is made when none is given). Prices and costs are in the base currency; stock is the opening count.",
+      "params": {
+        "title": {
+          "type": "string",
+          "description": "Product title",
+          "required": true
+        },
+        "brand": {
+          "type": "string",
+          "description": "Brand"
+        },
+        "category": {
+          "type": "string",
+          "description": "Category"
+        },
+        "description": {
+          "type": "string",
+          "description": "Description"
+        },
+        "sku": {
+          "type": "string",
+          "description": "SKU"
+        },
+        "option": {
+          "type": "string",
+          "description": "Option, e.g. \"Blue / 350 ml\""
+        },
+        "price": {
+          "type": "number",
+          "description": "Selling price"
+        },
+        "cost": {
+          "type": "number",
+          "description": "Unit cost"
+        },
+        "stock": {
+          "type": "number",
+          "description": "Opening stock"
+        },
+        "barcode": {
+          "type": "string",
+          "description": "Barcode (EAN, UPC, JAN)"
+        },
+        "status": {
+          "type": "string",
+          "description": "active | draft",
+          "enum": [
+            "active",
+            "draft"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/products/add"
+      }
+    },
+    {
+      "name": "products.create",
+      "description": "Create a whole product at once: details, organisation, facts, every SKU with its price, cost and opening stock (base currency), and a draft listing on each chosen shop. Checked first, so a bad field creates nothing. Add pictures after with products.add-images.",
+      "params": {
+        "title": {
+          "type": "string",
+          "description": "Product title",
+          "required": true
+        },
+        "description": {
+          "type": "string",
+          "description": "Description"
+        },
+        "brand": {
+          "type": "string",
+          "description": "Brand"
+        },
+        "category": {
+          "type": "string",
+          "description": "Category"
+        },
+        "status": {
+          "type": "string",
+          "description": "active (default) | draft",
+          "enum": [
+            "active",
+            "draft"
+          ]
+        },
+        "tags": {
+          "type": "string",
+          "description": "JSON list of tags"
+        },
+        "facts": {
+          "type": "string",
+          "description": "JSON object of facts, e.g. {\"material\":{\"value\":\"stoneware\",\"source\":\"you\"}}"
+        },
+        "variants": {
+          "type": "string",
+          "description": "JSON list of SKUs: [{\"option\":\"Blue / 350 ml\",\"sku\":\"MUG-BLU\",\"price\":29,\"cost\":9,\"stock\":40,\"barcode\":\"\",\"weight_g\":350,\"low_stock\":5}] (one entry for a product without options; a SKU is made when sku is empty)",
+          "required": true
+        },
+        "shops": {
+          "type": "string",
+          "description": "JSON list of shops (ids or names) to start a draft listing on"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/products/create"
+      }
+    },
+    {
+      "name": "products.update",
+      "description": "Change a product's title, brand, category, description, status, note or tags (the catalog copy; each shop's listing has its own text).",
+      "params": {
+        "product": {
+          "type": "string",
+          "description": "The product (id, exact title or one of its SKUs)",
+          "required": true
+        },
+        "title": {
+          "type": "string",
+          "description": "Title"
+        },
+        "brand": {
+          "type": "string",
+          "description": "Brand"
+        },
+        "category": {
+          "type": "string",
+          "description": "Category"
+        },
+        "description": {
+          "type": "string",
+          "description": "Description"
+        },
+        "status": {
+          "type": "string",
+          "description": "active | draft | archived",
+          "enum": [
+            "active",
+            "draft",
+            "archived"
+          ]
+        },
+        "note": {
+          "type": "string",
+          "description": "Private note"
+        },
+        "tags": {
+          "type": "string",
+          "description": "JSON list of tags"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/products/update"
+      }
+    },
+    {
+      "name": "products.facts",
+      "description": "Set product facts (material, size, care...) with where each came from; an empty value removes a fact.",
+      "params": {
+        "product": {
+          "type": "string",
+          "description": "The product (id, exact title or one of its SKUs)",
+          "required": true
+        },
+        "facts": {
+          "type": "string",
+          "description": "JSON object, e.g. {\"material\":{\"value\":\"stoneware\",\"source\":\"photo\"}} (source: you, agent, photo, supplier, web, import)",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/products/facts"
+      }
+    },
+    {
+      "name": "products.add-images",
+      "description": "Add pictures to a product (up to 12). Screens upload them; your AI agent gives --paths.",
+      "params": {
+        "product": {
+          "type": "string",
+          "description": "The product (id, exact title or one of its SKUs)",
+          "required": true
+        },
+        "paths": {
+          "type": "string",
+          "description": "Your AI agent: JSON list of absolute file paths, e.g. [\"C:/photos/mug.jpg\"]"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/products/add-images"
+      }
+    },
+    {
+      "name": "products.remove-image",
+      "description": "Remove one picture.",
+      "params": {
+        "product": {
+          "type": "string",
+          "description": "The product (id, exact title or one of its SKUs)",
+          "required": true
+        },
+        "name": {
+          "type": "string",
+          "description": "Picture file name from products.get images",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/products/remove-image"
+      }
+    },
+    {
+      "name": "products.cover",
+      "description": "Make a picture the first (cover) picture.",
+      "params": {
+        "product": {
+          "type": "string",
+          "description": "The product (id, exact title or one of its SKUs)",
+          "required": true
+        },
+        "name": {
+          "type": "string",
+          "description": "Picture file name",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/products/cover"
+      }
+    },
+    {
+      "name": "products.remove",
+      "description": "Delete a product with its SKUs, stock ledger and listings (past orders keep their lines).",
+      "params": {
+        "product": {
+          "type": "string",
+          "description": "The product (id, exact title or one of its SKUs)",
+          "required": true
+        },
+        "confirm": {
+          "type": "boolean",
+          "description": "Your AI agent: true once the seller asked for this deletion. Without it nothing is deleted and the answer says what would be."
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/products/remove"
+      },
+      "destructive": true
+    },
+    {
+      "name": "products.upsert-many",
+      "description": "Create or update products from rows (a product export or your AI agent's sync), matched on SKU. Rows sharing \"group\" become SKUs of one product. With --shop the listing on that shop is recorded too. Row format: app.guide rows.product.",
+      "params": {
+        "items": {
+          "type": "string",
+          "description": "JSON list of product rows",
+          "required": true
+        },
+        "shop": {
+          "type": "string",
+          "description": "The shop these rows come from"
+        },
+        "stock_mode": {
+          "type": "string",
+          "description": "new_only (default: stock counts only for new SKUs) | set (count every SKU to the given stock) | ignore",
+          "enum": [
+            "new_only",
+            "set",
+            "ignore"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/products/upsert-many"
+      }
+    },
+    {
+      "name": "products.prepare",
+      "description": "Ask your AI agent to write listings of a product for some shops (a prepare_listing task; its drafts come back through Approvals).",
+      "params": {
+        "product": {
+          "type": "string",
+          "description": "The product (id, exact title or one of its SKUs)",
+          "required": true
+        },
+        "shops": {
+          "type": "string",
+          "description": "JSON list of shops (ids or names); default every active shop"
+        },
+        "note": {
+          "type": "string",
+          "description": "What the seller wants, e.g. \"stress gift-giving\""
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/products/prepare"
+      }
+    },
+    {
+      "name": "variants.add",
+      "description": "Add a SKU to a product.",
+      "params": {
+        "product": {
+          "type": "string",
+          "description": "The product (id, exact title or one of its SKUs)",
+          "required": true
+        },
+        "sku": {
+          "type": "string",
+          "description": "SKU (made when empty)"
+        },
+        "option": {
+          "type": "string",
+          "description": "Option, e.g. \"Red / M\""
+        },
+        "price": {
+          "type": "number",
+          "description": "Selling price (base currency)"
+        },
+        "cost": {
+          "type": "number",
+          "description": "Unit cost (base currency)"
+        },
+        "stock": {
+          "type": "number",
+          "description": "Opening stock"
+        },
+        "barcode": {
+          "type": "string",
+          "description": "Barcode"
+        },
+        "weight_g": {
+          "type": "number",
+          "description": "Weight in grams"
+        },
+        "low_stock": {
+          "type": "number",
+          "description": "Low-stock level (0: the store default)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/variants/add"
+      }
+    },
+    {
+      "name": "variants.update",
+      "description": "Change a SKU's code, option, cost, barcode, weight or low-stock level (prices change with variants.set-price). A new cost fills in orders that sold without one.",
+      "params": {
+        "variant": {
+          "type": "string",
+          "description": "The SKU (or variant id)",
+          "required": true
+        },
+        "sku": {
+          "type": "string",
+          "description": "New SKU"
+        },
+        "option": {
+          "type": "string",
+          "description": "Option"
+        },
+        "cost": {
+          "type": "number",
+          "description": "Unit cost (base currency)"
+        },
+        "barcode": {
+          "type": "string",
+          "description": "Barcode"
+        },
+        "weight_g": {
+          "type": "number",
+          "description": "Weight in grams"
+        },
+        "low_stock": {
+          "type": "number",
+          "description": "Low-stock level"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/variants/update"
+      }
+    },
+    {
+      "name": "variants.set-price",
+      "description": "Change a SKU's selling price (base currency). [Becomes a proposal the seller approves, unless the seller set prices changes to automatic.]",
+      "params": {
+        "variant": {
+          "type": "string",
+          "description": "The SKU (or variant id)",
+          "required": true
+        },
+        "price": {
+          "type": "number",
+          "description": "New price",
+          "required": true
+        },
+        "why": {
+          "type": "string",
+          "description": "Your AI agent: one or two lines on why, shown to the seller with the proposal."
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/variants/set-price"
+      }
+    },
+    {
+      "name": "variants.remove",
+      "description": "Delete a SKU and its stock ledger (past orders keep their lines).",
+      "params": {
+        "variant": {
+          "type": "string",
+          "description": "The SKU (or variant id)",
+          "required": true
+        },
+        "confirm": {
+          "type": "boolean",
+          "description": "Your AI agent: true once the seller asked for this deletion. Without it nothing is deleted and the answer says what would be."
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/variants/remove"
+      },
+      "destructive": true
+    },
+    {
+      "name": "listings.draft",
+      "description": "Write or change a product's listing on one shop: title, description, price in the shop's currency, keywords, and draft or ready. A live listing stays live and shows that its changes still need publishing. [Becomes a proposal the seller approves, unless the seller set listings changes to automatic.]",
+      "params": {
+        "product": {
+          "type": "string",
+          "description": "The product (id, exact title or one of its SKUs)",
+          "required": true
+        },
+        "shop": {
+          "type": "string",
+          "description": "The shop (id or name)",
+          "required": true
+        },
+        "title": {
+          "type": "string",
+          "description": "Listing title"
+        },
+        "description": {
+          "type": "string",
+          "description": "Listing description"
+        },
+        "price": {
+          "type": "number",
+          "description": "Price in the shop's currency"
+        },
+        "keywords": {
+          "type": "string",
+          "description": "JSON list of search keywords"
+        },
+        "status": {
+          "type": "string",
+          "description": "draft | ready (ready to publish)",
+          "enum": [
+            "draft",
+            "ready"
+          ]
+        },
+        "why": {
+          "type": "string",
+          "description": "Your AI agent: one or two lines on why, shown to the seller with the proposal."
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/listings/draft"
+      }
+    },
+    {
+      "name": "listings.link",
+      "description": "Record that a product is on a shop (found while syncing or importing): its id there, link, status, price and the stock it shows now.",
+      "params": {
+        "product": {
+          "type": "string",
+          "description": "The product (id, exact title or one of its SKUs)",
+          "required": true
+        },
+        "shop": {
+          "type": "string",
+          "description": "The shop (id or name)",
+          "required": true
+        },
+        "external_id": {
+          "type": "string",
+          "description": "The platform's listing id"
+        },
+        "url": {
+          "type": "string",
+          "description": "Listing link"
+        },
+        "status": {
+          "type": "string",
+          "description": "live (default) | paused | draft | ready",
+          "enum": [
+            "draft",
+            "ready",
+            "live",
+            "paused"
+          ]
+        },
+        "title": {
+          "type": "string",
+          "description": "Title on the shop"
+        },
+        "description": {
+          "type": "string",
+          "description": "Description on the shop"
+        },
+        "price": {
+          "type": "number",
+          "description": "Price on the shop (shop's currency)"
+        },
+        "stock": {
+          "type": "number",
+          "description": "Quantity the shop shows now"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/listings/link"
+      }
+    },
+    {
+      "name": "listings.status",
+      "description": "Set a listing's status: live after it was published (with its id and link), paused, ready or draft. Name it by --listing, or --product and --shop.",
+      "params": {
+        "listing": {
+          "type": "string",
+          "description": "Listing id"
+        },
+        "product": {
+          "type": "string",
+          "description": "The product (with --shop)"
+        },
+        "shop": {
+          "type": "string",
+          "description": "The shop (with --product)"
+        },
+        "status": {
+          "type": "string",
+          "description": "draft | ready | live | paused",
+          "required": true,
+          "enum": [
+            "draft",
+            "ready",
+            "live",
+            "paused"
+          ]
+        },
+        "external_id": {
+          "type": "string",
+          "description": "The platform's listing id"
+        },
+        "url": {
+          "type": "string",
+          "description": "Listing link"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/listings/status"
+      }
+    },
+    {
+      "name": "listings.remove",
+      "description": "Remove a listing from Store OS (it is not taken off the platform).",
+      "params": {
+        "listing": {
+          "type": "string",
+          "description": "Listing id"
+        },
+        "product": {
+          "type": "string",
+          "description": "The product (with --shop)"
+        },
+        "shop": {
+          "type": "string",
+          "description": "The shop (with --product)"
+        },
+        "confirm": {
+          "type": "boolean",
+          "description": "Your AI agent: true once the seller asked for this deletion. Without it nothing is deleted and the answer says what would be."
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/listings/remove"
+      },
+      "destructive": true
+    },
+    {
+      "name": "listings.publish",
+      "description": "Ask your AI agent to publish listings on a shop (default: every ready listing and every live one with unpublished changes).",
+      "params": {
+        "shop": {
+          "type": "string",
+          "description": "The shop (id or name)",
+          "required": true
+        },
+        "listings": {
+          "type": "string",
+          "description": "JSON list of listing ids (default: all that are due)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/listings/publish"
+      }
+    },
+    {
+      "name": "stock.overview",
+      "description": "Every SKU with on hand, reserved (open orders), available, low-stock level, state (ok, low, out), unit cost and stock value; totals.",
+      "params": {
+        "q": {
+          "type": "string",
+          "description": "Search SKU, option, title or barcode"
+        },
+        "filter": {
+          "type": "string",
+          "description": "all (default) | attention | low | out",
+          "enum": [
+            "all",
+            "attention",
+            "low",
+            "out"
+          ]
+        },
+        "limit": {
+          "type": "number",
+          "description": "Rows (default 200)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/stock/overview"
+      }
+    },
+    {
+      "name": "stock.moves",
+      "description": "A SKU's stock ledger: every move with its reason, reference, who made it and the balance after.",
+      "params": {
+        "variant": {
+          "type": "string",
+          "description": "The SKU (or variant id)",
+          "required": true
+        },
+        "limit": {
+          "type": "number",
+          "description": "Rows (default 50)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/stock/moves"
+      }
+    },
+    {
+      "name": "stock.adjust",
+      "description": "Add or take away stock: +24 received, -2 damaged. [Becomes a proposal the seller approves, unless the seller set stock changes to automatic.]",
+      "params": {
+        "variant": {
+          "type": "string",
+          "description": "The SKU (or variant id)",
+          "required": true
+        },
+        "qty": {
+          "type": "number",
+          "description": "Change, e.g. 24 or -2",
+          "required": true
+        },
+        "reason": {
+          "type": "string",
+          "description": "received | adjust | damage | return",
+          "enum": [
+            "received",
+            "adjust",
+            "damage",
+            "return"
+          ]
+        },
+        "ref": {
+          "type": "string",
+          "description": "Reference, e.g. a supplier invoice"
+        },
+        "note": {
+          "type": "string",
+          "description": "Note"
+        },
+        "why": {
+          "type": "string",
+          "description": "Your AI agent: one or two lines on why, shown to the seller with the proposal."
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/stock/adjust"
+      }
+    },
+    {
+      "name": "stock.count",
+      "description": "Set on hand to what you counted on the shelf (the ledger records the difference). [Becomes a proposal the seller approves, unless the seller set stock changes to automatic.]",
+      "params": {
+        "variant": {
+          "type": "string",
+          "description": "The SKU (or variant id)",
+          "required": true
+        },
+        "on_hand": {
+          "type": "number",
+          "description": "Counted quantity",
+          "required": true
+        },
+        "note": {
+          "type": "string",
+          "description": "Note"
+        },
+        "why": {
+          "type": "string",
+          "description": "Your AI agent: one or two lines on why, shown to the seller with the proposal."
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/stock/count"
+      }
+    },
+    {
+      "name": "stock.plan",
+      "description": "What each shop should show and does not yet: per live listing and SKU, the quantity (qty) from what is available and the shop's stock rule, and the last quantity set there (last, null when unknown); shop_count is how many shops need changes.",
+      "params": {
+        "shop": {
+          "type": "string",
+          "description": "Only this shop"
+        },
+        "sku": {
+          "type": "string",
+          "description": "Only the product of this SKU"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/stock/plan"
+      }
+    },
+    {
+      "name": "stock.mark-pushed",
+      "description": "Record the quantities shops now show (after they were set on the platform), one call for any number of shops: items like [{\"shop\":\"Shopee MY\",\"sku\":\"MUG-BLU\",\"qty\":12}], or --all true with --shop (every stock.plan row of that shop) and/or --sku (that product on every shop).",
+      "params": {
+        "shop": {
+          "type": "string",
+          "description": "The shop for items that name none, and for --all (id or name)"
+        },
+        "items": {
+          "type": "string",
+          "description": "JSON list like [{\"shop\":\"Shopee MY\",\"sku\":\"MUG-BLU\",\"qty\":12}]"
+        },
+        "all": {
+          "type": "boolean",
+          "description": "true: every stock.plan row for --shop and/or --sku, at its qty"
+        },
+        "sku": {
+          "type": "string",
+          "description": "With --all: only the product of this SKU"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/stock/mark-pushed"
+      }
+    },
+    {
+      "name": "stock.push",
+      "description": "Ask your AI agent to set the stock on a shop to stock.plan's numbers (a push_stock task).",
+      "params": {
+        "shop": {
+          "type": "string",
+          "description": "The shop (id or name)",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/stock/push"
+      }
+    },
+    {
+      "name": "orders.list",
+      "description": "Orders across shops by view: to_ship (default, by ship-by), unpaid, at_risk (late or due within a day), shipped, exceptions (tracking problem or no update for 7 days), delivered, returns, cancelled, unlinked (a line whose SKU is not in the catalog), all. counts gives each view's size. Each row has the shop, buyer, items, total, status, ship-by, hours left, health and tracking.",
+      "params": {
+        "view": {
+          "type": "string",
+          "description": "to_ship | unpaid | at_risk | shipped | exceptions | delivered | returns | cancelled | unlinked | all",
+          "enum": [
+            "to_ship",
+            "unpaid",
+            "at_risk",
+            "shipped",
+            "exceptions",
+            "delivered",
+            "returns",
+            "cancelled",
+            "unlinked",
+            "all"
+          ]
+        },
+        "shop": {
+          "type": "string",
+          "description": "Only this shop"
+        },
+        "q": {
+          "type": "string",
+          "description": "Order number, buyer name, email or phone"
+        },
+        "from": {
+          "type": "string",
+          "description": "Placed on or after (date)"
+        },
+        "to": {
+          "type": "string",
+          "description": "Placed on or before (date)"
+        },
+        "limit": {
+          "type": "number",
+          "description": "Rows (default 100)"
+        },
+        "offset": {
+          "type": "number",
+          "description": "Skip this many"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/orders/list"
+      }
+    },
+    {
+      "name": "orders.get",
+      "description": "One order: lines (with SKU links), buyer and address, money (fees, shipping cost, cost of goods, profit and margin in the base currency), shipments with tracking events, conversations, a timeline and tasks.",
+      "params": {
+        "order": {
+          "type": "string",
+          "description": "The order (id or order number)",
+          "required": true
+        },
+        "shop": {
+          "type": "string",
+          "description": "The shop, when two shops share an order number"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/orders/get"
+      }
+    },
+    {
+      "name": "orders.add",
+      "description": "Add an order by hand (the Direct shop by default: chat, social and in-person sales). Lines take a SKU (its price is used when none is given) or a title.",
+      "params": {
+        "shop": {
+          "type": "string",
+          "description": "The shop (default Direct)"
+        },
+        "number": {
+          "type": "string",
+          "description": "Order number (Direct orders are numbered D1001, D1002...)"
+        },
+        "lines": {
+          "type": "string",
+          "description": "JSON list like [{\"sku\":\"MUG-BLU\",\"qty\":2,\"price\":29}] or [{\"title\":\"Gift wrap\",\"qty\":1,\"price\":5}]",
+          "required": true
+        },
+        "buyer_name": {
+          "type": "string",
+          "description": "Buyer name"
+        },
+        "buyer_email": {
+          "type": "string",
+          "description": "Buyer email"
+        },
+        "buyer_phone": {
+          "type": "string",
+          "description": "Buyer phone"
+        },
+        "address": {
+          "type": "string",
+          "description": "Delivery address (text or JSON object)"
+        },
+        "shipping": {
+          "type": "number",
+          "description": "Shipping charged to the buyer"
+        },
+        "discount": {
+          "type": "number",
+          "description": "Discount"
+        },
+        "tax": {
+          "type": "number",
+          "description": "Tax"
+        },
+        "total": {
+          "type": "number",
+          "description": "Total (default: items - discount + shipping + tax)"
+        },
+        "fees": {
+          "type": "number",
+          "description": "Platform or payment fees, when known"
+        },
+        "ship_cost": {
+          "type": "number",
+          "description": "What the shipping costs you"
+        },
+        "payment": {
+          "type": "string",
+          "description": "paid (default) | pending | cod | refunded | partial_refund",
+          "enum": [
+            "paid",
+            "pending",
+            "cod",
+            "refunded",
+            "partial_refund"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "description": "to_ship (default) | unpaid",
+          "enum": [
+            "to_ship",
+            "unpaid"
+          ]
+        },
+        "currency": {
+          "type": "string",
+          "description": "Currency (default: the shop's)"
+        },
+        "placed_at": {
+          "type": "string",
+          "description": "When it was placed (default now)"
+        },
+        "ship_by": {
+          "type": "string",
+          "description": "Ship by (default: placed + the shop's days to ship)"
+        },
+        "note": {
+          "type": "string",
+          "description": "Note"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/orders/add"
+      }
+    },
+    {
+      "name": "orders.upsert-many",
+      "description": "Bring in a shop's orders (your AI agent's sync): created or updated by order number, so repeating is safe. Status only moves forward. Orders that arrive already shipped do not move stock. Row format: app.guide rows.order.",
+      "params": {
+        "shop": {
+          "type": "string",
+          "description": "The shop (id or name)",
+          "required": true
+        },
+        "items": {
+          "type": "string",
+          "description": "JSON list of order rows (up to 2000)",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/orders/upsert-many"
+      }
+    },
+    {
+      "name": "orders.ship",
+      "description": "Mark an order shipped (its items leave the shelf) with the carrier and tracking number.",
+      "params": {
+        "order": {
+          "type": "string",
+          "description": "The order (id or order number)",
+          "required": true
+        },
+        "shop": {
+          "type": "string",
+          "description": "The shop, when two shops share an order number"
+        },
+        "carrier": {
+          "type": "string",
+          "description": "Carrier, e.g. \"J&T Express\""
+        },
+        "tracking": {
+          "type": "string",
+          "description": "Tracking number"
+        },
+        "url": {
+          "type": "string",
+          "description": "Tracking link"
+        },
+        "shipped_at": {
+          "type": "string",
+          "description": "When (default now)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/orders/ship"
+      }
+    },
+    {
+      "name": "orders.ship-many",
+      "description": "Mark many orders shipped at once.",
+      "params": {
+        "items": {
+          "type": "string",
+          "description": "JSON list like [{\"order\":\"1043\",\"carrier\":\"J&T Express\",\"tracking\":\"JT123\"}]",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/orders/ship-many"
+      }
+    },
+    {
+      "name": "orders.deliver",
+      "description": "Mark an order delivered.",
+      "params": {
+        "order": {
+          "type": "string",
+          "description": "The order (id or order number)",
+          "required": true
+        },
+        "shop": {
+          "type": "string",
+          "description": "The shop, when two shops share an order number"
+        },
+        "delivered_at": {
+          "type": "string",
+          "description": "When (default now)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/orders/deliver"
+      }
+    },
+    {
+      "name": "orders.cancel",
+      "description": "Cancel an order that has not shipped (its reserved items go back to available). Cancel it on the platform too; a paid order needs its refund recorded with orders.refund. [Becomes a proposal the seller approves, unless the seller set orders changes to automatic.]",
+      "params": {
+        "order": {
+          "type": "string",
+          "description": "The order (id or order number)",
+          "required": true
+        },
+        "shop": {
+          "type": "string",
+          "description": "The shop, when two shops share an order number"
+        },
+        "reason": {
+          "type": "string",
+          "description": "The cancel reason stored on the order, e.g. \"buyer changed their mind\""
+        },
+        "why": {
+          "type": "string",
+          "description": "Your AI agent: one or two lines on why, shown to the seller with the proposal."
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/orders/cancel"
+      }
+    },
+    {
+      "name": "orders.refund",
+      "description": "Record a refund on an order (in the order's currency); the money itself is returned on the platform. [Becomes a proposal the seller approves, unless the seller set orders changes to automatic.]",
+      "params": {
+        "order": {
+          "type": "string",
+          "description": "The order (id or order number)",
+          "required": true
+        },
+        "shop": {
+          "type": "string",
+          "description": "The shop, when two shops share an order number"
+        },
+        "amount": {
+          "type": "number",
+          "description": "Amount refunded",
+          "required": true
+        },
+        "reason": {
+          "type": "string",
+          "description": "Why"
+        },
+        "why": {
+          "type": "string",
+          "description": "Your AI agent: one or two lines on why, shown to the seller with the proposal."
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/orders/refund"
+      }
+    },
+    {
+      "name": "orders.return",
+      "description": "Record items coming back (all lines when none are given); restock=true puts them back in stock. [Becomes a proposal the seller approves, unless the seller set orders changes to automatic.]",
+      "params": {
+        "order": {
+          "type": "string",
+          "description": "The order (id or order number)",
+          "required": true
+        },
+        "shop": {
+          "type": "string",
+          "description": "The shop, when two shops share an order number"
+        },
+        "lines": {
+          "type": "string",
+          "description": "JSON list like [{\"sku\":\"MUG-BLU\",\"qty\":1}] or [{\"line\":\"<line id>\",\"qty\":1}]"
+        },
+        "restock": {
+          "type": "boolean",
+          "description": "Put the items back in stock"
+        },
+        "why": {
+          "type": "string",
+          "description": "Your AI agent: one or two lines on why, shown to the seller with the proposal."
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/orders/return"
+      }
+    },
+    {
+      "name": "orders.update",
+      "description": "Change an order's buyer details, address, note, ship-by, payment, what the buyer was charged (shipping, discount, tax: the total follows), fees (\"\" goes back to estimated) or your shipping cost; status only between unpaid and to_ship.",
+      "params": {
+        "order": {
+          "type": "string",
+          "description": "The order (id or order number)",
+          "required": true
+        },
+        "shop": {
+          "type": "string",
+          "description": "The shop, when two shops share an order number"
+        },
+        "buyer_name": {
+          "type": "string",
+          "description": "Buyer name"
+        },
+        "buyer_email": {
+          "type": "string",
+          "description": "Buyer email"
+        },
+        "buyer_phone": {
+          "type": "string",
+          "description": "Buyer phone"
+        },
+        "address": {
+          "type": "string",
+          "description": "Address (text or JSON)"
+        },
+        "note": {
+          "type": "string",
+          "description": "Note"
+        },
+        "ship_by": {
+          "type": "string",
+          "description": "Ship by"
+        },
+        "payment": {
+          "type": "string",
+          "description": "paid | pending | cod | refunded | partial_refund",
+          "enum": [
+            "paid",
+            "pending",
+            "cod",
+            "refunded",
+            "partial_refund"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "description": "unpaid | to_ship",
+          "enum": [
+            "unpaid",
+            "to_ship"
+          ]
+        },
+        "shipping": {
+          "type": "number",
+          "description": "Shipping charged to the buyer (order currency)"
+        },
+        "discount": {
+          "type": "number",
+          "description": "Discount given to the buyer (order currency)"
+        },
+        "tax": {
+          "type": "number",
+          "description": "Tax charged to the buyer (order currency)"
+        },
+        "fees": {
+          "type": "string",
+          "description": "Fees the platform charged (major units), or \"\" to estimate them"
+        },
+        "ship_cost": {
+          "type": "number",
+          "description": "What the shipping cost you"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/orders/update"
+      }
+    },
+    {
+      "name": "orders.link-line",
+      "description": "Link an order line whose SKU is not in the catalog to one of your SKUs (other lines with the same SKU text are linked too).",
+      "params": {
+        "line": {
+          "type": "string",
+          "description": "Order line id",
+          "required": true
+        },
+        "variant": {
+          "type": "string",
+          "description": "Your SKU (or variant id)",
+          "required": true
+        },
+        "all": {
+          "type": "boolean",
+          "description": "false: only this line"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/orders/link-line"
+      }
+    },
+    {
+      "name": "orders.line-extra",
+      "description": "Mark an order line as not a product (a gift card, gift wrap, a service fee): it moves no stock, takes the cost you give (0 when it costs nothing) and stops counting as an unknown SKU. Store OS remembers it by SKU (else title) for later orders.",
+      "params": {
+        "line": {
+          "type": "string",
+          "description": "Order line id",
+          "required": true
+        },
+        "cost": {
+          "type": "number",
+          "description": "What it costs you per unit, in the base currency (default 0)"
+        },
+        "all": {
+          "type": "boolean",
+          "description": "false: only this line (default: every line with the same SKU or title)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/orders/line-extra"
+      }
+    },
+    {
+      "name": "orders.remove",
+      "description": "Delete an order (stock moves already made stay in the ledger). [The seller only.]",
+      "params": {
+        "order": {
+          "type": "string",
+          "description": "The order (id or order number)",
+          "required": true
+        },
+        "shop": {
+          "type": "string",
+          "description": "The shop, when two shops share an order number"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/orders/remove"
+      },
+      "destructive": true
+    },
+    {
+      "name": "orders.help",
+      "description": "Ask your AI agent to check an order's tracking (task tracking) or sort out a delivery problem (task exception).",
+      "params": {
+        "order": {
+          "type": "string",
+          "description": "The order (id or order number)",
+          "required": true
+        },
+        "shop": {
+          "type": "string",
+          "description": "The shop, when two shops share an order number"
+        },
+        "task": {
+          "type": "string",
+          "description": "tracking | exception",
+          "required": true,
+          "enum": [
+            "tracking",
+            "exception"
+          ]
+        },
+        "note": {
+          "type": "string",
+          "description": "Anything it should know"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/orders/help"
+      }
+    },
+    {
+      "name": "orders.track-all",
+      "description": "Ask your AI agent to check the tracking of every parcel on its way.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/orders/track-all"
+      }
+    },
+    {
+      "name": "shipments.update",
+      "description": "Record tracking: status, the latest event and its time, carrier, number, link, estimated delivery. A delivered status marks the order delivered. Name the shipment, or the order (its latest shipment).",
+      "params": {
+        "shipment": {
+          "type": "string",
+          "description": "Shipment id"
+        },
+        "order": {
+          "type": "string",
+          "description": "The order (id or number)"
+        },
+        "shop": {
+          "type": "string",
+          "description": "The shop, when two shops share an order number"
+        },
+        "status": {
+          "type": "string",
+          "description": "pending | info_received | in_transit | out_for_delivery | available_for_pickup | delivered | failed_attempt | exception | returned",
+          "enum": [
+            "pending",
+            "info_received",
+            "in_transit",
+            "out_for_delivery",
+            "available_for_pickup",
+            "delivered",
+            "failed_attempt",
+            "exception",
+            "returned"
+          ]
+        },
+        "event": {
+          "type": "string",
+          "description": "The latest event as the carrier words it"
+        },
+        "event_at": {
+          "type": "string",
+          "description": "When it happened"
+        },
+        "carrier": {
+          "type": "string",
+          "description": "Carrier"
+        },
+        "tracking": {
+          "type": "string",
+          "description": "Tracking number"
+        },
+        "url": {
+          "type": "string",
+          "description": "Tracking link"
+        },
+        "eta": {
+          "type": "string",
+          "description": "Estimated delivery date"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/shipments/update"
+      }
+    },
+    {
+      "name": "inbox.list",
+      "description": "Conversations by view: due (open, soonest reply deadline first), to_draft (due with no draft yet), drafted (a reply waits for the seller), waiting (answered, waiting on the buyer), open, closed, all. Each row: shop, buyer, order, subject, last message, hours left, intent, draft and task.",
+      "params": {
+        "view": {
+          "type": "string",
+          "description": "due | to_draft | drafted | waiting | open | closed | all",
+          "enum": [
+            "due",
+            "to_draft",
+            "drafted",
+            "waiting",
+            "open",
+            "closed",
+            "all"
+          ]
+        },
+        "shop": {
+          "type": "string",
+          "description": "Only this shop"
+        },
+        "q": {
+          "type": "string",
+          "description": "Search subject, buyer, text or order number"
+        },
+        "limit": {
+          "type": "number",
+          "description": "Rows (default 100)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/inbox/list"
+      }
+    },
+    {
+      "name": "inbox.get",
+      "description": "One conversation: messages (in, out, private notes), the draft with its reasons and warnings, the buyer, the linked order (status, tracking), the buyer's other orders and the shop's policies and seller centre.",
+      "params": {
+        "thread": {
+          "type": "string",
+          "description": "The conversation id",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/inbox/get"
+      }
+    },
+    {
+      "name": "inbox.add",
+      "description": "Log a buyer message (one that came by email, chat or phone): starts a conversation, or adds to --thread.",
+      "params": {
+        "thread": {
+          "type": "string",
+          "description": "Add to this conversation"
+        },
+        "shop": {
+          "type": "string",
+          "description": "The shop (default Direct)"
+        },
+        "buyer_name": {
+          "type": "string",
+          "description": "Buyer name"
+        },
+        "buyer_email": {
+          "type": "string",
+          "description": "Buyer email"
+        },
+        "buyer_phone": {
+          "type": "string",
+          "description": "Buyer phone"
+        },
+        "subject": {
+          "type": "string",
+          "description": "Subject"
+        },
+        "order": {
+          "type": "string",
+          "description": "Order number it is about"
+        },
+        "text": {
+          "type": "string",
+          "description": "The message",
+          "required": true
+        },
+        "at": {
+          "type": "string",
+          "description": "When (default now)"
+        },
+        "channel": {
+          "type": "string",
+          "description": "chat | email | whatsapp | phone | social | other",
+          "enum": [
+            "chat",
+            "email",
+            "whatsapp",
+            "phone",
+            "social",
+            "other"
+          ]
+        },
+        "intent": {
+          "type": "string",
+          "description": "where_is_order | return | refund | cancel | change_address | product_question | complaint | other",
+          "enum": [
+            "where_is_order",
+            "return",
+            "refund",
+            "cancel",
+            "change_address",
+            "product_question",
+            "complaint",
+            "other"
+          ]
+        },
+        "direction": {
+          "type": "string",
+          "description": "in (from the buyer, default) | out (a reply already sent)",
+          "enum": [
+            "in",
+            "out"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/inbox/add"
+      }
+    },
+    {
+      "name": "inbox.add-many",
+      "description": "Bring in a shop's conversations (your AI agent's sync), matched on the platform's conversation and message ids so repeating adds nothing twice. Row format: app.guide rows.conversation.",
+      "params": {
+        "shop": {
+          "type": "string",
+          "description": "The shop (id or name)",
+          "required": true
+        },
+        "items": {
+          "type": "string",
+          "description": "JSON list of conversation rows",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/inbox/add-many"
+      }
+    },
+    {
+      "name": "inbox.draft",
+      "description": "Write the reply draft of a conversation, with why (the facts and policy used). The seller reads, edits and sends it. Finishes a draft_reply task.",
+      "params": {
+        "thread": {
+          "type": "string",
+          "description": "The conversation id",
+          "required": true
+        },
+        "text": {
+          "type": "string",
+          "description": "The reply",
+          "required": true
+        },
+        "why": {
+          "type": "string",
+          "description": "What it is based on: order status, tracking, policy"
+        },
+        "intent": {
+          "type": "string",
+          "description": "where_is_order | return | refund | cancel | change_address | product_question | complaint | other",
+          "enum": [
+            "where_is_order",
+            "return",
+            "refund",
+            "cancel",
+            "change_address",
+            "product_question",
+            "complaint",
+            "other"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/inbox/draft"
+      }
+    },
+    {
+      "name": "inbox.reply",
+      "description": "The seller sends a reply: copied (pasted into the seller centre, recorded as sent), manual (sent some other way) or agent (your AI agent sends it: a send_reply task). [The seller only.]",
+      "params": {
+        "thread": {
+          "type": "string",
+          "description": "The conversation id",
+          "required": true
+        },
+        "text": {
+          "type": "string",
+          "description": "The reply",
+          "required": true
+        },
+        "mode": {
+          "type": "string",
+          "description": "copied | agent | manual",
+          "enum": [
+            "copied",
+            "agent",
+            "manual"
+          ]
+        },
+        "close": {
+          "type": "boolean",
+          "description": "Close the conversation"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/inbox/reply"
+      }
+    },
+    {
+      "name": "inbox.sent",
+      "description": "Your AI agent: confirm it sent a reply the seller handed it (--message), or, only when replies are set to automatic, record a reply it sent (--thread --text).",
+      "params": {
+        "message": {
+          "type": "string",
+          "description": "The message in state sending"
+        },
+        "thread": {
+          "type": "string",
+          "description": "The conversation (automatic replies)"
+        },
+        "text": {
+          "type": "string",
+          "description": "What was sent (automatic replies)"
+        },
+        "at": {
+          "type": "string",
+          "description": "When"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/inbox/sent"
+      }
+    },
+    {
+      "name": "inbox.send-failed",
+      "description": "Your AI agent: a reply could not be sent (the conversation reopens for the seller).",
+      "params": {
+        "message": {
+          "type": "string",
+          "description": "The message in state sending",
+          "required": true
+        },
+        "error": {
+          "type": "string",
+          "description": "Why",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/inbox/send-failed"
+      }
+    },
+    {
+      "name": "inbox.note",
+      "description": "Add a private note to a conversation (never sent).",
+      "params": {
+        "thread": {
+          "type": "string",
+          "description": "The conversation id",
+          "required": true
+        },
+        "text": {
+          "type": "string",
+          "description": "The note",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/inbox/note"
+      }
+    },
+    {
+      "name": "inbox.update",
+      "description": "Change a conversation's status (open, waiting, closed), intent, subject or linked order.",
+      "params": {
+        "thread": {
+          "type": "string",
+          "description": "The conversation id",
+          "required": true
+        },
+        "status": {
+          "type": "string",
+          "description": "open | waiting | closed",
+          "enum": [
+            "open",
+            "waiting",
+            "closed"
+          ]
+        },
+        "intent": {
+          "type": "string",
+          "description": "Intent (or \"\" to clear)"
+        },
+        "subject": {
+          "type": "string",
+          "description": "Subject"
+        },
+        "order": {
+          "type": "string",
+          "description": "Order number or id (\"\" to unlink)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/inbox/update"
+      }
+    },
+    {
+      "name": "inbox.ask-draft",
+      "description": "Ask your AI agent to draft a reply (a draft_reply task).",
+      "params": {
+        "thread": {
+          "type": "string",
+          "description": "The conversation id",
+          "required": true
+        },
+        "note": {
+          "type": "string",
+          "description": "What the seller wants said"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/inbox/ask-draft"
+      }
+    },
+    {
+      "name": "inbox.ask-draft-all",
+      "description": "Ask your AI agent to draft replies for every open conversation without a draft.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/inbox/ask-draft-all"
+      }
+    },
+    {
+      "name": "customers.list",
+      "description": "Buyers across shops with their order count, total spent (base currency) and last order; repeat buyers with filter=repeat.",
+      "params": {
+        "q": {
+          "type": "string",
+          "description": "Name, email or phone"
+        },
+        "filter": {
+          "type": "string",
+          "description": "all (default) | repeat",
+          "enum": [
+            "all",
+            "repeat"
+          ]
+        },
+        "limit": {
+          "type": "number",
+          "description": "Rows (default 100)"
+        },
+        "offset": {
+          "type": "number",
+          "description": "Skip this many"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/customers/list"
+      }
+    },
+    {
+      "name": "customers.get",
+      "description": "One buyer: details, every order on every shop, and conversations.",
+      "params": {
+        "customer": {
+          "type": "string",
+          "description": "Customer id, email or phone",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/customers/get"
+      }
+    },
+    {
+      "name": "customers.update",
+      "description": "Change a buyer's name, email, phone, private note or tags.",
+      "params": {
+        "customer": {
+          "type": "string",
+          "description": "Customer id, email or phone",
+          "required": true
+        },
+        "name": {
+          "type": "string",
+          "description": "Name"
+        },
+        "email": {
+          "type": "string",
+          "description": "Email"
+        },
+        "phone": {
+          "type": "string",
+          "description": "Phone"
+        },
+        "note": {
+          "type": "string",
+          "description": "Private note"
+        },
+        "tags": {
+          "type": "string",
+          "description": "JSON list of tags, e.g. [\"wholesale\"]"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/customers/update"
+      }
+    },
+    {
+      "name": "proposals.list",
+      "description": "Proposals waiting for the seller (pending, oldest first) or decided ones: each with its items (what changes, before and after), risk and notes.",
+      "params": {
+        "status": {
+          "type": "string",
+          "description": "pending (default) | decided | all",
+          "enum": [
+            "pending",
+            "decided",
+            "all"
+          ]
+        },
+        "limit": {
+          "type": "number",
+          "description": "Rows (default 100)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/proposals/list"
+      }
+    },
+    {
+      "name": "proposals.get",
+      "description": "One proposal with its items and their states (pending, applied, stale, failed, rejected, undone).",
+      "params": {
+        "proposal": {
+          "type": "string",
+          "description": "The proposal id",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/proposals/get"
+      }
+    },
+    {
+      "name": "proposals.create",
+      "description": "Your AI agent: propose several changes as one set for the seller to approve at once. Each item is an operation that needs approval (listings.draft, variants.set-price, stock.adjust, stock.count, orders.cancel, orders.refund, orders.return) with its params.",
+      "params": {
+        "title": {
+          "type": "string",
+          "description": "What the set does, e.g. \"Listings for the blue mug on 3 shops\""
+        },
+        "why": {
+          "type": "string",
+          "description": "One or two lines on why"
+        },
+        "items": {
+          "type": "string",
+          "description": "JSON list like [{\"op\":\"listings.draft\",\"params\":{\"product\":\"...\",\"shop\":\"...\",\"title\":\"...\"}}]",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/proposals/create"
+      }
+    },
+    {
+      "name": "proposals.approve",
+      "description": "Apply a proposal (all items, or the chosen ones; the rest are rejected). Each item is checked again first and skipped as stale if what it changes moved. [The seller only.]",
+      "params": {
+        "proposal": {
+          "type": "string",
+          "description": "The proposal id",
+          "required": true
+        },
+        "items": {
+          "type": "string",
+          "description": "JSON list of item indexes to apply (default all)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/proposals/approve"
+      }
+    },
+    {
+      "name": "proposals.reject",
+      "description": "Reject a proposal, with a note for your AI agent. [The seller only.]",
+      "params": {
+        "proposal": {
+          "type": "string",
+          "description": "The proposal id",
+          "required": true
+        },
+        "note": {
+          "type": "string",
+          "description": "Why, so your AI agent does better next time"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/proposals/reject"
+      }
+    },
+    {
+      "name": "proposals.undo",
+      "description": "Put back what an applied proposal changed (listing text and price, SKU prices, stock). Order actions cannot be undone. [The seller only.]",
+      "params": {
+        "proposal": {
+          "type": "string",
+          "description": "The proposal id",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/proposals/undo"
+      }
+    },
+    {
+      "name": "proposals.withdraw",
+      "description": "Withdraw a pending proposal (it no longer applies).",
+      "params": {
+        "proposal": {
+          "type": "string",
+          "description": "The proposal id",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/proposals/withdraw"
+      }
+    },
+    {
+      "name": "tasks.list",
+      "description": "Your AI agent's tasks: open ones by default (queued, asked, working), oldest first. Each has a kind (sync, publish, push_stock, setup_help, prepare_listing, draft_reply, send_reply, tracking, exception, chat), a target, a label and params; app.guide has the recipe for each kind.",
+      "params": {
+        "state": {
+          "type": "string",
+          "description": "queued | asked | working | done | failed | cancelled | all (default: the open ones)",
+          "enum": [
+            "queued",
+            "asked",
+            "working",
+            "done",
+            "failed",
+            "cancelled",
+            "all"
+          ]
+        },
+        "limit": {
+          "type": "number",
+          "description": "Rows (default 50)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/tasks/list"
+      }
+    },
+    {
+      "name": "tasks.recent",
+      "description": "The latest tasks of any state, newest first (what the seller asked for and what came of it).",
+      "params": {
+        "limit": {
+          "type": "number",
+          "description": "Rows (default 30)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/tasks/recent"
+      }
+    },
+    {
+      "name": "tasks.get",
+      "description": "One task.",
+      "params": {
+        "task": {
+          "type": "string",
+          "description": "The task id",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/tasks/get"
+      }
+    },
+    {
+      "name": "tasks.start",
+      "description": "Your AI agent: mark a task as being worked on (the seller sees it).",
+      "params": {
+        "task": {
+          "type": "string",
+          "description": "The task id",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/tasks/start"
+      }
+    },
+    {
+      "name": "tasks.finish",
+      "description": "Your AI agent: finish a task with a one-line note the seller reads (or --failed true with why).",
+      "params": {
+        "task": {
+          "type": "string",
+          "description": "The task id",
+          "required": true
+        },
+        "note": {
+          "type": "string",
+          "description": "What was done, or why not"
+        },
+        "failed": {
+          "type": "boolean",
+          "description": "true when it could not be done"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/tasks/finish"
+      }
+    },
+    {
+      "name": "tasks.cancel",
+      "description": "Cancel an open task.",
+      "params": {
+        "task": {
+          "type": "string",
+          "description": "The task id",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/tasks/cancel"
+      }
+    },
+    {
+      "name": "chats.list",
+      "description": "What the seller told your AI agent in the app and its replies, oldest first.",
+      "params": {
+        "limit": {
+          "type": "number",
+          "description": "Rows (default 30)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/chats/list"
+      }
+    },
+    {
+      "name": "chats.send",
+      "description": "The seller tells your AI agent something (a chat task). [The seller only.]",
+      "params": {
+        "text": {
+          "type": "string",
+          "description": "The message",
+          "required": true
+        },
+        "context": {
+          "type": "string",
+          "description": "Where the seller was, e.g. order:<id>"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/chats/send"
+      }
+    },
+    {
+      "name": "chats.reply",
+      "description": "Your AI agent: answer the seller's message (finishes its chat task).",
+      "params": {
+        "chat": {
+          "type": "string",
+          "description": "The message id",
+          "required": true
+        },
+        "text": {
+          "type": "string",
+          "description": "The answer",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/chats/reply"
+      }
+    },
+    {
+      "name": "reports.overview",
+      "description": "Sales across shops in the base currency, days counted in the seller's time zone: net sales, profit, orders, average order, margin and refunds, each with delta_pct (change against the previous period); a series by day (by month for 12m) with the previous period alongside; each shop (delta_pct: change in net sales) with its sparkline; best-selling products; quality (orders missing a cost, orders with no shipping cost of yours) and fees_estimated_share.",
+      "params": {
+        "range": {
+          "type": "string",
+          "description": "7d | 30d (default) | 90d | 12m | mtd (this month to date)",
+          "enum": [
+            "7d",
+            "30d",
+            "90d",
+            "12m",
+            "mtd"
+          ]
+        },
+        "shop": {
+          "type": "string",
+          "description": "Only this shop"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/reports/overview"
+      }
+    },
+    {
+      "name": "reports.attention",
+      "description": "What needs the seller now, as counts: orders to ship, late (late_orders names the oldest five), due soon, unpaid, delivery exceptions, messages open and overdue, drafts ready, approvals, listing issues, low and out of stock, missing costs, unlinked SKUs, stock to set on shops, open tasks.",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/reports/attention"
+      }
+    },
+    {
+      "name": "reports.profit",
+      "description": "Profit and loss for a period (base currency, the seller's days): items, discount, shipping_charged, refunds, net_sales (items - discount + shipping charged - refunds), fees, ship_cost (yours), cogs, profit and margin, in total and per shop; estimates says how much is estimated (fees from rates, orders missing a cost, orders with no shipping cost).",
+      "params": {
+        "range": {
+          "type": "string",
+          "description": "7d | 30d (default) | 90d | 12m | mtd (this month to date)",
+          "enum": [
+            "7d",
+            "30d",
+            "90d",
+            "12m",
+            "mtd"
+          ]
+        },
+        "shop": {
+          "type": "string",
+          "description": "Only this shop"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/reports/profit"
+      }
+    },
+    {
+      "name": "imports.orders",
+      "description": "Import a shop's order export: rows already matched to Store OS fields (app.guide rows.order). Matched on order number, so importing the same file twice changes nothing; the import is kept with its results.",
+      "params": {
+        "shop": {
+          "type": "string",
+          "description": "The shop (id or name)",
+          "required": true
+        },
+        "items": {
+          "type": "string",
+          "description": "JSON list of order rows",
+          "required": true
+        },
+        "file_name": {
+          "type": "string",
+          "description": "The file name"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/imports/orders"
+      }
+    },
+    {
+      "name": "imports.products",
+      "description": "Import a product list (app.guide rows.product), matched on SKU; with --shop the listings on that shop are recorded too.",
+      "params": {
+        "items": {
+          "type": "string",
+          "description": "JSON list of product rows",
+          "required": true
+        },
+        "shop": {
+          "type": "string",
+          "description": "The shop the export comes from"
+        },
+        "file_name": {
+          "type": "string",
+          "description": "The file name"
+        },
+        "stock_mode": {
+          "type": "string",
+          "description": "new_only (default) | set | ignore",
+          "enum": [
+            "new_only",
+            "set",
+            "ignore"
+          ]
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/imports/products"
+      }
+    },
+    {
+      "name": "imports.list",
+      "description": "Past imports with what each created, updated and skipped, and why.",
+      "params": {
+        "limit": {
+          "type": "number",
+          "description": "Rows (default 30)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/imports/list"
+      }
+    }
+  ]
+}

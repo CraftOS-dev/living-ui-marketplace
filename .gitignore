@@ -54,3 +54,6 @@ _template/.last_launch
 **/.superuser
 
 craftos-command-center/
+
+# Development Studio's pinned, disposable framework build tools
+.milestone-tools/

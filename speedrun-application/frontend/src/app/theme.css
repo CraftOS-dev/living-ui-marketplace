@@ -1,0 +1,271 @@
+/*
+ * The Expenses tracker's layout on a neutral, high-contrast base: a grey
+ * page, white cards with a visible border, grey rows inside them, near-black
+ * text. speedrun's own palette is black and white with a blue from its blue
+ * scale (speedrun.a16z.com's stylesheet: blue 450 #016ccc, blue 500 #0179e3);
+ * the blue appears only where the eye should go: the main action buttons,
+ * the current step, the odds gauge and the dots that mark something needing
+ * attention. Labels on solid blue are white.
+ *
+ * Every layer differs from the next: page, card, row, hover fill, empty
+ * bars. A hover never takes the color of what it sits on or holds.
+ *
+ * One type scale: 12 caption, 13 secondary, 14 UI, 15 card titles and
+ * reading, 26 page titles and headline numbers. Spacing on a 4px grid.
+ * Light and dark follow CraftBot's mode.
+ */
+
+html:root,
+html:root[data-theme='light'] {
+  color-scheme: light;
+  --sr-canvas: #d4d4d8;
+  --sr-shell: #f4f4f5;
+  --sr-card: #ffffff;
+  --sr-border: #d4d4d8;
+  --sr-row: #eeeef0;
+  --sr-hover: #dcdce0;
+  --sr-line: #c4c4cc;
+  --sr-ink: #18181b;
+  --sr-ink-2: #3f3f46;
+  --sr-muted: #52525b;
+  --sr-slice-2: #a1a1aa;
+  --sr-slice-3: #d4d4d8;
+  --sr-accent: #016ccc;
+  --sr-on-accent: #ffffff;
+  --sr-accent-soft: #9ab9ff;
+  --sr-dark: #18181b;
+  --sr-dark-border: #18181b;
+  --sr-dark-2: #27272a;
+  --sr-dark-hover: #3f3f46;
+  --sr-dark-line: #52525b;
+  --sr-on-dark: #fafafa;
+  --sr-on-dark-muted: #a1a1aa;
+  --sr-red: #dc2626;
+  --sr-red-text: #b91c1c;
+  --sr-green: #16a34a;
+  --sr-green-text: #15803d;
+  --sr-solid: #18181b;
+  --sr-on-solid: #ffffff;
+  --sr-shadow: rgba(24, 24, 27, 0.5);
+}
+
+html:root[data-theme='dark'] {
+  color-scheme: dark;
+  --sr-canvas: #000000;
+  --sr-shell: #111113;
+  --sr-card: #1c1c1f;
+  --sr-border: #3f3f46;
+  --sr-row: #29292d;
+  --sr-hover: #3f3f46;
+  --sr-line: #5b5b64;
+  --sr-ink: #fafafa;
+  --sr-ink-2: #d4d4d8;
+  --sr-muted: #a1a1aa;
+  --sr-slice-2: #71717a;
+  --sr-slice-3: #3f3f46;
+  --sr-accent: #0179e3;
+  --sr-on-accent: #ffffff;
+  --sr-accent-soft: #003366;
+  --sr-dark: #000000;
+  --sr-dark-border: #3f3f46;
+  --sr-dark-2: #27272a;
+  --sr-dark-hover: #3f3f46;
+  --sr-dark-line: #52525b;
+  --sr-on-dark: #fafafa;
+  --sr-on-dark-muted: #a1a1aa;
+  --sr-red: #ef4444;
+  --sr-red-text: #f87171;
+  --sr-green: #22c55e;
+  --sr-green-text: #4ade80;
+  --sr-solid: #0179e3;
+  --sr-on-solid: #ffffff;
+  --sr-shadow: rgba(0, 0, 0, 0.8);
+}
+
+html,
+body,
+div:has(> .sr-app) {
+  background: var(--sr-canvas);
+  color: var(--sr-ink);
+}
+
+body,
+.sr-app,
+.sr-portal {
+  font-family: 'Manrope Variable', Manrope, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  font-size: 14px;
+  line-height: 20px;
+}
+
+@layer base {
+  button:not(:disabled),
+  a[href],
+  [role='button'],
+  [role='tab'],
+  [role='radio'],
+  [role='checkbox'],
+  [role='switch'],
+  select:not(:disabled),
+  summary,
+  label:has(input),
+  input[type='checkbox'] {
+    cursor: pointer;
+  }
+  button:disabled,
+  select:disabled {
+    cursor: not-allowed;
+  }
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--sr-muted);
+}
+
+select option {
+  background-color: var(--sr-card);
+  color: var(--sr-ink);
+}
+
+::selection {
+  background: color-mix(in srgb, var(--sr-accent) 30%, transparent);
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--sr-line);
+  border-radius: 999px;
+}
+
+/* Inside the dark card, the muted text and rows switch to their dark versions. */
+.sr-on-dark {
+  --sr-muted: var(--sr-on-dark-muted);
+  --sr-border: var(--sr-dark-2);
+  --sr-row: var(--sr-dark-2);
+  --sr-line: var(--sr-dark-line);
+  --sr-hover: var(--sr-dark-hover);
+}
+
+/* Things that sit on the page or the peach card keep their fill and take a
+   dark outline on hover, so they stand out instead of sinking into it. */
+.sr-edge {
+  transition: box-shadow 150ms ease;
+}
+.sr-edge:hover {
+  box-shadow: inset 0 0 0 1.5px var(--sr-ink);
+}
+
+/*
+ * Motion, kept quiet: cards settle 6px into place once when a step opens,
+ * the step pill slides, the gauge sweeps, editors open downward, removed
+ * rows fold away. Nothing loops except the dot on something that is
+ * working, nothing bounces, nothing fades. Entrance keyframes fill backwards
+ * only, so no lasting transform leaves an element in its own stacking context.
+ */
+@keyframes sr-rise {
+  from {
+    transform: translateY(6px);
+  }
+}
+.sr-rise {
+  animation: sr-rise 260ms ease-out backwards;
+}
+
+@keyframes sr-unfold {
+  from {
+    clip-path: inset(0 0 100% 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+.sr-unfold {
+  animation: sr-unfold 200ms ease-out backwards;
+}
+
+@keyframes sr-zoom {
+  from {
+    transform: scale(0.98);
+  }
+}
+.sr-zoom {
+  animation: sr-zoom 160ms ease-out backwards;
+}
+
+@keyframes sr-toast {
+  from {
+    transform: translateY(8px);
+  }
+}
+.sr-toast {
+  animation: sr-toast 200ms ease-out backwards;
+}
+
+@keyframes sr-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.sr-spin {
+  animation: sr-spin 1.2s linear infinite;
+}
+
+/* The dot on a status that is in progress breathes gently. */
+@keyframes sr-breathe {
+  50% {
+    transform: scale(1.3);
+  }
+}
+.sr-breathe {
+  animation: sr-breathe 2s ease-in-out infinite;
+}
+
+/* Pills press in a little; color changes ease. */
+.sr-pill {
+  transition: background-color 160ms ease, transform 120ms ease;
+}
+.sr-pill:not(:disabled):active {
+  transform: scale(0.98);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition-duration: 0ms !important;
+  }
+}
+
+/* Touch: bigger tap areas. */
+.hit {
+  position: relative;
+}
+@media (pointer: coarse) {
+  .hit::after {
+    content: '';
+    position: absolute;
+    inset: -8px;
+  }
+}
+@supports (-webkit-touch-callout: none) {
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}
