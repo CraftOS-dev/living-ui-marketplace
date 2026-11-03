@@ -1,0 +1,37 @@
+import assert from 'node:assert/strict';
+import {mkdtemp,readFile,writeFile,stat} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {ROOT} from '../app/config.mjs';
+import {operation,request,base} from './client.mjs';
+const op=async(n,a={})=>{try{return await operation(n,a,true);}catch(e){if(e.status!==428||!e.body?.approvalKey||!["file-trash","checkpoint-restore"].includes(n))throw e;return(await request("/api/ops/"+n,{human:true,method:"POST",headers:{"x-a2app-approval":e.body.approvalKey},body:JSON.stringify(a)})).result;}};
+const root=await mkdtemp(join(tmpdir(),'studio-full-workflow-'));
+const p=await op('project-create',{path:join(root,'manual-web'),kind:'empty'}),project=p.id;
+await op('file-write',{project,path:'empty.txt',text:'',create:true});assert.equal((await stat(join(p.root,'empty.txt'))).size,0);
+let doc=await op('file-read',{project,path:'empty.txt'});doc=await op('file-write',{project,path:'empty.txt',expected:doc.digest,text:'temporary'});
+await op('file-write',{project,path:'empty.txt',expected:doc.digest,text:''});assert.equal((await stat(join(p.root,'empty.txt'))).size,0);
+console.log('PASS actual zero-byte create and clear through adapter');
+await op('file-write',{project,path:'notes.md',text:'# Manual workflow\n\nREPLACE_VERIFY\n',create:true});
+await op('folder-create',{project,path:'docs'});await op('file-move',{project,path:'notes.md',to:'docs/notes.md'});
+const preview=await op('replace-preview',{project,query:'REPLACE_VERIFY',replacement:'REPLACED_VERIFY'});assert.equal(preview.files.length,1);
+await op('replace-apply',{project,query:'REPLACE_VERIFY',replacement:'REPLACED_VERIFY',files:preview.files.map(f=>({path:f.path,expected:f.expected}))});
+const beforeTrash=await readFile(join(p.root,'docs/notes.md'),'utf8');const removed=await op('file-trash',{project,path:'docs/notes.md'});
+await op('checkpoint-list',{project});await op('checkpoint-restore',{checkpoint:removed.checkpoint});assert.equal(await readFile(join(p.root,'docs/notes.md'),'utf8'),beforeTrash);
+console.log('PASS folder/file move, search/replace, recoverable deletion and checkpoint restoration');
+await op('file-write',{project,path:'index.html',text:'<!doctype html><html><head><title>Manual preview</title></head><body><h1 id="result">Loading</h1><script src="/app.js"></script></body></html>',create:true});
+await op('file-write',{project,path:'app.js',text:'document.getElementById("result").textContent="MANUAL_WEB_PREVIEW_VERIFIED";\n',create:true});
+await op('file-write',{project,path:'web-server.mjs',text:'import http from "node:http";import {readFile} from "node:fs/promises";const routes={"/":"index.html","/app.js":"app.js"};const server=http.createServer(async(req,res)=>{const file=routes[req.url];if(!file){res.writeHead(404);return res.end();}res.setHeader("content-type",file.endsWith("js")?"text/javascript":"text/html");res.end(await readFile(new URL(file,import.meta.url)));});server.listen(0,"127.0.0.1",()=>console.log("PREVIEW http://127.0.0.1:"+server.address().port));\n',create:true});
+const c=await op('config-save',{project,name:'Manual web preview',command:'node web-server.mjs',kind:'develop',cwd:''});
+await assert.rejects(()=>op('run-start',{config:c.id}));await op('project-trust',{project,enabled:true});
+const run=await op('run-start',{config:c.id});let state,url;
+for(let i=0;i<50;i++){state=await op('run-inspect',{run:run.id});url=/PREVIEW (http:\/\/127\.0\.0\.1:\d+)/.exec(state.output)?.[1];if(url)break;await new Promise(r=>setTimeout(r,150));}
+assert.ok(url);assert.match(await fetch(url).then(r=>r.text()),/Manual preview/);assert.match(await fetch(url+'/app.js').then(r=>r.text()),/MANUAL_WEB_PREVIEW_VERIFIED/);
+const env=await op('config-save',{project,name:'Environment reference',command:'node -e "console.log(process.env.STUDIO_FIXTURE_PUBLIC_VALUE || \'missing\')"',kind:'test',envNames:['STUDIO_FIXTURE_PUBLIC_VALUE']});
+const envRun=await op('run-start',{config:env.id});let envResult;for(let i=0;i<50;i++){envResult=await op('run-inspect',{run:envRun.id});if(envResult.status!=='running')break;await new Promise(r=>setTimeout(r,150));}assert.equal(envResult.exitCode,0);assert.match(envResult.output,/fixture-reference-verified/);
+const draft=await op('work-create',{project,title:'Unclaimed retry/cancel fixture',goal:'Disposable routing test; must never dispatch an agent.',criteria:'Only queue/cancel.',mode:'craftbot'});
+const first=await op('work-start',{work:draft.id});const canceled=await op('work-cancel',{work:draft.id});assert.equal(canceled.status,'canceled');assert.equal(canceled.stopConfirmed,true);
+const retry=await op('work-start',{work:draft.id});assert.notEqual(retry.task,first.task);assert.notEqual(retry.attempt,first.attempt);await op('work-cancel',{work:draft.id});
+console.log('PASS execution trust, live HTTP preview, named environment reference, distinct retry deliveries and confirmed unclaimed cancellation');
+const report={checkedAt:new Date().toISOString(),base,root:p.root,project,preview:url,run:run.id,envRun:envRun.id,passed:true};
+await writeFile(join(ROOT,'.a2app/evidence/full-workflow.json'),JSON.stringify(report,null,2));console.log(JSON.stringify(report,null,2));
+// Preview remains running for the browser acceptance step; stop it through run-stop afterwards.

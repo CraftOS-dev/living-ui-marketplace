@@ -1,0 +1,1146 @@
+{
+  "opsVersion": 1,
+  "operations": [
+    {
+      "name": "health",
+      "description": "Liveness check (PocketBase built-in).",
+      "system": true,
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/health"
+      }
+    },
+    {
+      "name": "ops.list",
+      "description": "Return this operations manifest.",
+      "system": true,
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/_ops"
+      }
+    },
+    {
+      "name": "app.guide",
+      "description": "START HERE: what the app is, how songs are written in ABC notation (cheat sheet and a full two-hand example), the levels 1-10, the section stages, the protocols for song requests, questions and session reviews, the rules and the error codes.",
+      "label": "Guide",
+      "readOnly": true,
+      "returns": "summary",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/app/guide"
+      }
+    },
+    {
+      "name": "app.state",
+      "description": "What the app frame shows, in one call: settings, unread coach messages, questions waiting for the coach, new songs the coach added, today's minutes against the goal and the open practice session.",
+      "label": "App state",
+      "readOnly": true,
+      "returns": "summary",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/app/state"
+      }
+    },
+    {
+      "name": "app.context",
+      "description": "What the person is looking at right now: the view; the song, bars, mode and tempo of the practice screen; the lesson, drill or exercise open. Use it to answer \"this bar\" and \"this lesson\" questions.",
+      "label": "Context",
+      "readOnly": true,
+      "returns": "summary",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/app/context"
+      }
+    },
+    {
+      "name": "app.ui",
+      "description": "The page reports where the person is (person only).",
+      "label": "Report view",
+      "returns": "none",
+      "params": {
+        "view": {
+          "type": "string",
+          "description": "today, learn, train, library, reference, practice, exercise, coach or settings",
+          "required": true,
+          "enum": [
+            "today",
+            "learn",
+            "train",
+            "library",
+            "reference",
+            "practice",
+            "exercise",
+            "coach",
+            "settings"
+          ]
+        },
+        "song": {
+          "type": "string",
+          "description": "Song id on the practice screen"
+        },
+        "from": {
+          "type": "number",
+          "description": "First bar"
+        },
+        "to": {
+          "type": "number",
+          "description": "Last bar"
+        },
+        "mode": {
+          "type": "string",
+          "description": "listen, learn or play"
+        },
+        "hands": {
+          "type": "string",
+          "description": "both, right or left"
+        },
+        "tempo": {
+          "type": "number",
+          "description": "Tempo, percent of the song's"
+        },
+        "lesson": {
+          "type": "string",
+          "description": "The lesson open (key)"
+        },
+        "skill": {
+          "type": "string",
+          "description": "The drill open (skill key)"
+        },
+        "title": {
+          "type": "string",
+          "description": "The exercise on the practice screen"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/app/ui"
+      }
+    },
+    {
+      "name": "settings.get",
+      "description": "The person's settings: daily goal in minutes, strictness, input, sound, whether the coach reviews sessions and plans days, their level.",
+      "label": "Settings",
+      "readOnly": true,
+      "returns": "record",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/settings/get"
+      }
+    },
+    {
+      "name": "settings.update",
+      "description": "Change settings (person only).",
+      "label": "Update settings",
+      "returns": "record",
+      "params": {
+        "name": {
+          "type": "string",
+          "description": "The learner's name"
+        },
+        "daily_minutes": {
+          "type": "number",
+          "description": "Daily goal, 5-240 minutes"
+        },
+        "strictness": {
+          "type": "string",
+          "description": "lenient (90%), normal (95%) or strict (98%) for a clean pass",
+          "enum": [
+            "lenient",
+            "normal",
+            "strict"
+          ]
+        },
+        "input": {
+          "type": "string",
+          "description": "midi, keyboard, screen or mic",
+          "enum": [
+            "midi",
+            "keyboard",
+            "screen",
+            "mic"
+          ]
+        },
+        "midi_device": {
+          "type": "string",
+          "description": "MIDI input name"
+        },
+        "latency_ms": {
+          "type": "number",
+          "description": "Input delay to subtract, ms"
+        },
+        "other_hand": {
+          "type": "boolean",
+          "description": "Play the other hand when practising one"
+        },
+        "metronome": {
+          "type": "boolean",
+          "description": "Metronome on"
+        },
+        "count_in": {
+          "type": "boolean",
+          "description": "Count in before playing"
+        },
+        "view": {
+          "type": "string",
+          "description": "roll or sheet",
+          "enum": [
+            "roll",
+            "sheet"
+          ]
+        },
+        "note_names": {
+          "type": "boolean",
+          "description": "Show note names"
+        },
+        "volume": {
+          "type": "number",
+          "description": "Piano volume 0-100"
+        },
+        "click_volume": {
+          "type": "number",
+          "description": "Metronome volume 0-100"
+        },
+        "coach_reviews": {
+          "type": "boolean",
+          "description": "The coach reviews sessions"
+        },
+        "coach_plans": {
+          "type": "boolean",
+          "description": "The coach may plan days"
+        },
+        "level": {
+          "type": "number",
+          "description": "Learner level 1-10"
+        },
+        "onboarded": {
+          "type": "boolean",
+          "description": "First-run setup done"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/settings/update"
+      }
+    },
+    {
+      "name": "songs.list",
+      "description": "The library, lean: id, title, composer, level, kind, bars, key, meter, tempo, length, status (new, learning, mastered) and each section's stage and best clean tempo. Filter by level, kind, status or a search.",
+      "label": "Songs",
+      "readOnly": true,
+      "returns": "list",
+      "params": {
+        "level": {
+          "type": "number",
+          "description": "Only this level, 1-10"
+        },
+        "kind": {
+          "type": "string",
+          "description": "piece or exercise",
+          "enum": [
+            "piece",
+            "exercise"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "description": "new, learning or mastered",
+          "enum": [
+            "new",
+            "learning",
+            "mastered"
+          ]
+        },
+        "q": {
+          "type": "string",
+          "description": "Search title and composer"
+        },
+        "archived": {
+          "type": "boolean",
+          "description": "Removed songs instead"
+        },
+        "preview": {
+          "type": "boolean",
+          "description": "Include note previews (the app's tiles)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/songs/list"
+      }
+    },
+    {
+      "name": "songs.get",
+      "description": "One song: details, sections with stage, best clean tempo, next tempo and review date, the coach's note and the last 8 passes. --abc true adds the notation.",
+      "label": "Song",
+      "readOnly": true,
+      "returns": "record",
+      "params": {
+        "song": {
+          "type": "string",
+          "description": "Song id",
+          "required": true
+        },
+        "abc": {
+          "type": "boolean",
+          "description": "Include the ABC notation"
+        },
+        "model": {
+          "type": "boolean",
+          "description": "Include the parsed model (the app's practice screen)"
+        },
+        "preview": {
+          "type": "boolean",
+          "description": "Include the note preview"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/songs/get"
+      }
+    },
+    {
+      "name": "songs.check",
+      "description": "Parse ABC notation without saving: ok, or every problem with its line, voice and bar; on success the summary (bars, key, meter, tempo in quarter notes per minute, range, hands, suggested level, chords = moments where one hand strikes several notes, chord_symbols and pedal_changes read from the notation) and the sections it would get. Chord symbols use double quotes: pass the notation from a file, --abc \"$(cat song.abc)\".",
+      "label": "Check notation",
+      "readOnly": true,
+      "returns": "summary",
+      "params": {
+        "abc": {
+          "type": "string",
+          "description": "The ABC notation",
+          "required": true
+        },
+        "sections": {
+          "type": "string",
+          "description": "Sections to check: \"A:1-8, B:9-16\" or a JSON list"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/songs/check"
+      }
+    },
+    {
+      "name": "songs.add",
+      "description": "Add a song from ABC notation (refused with every problem when it does not parse). Title and composer come from T: and C: unless given. Link it to the message that asked for it with --message (echoed as linked_message; the song then shows under your reply).",
+      "label": "Add song",
+      "returns": "record",
+      "params": {
+        "abc": {
+          "type": "string",
+          "description": "The ABC notation",
+          "required": true
+        },
+        "title": {
+          "type": "string",
+          "description": "Title (default: T:)"
+        },
+        "composer": {
+          "type": "string",
+          "description": "Composer (default: C:)"
+        },
+        "level": {
+          "type": "number",
+          "description": "Level 1-10 (default: estimated)"
+        },
+        "kind": {
+          "type": "string",
+          "description": "piece or exercise",
+          "enum": [
+            "piece",
+            "exercise"
+          ]
+        },
+        "sections": {
+          "type": "string",
+          "description": "Practice sections: \"A:1-8, B:9-16\" or \"1-4, 5-8\" (default: phrases of 4 bars)"
+        },
+        "tags": {
+          "type": "string",
+          "description": "Comma-separated tags"
+        },
+        "note": {
+          "type": "string",
+          "description": "A practice tip shown with the song"
+        },
+        "message": {
+          "type": "string",
+          "description": "Id of the message that asked for this song"
+        },
+        "duplicate": {
+          "type": "boolean",
+          "description": "Add even when a song with this title exists"
+        },
+        "source": {
+          "type": "string",
+          "description": "you or import (the app)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/songs/add"
+      }
+    },
+    {
+      "name": "songs.update",
+      "description": "Change a song: title, composer, level, kind, tags, sections, the coach's note, or the notation (re-parsed; sections whose bars did not change keep their progress).",
+      "label": "Update song",
+      "returns": "record",
+      "params": {
+        "song": {
+          "type": "string",
+          "description": "Song id",
+          "required": true
+        },
+        "title": {
+          "type": "string",
+          "description": "Title"
+        },
+        "composer": {
+          "type": "string",
+          "description": "Composer"
+        },
+        "level": {
+          "type": "number",
+          "description": "Level 1-10"
+        },
+        "kind": {
+          "type": "string",
+          "description": "piece or exercise",
+          "enum": [
+            "piece",
+            "exercise"
+          ]
+        },
+        "tags": {
+          "type": "string",
+          "description": "Comma-separated tags"
+        },
+        "sections": {
+          "type": "string",
+          "description": "\"A:1-8, B:9-16\" or a JSON list"
+        },
+        "note": {
+          "type": "string",
+          "description": "The coach's tip shown on the practice screen (\"\" clears it)"
+        },
+        "abc": {
+          "type": "string",
+          "description": "New ABC notation"
+        },
+        "fav": {
+          "type": "boolean",
+          "description": "Favourite (person only)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/songs/update"
+      }
+    },
+    {
+      "name": "songs.open",
+      "description": "The person opens a song to practise: returns the parsed model and marks the song seen (person only).",
+      "label": "Open song",
+      "returns": "record",
+      "params": {
+        "song": {
+          "type": "string",
+          "description": "Song id",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/songs/open"
+      }
+    },
+    {
+      "name": "songs.remove",
+      "description": "Remove a song from the library; it can be restored (person only).",
+      "label": "Remove song",
+      "returns": "record",
+      "destructive": true,
+      "params": {
+        "song": {
+          "type": "string",
+          "description": "Song id",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/songs/remove"
+      }
+    },
+    {
+      "name": "songs.restore",
+      "description": "Bring back a removed song (person only).",
+      "label": "Restore song",
+      "returns": "record",
+      "params": {
+        "song": {
+          "type": "string",
+          "description": "Song id",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/songs/restore"
+      }
+    },
+    {
+      "name": "songs.reset",
+      "description": "Start a song's progress over: every section back to new; past passes stay in the history (person only).",
+      "label": "Reset progress",
+      "returns": "record",
+      "destructive": true,
+      "params": {
+        "song": {
+          "type": "string",
+          "description": "Song id",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/songs/reset"
+      }
+    },
+    {
+      "name": "runs.save",
+      "description": "Save one pass at the piano, judged by the practice screen; moves the sections it covered through their stages and extends the session (person only: practice is recorded by playing).",
+      "label": "Save pass",
+      "returns": "record",
+      "params": {
+        "song": {
+          "type": "string",
+          "description": "Song id",
+          "required": true
+        },
+        "mode": {
+          "type": "string",
+          "description": "listen, learn or play",
+          "required": true,
+          "enum": [
+            "listen",
+            "learn",
+            "play"
+          ]
+        },
+        "from_bar": {
+          "type": "number",
+          "description": "First bar"
+        },
+        "to_bar": {
+          "type": "number",
+          "description": "Last bar"
+        },
+        "hands": {
+          "type": "string",
+          "description": "both, right or left",
+          "enum": [
+            "both",
+            "right",
+            "left"
+          ]
+        },
+        "tempo_pct": {
+          "type": "number",
+          "description": "Tempo, percent of the song's"
+        },
+        "duration_ms": {
+          "type": "number",
+          "description": "Length of the pass"
+        },
+        "expected": {
+          "type": "number",
+          "description": "Notes (play) or chords (learn) to play"
+        },
+        "hits": {
+          "type": "number",
+          "description": "Played right (in time for play)"
+        },
+        "wrong": {
+          "type": "number",
+          "description": "Wrong notes"
+        },
+        "missed": {
+          "type": "number",
+          "description": "Missed notes"
+        },
+        "timing_mad": {
+          "type": "number",
+          "description": "Mean absolute timing error, ms"
+        },
+        "timing_bias": {
+          "type": "number",
+          "description": "Mean timing error, ms (negative = early)"
+        },
+        "complete": {
+          "type": "boolean",
+          "description": "The pass reached the end of the bars"
+        },
+        "per_bar": {
+          "type": "string",
+          "description": "JSON list of [bar, expected, hits, wrong, missed]"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/runs/save"
+      }
+    },
+    {
+      "name": "runs.list",
+      "description": "Recent passes, newest first: song, mode, bars, hands, tempo, accuracy, wrong and missed notes, timing, clean.",
+      "label": "Passes",
+      "readOnly": true,
+      "returns": "list",
+      "params": {
+        "song": {
+          "type": "string",
+          "description": "Only this song"
+        },
+        "days": {
+          "type": "number",
+          "description": "How many days back (default 7)"
+        },
+        "limit": {
+          "type": "number",
+          "description": "At most this many (default 50)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/runs/list"
+      }
+    },
+    {
+      "name": "sessions.list",
+      "description": "Practice sessions, newest first: day, minutes, passes, songs, open or closed, the coach's review.",
+      "label": "Sessions",
+      "readOnly": true,
+      "returns": "list",
+      "params": {
+        "limit": {
+          "type": "number",
+          "description": "At most this many (default 20)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/sessions/list"
+      }
+    },
+    {
+      "name": "sessions.get",
+      "description": "One session with every pass in it.",
+      "label": "Session",
+      "readOnly": true,
+      "returns": "record",
+      "params": {
+        "session": {
+          "type": "string",
+          "description": "Session id",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/sessions/get"
+      }
+    },
+    {
+      "name": "sessions.end",
+      "description": "The person ends the open session now; the coach is asked to review it when it lasted 3 minutes or more (person only).",
+      "label": "End session",
+      "returns": "record",
+      "params": {
+        "session": {
+          "type": "string",
+          "description": "Session id (default: the open one)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/sessions/end"
+      }
+    },
+    {
+      "name": "sessions.review",
+      "description": "The coach writes the review of a session; it appears in the conversation and on the session (coach only). Reviewing the same session again replaces the review and its message (replaced: true).",
+      "label": "Review session",
+      "returns": "record",
+      "params": {
+        "session": {
+          "type": "string",
+          "description": "Session id",
+          "required": true
+        },
+        "text": {
+          "type": "string",
+          "description": "The review: 3-6 short, concrete sentences",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/sessions/review"
+      }
+    },
+    {
+      "name": "review.pack",
+      "description": "What a session review needs, kept short: the session, the learner, each song's sections and stages, every pass (tempo, accuracy, wrong, missed, timing, weak bars), stage changes, the drills and lessons with their minutes, and the previous review; units explains the numbers. Default: the latest session.",
+      "label": "Review pack",
+      "readOnly": true,
+      "returns": "summary",
+      "params": {
+        "session": {
+          "type": "string",
+          "description": "Session id"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/review/pack"
+      }
+    },
+    {
+      "name": "coach.list",
+      "description": "The conversation: the person's messages (questions and song requests, pending or answered) and the coach's replies and reviews, with songs added for a request (for the agent: id, title and level only).",
+      "label": "Conversation",
+      "readOnly": true,
+      "returns": "list",
+      "params": {
+        "limit": {
+          "type": "number",
+          "description": "At most this many (default 80)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/coach/list"
+      }
+    },
+    {
+      "name": "coach.get",
+      "description": "One message with what the person was looking at, the conversation before it, the song it is about and the learner's level.",
+      "label": "Message",
+      "readOnly": true,
+      "returns": "record",
+      "params": {
+        "message": {
+          "type": "string",
+          "description": "Message id",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/coach/get"
+      }
+    },
+    {
+      "name": "coach.send",
+      "description": "The person writes to the coach; the coach is asked (trigger coach_message). Person only.",
+      "label": "Send message",
+      "returns": "record",
+      "params": {
+        "text": {
+          "type": "string",
+          "description": "The message",
+          "required": true
+        },
+        "kind": {
+          "type": "string",
+          "description": "chat or request (a song request)",
+          "enum": [
+            "chat",
+            "request"
+          ]
+        },
+        "song": {
+          "type": "string",
+          "description": "The song it is about"
+        },
+        "context": {
+          "type": "string",
+          "description": "JSON: what the person is looking at"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/coach/send"
+      }
+    },
+    {
+      "name": "coach.reply",
+      "description": "The coach answers a message (closing it: the answer echoes question.status) or writes on its own (coach only). Songs added with songs.add --message show under the reply by themselves (listed in songs_shown); --song links one more existing song.",
+      "label": "Reply",
+      "returns": "record",
+      "params": {
+        "text": {
+          "type": "string",
+          "description": "The reply",
+          "required": true
+        },
+        "message": {
+          "type": "string",
+          "description": "Id of the message being answered"
+        },
+        "song": {
+          "type": "string",
+          "description": "The song it is about"
+        },
+        "kind": {
+          "type": "string",
+          "description": "chat or plan",
+          "enum": [
+            "chat",
+            "plan"
+          ]
+        },
+        "failed": {
+          "type": "boolean",
+          "description": "Could not do what was asked"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/coach/reply"
+      }
+    },
+    {
+      "name": "coach.read",
+      "description": "The person has read the conversation (person only).",
+      "label": "Mark read",
+      "returns": "none",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/coach/read"
+      }
+    },
+    {
+      "name": "coach.retry",
+      "description": "Ask the coach again about a message that is still waiting (person only).",
+      "label": "Ask again",
+      "returns": "record",
+      "params": {
+        "message": {
+          "type": "string",
+          "description": "Message id",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/coach/retry"
+      }
+    },
+    {
+      "name": "plan.today",
+      "description": "A day's plan (default today): timed blocks with song, bars, section, mode, tempo, hands, minutes, why and done; from the app's rules or proposed by the coach.",
+      "label": "Today's plan",
+      "readOnly": true,
+      "returns": "summary",
+      "params": {
+        "day": {
+          "type": "string",
+          "description": "Day, e.g. 2026-11-01"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/plan/today"
+      }
+    },
+    {
+      "name": "plan.start",
+      "description": "The person starts today's plan; it stays as it is for the day (person only).",
+      "label": "Start plan",
+      "returns": "summary",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/plan/start"
+      }
+    },
+    {
+      "name": "plan.done",
+      "description": "Tick a block of today's plan (person only).",
+      "label": "Tick block",
+      "returns": "summary",
+      "params": {
+        "block": {
+          "type": "number",
+          "description": "Block index",
+          "required": true
+        },
+        "undo": {
+          "type": "boolean",
+          "description": "Untick it"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/plan/done"
+      }
+    },
+    {
+      "name": "plan.set",
+      "description": "Propose a day's plan: today when today's has not started, else tomorrow, near the person's daily goal. Three kinds of block: a song section {\"song\":\"<id>\",\"from\":1,\"to\":8,\"mode\":\"listen|learn|play\",\"tempo\":85,\"minutes\":5,\"hands\":\"both|right|left\",\"why\":\"warm-up|review|climb|polish|run|new\"}, a lesson {\"kind\":\"lesson\",\"lesson\":\"<key>\",\"minutes\":8} and a drill {\"kind\":\"drill\",\"skill\":\"<key>\",\"minutes\":4} (keys from learn.state). Unknown songs, lessons or skills are refused.",
+      "label": "Propose plan",
+      "returns": "summary",
+      "params": {
+        "blocks": {
+          "type": "string",
+          "description": "JSON list of blocks (see the description for the three kinds)",
+          "required": true
+        },
+        "note": {
+          "type": "string",
+          "description": "One line on the plan"
+        },
+        "day": {
+          "type": "string",
+          "description": "Day, e.g. 2026-11-02"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/plan/set"
+      }
+    },
+    {
+      "name": "plan.reset",
+      "description": "Go back to the app's own plan for today (person only).",
+      "label": "Reset plan",
+      "returns": "summary",
+      "destructive": true,
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/plan/reset"
+      }
+    },
+    {
+      "name": "stats.home",
+      "description": "The dashboard: today's minutes against the goal, streak, the last 30 days (minutes, accuracy), a calendar of 18 weeks, week-on-week totals, sections by stage, songs in progress and the coach's latest message.",
+      "label": "Dashboard",
+      "readOnly": true,
+      "returns": "summary",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/stats/home"
+      }
+    },
+    {
+      "name": "learn.state",
+      "description": "The learning side: the level, the 62 lessons of the curriculum (done or not), every skill with its mastery 0-1, each level requirements met or missing (lessons, skills, scales, sight-reading, repertoire), the next lesson (from the current level first), the unmet requirement with the biggest gap and the weakest drilled skill. Lean for the agent: each missing requirement names its key.",
+      "label": "Learning",
+      "readOnly": true,
+      "returns": "summary",
+      "params": {},
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/learn/state"
+      }
+    },
+    {
+      "name": "learn.lesson",
+      "description": "The person finished a lesson: its score (0-1) and time; the learner moves up a level when their level is complete (person only).",
+      "label": "Finish lesson",
+      "returns": "record",
+      "params": {
+        "lesson": {
+          "type": "string",
+          "description": "Lesson key, e.g. ch-triads",
+          "required": true
+        },
+        "score": {
+          "type": "number",
+          "description": "Share of the lesson checks right the first time, 0-1"
+        },
+        "duration_ms": {
+          "type": "number",
+          "description": "Time spent"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/learn/lesson"
+      }
+    },
+    {
+      "name": "drills.save",
+      "description": "One drill session (note reading, keys, intervals, chords, ear, key signatures, Roman numerals, terms, rhythm, progressions, technique, sight-reading): moves the skill mastery, the sight-reading level and technique bests; counts as practice time (person only).",
+      "label": "Save drill",
+      "returns": "record",
+      "params": {
+        "drill": {
+          "type": "string",
+          "description": "The trainer, e.g. notes, ear, technique",
+          "required": true
+        },
+        "skill": {
+          "type": "string",
+          "description": "Skill key, e.g. read.bass.2 (learn.state lists them)",
+          "required": true
+        },
+        "items": {
+          "type": "number",
+          "description": "Questions or notes"
+        },
+        "correct": {
+          "type": "number",
+          "description": "Right the first time"
+        },
+        "avg_ms": {
+          "type": "number",
+          "description": "Average answer time"
+        },
+        "duration_ms": {
+          "type": "number",
+          "description": "Time spent"
+        },
+        "accuracy": {
+          "type": "number",
+          "description": "Accuracy 0-1 (played drills)"
+        },
+        "tempo_pct": {
+          "type": "number",
+          "description": "Tempo, percent (played drills)"
+        },
+        "level": {
+          "type": "number",
+          "description": "Level of the drill (sight-reading)"
+        },
+        "complete": {
+          "type": "boolean",
+          "description": "The drill ran to the end"
+        },
+        "mode": {
+          "type": "string",
+          "description": "Played drills: learn (waits for each note; no tempo best) or play"
+        },
+        "detail": {
+          "type": "string",
+          "description": "JSON: {id, title} of the exercise"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/drills/save"
+      }
+    },
+    {
+      "name": "drills.list",
+      "description": "Recent drill sessions: trainer, skill, items, accuracy, speed, tempo, level, minutes.",
+      "label": "Drills",
+      "readOnly": true,
+      "returns": "list",
+      "params": {
+        "days": {
+          "type": "number",
+          "description": "How many days back (default 7)"
+        },
+        "limit": {
+          "type": "number",
+          "description": "At most this many (default 60)"
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/drills/list"
+      }
+    },
+    {
+      "name": "abc.parse",
+      "description": "Parse ABC notation into the practice model without saving it (the app generated exercises). Refused with every problem when it does not parse.",
+      "label": "Parse notation",
+      "readOnly": true,
+      "returns": "summary",
+      "params": {
+        "abc": {
+          "type": "string",
+          "description": "The ABC notation",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/ops/abc/parse"
+      }
+    },
+    {
+      "name": "stats.song",
+      "description": "One song over time: practice per day, each section's tempo ladder and the bars with the most wrong and missed notes.",
+      "label": "Song history",
+      "readOnly": true,
+      "returns": "summary",
+      "params": {
+        "song": {
+          "type": "string",
+          "description": "Song id",
+          "required": true
+        }
+      },
+      "executor": {
+        "type": "http",
+        "method": "GET",
+        "path": "/api/ops/stats/song"
+      }
+    }
+  ]
+}

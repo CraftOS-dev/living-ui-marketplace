@@ -1,0 +1,6 @@
+{
+  "name": "empty",
+  "version": "0.0.0",
+  "description": "Stands in for transformers.js's Node-only dependencies (onnxruntime-node, sharp), which the browser build never loads.",
+  "main": "index.js"
+}

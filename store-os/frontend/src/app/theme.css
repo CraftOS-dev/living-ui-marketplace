@@ -1,0 +1,329 @@
+/*
+ * Store OS look: a soft grey canvas holding one rounded app frame; a quiet
+ * sidebar on the frame; white rounded cards; grey tiles and inputs inside
+ * cards; black pill buttons; one orange accent for the thing that matters
+ * (the highlighted figure, the current tab's dot, chart series); green and
+ * red only for up and down; round icon badges.
+ *
+ * Every layer differs from the next (canvas, frame, card, tile, hover), and
+ * a hover never takes the color of what it sits on or holds.
+ *
+ * One type scale: 12 caption, 13 secondary, 14 UI, 15 card titles, 26 page
+ * titles and headline figures. Spacing on a 4px grid. Light and dark follow
+ * CraftBot's mode.
+ */
+
+html:root,
+html:root[data-theme='light'] {
+  color-scheme: light;
+  --so-canvas: #e7e7ea;
+  --so-frame: #f4f4f5;
+  --so-card: #ffffff;
+  --so-tile: #f4f4f5;
+  --so-row-hover: #f2f2f4;
+  --so-tile-hover: #e6e6e9;
+  --so-line: #ececef;
+  --so-border: #e4e4e7;
+  --so-ink: #111113;
+  --so-ink-2: #3f3f46;
+  --so-muted: #6e6e76;
+  --so-faint: #a1a1aa;
+  --so-primary: #111113;
+  --so-primary-hover: #2e2e33;
+  --so-on-primary: #ffffff;
+  --so-accent: #f0562b;
+  --so-accent-top: #ff8457;
+  --so-on-accent: #ffffff;
+  --so-accent-soft: #ffe7dd;
+  --so-accent-text: #c2410c;
+  --so-green: #16a34a;
+  --so-green-soft: #dcfce7;
+  --so-green-text: #15803d;
+  --so-red: #dc2626;
+  --so-red-soft: #fee2e2;
+  --so-red-text: #b91c1c;
+  --so-amber: #d97706;
+  --so-amber-soft: #fef3c7;
+  --so-amber-text: #a16207;
+  --so-blue: #2563eb;
+  --so-blue-soft: #dbeafe;
+  --so-blue-text: #1d4ed8;
+  --so-chart-1: #f0562b;
+  --so-chart-2: #111113;
+  --so-chart-3: #a1a1aa;
+  --so-chart-4: #fdba74;
+  --so-chart-5: #52525b;
+  --so-chart-6: #d4d4d8;
+  --so-tooltip: #111113;
+  --so-on-tooltip: #fafafa;
+  --so-tooltip-muted: #a1a1aa;
+  --so-shadow: rgba(17, 17, 19, 0.1);
+  --so-overlay: rgba(17, 17, 19, 0.36);
+}
+
+html:root[data-theme='dark'] {
+  color-scheme: dark;
+  --so-canvas: #050506;
+  --so-frame: #0f0f11;
+  --so-card: #18181b;
+  --so-tile: #232327;
+  --so-row-hover: #222226;
+  --so-tile-hover: #303036;
+  --so-line: #2a2a2f;
+  --so-border: #2e2e33;
+  --so-ink: #fafafa;
+  --so-ink-2: #d4d4d8;
+  --so-muted: #a1a1aa;
+  --so-faint: #71717a;
+  --so-primary: #fafafa;
+  --so-primary-hover: #e4e4e7;
+  --so-on-primary: #111113;
+  --so-accent: #ff6a3d;
+  --so-accent-top: #ff8f66;
+  --so-on-accent: #ffffff;
+  --so-accent-soft: #3b1d12;
+  --so-accent-text: #ffa07f;
+  --so-green: #22c55e;
+  --so-green-soft: #0f2a19;
+  --so-green-text: #4ade80;
+  --so-red: #ef4444;
+  --so-red-soft: #2d1212;
+  --so-red-text: #f87171;
+  --so-amber: #f59e0b;
+  --so-amber-soft: #2b2006;
+  --so-amber-text: #fbbf24;
+  --so-blue: #3b82f6;
+  --so-blue-soft: #0f1d3a;
+  --so-blue-text: #93c5fd;
+  --so-chart-1: #ff6a3d;
+  --so-chart-2: #e4e4e7;
+  --so-chart-3: #71717a;
+  --so-chart-4: #9a3412;
+  --so-chart-5: #a1a1aa;
+  --so-chart-6: #3f3f46;
+  --so-tooltip: #fafafa;
+  --so-on-tooltip: #111113;
+  --so-tooltip-muted: #52525b;
+  --so-shadow: rgba(0, 0, 0, 0.6);
+  --so-overlay: rgba(0, 0, 0, 0.6);
+}
+
+html,
+body,
+div:has(> .so-app) {
+  background: var(--so-canvas);
+  color: var(--so-ink);
+}
+
+body,
+.so-app,
+.so-portal {
+  font-family: 'Inter Variable', Inter, system-ui, sans-serif;
+  font-feature-settings: 'cv11', 'ss01';
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  font-size: 14px;
+  line-height: 20px;
+}
+
+@layer base {
+  button:not(:disabled),
+  a[href],
+  [role='button'],
+  [role='tab'],
+  [role='radio'],
+  [role='checkbox'],
+  [role='switch'],
+  [role='option'],
+  select:not(:disabled),
+  summary,
+  label:has(input),
+  input[type='checkbox'],
+  input[type='file'] {
+    cursor: pointer;
+  }
+  button:disabled,
+  select:disabled {
+    cursor: not-allowed;
+  }
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--so-faint);
+}
+
+select option {
+  background-color: var(--so-card);
+  color: var(--so-ink);
+}
+
+::selection {
+  background: color-mix(in srgb, var(--so-accent) 28%, transparent);
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--so-border);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--so-faint);
+}
+
+/* Scrolls without a visible bar (tab rows on narrow screens). */
+.so-noscroll {
+  scrollbar-width: none;
+}
+.so-noscroll::-webkit-scrollbar {
+  display: none;
+}
+
+/* The orange highlight card: a soft light from the top-left corner. */
+.so-hero {
+  background: linear-gradient(140deg, var(--so-accent-top) 0%, var(--so-accent) 62%);
+  color: var(--so-on-accent);
+}
+
+/* Hatched fill for a secondary series (the previous period, the track of a bar). */
+.so-hatch {
+  background-image: repeating-linear-gradient(135deg, var(--so-chart-6) 0 2px, transparent 2px 6px);
+}
+
+/* Things that sit on a tile keep their fill and take an ink outline on hover. */
+.so-edge {
+  transition: box-shadow 150ms ease;
+}
+.so-edge:hover {
+  box-shadow: inset 0 0 0 1.5px var(--so-ink);
+}
+
+/*
+ * Motion, kept quiet: cards settle 6px into place once when a page opens,
+ * the tab pill slides, drawers slide in, removed rows fold away. Nothing
+ * loops except the dot on something your AI agent is working on; nothing
+ * bounces. Entrance keyframes fill backwards only, so no lasting transform
+ * leaves an element in its own stacking context.
+ */
+@keyframes so-rise {
+  from {
+    transform: translateY(6px);
+  }
+}
+.so-rise {
+  animation: so-rise 260ms ease-out backwards;
+}
+
+@keyframes so-drawer {
+  from {
+    transform: translateX(24px);
+  }
+}
+.so-drawer {
+  animation: so-drawer 220ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+
+@keyframes so-zoom {
+  from {
+    transform: scale(0.98);
+  }
+}
+.so-zoom {
+  animation: so-zoom 160ms ease-out backwards;
+}
+
+@keyframes so-drop {
+  from {
+    transform: translateY(-4px);
+  }
+}
+.so-drop {
+  animation: so-drop 140ms ease-out backwards;
+}
+
+@keyframes so-toast {
+  from {
+    transform: translateY(8px);
+  }
+}
+.so-toast {
+  animation: so-toast 200ms ease-out backwards;
+}
+
+@keyframes so-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.so-spin {
+  animation: so-spin 1.2s linear infinite;
+}
+
+@keyframes so-breathe {
+  50% {
+    transform: scale(1.35);
+  }
+}
+.so-breathe {
+  animation: so-breathe 2s ease-in-out infinite;
+}
+
+.so-press {
+  transition: background-color 150ms ease, color 150ms ease, transform 120ms ease;
+}
+.so-press:not(:disabled):active {
+  transform: scale(0.98);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition-duration: 0ms !important;
+  }
+}
+
+/* Touch: bigger tap areas, and anything shown on hover shows always. */
+.hit {
+  position: relative;
+}
+@media (pointer: coarse) {
+  .hit::after {
+    content: '';
+    position: absolute;
+    inset: -8px;
+  }
+}
+/* Tabs reach the full height of their bar on touch. */
+@media (pointer: coarse) {
+  [role='tab']::after {
+    content: '';
+    position: absolute;
+    inset: -4px 0;
+  }
+}
+@media (hover: none) {
+  .so-hover-show {
+    opacity: 1 !important;
+  }
+}
+@supports (-webkit-touch-callout: none) {
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}

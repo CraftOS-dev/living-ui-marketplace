@@ -2,6 +2,15 @@
   "version": "1.0.0",
   "apps": [
     {
+      "id": "dev-studio",
+      "agentAppVersion": "0.1.0",
+      "name": "Development Studio",
+      "description": "Install standalone using the app README; CraftBot's current marketplace Add button is not supported. A local development workspace with editing, terminals, Git, saved checks and isolated coding tasks. Connect CraftBot or another compatible agent, then review changes before applying them.",
+      "folder": "dev-studio",
+      "tags": ["development", "IDE", "coding", "agents", "Git"],
+      "version": "0.1.0"
+    },
+    {
       "id": "research-board",
       "livingUIVersion": 2,
       "name": "Research Board",
@@ -277,6 +286,42 @@
       "description": "Takes founders from their links to a submitted Y Combinator application. Add your website, each founder's LinkedIn and GitHub, or your pitch deck, and CraftBot reads them and fills every question of the YC form (founders, company, progress, idea, equity and each founder's profile), asking you only for what it cannot find. Its words never overwrite yours: they arrive as answers for a founder to read and confirm. Every answer is reviewed the way a YC partner reads it (marketing speak, jargon, vague claims, overclaims, text that sounds machine-written, parts of the question left out, a shorter version), then the whole application for founder signal, fit, insight, demand and answers that disagree. About 50 checks from YC's own guidance and a 100 point odds model show your chance of getting in and the moves worth most, with a deadline countdown, an equity chart, founder video rules and the confirmations only founders can make. When it is ready, CraftBot types the application into YC's form in its browser and stops before Submit; you press it, and the app keeps what was sent. Copy by hand or export Markdown any time.",
       "folder": "yc-application",
       "tags": ["startup", "fundraising", "yc", "applications", "writing", "productivity"],
+      "version": "1.0.0"
+    },
+    {
+      "id": "store-os",
+      "livingUIVersion": 2,
+      "name": "Store OS",
+      "description": "Run every online shop from one place. Add the shops you already run or open new ones on 16 platforms (Shopify, WooCommerce, Shopee, Lazada, TikTok Shop, Amazon, eBay, Etsy, Tokopedia, Zalora and more), each with a setup checklist that links to the platform's own sign-up and seller centre. One catalog keeps a listing per shop with its own title, text and price, checked against that platform's rules before it goes live. One stock ledger feeds every shop with a stock rule per shop. Every order, shipment and buyer message from every shop lands in one queue with ship-by and reply clocks, and the overview shows net sales, profit and margin by shop against the period before. Bring in seller-centre exports (CSV or Excel) with column matching. CraftBot syncs shops, writes listings, drafts buyer replies with its reasons, checks tracking and helps set new shops up; its listing, price, stock and order changes wait in Approvals with before and after, and listing text, prices and stock can be undone.",
+      "folder": "store-os",
+      "tags": ["ecommerce", "multichannel", "orders", "inventory", "marketplaces", "business"],
+      "version": "1.0.0"
+    },
+    {
+      "id": "piano-coach",
+      "livingUIVersion": 2,
+      "name": "Piano Coach",
+      "description": "Learn piano from the first keys to concert level, with your AI agent as coach. 62 interactive lessons in twelve units teach the keyboard, rhythm, reading, scales and keys, intervals, chords, harmony and accompaniment, technique, musicianship, advanced harmony, practice and performance, and playing by ear and improvising, with pictures you can hear and tasks you play on the keys. Drills train every skill: note reading in both clefs, intervals, chords, key signatures, Roman numerals, terms, ear training (intervals, chords, scales, cadences, melodies), rhythm, every scale and arpeggio in every key with your best tempo per key, progressions in accompaniment patterns, and adaptive sight-reading over 30 levels. A ten-level path from First steps to Virtuoso shows what each level asks for and moves you up when it is done; a reference plays any chord, scale, key or interval. Play on a digital piano (MIDI), the computer keys, the keys on screen or an acoustic piano through the microphone, and every note is judged for pitch and timing, as falling notes or sheet music. Songs climb a tempo ladder from learning to steady to mastered, with spaced reviews; a daily plan mixes pieces, lessons and drills. Ask CraftBot for any piece and it writes it at your level, checked bar by bar; it reviews sessions, plans days and answers questions. Starts with 32 pieces from Ode to Joy to Moonlight, Chopin, Joplin and Clair de Lune; import ABC or MusicXML; light and dark.",
+      "folder": "piano-coach",
+      "tags": ["piano", "music", "learning", "practice", "AI coach", "education"],
+      "version": "1.1.0"
+    },
+    {
+      "id": "singing-coach",
+      "livingUIVersion": 2,
+      "name": "Singing Coach",
+      "description": "Learn to sing, from matching your first note to recital songs, with your AI agent as coach. Sing into the microphone and the Voice Dial shows your pitch live against the note you are aiming for, in cents, with a pitch lane or sheet music and the words underneath; every note is judged for pitch, onset, steadiness, scoops and vibrato, phrase by phrase. Find your range once and every song and exercise sits in a key that suits your voice. Songs move from learning to steady to mastered through Listen, Echo, Sing and Solo, with spaced reviews; a daily plan starts with a warm-up and ends with a cool-down. 80 interactive lessons in 13 units teach the voice, breath, onset, resonance and vowels, registers, pitch, rhythm, reading, intervals, diction, expression, styles and voice care, with tasks you sing. Drills train 41 skills, from interval singing and melodic echo to 33 vocalises and adaptive sight-singing over 30 levels; a ten-level path moves you up when a level is done. Your voice is looked after: voice load counted, session caps, light and rest days, voice check-ins and a Stop button. A reference has a tuner and pitch pipe, voice types, solfège with hand signs, a vowel chart that sings, and a tone lab. Ask CraftBot for a song and it writes it with its words at your level, checked line by line; it reviews sessions, plans days and answers questions. Starts with 29 public-domain songs in four languages and 12 vocalises; import ABC, MusicXML or UltraStar, or drop in an mp3 or a voice memo: the app separates the singer from the band on your computer, finds the melody, beat, key and chords, hears the words (Japanese, English and more) with their timing, and keeps the song's voice and music for practice, each turned on or off; light and dark.",
+      "folder": "singing-coach",
+      "tags": ["singing", "voice", "music", "learning", "practice", "AI coach", "education"],
+      "version": "1.0.0"
+    },
+    {
+      "id": "speedrun-application",
+      "livingUIVersion": 2,
+      "name": "a16z speedrun Application",
+      "description": "Takes founders from their links to a submitted a16z speedrun application. Add your website, each founder's LinkedIn and GitHub, or your deck, and CraftBot reads them and fills every part of speedrun's form (the team, startup details, traction with revenue and usage metrics, funding history, the active round and each founder's profile and relevant experience), asking you only for what it cannot find. Its words never overwrite yours: they arrive as answers for a founder to read and confirm. When you ask, every answer is reviewed the way a speedrun investor reads it (buzzwords, jargon, vague claims, overclaims, the best news buried, wins undersold, text that sounds machine-written, a shorter version), then the whole application for track record, founder-market fit, earned insight, differentiation and momentum. About 50 checks from speedrun's own guidance, metric sanity checks and a 100 point odds model weighted to the team show your chance of getting in and the moves worth most, with the open cohort and its deadline, team video rules and the confirmations only founders can make. When it is ready, CraftBot types the application into speedrun's form in its browser and stops before Submit; you press it, and the app keeps what was sent. Copy by hand or export Markdown any time.",
+      "folder": "speedrun-application",
+      "tags": ["startup", "fundraising", "a16z", "speedrun", "applications", "writing", "productivity"],
       "version": "1.0.0"
     }
   ]
