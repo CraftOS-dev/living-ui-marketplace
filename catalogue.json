@@ -2,6 +2,15 @@
   "version": "1.0.0",
   "apps": [
     {
+      "id": "dev-studio",
+      "agentAppVersion": "0.1.0",
+      "name": "Development Studio",
+      "description": "Install standalone using the app README; CraftBot's current marketplace Add button is not supported. A local development workspace with editing, terminals, Git, saved checks and isolated coding tasks. Connect CraftBot or another compatible agent, then review changes before applying them.",
+      "folder": "dev-studio",
+      "tags": ["development", "IDE", "coding", "agents", "Git"],
+      "version": "0.1.0"
+    },
+    {
       "id": "research-board",
       "livingUIVersion": 2,
       "name": "Research Board",

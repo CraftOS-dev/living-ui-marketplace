@@ -1,0 +1,1443 @@
+{
+  "operations": [
+    {
+      "destructive": false,
+      "name": "terminal-reconnect",
+      "module": "execution",
+      "description": "Resume an owned terminal within sixty seconds of a lost browser connection.",
+      "params": {
+        "id": {
+          "type": "string",
+          "required": true,
+          "max": 80
+        }
+      }
+    },
+    {
+      "destructive": false,
+      "name": "studio-status",
+      "module": "settings",
+      "description": "Runtime identity, stored proof and honest milestone status.",
+      "readOnly": true,
+      "idempotent": true,
+      "params": {}
+    },
+    {
+      "destructive": false,
+      "name": "run-local-proof",
+      "module": "workspace",
+      "description": "Verify file I/O, a file watcher and a managed child process.",
+      "params": {}
+    },
+    {
+      "destructive": false,
+      "name": "open-terminal",
+      "module": "execution",
+      "description": "Open a PTY in the proof folder (local app interface only).",
+      "params": {}
+    },
+    {
+      "destructive": false,
+      "name": "close-terminal",
+      "module": "execution",
+      "description": "Close one app-owned terminal and its process tree.",
+      "params": {
+        "id": {
+          "type": "string",
+          "required": true,
+          "max": 80
+        }
+      }
+    },
+    {
+      "destructive": false,
+      "name": "stop-runtime",
+      "module": "execution",
+      "description": "Stop the owned execution service and terminals.",
+      "params": {}
+    },
+    {
+      "destructive": false,
+      "name": "create-proof-request",
+      "module": "agents",
+      "description": "Queue an evidence review for the selected harness.",
+      "params": {
+        "mode": {
+          "type": "enum",
+          "values": [
+            "standalone",
+            "craftbot"
+          ],
+          "required": true
+        },
+        "title": {
+          "type": "string",
+          "required": true,
+          "max": 160
+        }
+      }
+    },
+    {
+      "destructive": false,
+      "name": "sync-proof-requests",
+      "module": "agents",
+      "description": "Reconcile requests with terminal framework-task receipts.",
+      "idempotent": true,
+      "params": {}
+    },
+    {
+      "destructive": false,
+      "name": "submit-proof-result",
+      "module": "agents",
+      "entity": "requests",
+      "description": "Report reviewed evidence and solve its one-use challenge.",
+      "appliesWhen": {
+        "field": "status",
+        "eq": "queued"
+      },
+      "params": {
+        "request": {
+          "type": "ref",
+          "entity": "requests",
+          "required": true
+        },
+        "answer": {
+          "type": "number",
+          "required": true
+        },
+        "decision": {
+          "type": "enum",
+          "values": [
+            "passed",
+            "blocked"
+          ],
+          "required": true
+        },
+        "summary": {
+          "type": "string",
+          "required": true,
+          "max": 2000
+        }
+      }
+    },
+    {
+      "destructive": false,
+      "name": "inspect-craftbot",
+      "module": "settings",
+      "description": "Run the installed CraftBot importer classifier against this app.",
+      "params": {
+        "root": {
+          "type": "string",
+          "required": true,
+          "max": 500
+        },
+        "python": {
+          "type": "string",
+          "required": true,
+          "max": 500
+        }
+      }
+    },
+    {
+      "name": "project-browse",
+      "module": "workspace",
+      "description": "Choose a project folder with the Windows picker (local interface only).",
+      "params": {
+        "initial": {
+          "type": "string",
+          "required": false,
+          "max": 1000
+        }
+      },
+      "destructive": false
+    },
+    {
+      "name": "workspace-state",
+      "module": "workspace",
+      "description": "Saved projects, configurations, runs and work.",
+      "params": {},
+      "destructive": false,
+      "readOnly": true,
+      "idempotent": true
+    },
+    {
+      "name": "project-open",
+      "module": "workspace",
+      "entity": "projects",
+      "description": "Register an existing local folder without changing its files.",
+      "params": {
+        "path": {
+          "type": "string",
+          "required": true,
+          "max": 1000
+        },
+        "name": {
+          "type": "string",
+          "required": false,
+          "max": 120
+        }
+      },
+      "destructive": false
+    },
+    {
+      "name": "project-create",
+      "module": "workspace",
+      "entity": "projects",
+      "description": "Create an empty, JavaScript or Python starter in a new folder.",
+      "params": {
+        "path": {
+          "type": "string",
+          "required": true,
+          "max": 1000
+        },
+        "kind": {
+          "type": "enum",
+          "values": [
+            "empty",
+            "javascript",
+            "python"
+          ],
+          "required": true
+        }
+      },
+      "destructive": false
+    },
+    {
+      "name": "project-clone",
+      "module": "workspace",
+      "entity": "projects",
+      "description": "Clone a repository into a new local destination.",
+      "params": {
+        "url": {
+          "type": "string",
+          "required": true,
+          "max": 2000
+        },
+        "path": {
+          "type": "string",
+          "required": true,
+          "max": 1000
+        }
+      },
+      "destructive": false
+    },
+    {
+      "name": "project-trust",
+      "module": "workspace",
+      "entity": "projects",
+      "description": "Allow or revoke local execution for this project.",
+      "params": {
+        "project": {
+          "type": "ref",
+          "entity": "projects",
+          "required": true
+        },
+        "enabled": {
+          "type": "boolean",
+          "required": true
+        }
+      },
+      "destructive": false
+    },
+    {
+      "name": "project-tree",
+      "module": "workbench",
+      "description": "Browse a folder's actual files.",
+      "params": {
+        "project": {
+          "type": "ref",
+          "entity": "projects",
+          "required": false
+        },
+        "work": {
+          "type": "ref",
+          "entity": "work",
+          "required": false
+        },
+        "path": {
+          "type": "string",
+          "required": false,
+          "max": 1000
+        }
+      },
+      "destructive": false,
+      "readOnly": true,
+      "idempotent": true
+    },
+    {
+      "name": "file-read",
+      "module": "workbench",
+      "description": "Read a file, hash or image preview.",
+      "params": {
+        "project": {
+          "type": "ref",
+          "entity": "projects",
+          "required": false
+        },
+        "work": {
+          "type": "ref",
+          "entity": "work",
+          "required": false
+        },
+        "path": {
+          "type": "string",
+          "required": true,
+          "max": 1000
+        }
+      },
+      "destructive": false,
+      "readOnly": true,
+      "idempotent": true
+    },
+    {
+      "name": "file-write",
+      "module": "workbench",
+      "description": "Save text only if the expected disk hash still matches.",
+      "params": {
+        "project": {
+          "type": "ref",
+          "entity": "projects",
+          "required": false
+        },
+        "work": {
+          "type": "ref",
+          "entity": "work",
+          "required": false
+        },
+        "path": {
+          "type": "string",
+          "required": true,
+          "max": 1000
+        },
+        "text": {
+          "type": "string",
+          "required": false,
+          "max": 2097152
+        },
+        "expected": {
+          "type": "string",
+          "required": false,
+          "max": 64
+        },
+        "create": {
+          "type": "boolean"
+        }
+      },
+      "destructive": false
+    },
+    {
+      "name": "file-move",
+      "module": "workbench",
+      "entity": "files",
+      "description": "Move or rename one file or folder inside its project.",
+      "params": {
+        "project": {
+          "type": "ref",
+          "entity": "projects",
+          "required": true
+        },
+        "path": {
+          "type": "string",
+          "required": true,
+          "max": 1000
+        },
+        "to": {
+          "type": "string",
+          "required": true,
+          "max": 1000
+        }
+      },
+      "destructive": false
+    },
+    {
+      "name": "file-trash",
+      "module": "workbench",
+      "entity": "files",
+      "description": "Move a file to recoverable app storage; directories must be empty.",
+      "params": {
+        "project": {
+          "type": "ref",
+          "entity": "projects",
+          "required": true
+        },
+        "path": {
+          "type": "string",
+          "required": true,
+          "max": 1000
+        }
+      },
+      "destructive": true
+    },
+    {
+      "name": "folder-create",
+      "module": "workbench",
+      "entity": "files",
+      "description": "Create a directory inside the selected project.",
+      "params": {
+        "project": {
+          "type": "ref",
+          "entity": "projects",
+          "required": true
+        },
+        "path": {
+          "type": "string",
+          "required": true,
+          "max": 1000
+        }
+      },
+      "destructive": false
+    },
+    {
+      "name": "project-search",
+      "module": "workbench",
+      "entity": "searches",
+      "description": "Find literal text in project source files.",
+      "params": {
+        "project": {
+          "type": "ref",
+          "entity": "projects",
+          "required": true
+        },
+        "query": {
+          "type": "string",
+          "required": true,
+          "max": 500
+        }
+      },
+      "destructive": false,
+      "readOnly": true,
+      "idempotent": true
+    },
+    {
+      "name": "replace-preview",
+      "module": "workbench",
+      "entity": "searches",
+      "description": "Preview literal replacements with expected hashes.",
+      "params": {
+        "project": {
+          "type": "ref",
+          "entity": "projects",
+          "required": true
+        },
+        "query": {
+          "type": "string",
+          "required": true,
+          "max": 500
+        },
+        "replacement": {
+          "type": "string",
+          "required": true,
+          "max": 5000
+        }
+      },
+      "destructive": false,
+      "readOnly": true,
+      "idempotent": true
+    },
+    {
+      "name": "replace-apply",
+      "module": "workbench",
+      "entity": "searches",
+      "description": "Apply only the selected, unchanged replacement previews.",
+      "params": {
+        "project": {
+          "type": "ref",
+          "entity": "projects",
+          "required": true
+        },
+        "query": {
+          "type": "string",
+          "required": true,
+          "max": 500
+        },
+        "replacement": {
+          "type": "string",
+          "required": true,
+          "max": 5000
+        },
+        "files": {
+          "type": "json",
+          "required": true
+        }
+      },
+      "destructive": false
+    },
+    {
+      "name": "checkpoint-list",
+      "module": "changes",
+      "entity": "checkpoints",
+      "description": "List recoverable file versions.",
+      "params": {
+        "project": {
+          "type": "ref",
+          "entity": "projects",
+          "required": true
+        }
+      },
+      "destructive": false,
+      "readOnly": true,
+      "idempotent": true
+    },
+    {
+      "name": "checkpoint-restore",
+      "module": "changes",
+      "entity": "checkpoints",
+      "description": "Restore one file version after checking its current hash.",
+      "params": {
+        "checkpoint": {
+          "type": "ref",
+          "entity": "checkpoints",
+          "required": true
+        },
+        "expected": {
+          "type": "string",
+          "required": false,
+          "max": 64
+        }
+      },
+      "destructive": true
+    },
+    {
+      "name": "git-status",
+      "module": "changes",
+      "entity": "repositories",
+      "description": "Inspect branch and staged/unstaged changes.",
+      "params": {
+        "project": {
+          "type": "ref",
+          "entity": "projects",
+          "required": true
+        }
+      },
+      "destructive": false,
+      "readOnly": true,
+      "idempotent": true
+    },
+    {
+      "name": "git-diff",
+      "module": "changes",
+      "entity": "repositories",
+      "description": "Read the current file diff and history.",
+      "params": {
+        "project": {
+          "type": "ref",
+          "entity": "projects",
+          "required": true
+        },
+        "path": {
+          "type": "string",
+          "required": false,
+          "max": 1000
+        },
+        "staged": {
+          "type": "boolean"
+        }
+      },
+      "destructive": false,
+      "readOnly": true,
+      "idempotent": true
+    },
+    {
+      "name": "git-init",
+      "module": "changes",
+      "entity": "repositories",
+      "description": "Explicitly initialize Git in this project.",
+      "params": {
+        "project": {
+          "type": "ref",
+          "entity": "projects",
+          "required": true
+        }
+      },
+      "destructive": false
+    },
+    {
+      "name": "git-stage",
+      "module": "changes",
+      "entity": "repositories",
+      "description": "Stage or unstage a selected path.",
+      "params": {
+        "project": {
+          "type": "ref",
+          "entity": "projects",
+          "required": true
+        },
+        "path": {
+          "type": "string",
+          "required": true,
+          "max": 1000
+        },
+        "unstage": {
+          "type": "boolean"
+        }
+      },
+      "destructive": false
+    },
+    {
+      "name": "git-commit",
+      "module": "changes",
+      "entity": "repositories",
+      "description": "Commit the staged changes with a message.",
+      "params": {
+        "project": {
+          "type": "ref",
+          "entity": "projects",
+          "required": true
+        },
+        "message": {
+          "type": "string",
+          "required": true,
+          "max": 1000
+        }
+      },
+      "destructive": false
+    },
+    {
+      "name": "git-remote",
+      "module": "changes",
+      "entity": "repositories",
+      "description": "Explicit fetch, fast-forward pull, or push.",
+      "params": {
+        "project": {
+          "type": "ref",
+          "entity": "projects",
+          "required": true
+        },
+        "action": {
+          "type": "enum",
+          "values": [
+            "fetch",
+            "pull",
+            "push"
+          ],
+          "required": true
+        },
+        "remote": {
+          "type": "string",
+          "required": false,
+          "max": 80
+        }
+      },
+      "destructive": false
+    },
+    {
+      "name": "config-save",
+      "module": "execution",
+      "entity": "configs",
+      "description": "Save a named command and working directory.",
+      "params": {
+        "project": {
+          "type": "ref",
+          "entity": "projects",
+          "required": true
+        },
+        "id": {
+          "type": "string",
+          "required": false,
+          "max": 100
+        },
+        "name": {
+          "type": "string",
+          "required": true,
+          "max": 120
+        },
+        "command": {
+          "type": "string",
+          "required": true,
+          "max": 4000
+        },
+        "cwd": {
+          "type": "string",
+          "required": false,
+          "max": 1000
+        },
+        "envNames": {
+          "type": "json"
+        },
+        "artifactPaths": {
+          "type": "json"
+        },
+        "kind": {
+          "type": "enum",
+          "values": [
+            "install",
+            "develop",
+            "build",
+            "test",
+            "lint",
+            "format",
+            "custom"
+          ],
+          "required": true
+        }
+      },
+      "destructive": false
+    },
+    {
+      "name": "run-start",
+      "module": "execution",
+      "entity": "configs",
+      "description": "Run a trusted saved command, optionally in an agent copy.",
+      "params": {
+        "config": {
+          "type": "ref",
+          "entity": "configs",
+          "required": true
+        },
+        "work": {
+          "type": "ref",
+          "entity": "work",
+          "required": false
+        }
+      },
+      "destructive": false
+    },
+    {
+      "name": "run-inspect",
+      "module": "execution",
+      "entity": "runs",
+      "description": "Read output, actual exit and whether source changed.",
+      "params": {
+        "run": {
+          "type": "ref",
+          "entity": "runs",
+          "required": true
+        }
+      },
+      "destructive": false,
+      "idempotent": true
+    },
+    {
+      "name": "run-stop",
+      "module": "execution",
+      "entity": "runs",
+      "description": "Stop this owned command and its child processes.",
+      "params": {
+        "run": {
+          "type": "ref",
+          "entity": "runs",
+          "required": true
+        }
+      },
+      "destructive": false
+    },
+    {
+      "name": "project-terminal",
+      "module": "execution",
+      "entity": "runs",
+      "description": "Open a local terminal at the trusted project root.",
+      "params": {
+        "project": {
+          "type": "ref",
+          "entity": "projects",
+          "required": true
+        }
+      },
+      "destructive": false
+    },
+    {
+      "name": "tools-status",
+      "module": "settings",
+      "description": "Inspect installed Git, ripgrep, Node, Python and connector tools.",
+      "params": {},
+      "destructive": false,
+      "readOnly": true,
+      "idempotent": true
+    },
+    {
+      "name": "preferences-save",
+      "module": "settings",
+      "description": "Save theme and Python interpreter preferences.",
+      "params": {
+        "theme": {
+          "type": "enum",
+          "values": [
+            "system",
+            "dark",
+            "light"
+          ],
+          "required": true
+        },
+        "python": {
+          "type": "string",
+          "required": false,
+          "max": 1000
+        }
+      },
+      "destructive": false
+    },
+    {
+      "name": "format-text",
+      "module": "workbench",
+      "entity": "files",
+      "description": "Format a JS/TS/JSON/Markdown or Python buffer.",
+      "params": {
+        "project": {
+          "type": "ref",
+          "entity": "projects",
+          "required": true
+        },
+        "path": {
+          "type": "string",
+          "required": true,
+          "max": 1000
+        },
+        "text": {
+          "type": "string",
+          "required": false,
+          "max": 2097152
+        }
+      },
+      "destructive": false,
+      "readOnly": true,
+      "idempotent": true
+    },
+    {
+      "name": "run-artifact",
+      "module": "execution",
+      "entity": "runs",
+      "description": "Read a recorded generated artifact without executing it.",
+      "params": {
+        "run": {
+          "type": "ref",
+          "entity": "runs",
+          "required": true
+        },
+        "path": {
+          "type": "string",
+          "required": true,
+          "max": 1000
+        }
+      },
+      "destructive": false,
+      "readOnly": true,
+      "idempotent": true
+    },
+    {
+      "name": "work-create",
+      "module": "agents",
+      "entity": "work",
+      "description": "Draft development work with acceptance criteria and context.",
+      "params": {
+        "project": {
+          "type": "ref",
+          "entity": "projects",
+          "required": true
+        },
+        "title": {
+          "type": "string",
+          "required": true,
+          "max": 160
+        },
+        "goal": {
+          "type": "string",
+          "required": true,
+          "max": 8000
+        },
+        "criteria": {
+          "type": "string",
+          "required": true,
+          "max": 4000
+        },
+        "context": {
+          "type": "string",
+          "required": false,
+          "max": 4000
+        },
+        "mode": {
+          "type": "enum",
+          "values": [
+            "standalone",
+            "craftbot"
+          ],
+          "required": true
+        },
+        "effort": {
+          "type": "enum",
+          "values": [
+            "medium",
+            "high"
+          ],
+          "required": false
+        }
+      },
+      "destructive": false
+    },
+    {
+      "name": "work-start",
+      "module": "agents",
+      "entity": "work",
+      "description": "Prepare isolated source and queue a new real agent attempt.",
+      "params": {
+        "work": {
+          "type": "ref",
+          "entity": "work",
+          "required": true
+        }
+      },
+      "destructive": false,
+      "appliesWhen": {
+        "field": "status",
+        "in": [
+          "draft",
+          "failed",
+          "canceled",
+          "ready",
+          "applied",
+          "rejected"
+        ]
+      }
+    },
+    {
+      "name": "work-context",
+      "module": "agents",
+      "entity": "work",
+      "description": "Read the active isolated scope, goal, instructions and saved commands.",
+      "params": {
+        "work": {
+          "type": "ref",
+          "entity": "work",
+          "required": true
+        }
+      },
+      "destructive": false,
+      "readOnly": true,
+      "idempotent": true
+    },
+    {
+      "name": "work-progress",
+      "module": "agents",
+      "entity": "work",
+      "description": "Record an agent's plan or observable progress.",
+      "params": {
+        "work": {
+          "type": "ref",
+          "entity": "work",
+          "required": true
+        },
+        "message": {
+          "type": "string",
+          "required": true,
+          "max": 2000
+        }
+      },
+      "destructive": false,
+      "appliesWhen": {
+        "field": "status",
+        "in": [
+          "queued",
+          "running"
+        ]
+      }
+    },
+    {
+      "name": "work-question",
+      "module": "agents",
+      "entity": "work",
+      "description": "Park the attempt for a user answer.",
+      "params": {
+        "work": {
+          "type": "ref",
+          "entity": "work",
+          "required": true
+        },
+        "question": {
+          "type": "string",
+          "required": true,
+          "max": 2000
+        }
+      },
+      "destructive": false,
+      "appliesWhen": {
+        "field": "status",
+        "in": [
+          "queued",
+          "running"
+        ]
+      }
+    },
+    {
+      "name": "work-answer",
+      "module": "agents",
+      "entity": "work",
+      "description": "Answer and resume the isolated work with a new task delivery.",
+      "params": {
+        "work": {
+          "type": "ref",
+          "entity": "work",
+          "required": true
+        },
+        "answer": {
+          "type": "string",
+          "required": true,
+          "max": 4000
+        }
+      },
+      "destructive": false,
+      "appliesWhen": {
+        "field": "status",
+        "in": [
+          "needs-input"
+        ]
+      }
+    },
+    {
+      "name": "work-finish",
+      "module": "agents",
+      "entity": "work",
+      "description": "Freeze changes, complete the delivery and publish human review.",
+      "params": {
+        "work": {
+          "type": "ref",
+          "entity": "work",
+          "required": true
+        },
+        "summary": {
+          "type": "string",
+          "required": true,
+          "max": 4000
+        }
+      },
+      "destructive": false,
+      "appliesWhen": {
+        "field": "status",
+        "in": [
+          "queued",
+          "running"
+        ]
+      }
+    },
+    {
+      "name": "work-sync",
+      "module": "agents",
+      "entity": "work",
+      "description": "Reconcile agent delivery with durable work state.",
+      "params": {
+        "work": {
+          "type": "ref",
+          "entity": "work",
+          "required": true
+        }
+      },
+      "destructive": false,
+      "idempotent": true
+    },
+    {
+      "name": "work-cancel",
+      "module": "agents",
+      "entity": "work",
+      "description": "Revoke managed writes and request connector/process termination.",
+      "params": {
+        "work": {
+          "type": "ref",
+          "entity": "work",
+          "required": true
+        }
+      },
+      "destructive": false,
+      "appliesWhen": {
+        "field": "status",
+        "in": [
+          "queued",
+          "running",
+          "needs-input",
+          "finalizing",
+          "canceling"
+        ]
+      }
+    },
+    {
+      "name": "connector-control",
+      "module": "agents",
+      "entity": "connections",
+      "description": "Start, stop or inspect the selected local agent launcher.",
+      "params": {
+        "action": {
+          "type": "enum",
+          "values": [
+            "connect",
+            "disconnect",
+            "status"
+          ],
+          "required": true
+        }
+      },
+      "destructive": false
+    },
+    {
+      "name": "connector-configure",
+      "module": "agents",
+      "entity": "connections",
+      "description": "Choose direct A2App or an optional local agent launcher.",
+      "params": {
+        "provider": {
+          "type": "enum",
+          "values": [
+            "external",
+            "codex",
+            "claude",
+            "gemini",
+            "custom",
+            "craftbot"
+          ],
+          "required": true
+        },
+        "command": {
+          "type": "string",
+          "required": false,
+          "max": 1000
+        },
+        "args": {
+          "type": "json"
+        },
+        "input": {
+          "type": "enum",
+          "values": [
+            "stdin",
+            "arg"
+          ]
+        }
+      },
+      "destructive": false
+    },
+    {
+      "name": "agent-connection-info",
+      "module": "agents",
+      "entity": "connections",
+      "description": "Read credential-free local connection instructions.",
+      "params": {},
+      "destructive": false,
+      "readOnly": true,
+      "idempotent": true
+    },
+    {
+      "name": "agent-catalog",
+      "module": "agents",
+      "entity": "connections",
+      "description": "Detect installed agents and check account readiness without starting tasks.",
+      "params": {},
+      "destructive": false,
+      "readOnly": true,
+      "idempotent": true
+    },
+    {
+      "name": "agent-connect",
+      "module": "agents",
+      "entity": "connections",
+      "description": "Choose an installed agent and connect it in one step.",
+      "params": {
+        "provider": {
+          "type": "enum",
+          "values": [
+            "codex",
+            "claude",
+            "gemini",
+            "craftbot"
+          ],
+          "required": true
+        }
+      },
+      "destructive": false
+    },
+    {
+      "name": "agent-sign-in",
+      "module": "agents",
+      "entity": "connections",
+      "description": "Open the selected agent's own sign-in program in an interactive session.",
+      "params": {
+        "provider": {
+          "type": "enum",
+          "values": [
+            "codex",
+            "claude",
+            "gemini"
+          ],
+          "required": true
+        }
+      },
+      "destructive": false
+    },
+    {
+      "name": "work-release",
+      "module": "agents",
+      "entity": "attempts",
+      "description": "A direct agent releases its stopped delivery after a handoff.",
+      "params": {
+        "work": {
+          "type": "ref",
+          "entity": "work",
+          "required": true
+        },
+        "task": {
+          "type": "string",
+          "required": true,
+          "max": 100
+        }
+      },
+      "destructive": false,
+      "idempotent": true
+    },
+    {
+      "name": "craftbot-configure",
+      "module": "agents",
+      "entity": "connections",
+      "description": "Set the local CraftBot host URL for status and cancellation confirmation.",
+      "params": {
+        "url": {
+          "type": "string",
+          "required": true,
+          "max": 500
+        }
+      },
+      "destructive": false
+    },
+    {
+      "name": "review-changes",
+      "module": "changes",
+      "entity": "reviews",
+      "description": "Compare isolated files with the recorded baseline.",
+      "params": {
+        "work": {
+          "type": "ref",
+          "entity": "work",
+          "required": true
+        },
+        "path": {
+          "type": "string",
+          "required": false,
+          "max": 1000
+        }
+      },
+      "readOnly": true,
+      "idempotent": true,
+      "destructive": false
+    },
+    {
+      "name": "review-apply",
+      "module": "changes",
+      "entity": "reviews",
+      "description": "Apply selected unchanged files with recoverable checkpoints.",
+      "params": {
+        "work": {
+          "type": "ref",
+          "entity": "work",
+          "required": true
+        },
+        "paths": {
+          "type": "json",
+          "required": true
+        }
+      },
+      "destructive": false,
+      "appliesWhen": {
+        "field": "status",
+        "in": [
+          "ready"
+        ]
+      }
+    },
+    {
+      "name": "review-resolve",
+      "module": "changes",
+      "entity": "reviews",
+      "description": "Resolve one conflicting file with explicitly chosen merged text.",
+      "params": {
+        "work": {
+          "type": "ref",
+          "entity": "work",
+          "required": true
+        },
+        "path": {
+          "type": "string",
+          "required": true,
+          "max": 1000
+        },
+        "text": {
+          "type": "string",
+          "required": false,
+          "max": 2097152
+        },
+        "useAgent": {
+          "type": "boolean"
+        },
+        "expected": {
+          "type": "string",
+          "required": false,
+          "max": 64
+        },
+        "keepMine": {
+          "type": "boolean"
+        }
+      },
+      "destructive": false,
+      "appliesWhen": {
+        "field": "status",
+        "in": [
+          "ready"
+        ]
+      }
+    },
+    {
+      "name": "review-reject",
+      "module": "changes",
+      "entity": "reviews",
+      "description": "Reject an agent change set while retaining its isolated source.",
+      "params": {
+        "work": {
+          "type": "ref",
+          "entity": "work",
+          "required": true
+        }
+      },
+      "destructive": false,
+      "appliesWhen": {
+        "field": "status",
+        "in": [
+          "ready"
+        ]
+      }
+    },
+    {
+      "name": "work-revise",
+      "module": "agents",
+      "entity": "work",
+      "description": "Request a revision in the retained isolated source.",
+      "params": {
+        "work": {
+          "type": "ref",
+          "entity": "work",
+          "required": true
+        },
+        "instruction": {
+          "type": "string",
+          "required": true,
+          "max": 4000
+        }
+      },
+      "destructive": false,
+      "appliesWhen": {
+        "field": "status",
+        "in": [
+          "ready"
+        ]
+      }
+    },
+    {
+      "name": "language-query",
+      "module": "execution",
+      "entity": "languages",
+      "description": "Query real language diagnostics, completion, hover or definition.",
+      "params": {
+        "project": {
+          "type": "ref",
+          "entity": "projects",
+          "required": true
+        },
+        "path": {
+          "type": "string",
+          "required": true,
+          "max": 1000
+        },
+        "text": {
+          "type": "string",
+          "required": false,
+          "max": 2097152
+        },
+        "action": {
+          "type": "enum",
+          "values": [
+            "diagnostics",
+            "completion",
+            "hover",
+            "definition"
+          ],
+          "required": true
+        },
+        "line": {
+          "type": "number"
+        },
+        "character": {
+          "type": "number"
+        }
+      },
+      "readOnly": true,
+      "idempotent": true,
+      "destructive": false
+    },
+    {
+      "name": "debug-start",
+      "module": "execution",
+      "entity": "debuggers",
+      "description": "Start a file with real breakpoints.",
+      "params": {
+        "project": {
+          "type": "ref",
+          "entity": "projects",
+          "required": true
+        },
+        "path": {
+          "type": "string",
+          "required": true,
+          "max": 1000
+        },
+        "kind": {
+          "type": "enum",
+          "values": [
+            "javascript",
+            "python"
+          ],
+          "required": true
+        },
+        "breakpoints": {
+          "type": "json"
+        }
+      },
+      "destructive": false
+    },
+    {
+      "name": "debug-inspect",
+      "module": "execution",
+      "entity": "debuggers",
+      "description": "Read the current stack, locals and output.",
+      "params": {
+        "id": {
+          "type": "string",
+          "required": true,
+          "max": 100
+        },
+        "frame": {
+          "type": "number"
+        }
+      },
+      "readOnly": true,
+      "idempotent": true,
+      "destructive": false
+    },
+    {
+      "name": "debug-control",
+      "module": "execution",
+      "entity": "debuggers",
+      "description": "Continue, step, pause or stop this debugger.",
+      "params": {
+        "id": {
+          "type": "string",
+          "required": true,
+          "max": 100
+        },
+        "action": {
+          "type": "enum",
+          "values": [
+            "continue",
+            "next",
+            "stepIn",
+            "stepOut",
+            "pause",
+            "stop"
+          ],
+          "required": true
+        }
+      },
+      "destructive": false
+    }
+  ]
+}

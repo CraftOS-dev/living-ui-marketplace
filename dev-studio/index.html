@@ -1,0 +1,22 @@
+<!doctype html>
+<!-- The View shell (AGENT-OWNED). Vite entry point: `vite build` compiles this
+     plus src/ into dist/, which server.mjs serves. tokens.css and ui.css live
+     in public/ and are copied through the build verbatim, so the kit token
+     sheet keeps its canonical path (/tokens.css). -->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Development Studio</title>
+    <meta name="description" content="Development Studio integration lab: real local execution and agent connection evidence." />
+    <link rel="stylesheet" href="/tokens.css" />
+    <link rel="stylesheet" href="/ui.css" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+    <!-- The server's update watcher (/_a2app/update.js, system-owned) is loaded
+         at runtime from src/updater.js — it cannot be a script tag here because
+         Vite would try to bundle a file that only exists on the running server. -->
+  </body>
+</html>
