@@ -298,6 +298,15 @@
       "version": "1.1.0"
     },
     {
+      "id": "singing-coach",
+      "livingUIVersion": 2,
+      "name": "Singing Coach",
+      "description": "Learn to sing, from matching your first note to recital songs, with your AI agent as coach. Sing into the microphone and the Voice Dial shows your pitch live against the note you are aiming for, in cents, with a pitch lane or sheet music and the words underneath; every note is judged for pitch, onset, steadiness, scoops and vibrato, phrase by phrase. Find your range once and every song and exercise sits in a key that suits your voice. Songs move from learning to steady to mastered through Listen, Echo, Sing and Solo, with spaced reviews; a daily plan starts with a warm-up and ends with a cool-down. 80 interactive lessons in 13 units teach the voice, breath, onset, resonance and vowels, registers, pitch, rhythm, reading, intervals, diction, expression, styles and voice care, with tasks you sing. Drills train 41 skills, from interval singing and melodic echo to 33 vocalises and adaptive sight-singing over 30 levels; a ten-level path moves you up when a level is done. Your voice is looked after: voice load counted, session caps, light and rest days, voice check-ins and a Stop button. A reference has a tuner and pitch pipe, voice types, solfège with hand signs, a vowel chart that sings, and a tone lab. Ask CraftBot for a song and it writes it with its words at your level, checked line by line; it reviews sessions, plans days and answers questions. Starts with 29 public-domain songs in four languages and 12 vocalises; import ABC, MusicXML or UltraStar, or drop in an mp3 or a voice memo: the app separates the singer from the band on your computer, finds the melody, beat, key and chords, hears the words (Japanese, English and more) with their timing, and keeps the song's voice and music for practice, each turned on or off; light and dark.",
+      "folder": "singing-coach",
+      "tags": ["singing", "voice", "music", "learning", "practice", "AI coach", "education"],
+      "version": "1.0.0"
+    },
+    {
       "id": "speedrun-application",
       "livingUIVersion": 2,
       "name": "a16z speedrun Application",

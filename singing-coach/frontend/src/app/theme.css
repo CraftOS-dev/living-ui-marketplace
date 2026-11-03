@@ -1,0 +1,536 @@
+/*
+ * Singing Coach look: a quiet instrument. Cool light greys from the host's
+ * kit tokens (--agent-app-*), hairline panels, small monospaced readouts,
+ * and one colour that carries meaning: voice blue, for the singer's voice
+ * (the dial's head and trace, the ribbon on the lane, notes sung on pitch).
+ * Red marks a note off or missed, always with a glyph, and only after it is
+ * sung. The coach (the AI agent) is black and white with a star. Light and
+ * dark follow the host.
+ */
+@import '@fontsource-variable/inter';
+@import '@fontsource-variable/jetbrains-mono';
+
+/* Tailwind's own layer order, declared first: this file loads before Tailwind. */
+@layer theme, base, components, utilities;
+
+:root {
+  --sc-page: color-mix(in srgb, var(--agent-app-bg) 62%, #dfe5e8);
+  --sc-side: color-mix(in srgb, var(--agent-app-bg) 72%, #d9dfe2);
+  --sc-panel: color-mix(in srgb, var(--agent-app-surface) 90%, #eef2f4);
+  --sc-raised: var(--agent-app-surface);
+  --sc-sunk: color-mix(in srgb, var(--sc-page), var(--agent-app-text) 4%);
+  --sc-line: color-mix(in srgb, var(--agent-app-border), #8a959b 34%);
+  --sc-line-2: color-mix(in srgb, var(--agent-app-border), #8a959b 58%);
+  --sc-hair: color-mix(in srgb, var(--agent-app-border), #8a959b 14%);
+  --sc-ink: var(--agent-app-text);
+  --sc-ink-2: color-mix(in srgb, var(--agent-app-text), var(--agent-app-muted) 35%);
+  --sc-muted: color-mix(in srgb, var(--agent-app-muted), var(--agent-app-text) 12%);
+  --sc-faint: color-mix(in srgb, var(--agent-app-muted), var(--sc-page) 38%);
+  --sc-hover: color-mix(in srgb, var(--sc-page), var(--agent-app-text) 6%);
+  --sc-active: color-mix(in srgb, var(--sc-page), var(--agent-app-text) 11%);
+  /* The coach (the AI agent): black and white, like the ink (white on dark in dark mode). */
+  --sc-coach: var(--sc-ink);
+  --sc-coach-ink: var(--sc-page);
+  --sc-coach-soft: color-mix(in srgb, var(--sc-ink), transparent 92%);
+  --sc-radius: min(var(--agent-app-radius, 0.5rem), 8px);
+  --sc-radius-sm: calc(var(--sc-radius) * 0.75);
+  --sc-font: 'Inter Variable', var(--agent-app-font);
+  --sc-mono: 'JetBrains Mono Variable', ui-monospace, 'Cascadia Mono', Consolas, monospace;
+
+  --sc-voice: #2f6fe4;
+  --sc-bad: #dc2626;
+  --sc-warn: #c2700c;
+  --sc-good: #15803d;
+  --sc-shadow: 0 1px 2px rgb(16 24 32 / 0.06);
+  --sc-shadow-lg: 0 18px 40px rgb(16 24 32 / 0.16), 0 3px 8px rgb(16 24 32 / 0.08);
+  --sc-overlay: rgb(16 22 26 / 0.3);
+}
+
+:root[data-theme='dark'] {
+  --sc-page: color-mix(in srgb, var(--agent-app-bg) 70%, #0e1316);
+  --sc-side: color-mix(in srgb, var(--agent-app-bg) 60%, #0b0f12);
+  --sc-panel: color-mix(in srgb, var(--agent-app-surface) 80%, #121a1f);
+  --sc-raised: color-mix(in srgb, var(--agent-app-surface) 82%, #1a242a);
+  --sc-sunk: color-mix(in srgb, var(--sc-page), #000 22%);
+  --sc-line: color-mix(in srgb, var(--agent-app-border), #5b6970 30%);
+  --sc-line-2: color-mix(in srgb, var(--agent-app-border), #7a8a92 45%);
+  --sc-hair: color-mix(in srgb, var(--agent-app-border), #5b6970 10%);
+  --sc-voice: #7aa7ff;
+  --sc-bad: #f87171;
+  --sc-warn: #f2a541;
+  --sc-good: #4ade80;
+  --sc-shadow: 0 1px 2px rgb(0 0 0 / 0.35);
+  --sc-shadow-lg: 0 20px 44px rgb(0 0 0 / 0.55), 0 3px 10px rgb(0 0 0 / 0.35);
+  --sc-overlay: rgb(0 0 0 / 0.5);
+}
+
+:root {
+  --sc-voice-soft: color-mix(in srgb, var(--sc-voice), transparent 86%);
+  --sc-voice-mid: color-mix(in srgb, var(--sc-voice), transparent 60%);
+  --sc-bad-soft: color-mix(in srgb, var(--sc-bad), transparent 86%);
+  --sc-warn-soft: color-mix(in srgb, var(--sc-warn), transparent 86%);
+  --sc-good-soft: color-mix(in srgb, var(--sc-good), transparent 86%);
+}
+
+/* Everything you can click shows the hand (Tailwind's reset leaves buttons on the arrow). */
+@layer base {
+  button:not(:disabled),
+  [role='button']:not([aria-disabled='true']),
+  [role='switch']:not(:disabled),
+  [role='radio']:not(:disabled),
+  [role='tab'],
+  [role='menuitem'],
+  [role='option'],
+  a[href],
+  summary,
+  label[for],
+  select:not(:disabled),
+  input[type='checkbox']:not(:disabled),
+  input[type='radio']:not(:disabled),
+  input[type='range'],
+  input[type='file'] {
+    cursor: pointer;
+  }
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+body {
+  margin: 0;
+  background: var(--sc-page);
+  color: var(--sc-ink);
+  font-family: var(--sc-font);
+  font-size: 13px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: 'cv11', 'ss01';
+}
+
+.sc-mono {
+  font-family: var(--sc-mono);
+  font-feature-settings: 'zero' 0;
+  letter-spacing: 0;
+}
+.sc-num {
+  font-variant-numeric: tabular-nums;
+}
+/* The small uppercase readout labels of an instrument panel. */
+.sc-label {
+  font-family: var(--sc-mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--sc-muted);
+}
+
+.sc-focus:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--sc-voice), transparent 30%);
+  outline-offset: 1px;
+}
+
+.sc-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--sc-muted), transparent 60%) transparent;
+}
+.sc-scroll::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.sc-scroll::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--sc-muted), transparent 65%);
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+/* A panel: hairline border on the page, faint inner surface. */
+.sc-panel {
+  background: var(--sc-panel);
+  border: 1px solid var(--sc-line);
+  border-radius: var(--sc-radius);
+}
+
+/* The faint measuring grid behind the dashboard and the practice stage. */
+.sc-grid {
+  background-image: linear-gradient(to right, color-mix(in srgb, var(--sc-line), transparent 55%) 1px, transparent 1px), linear-gradient(to bottom, color-mix(in srgb, var(--sc-line), transparent 55%) 1px, transparent 1px);
+  background-size: 24px 24px;
+  background-position: -1px -1px;
+}
+
+/* ------------------------------------------------------------- motion */
+
+@keyframes sc-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.sc-in {
+  animation: sc-in 260ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+@keyframes sc-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.sc-fade {
+  animation: sc-fade 220ms ease both;
+}
+@keyframes sc-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.sc-rise {
+  animation: sc-rise 340ms cubic-bezier(0.16, 0.84, 0.3, 1) both;
+}
+@keyframes sc-pop {
+  0% {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.sc-pop {
+  animation: sc-pop 420ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@keyframes sc-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.sc-draw {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+  animation: sc-draw 900ms cubic-bezier(0.3, 0.6, 0.2, 1) both;
+}
+@keyframes sc-grow {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+.sc-grow {
+  transform-box: fill-box;
+  transform-origin: bottom;
+  animation: sc-grow 600ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+@keyframes sc-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+.sc-pulse {
+  animation: sc-pulse 1.4s ease-in-out infinite;
+}
+@keyframes sc-ring {
+  from {
+    transform: scale(0.4);
+    opacity: 0.9;
+  }
+  to {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+}
+@keyframes sc-sweep {
+  from {
+    transform: translateX(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  to {
+    transform: translateX(var(--sc-sweep, 200px));
+    opacity: 0;
+  }
+}
+@keyframes sc-shimmer {
+  from {
+    background-position: -200px 0;
+  }
+  to {
+    background-position: 200px 0;
+  }
+}
+.sc-skel {
+  background: linear-gradient(90deg, var(--sc-sunk) 0px, var(--sc-hover) 80px, var(--sc-sunk) 160px);
+  background-size: 400px 100%;
+  animation: sc-shimmer 1.3s linear infinite;
+  border-radius: 4px;
+}
+
+/* ------------------------------------------------------------ dialogs */
+
+.sc-scrim {
+  background: var(--sc-overlay);
+  backdrop-filter: blur(3px);
+  animation: sc-fade 160ms ease both;
+}
+@keyframes sc-dialog {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.sc-dialog {
+  animation: sc-dialog 220ms cubic-bezier(0.16, 0.84, 0.3, 1) both;
+}
+@keyframes sc-sheet {
+  from {
+    transform: translateX(28px);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+.sc-sheet {
+  animation: sc-sheet 240ms cubic-bezier(0.16, 0.84, 0.3, 1) both;
+}
+@keyframes sc-drawer {
+  from {
+    transform: translateX(-24px);
+    opacity: 0.6;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+.sc-drawer {
+  animation: sc-drawer 200ms cubic-bezier(0.16, 0.84, 0.3, 1) both;
+}
+
+/* Range inputs in the instrument style. */
+.sc-range {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 18px;
+  background: transparent;
+}
+.sc-range::-webkit-slider-runnable-track {
+  height: 3px;
+  border-radius: 3px;
+  background: var(--sc-line-2);
+}
+.sc-range::-moz-range-track {
+  height: 3px;
+  border-radius: 3px;
+  background: var(--sc-line-2);
+}
+.sc-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  margin-top: -5.5px;
+  border-radius: 999px;
+  background: var(--sc-raised);
+  border: 1.5px solid var(--sc-ink);
+}
+.sc-range::-moz-range-thumb {
+  width: 13px;
+  height: 13px;
+  border-radius: 999px;
+  background: var(--sc-raised);
+  border: 1.5px solid var(--sc-ink);
+}
+
+/* The engraved score: ink follows the theme. */
+.sc-sheet-ink svg {
+  color: var(--sc-ink);
+}
+.sc-sheet-ink svg .vf-stavenote,
+.sc-sheet-ink svg .vf-stavenote * {
+  transition:
+    fill 120ms ease,
+    stroke 120ms ease;
+}
+.sc-sheet-ink .is-on,
+.sc-sheet-ink .is-on * {
+  fill: var(--sc-voice) !important;
+  stroke: var(--sc-voice) !important;
+}
+.sc-sheet-ink .is-now,
+.sc-sheet-ink .is-now * {
+  fill: var(--sc-ink) !important;
+  stroke: var(--sc-ink) !important;
+}
+.sc-sheet-ink .is-miss,
+.sc-sheet-ink .is-miss * {
+  fill: var(--sc-bad) !important;
+  stroke: var(--sc-bad) !important;
+}
+.sc-sheet-ink .is-dim,
+.sc-sheet-ink .is-dim * {
+  opacity: 0.32;
+}
+
+/* Lesson examples: the notes sounding now light up. */
+.sc-score svg .vf-stavenote,
+.sc-score svg .vf-stavenote * {
+  transition:
+    fill 90ms ease,
+    stroke 90ms ease;
+}
+.sc-score .sc-sound-on,
+.sc-score .sc-sound-on * {
+  fill: var(--sc-voice) !important;
+  stroke: var(--sc-voice) !important;
+}
+
+/* A right answer glows green, a wrong one shakes. */
+@keyframes sc-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-5px);
+  }
+  40% {
+    transform: translateX(5px);
+  }
+  60% {
+    transform: translateX(-3px);
+  }
+  80% {
+    transform: translateX(3px);
+  }
+}
+.sc-shake {
+  animation: sc-shake 360ms ease both;
+}
+@keyframes sc-glow {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--sc-good), transparent 50%);
+  }
+  100% {
+    box-shadow: 0 0 0 10px color-mix(in srgb, var(--sc-good), transparent 100%);
+  }
+}
+.sc-glow {
+  animation: sc-glow 600ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sc-in,
+  .sc-rise,
+  .sc-pop,
+  .sc-fade,
+  .sc-dialog,
+  .sc-sheet,
+  .sc-drawer,
+  .sc-grow {
+    animation: none;
+  }
+  .sc-draw {
+    animation: none;
+  }
+}
+
+/* ------------------------------------------------------- the voice dial */
+
+.sc-dial canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+.sc-dial .sc-dial-static {
+  transition: opacity 120ms ease;
+}
+
+/* A level meter: a thin bar that follows the microphone. */
+.sc-meter {
+  height: 3px;
+  border-radius: 3px;
+  background: var(--sc-line);
+  overflow: hidden;
+}
+.sc-meter > span {
+  display: block;
+  height: 100%;
+  background: var(--sc-voice);
+  transform-origin: left;
+  transition: transform 60ms linear;
+}
+
+/* The self-estimate after a take in Fade and After feedback. */
+@keyframes sc-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+    filter: blur(2px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+.sc-reveal {
+  animation: sc-reveal 420ms cubic-bezier(0.16, 0.84, 0.3, 1) both;
+}
+
+/* A live dot (microphone on, recording). */
+@keyframes sc-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  50% {
+    transform: scale(1.35);
+    opacity: 0.45;
+  }
+}
+.sc-breathe {
+  animation: sc-breathe 2.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sc-reveal,
+  .sc-breathe {
+    animation: none;
+  }
+}
