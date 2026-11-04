@@ -33,7 +33,8 @@
     },
     {
       "id": "kanban-online",
-      "livingUIVersion": 2,
+      "agentAppVersion": "0.1.0",
+      "toolkit": "blueprint-pocketbase-kit",
       "name": "Kanban Online",
       "description": "Kanban boards your team shares with several AI agents. People sign in (the first account runs the workspace; admins let others in) and every agent that connects through the CLI joins under its own name, with its own queue, limit and pause switch. A card is a person's, one agent's, or any agent's, and has a requester who gets the questions and the result. Every column is a contract: let any agent or one named agent work it and the cards dragged in are handed over and picked up automatically, with WIP limits that bind agents, a plan to approve first, acceptance criteria, and where finished work goes. Agents hold cards with leases, never take each other's, show what they are doing live, ask when they would have to guess, and hand work back with evidence; people approve, request changes (back to the agent that did it) or reject, and only people move cards to Done. Each person's inbox and review queue (theirs or everyone's), a Team page with presence, approvals and each agent's report card, flow insights split between agents and people, rules, an activity log where every change can be reverted, and switches that pause one agent or all of them. Smooth drag and drop that everyone sees live, in CraftBot's own look, light and dark, on desktop and phone.",
       "folder": "kanban-online",
@@ -209,7 +210,8 @@
     },
     {
       "id": "expenses-tracker",
-      "livingUIVersion": 2,
+      "agentAppVersion": "0.1.0",
+      "toolkit": "blueprint-pocketbase-kit",
       "name": "Expenses Tracker",
       "description": "Personal expense tracker: add an expense in seconds on a keypad, then see where your money goes on a dashboard with a spending ring, daily bars, a spending calendar and a budget gauge. Monthly and per-category budgets, recurring expenses that add themselves, 12-month insights, spending in other currencies converted automatically, bank CSV import and CSV export, and CraftBot reading receipt photos and sorting uncategorized expenses for you.",
       "folder": "expenses-tracker",
@@ -281,7 +283,8 @@
     },
     {
       "id": "yc-application",
-      "livingUIVersion": 2,
+      "agentAppVersion": "0.1.0",
+      "toolkit": "blueprint-pocketbase-kit",
       "name": "YC Application",
       "description": "Takes founders from their links to a submitted Y Combinator application. Add your website, each founder's LinkedIn and GitHub, or your pitch deck, and CraftBot reads them and fills every question of the YC form (founders, company, progress, idea, equity and each founder's profile), asking you only for what it cannot find. Its words never overwrite yours: they arrive as answers for a founder to read and confirm. Every answer is reviewed the way a YC partner reads it (marketing speak, jargon, vague claims, overclaims, text that sounds machine-written, parts of the question left out, a shorter version), then the whole application for founder signal, fit, insight, demand and answers that disagree. About 50 checks from YC's own guidance and a 100 point odds model show your chance of getting in and the moves worth most, with a deadline countdown, an equity chart, founder video rules and the confirmations only founders can make. When it is ready, CraftBot types the application into YC's form in its browser and stops before Submit; you press it, and the app keeps what was sent. Copy by hand or export Markdown any time.",
       "folder": "yc-application",
@@ -299,7 +302,8 @@
     },
     {
       "id": "piano-coach",
-      "livingUIVersion": 2,
+      "agentAppVersion": "0.1.0",
+      "toolkit": "blueprint-pocketbase-kit",
       "name": "Piano Coach",
       "description": "Learn piano from the first keys to concert level, with your AI agent as coach. 62 interactive lessons in twelve units teach the keyboard, rhythm, reading, scales and keys, intervals, chords, harmony and accompaniment, technique, musicianship, advanced harmony, practice and performance, and playing by ear and improvising, with pictures you can hear and tasks you play on the keys. Drills train every skill: note reading in both clefs, intervals, chords, key signatures, Roman numerals, terms, ear training (intervals, chords, scales, cadences, melodies), rhythm, every scale and arpeggio in every key with your best tempo per key, progressions in accompaniment patterns, and adaptive sight-reading over 30 levels. A ten-level path from First steps to Virtuoso shows what each level asks for and moves you up when it is done; a reference plays any chord, scale, key or interval. Play on a digital piano (MIDI), the computer keys, the keys on screen or an acoustic piano through the microphone, and every note is judged for pitch and timing, as falling notes or sheet music. Songs climb a tempo ladder from learning to steady to mastered, with spaced reviews; a daily plan mixes pieces, lessons and drills. Ask CraftBot for any piece and it writes it at your level, checked bar by bar; it reviews sessions, plans days and answers questions. Starts with 32 pieces from Ode to Joy to Moonlight, Chopin, Joplin and Clair de Lune; import ABC or MusicXML; light and dark.",
       "folder": "piano-coach",

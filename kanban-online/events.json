@@ -1,0 +1,20 @@
+{
+  "events": [
+    {
+      "type": "work_waiting",
+      "capability": "work_waiting",
+      "description": "Cards on the team's Kanban Online boards are waiting for CraftBot or any agent (a card entered a column agents work, was assigned to CraftBot or the pool, got an answer or was sent back for changes)",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        }
+      },
+      "cooldownSeconds": 20
+    }
+  ],
+  "conventions": {
+    "guide": "Every operation's parameters, and how to do each task the app queues, are in AGENT_APP.md in the app's directory."
+  }
+}
