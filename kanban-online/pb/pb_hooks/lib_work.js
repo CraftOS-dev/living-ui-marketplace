@@ -167,7 +167,7 @@ function queue(app, e, p) {
         ? 'Nothing is waiting for you.'
         : working >= limit
           ? 'You already work ' + working + ' card(s), your limit. Call work.next: it lists them and says which ones a session of yours left behind, to take over with work.resume.'
-          : 'agent-app run <project> work.next, do the card, finish it (work.submit / work.ask / work.return / work.fail), repeat until work.next gives no card.',
+          : 'a2app <app> work work.next, do the card, finish it (work.submit / work.ask / work.return / work.fail), repeat until work.next gives no card.',
   };
 }
 

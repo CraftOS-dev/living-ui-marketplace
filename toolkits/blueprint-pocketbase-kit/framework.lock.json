@@ -1,0 +1,18 @@
+{
+  "repository": "https://github.com/CraftOS-dev/Agent-App",
+  "source": "toolkits/blueprint-pocketbase-react/template",
+  "commit": "b6d039db6a5cd2f2fd38f0e919eeccb339c82ccd",
+  "branch": "feature/pocketbase-adapter-0.39",
+  "uncommittedChanges": true,
+  "files": {
+    "pb-fetch.mjs": "sha256:eda088280ee1074c67dd69cc3cef6ad5831be40c60ca0e842445dbdc1d9bce56",
+    "pb-check.mjs": "sha256:c01e49a9e9b3cf781454fbe24192752fc058e5071d57a07a0ca558f0f7ebf923",
+    "pb/pb_hooks/_a2app.pb.js": "sha256:c5c788a8c0b9fa5217a64ac2a5ff6d9f36c65c6bf5c33a29e8af2abe686fc430",
+    "pb/pb_hooks/_a2app_impl.js": "sha256:4ef1da9f19cba9e49c4cc56a3dfa786fa71d65cdb8e884d3a7c9011ccd5777d2",
+    "pb/pb_hooks/_a2app_rules.js": "sha256:895b651b86a1b643dc7845abb83d62db0dc7431477342c4f396b11af46ea7f4a",
+    "pb-serve.mjs": "sha256:e204c47475acc99d50b6eec65450005da569910bfbb88fad9afdbbcaf9f2abf2"
+  },
+  "patched": {
+    "pb-serve.mjs": "sets CRAFTBOT_APP_ENV for the apps' engine hooks"
+  }
+}

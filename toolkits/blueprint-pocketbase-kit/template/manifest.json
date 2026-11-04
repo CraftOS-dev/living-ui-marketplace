@@ -1,0 +1,19 @@
+{
+  "id": "REPLACED_AT_IMPORT",
+  "name": "PocketBase Kit App",
+  "agentAppVersion": "0.1.0",
+  "adapterVersion": "0.2.0",
+  "appVersion": "0.1.0",
+  "authMode": "none",
+  "modules": [
+    { "name": "app", "summary": "the app" }
+  ],
+  "modificationLock": false,
+  "capabilities": { "integrations": [] },
+  "pipeline": {
+    "install": "node pb-fetch.mjs && npm --prefix frontend install --ignore-scripts --no-audit --no-fund",
+    "build": "node pb-build.mjs",
+    "start": "node pb-serve.mjs",
+    "health": "/api/_a2app"
+  }
+}

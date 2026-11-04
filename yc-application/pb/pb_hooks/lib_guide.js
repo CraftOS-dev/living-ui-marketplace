@@ -6,7 +6,7 @@
 
 const RULES = [
   'This app prepares one YC application as a pipeline: Gather (you read the founders\' links and fill answers), Team, Answers (a founder reads and confirms each one), Review (checks against YC\'s guidance, with an estimated chance of getting in), the founder video, and Submit (you type it into YC\'s form; a founder presses Submit).',
-  'Every command is `agent-app run <project> <op> --param value`. app.status says where things stand; answers.list --only missing --brief true lists what is left; questions.list gives every key and type.',
+  'Every command is `a2app <app> <module> <op> --param value` (`a2app <app> --find <op>` names an operation's module). app.status says where things stand; answers.list --only missing --brief true lists what is left; questions.list gives every key and type.',
   'Write the way the founders talk: plain words, short sentences, specific numbers, names and dates. Lead with the answer. No marketing words, no startup jargon (never "wedge", "leverage", "revolutionize", "seamless"), no em dashes, no triads of adjectives. YC partners count these tells and read them as machine-written.',
   'Never invent a fact, a number, a user, a quote or a story. When a source does not say it, ask the founders with answers.need --key <key> --text "<one question they can answer in a line>" and leave the answer empty.',
   'Questions marked by: founder (how the founders met, the non-computer hack story, what convinced them to apply, whether they look for a cofounder, earlier applications, accelerators) come from the founders. Write them only from the founders\' own words in a source; otherwise ask with answers.need.',

@@ -1,5 +1,17 @@
 /// <reference path="../pb_data/types.d.ts" />
 /**
+ * COMPATIBILITY MODULE (SYSTEM-OWNED — hash-locked; blueprint-pocketbase-kit).
+ *
+ * The app→agent request queue these apps were built on (CraftBot adapter
+ * 1.9.0's `_triggers_lib.js`), kept rule-for-rule: the `agent_requests` queue
+ * the UI kit fires into and watches, the declared-name check, the param check,
+ * the cooldown floor, the hourly cap and the status state machine. What changed
+ * is where the declarations live — the app's `events.json`, the PocketBase
+ * blueprint's event declaration file — and what a landed row becomes: an A2App
+ * task any agent harness can take (see `_triggers.pb.js`).
+ *
+ * Original header follows.
+ *
  * SYSTEM MODULE — managed by tooling, never edited by agents (spec P1).
  * Trigger plane (spec TRIGGERS-PLAN, OVERVIEW §6.2): the app fires the agent.
  *
@@ -25,7 +37,9 @@
  */
 
 var TRIGGER_COLLECTION = 'agent_requests';
-var TRIGGERS_FILE = 'triggers.json';
+var EVENTS_FILE = 'events.json';
+// Every task this queue raises carries the id of the row that raised it.
+var REQUEST_FIELD = 'request';
 var REQUESTS_PATH = /^\/api\/collections\/agent_requests\/records(\/([^\/?]+))?$/;
 
 // Floor between two fires of the same trigger; `cooldown_seconds` in the
@@ -54,18 +68,47 @@ var FROZEN_FIELDS = ['trigger', 'params', 'fired_by'];
 function loadTriggers() {
   var raw;
   try {
-    raw = toString($os.readFile($filepath.join(__hooks, '..', '..', TRIGGERS_FILE)));
+    raw = toString($os.readFile($filepath.join(__hooks, '..', '..', EVENTS_FILE)));
   } catch {
-    return {}; // no manifest — nothing is declared
+    return {}; // no declarations — nothing may fire
   }
   try {
     var parsed = JSON.parse(raw);
-    var triggers = parsed && parsed.triggers;
-    if (!triggers || typeof triggers !== 'object' || Array.isArray(triggers)) return {};
-    return triggers;
+    var events = parsed && parsed.events;
+    if (!Array.isArray(events)) return {};
+    var out = {};
+    for (var i = 0; i < events.length; i++) {
+      var ev = events[i] || {};
+      if (typeof ev.type !== 'string' || ev.type === '') continue;
+      out[ev.type] = {
+        description: typeof ev.description === 'string' ? ev.description : '',
+        params: triggerParams(ev.payload),
+        cooldown_seconds: Number(ev.cooldownSeconds || 0) || 0,
+      };
+    }
+    return out;
   } catch {
     return null;
   }
+}
+
+/** An event's payload fields, minus the `request` id this queue adds itself,
+ *  in the param shape the checks below were written for. */
+function triggerParams(payload) {
+  var out = {};
+  var spec = payload && typeof payload === 'object' && !Array.isArray(payload) ? payload : {};
+  for (var name in spec) {
+    if (name === REQUEST_FIELD) continue;
+    var p = spec[name] || {};
+    var param = { type: p.type === 'number' || p.type === 'boolean' ? p.type : 'string' };
+    if (p.required) param.required = true;
+    if (p.default !== undefined) param.default = p.default;
+    if (p.type === 'enum' && Array.isArray(p.values)) param.enum = p.values.slice();
+    if (Array.isArray(p.enum)) param.enum = p.enum.slice();
+    if (typeof p.description === 'string') param.description = p.description;
+    out[name] = param;
+  }
+  return out;
 }
 
 /** Public shape for `describe`: name → description/params/cooldown, WITHOUT
@@ -192,7 +235,7 @@ function recordFire(name) {
 function validateFire(body) {
   var declared = loadTriggers();
   if (declared === null) {
-    return { status: 400, code: 'invalid_manifest', message: 'triggers.json is not valid JSON — no trigger can fire until it is fixed.' };
+    return { status: 400, code: 'invalid_manifest', message: 'events.json is not valid JSON — no trigger can fire until it is fixed.' };
   }
   var name = String((body && body.trigger) || '');
   var def = declared[name];
@@ -201,7 +244,7 @@ function validateFire(body) {
       status: 400,
       code: 'undeclared_trigger',
       message:
-        "Trigger '" + name + "' is not declared in triggers.json. Declared: " +
+        "Trigger '" + name + "' is not declared in events.json. Declared: " +
         (Object.keys(declared).sort().join(', ') || '(none)') + '.',
     };
   }
@@ -333,6 +376,7 @@ function fire(app, name, params, firedBy) {
 
 module.exports = {
   TRIGGER_COLLECTION: TRIGGER_COLLECTION,
+  REQUEST_FIELD: REQUEST_FIELD,
   loadTriggers: loadTriggers,
   describeTriggers: describeTriggers,
   validateParams: validateParams,

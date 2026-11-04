@@ -1,0 +1,33 @@
+{
+  "events": [
+    {
+      "type": "receipts_waiting",
+      "capability": "receipts_waiting",
+      "description": "Asks your AI agent to read receipt photos or PDFs you uploaded and record each one as an expense",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        }
+      },
+      "cooldownSeconds": 20
+    },
+    {
+      "type": "categorize_requested",
+      "capability": "categorize_requested",
+      "description": "Asks your AI agent to put your uncategorized expenses into your existing categories",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        }
+      },
+      "cooldownSeconds": 60
+    }
+  ],
+  "conventions": {
+    "guide": "Every operation's parameters, and how to do each task the app queues, are in AGENT_APP.md in the app's directory."
+  }
+}

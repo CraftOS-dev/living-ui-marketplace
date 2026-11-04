@@ -1,0 +1,42 @@
+{
+ "id": "blueprint-pocketbase-kit",
+ "description": "The marketplace's PocketBase toolkit: the Agent App Framework's PocketBase adapter (pinned, see framework.lock.json) for apps built with the agent-app UI kit (React + Vite in frontend/), plus the compatibility hooks those apps' own code and UIs rely on. NOT part of the framework.",
+ "template": "template",
+ "adapterVersionFrom": "pb/pb_hooks/_a2app_impl.js",
+ "systemPaths": [
+  "manifest.json",
+  "pb-serve.mjs",
+  "pb-fetch.mjs",
+  "pb-check.mjs",
+  "pb-build.mjs",
+  "pb/pb_hooks/_a2app.pb.js",
+  "pb/pb_hooks/_a2app_impl.js",
+  "pb/pb_hooks/_a2app_rules.js",
+  "pb/pb_hooks/_compat_lib.js",
+  "pb/pb_hooks/_compat_rules.js",
+  "pb/pb_hooks/_compat_system.js",
+  "pb/pb_hooks/_system.pb.js",
+  "pb/pb_hooks/_triggers.pb.js",
+  "pb/pb_hooks/_triggers_lib.js",
+  "pb/pb_hooks/_craftbot_bridge.js"
+ ],
+ "adapterPaths": [
+  "pb/pb_hooks/_a2app.pb.js",
+  "pb/pb_hooks/_a2app_impl.js",
+  "pb/pb_hooks/_a2app_rules.js"
+ ],
+ "gate": [
+  {
+   "name": "hooks syntax + rules self-test",
+   "run": "node --check pb/pb_hooks/_a2app_rules.js && node --check pb/pb_hooks/_a2app_impl.js && node --check pb/pb_hooks/_a2app.pb.js && node --check pb/pb_hooks/_system.pb.js && node --check pb/pb_hooks/_triggers.pb.js && node pb/pb_hooks/_a2app_rules.js --selftest"
+  },
+  {
+   "name": "operations resolve + events declared",
+   "run": "node pb-check.mjs"
+  }
+ ],
+ "lifecycle": {
+  "dataDir": "pb/pb_data",
+  "promote": "node pb-serve.mjs --migrate"
+ }
+}

@@ -1,5 +1,16 @@
 /// <reference path="../pb_data/types.d.ts" />
 /**
+ * COMPATIBILITY MODULE (SYSTEM-OWNED — hash-locked; blueprint-pocketbase-kit).
+ *
+ * The write guard these apps' own UIs were built against: CraftBot adapter
+ * 1.9.0's `_a2app_lib.js`, kept verbatim except that it reads its rules from
+ * `_compat_rules.js` (the 1.0.0 rules it shipped with). `_compat_system.js`
+ * applies it to the app's own View only, so a UI write is accepted or refused
+ * exactly as before the app moved to the Agent App Framework. Agent and program
+ * calls are guarded by the framework adapter (`_a2app_impl.js`) instead.
+ *
+ * Original header follows.
+ *
  * SYSTEM MODULE — managed by tooling, never edited by agents (spec P1).
  * A2APP PocketBase adapter. Require inside handlers:
  *
@@ -33,7 +44,7 @@ var ADAPTER_VERSION = '1.9.0';
 var RECORD_PATH = /^\/api\/collections\/([^\/]+)\/records(\/([^\/?]+))?$/;
 
 function rules() {
-  return require(__hooks + '/_a2app_rules.js');
+  return require(__hooks + '/_compat_rules.js');
 }
 
 /* ------------------------------------------------- PocketBase type mapping */
