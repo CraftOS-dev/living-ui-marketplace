@@ -1,0 +1,284 @@
+{
+  "events": [
+    {
+      "type": "papers_waiting",
+      "capability": "papers_waiting",
+      "description": "Asks your AI agent to identify PDFs added without metadata (it finds each one's DOI or arXiv ID; a person confirms)",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        }
+      },
+      "cooldownSeconds": 20
+    },
+    {
+      "type": "ocr_requested",
+      "capability": "ocr_requested",
+      "description": "Asks your AI agent to read scanned pages so they can be selected and quoted",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        }
+      },
+      "cooldownSeconds": 60
+    },
+    {
+      "type": "question_asked",
+      "capability": "question_asked",
+      "description": "Asks your AI agent a question typed in the app; the answer comes back with quotes",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "ask_id": {
+          "type": "string",
+          "required": true,
+          "description": "The question"
+        }
+      },
+      "cooldownSeconds": 10
+    },
+    {
+      "type": "claims_requested",
+      "capability": "claims_requested",
+      "description": "Asks your AI agent to map the claims and evidence of papers in a project's reading list (proposals a person confirms)",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "project_id": {
+          "type": "string",
+          "required": true,
+          "description": "The project"
+        },
+        "work_ids": {
+          "type": "string",
+          "description": "Comma-separated paper ids (empty: every unread paper)"
+        }
+      },
+      "cooldownSeconds": 30
+    },
+    {
+      "type": "access_requested",
+      "capability": "access_requested",
+      "description": "Asks your AI agent to find the full-text PDF of a paper (open access, or through your own library login)",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "work_id": {
+          "type": "string",
+          "required": true,
+          "description": "The paper"
+        }
+      },
+      "cooldownSeconds": 30
+    },
+    {
+      "type": "proposal_returned",
+      "capability": "proposal_returned",
+      "description": "Tells your AI agent a person returned one of its proposals with what to change",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "proposal_id": {
+          "type": "string",
+          "required": true,
+          "description": "The proposal"
+        }
+      },
+      "cooldownSeconds": 10
+    },
+    {
+      "type": "search_requested",
+      "capability": "search_requested",
+      "description": "Asks your AI agent for a deep search: it runs more queries and files candidates with reasons (nothing is added without you)",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "search_id": {
+          "type": "string",
+          "required": true,
+          "description": "The search"
+        }
+      },
+      "cooldownSeconds": 30
+    },
+    {
+      "type": "feed_review",
+      "capability": "feed_review",
+      "description": "Asks your AI agent to assess new candidates from saved-search alerts",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        }
+      },
+      "cooldownSeconds": 300
+    },
+    {
+      "type": "draft_requested",
+      "capability": "draft_requested",
+      "description": "Asks your AI agent to draft text for a manuscript as tracked changes you keep or undo",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "manuscript_id": {
+          "type": "string",
+          "required": true,
+          "description": "The manuscript"
+        },
+        "brief": {
+          "type": "string",
+          "description": "What to draft"
+        }
+      },
+      "cooldownSeconds": 30
+    },
+    {
+      "type": "support_check_requested",
+      "capability": "support_check_requested",
+      "description": "Asks your AI agent to check that each citation supports its sentence",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "manuscript_id": {
+          "type": "string",
+          "required": true,
+          "description": "The manuscript"
+        }
+      },
+      "cooldownSeconds": 30
+    },
+    {
+      "type": "responses_requested",
+      "capability": "responses_requested",
+      "description": "Asks your AI agent to split a review into comments and draft responses",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "review_id": {
+          "type": "string",
+          "required": true,
+          "description": "The review received"
+        }
+      },
+      "cooldownSeconds": 30
+    },
+    {
+      "type": "screening_requested",
+      "capability": "screening_requested",
+      "description": "Asks your AI agent to screen records as the blinded second reviewer",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "review_id": {
+          "type": "string",
+          "required": true,
+          "description": "The systematic review"
+        },
+        "stage": {
+          "type": "string",
+          "description": "title_abstract or full_text"
+        }
+      },
+      "cooldownSeconds": 30
+    },
+    {
+      "type": "experiment_requested",
+      "capability": "experiment_requested",
+      "description": "Asks your AI agent to plan an experiment (hypothesis, variables, protocol, materials) or analyze its runs (a proposed conclusion)",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "experiment_id": {
+          "type": "string",
+          "required": true,
+          "description": "The experiment"
+        },
+        "ask": {
+          "type": "string",
+          "required": true,
+          "description": "plan or analyze"
+        }
+      },
+      "cooldownSeconds": 30
+    },
+    {
+      "type": "task_assigned",
+      "capability": "task_assigned",
+      "description": "Hands your AI agent a task a person assigned to it in a project to-do list",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "task_id": {
+          "type": "string",
+          "required": true,
+          "description": "The task"
+        },
+        "project_id": {
+          "type": "string",
+          "required": true,
+          "description": "The project"
+        }
+      },
+      "cooldownSeconds": 10
+    },
+    {
+      "type": "references_requested",
+      "capability": "references_requested",
+      "description": "Asks your AI agent to resolve a paper's reference list",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "work_id": {
+          "type": "string",
+          "required": true,
+          "description": "The paper"
+        }
+      },
+      "cooldownSeconds": 30
+    }
+  ],
+  "conventions": {
+    "guide": "Every operation's parameters, and how to do each task the app queues, are in AGENT_APP.md in the app's directory."
+  }
+}

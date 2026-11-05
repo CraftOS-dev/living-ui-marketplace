@@ -1,0 +1,233 @@
+{
+  "events": [
+    {
+      "type": "agreement_extraction_requested",
+      "capability": "agreement_extraction_requested",
+      "description": "Can ask your agent to read a contract and propose the agreement, its rights grants and obligations for review",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "document_id": {
+          "type": "string",
+          "required": true,
+          "description": "documents record id"
+        }
+      },
+      "cooldownSeconds": 10
+    },
+    {
+      "type": "document_docketing_requested",
+      "capability": "document_docketing_requested",
+      "description": "Can ask your agent to read an office letter, platform notice or other dated document and propose the event and deadlines for review",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "document_id": {
+          "type": "string",
+          "required": true,
+          "description": "documents record id"
+        },
+        "subject_type": {
+          "type": "string",
+          "description": "Record type the uploader chose, if any"
+        },
+        "subject_id": {
+          "type": "string",
+          "description": "Record id the uploader chose, if any"
+        }
+      },
+      "cooldownSeconds": 5
+    },
+    {
+      "type": "approval_review_requested",
+      "capability": "approval_review_requested",
+      "description": "Can ask your agent to check a product submission against the style guide and licence, and draft review comments",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "approval_id": {
+          "type": "string",
+          "required": true
+        },
+        "lang": {
+          "type": "enum",
+          "values": [
+            "ja",
+            "en"
+          ]
+        }
+      },
+      "cooldownSeconds": 20
+    },
+    {
+      "type": "royalty_statement_requested",
+      "capability": "royalty_statement_requested",
+      "description": "Can ask your agent to read a licensee's sales report and propose the royalty statement lines for review",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "document_id": {
+          "type": "string",
+          "required": true
+        },
+        "agreement_id": {
+          "type": "string",
+          "required": true
+        }
+      },
+      "cooldownSeconds": 10
+    },
+    {
+      "type": "takedown_drafts_requested",
+      "capability": "takedown_drafts_requested",
+      "description": "Can ask your agent to draft the takedown notices for an enforcement case, ready for a person to check and send",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "case_id": {
+          "type": "string",
+          "required": true
+        },
+        "forum": {
+          "type": "enum",
+          "values": [
+            "dmca",
+            "jp_platform",
+            "marketplace",
+            "cease_desist",
+            "sender_disclosure",
+            "other"
+          ]
+        },
+        "lang": {
+          "type": "enum",
+          "values": [
+            "ja",
+            "en"
+          ]
+        }
+      },
+      "cooldownSeconds": 30
+    },
+    {
+      "type": "marketplace_scan_requested",
+      "capability": "marketplace_scan_requested",
+      "description": "Can ask your agent to look for counterfeit or unlicensed goods of a character or franchise on marketplaces and propose what it finds",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "character_id": {
+          "type": "string"
+        },
+        "franchise_id": {
+          "type": "string"
+        },
+        "marketplaces": {
+          "type": "string",
+          "description": "Comma-separated marketplace names"
+        }
+      },
+      "cooldownSeconds": 300
+    },
+    {
+      "type": "guideline_check_requested",
+      "capability": "guideline_check_requested",
+      "description": "Can ask your agent to re-read a game or music publisher's streaming guideline and propose any changes to the permission record",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "permission_id": {
+          "type": "string",
+          "required": true
+        }
+      },
+      "cooldownSeconds": 60
+    },
+    {
+      "type": "portfolio_question_asked",
+      "capability": "portfolio_question_asked",
+      "description": "Can ask your agent a question about your titles, characters, talents, rights, licences or trademarks and get a plain answer",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "question": {
+          "type": "string",
+          "required": true
+        },
+        "lang": {
+          "type": "enum",
+          "values": [
+            "ja",
+            "en"
+          ]
+        }
+      },
+      "cooldownSeconds": 5
+    },
+    {
+      "type": "email_draft_requested",
+      "capability": "email_draft_requested",
+      "description": "Can ask your agent to draft an email about a record, such as chasing an overdue statement or sending approval feedback",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "subject_type": {
+          "type": "string",
+          "required": true,
+          "description": "Record type, e.g. agreement, approval, royalty_report, renewal, consent_request, case, permission"
+        },
+        "subject_id": {
+          "type": "string",
+          "required": true
+        },
+        "purpose": {
+          "type": "string",
+          "required": true,
+          "description": "What the email is for"
+        },
+        "to": {
+          "type": "string",
+          "description": "Recipient email address"
+        },
+        "lang": {
+          "type": "enum",
+          "values": [
+            "ja",
+            "en"
+          ]
+        }
+      },
+      "cooldownSeconds": 30
+    }
+  ],
+  "conventions": {
+    "guide": "Every operation's parameters, and how to do each task the app queues, are in AGENT_APP.md in the app's directory."
+  }
+}

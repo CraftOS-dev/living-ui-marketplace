@@ -1,0 +1,55 @@
+{
+  "events": [
+    {
+      "type": "gather_requested",
+      "capability": "gather_requested",
+      "description": "Asks your AI agent to read the founders' links and files and fill the a16z speedrun application (it asks the founders for what it cannot find)",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "focus": {
+          "type": "string",
+          "description": "Anything the founders asked to focus on"
+        }
+      },
+      "cooldownSeconds": 30
+    },
+    {
+      "type": "message_sent",
+      "capability": "message_sent",
+      "description": "Hands your AI agent what a founder told it in the app",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "message_id": {
+          "type": "string",
+          "required": true,
+          "description": "The message"
+        }
+      },
+      "cooldownSeconds": 10
+    },
+    {
+      "type": "fill_form_requested",
+      "capability": "fill_form_requested",
+      "description": "Asks your AI agent to type the application into speedrun's form in its browser and stop before Submit application",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        }
+      },
+      "cooldownSeconds": 60
+    }
+  ],
+  "conventions": {
+    "guide": "Every operation's parameters, and how to do each task the app queues, are in AGENT_APP.md in the app's directory."
+  }
+}

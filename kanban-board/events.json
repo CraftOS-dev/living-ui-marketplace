@@ -1,0 +1,20 @@
+{
+  "events": [
+    {
+      "type": "work_waiting",
+      "capability": "work_waiting",
+      "description": "Cards on your Kanban Board are waiting for the agent (a card entered a column the agent works, was assigned to the agent, got an answer or was sent back for changes)",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        }
+      },
+      "cooldownSeconds": 20
+    }
+  ],
+  "conventions": {
+    "guide": "Every operation's parameters, and how to do each task the app queues, are in AGENT_APP.md in the app's directory."
+  }
+}

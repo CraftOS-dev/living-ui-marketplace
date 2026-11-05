@@ -9,7 +9,7 @@ function guide(app) {
   const K = require(`${__hooks}/lib_kinds.js`);
   const S = require(`${__hooks}/lib_stack.js`);
   const X = require(`${__hooks}/lib_export.js`);
-  const run = 'agent-app run <project>';
+  const run = 'a2app <app>';
   const pol = S.policy(app);
   const recent = app.findRecordsByFilter('images', 'id != ""', '-updated', 12, 0).map((r) => ({ id: r.id, name: r.getString('name'), size: r.getInt('width') + ' x ' + r.getInt('height'), format: r.getString('format'), edits: r.getInt('edits_count') }));
   const presets = app.findRecordsByFilter('presets', 'id != ""', 'kind,name', 100, 0).map((r) => ({ name: r.getString('name'), kind: r.getString('kind') }));
@@ -80,23 +80,23 @@ function guide(app) {
       out_of_memory: 'the engine ran out of memory; make the image smaller first (resize) or export fewer outputs at once',
     },
     recipes: {
-      'Bring images in': run + ' images.import --path "C:\\Users\\me\\Pictures\\photo.jpg" (or --paths \'["..",".."]\', or --folder "C:\\..\\shots" for every image in a folder). The answer gives each image\'s id, size and format.',
-      'What is selected in the app': run + ' app.context shows the open image, the selected images, the selected tool and any region the person drew.',
-      'Look at an image': run + ' images.render --image <id> (the current result); --original true for the untouched file; --region \'{"x":0,"y":0,"w":1200,"h":800}\' to read detail at full size.',
-      'Straighten and crop to a ratio': run + ' edits.add --image <id> --kind crop --params \'{"angle":-2.5,"ratio":"4:3","smart":true}\' --dry_run true, check the preview, then again without dry_run.',
-      'Make it web-ready': run + ' edits.apply --image <id> --preset "Web-ready photo" (Auto adjust, longest edge 2048), then export.estimate --image <id> --outputs \'[{"format":"webp","quality":"balanced"},{"format":"avif","quality":"balanced"},{"format":"jpeg","quality":"balanced"}]\' and export the smallest one that looks right.',
-      'Fit an email limit': run + ' export.create --image <id> --format jpeg --mode size --target_kb 500 (the answer says the quality it chose and whether it met the target).',
-      'Polish a screenshot': run + ' layers.add --image <id> --type redact --props \'{"cx":550,"cy":113,"w":260,"h":34,"name":"API key"}\', then --type arrow --props \'{"x1":200,"y1":520,"x2":400,"y2":380}\' and --type step --props \'{"cx":180,"cy":540,"size":40,"n":1}\', then edits.apply --preset "Screenshot polish" (padding, rounded corners, shadow on a gradient; the layers stay on their spots).',
-      'Cut out a product': run + ' edits.add --image <id> --kind remove_bg --params \'{"model":"fast","background":"#ffffff"}\', then --kind canvas --params \'{"ratio":"1:1","padding":80,"fill":"#ffffff"}\'.',
-      'Label something': run + ' layers.add --image <id> --type text --props \'{"cx":640,"cy":90,"size":56,"text":"New feature","color":"#ffffff","bg":"#111111"}\'; move it later with layers.update --layer <id> --props \'{"cx":700,"cy":120}\', turn it with --props \'{"rotation":-8}\'.',
-      'Watermark for a client': run + ' layers.add --image <id> --type logo --anchor frame --space layer --props \'{"cx":0.88,"cy":0.9,"w":0.2,"h":0.1,"asset":"<logo id>","opacity":0.7}\' (pinned to the frame: stays bottom right after any crop).',
-      'Social sizes from one image': run + ' presets.list --kind size, then export.create --image <id> --outputs \'[{"format":"jpeg","square":1080,"suffix":"-square"}]\' or apply a size preset with edits.apply --image <id> --preset "Instagram portrait" on a duplicate (images.duplicate) so the original stack stays.',
-      'Favicons': run + ' export.create --image <id> --preset "Favicon set" (favicon.ico with 16, 32 and 48 px, apple-touch-icon 180, icons 192 and 512).',
-      'Same edits on other images': run + ' edits.copy --from <image id> --to \'["<id>","<id>"]\' [--kinds \'["adjust","layer"]\'] (positions scale to each image\'s size).',
-      'Process a folder': run + ' batches.create --images \'["<id>",...]\' --recipe_preset "Web-ready photo" --outputs \'[{"format":"webp","quality":"balanced"}]\' --rename "{name}-web" --name "Blog photos", then batches.preview --batch <id> (names, sizes, a few real encodes), then batches.run --batch <id> (or leave it for the person, per the policy); batches.get shows progress and the files.',
-      'Describe images': run + ' images.render --image <id>, write a short alt text (what it shows and why it matters, under 125 characters) and images.update --image <id> --alt_text "..." --keywords \'["..",".."]\'; exports carry the alt text as the description.',
-      'Undo': run + ' history.list --image <id> shows batches (newest first) with kind edit, undo or redo; history.undo --image <id> steps back one batch, history.redo forward; history.revert --batch <id> undoes a specific batch.',
-      'See what changed in quality': run + ' export.compare --image <id> --format webp --quality small returns a before and after crop at 100 % (paths) so you can judge artefacts.',
+      'Bring images in': run + ' images images.import --path "C:\\Users\\me\\Pictures\\photo.jpg" (or --paths \'["..",".."]\', or --folder "C:\\..\\shots" for every image in a folder). The answer gives each image\'s id, size and format.',
+      'What is selected in the app': run + ' app app.context shows the open image, the selected images, the selected tool and any region the person drew.',
+      'Look at an image': run + ' images images.render --image <id> (the current result); --original true for the untouched file; --region \'{"x":0,"y":0,"w":1200,"h":800}\' to read detail at full size.',
+      'Straighten and crop to a ratio': run + ' edits edits.add --image <id> --kind crop --params \'{"angle":-2.5,"ratio":"4:3","smart":true}\' --dry_run true, check the preview, then again without dry_run.',
+      'Make it web-ready': run + ' edits edits.apply --image <id> --preset "Web-ready photo" (Auto adjust, longest edge 2048), then export.estimate --image <id> --outputs \'[{"format":"webp","quality":"balanced"},{"format":"avif","quality":"balanced"},{"format":"jpeg","quality":"balanced"}]\' and export the smallest one that looks right.',
+      'Fit an email limit': run + ' export export.create --image <id> --format jpeg --mode size --target_kb 500 (the answer says the quality it chose and whether it met the target).',
+      'Polish a screenshot': run + ' layers layers.add --image <id> --type redact --props \'{"cx":550,"cy":113,"w":260,"h":34,"name":"API key"}\', then --type arrow --props \'{"x1":200,"y1":520,"x2":400,"y2":380}\' and --type step --props \'{"cx":180,"cy":540,"size":40,"n":1}\', then edits.apply --preset "Screenshot polish" (padding, rounded corners, shadow on a gradient; the layers stay on their spots).',
+      'Cut out a product': run + ' edits edits.add --image <id> --kind remove_bg --params \'{"model":"fast","background":"#ffffff"}\', then --kind canvas --params \'{"ratio":"1:1","padding":80,"fill":"#ffffff"}\'.',
+      'Label something': run + ' layers layers.add --image <id> --type text --props \'{"cx":640,"cy":90,"size":56,"text":"New feature","color":"#ffffff","bg":"#111111"}\'; move it later with layers.update --layer <id> --props \'{"cx":700,"cy":120}\', turn it with --props \'{"rotation":-8}\'.',
+      'Watermark for a client': run + ' layers layers.add --image <id> --type logo --anchor frame --space layer --props \'{"cx":0.88,"cy":0.9,"w":0.2,"h":0.1,"asset":"<logo id>","opacity":0.7}\' (pinned to the frame: stays bottom right after any crop).',
+      'Social sizes from one image': run + ' presets presets.list --kind size, then export.create --image <id> --outputs \'[{"format":"jpeg","square":1080,"suffix":"-square"}]\' or apply a size preset with edits.apply --image <id> --preset "Instagram portrait" on a duplicate (images.duplicate) so the original stack stays.',
+      'Favicons': run + ' export export.create --image <id> --preset "Favicon set" (favicon.ico with 16, 32 and 48 px, apple-touch-icon 180, icons 192 and 512).',
+      'Same edits on other images': run + ' edits edits.copy --from <image id> --to \'["<id>","<id>"]\' [--kinds \'["adjust","layer"]\'] (positions scale to each image\'s size).',
+      'Process a folder': run + ' batches batches.create --images \'["<id>",...]\' --recipe_preset "Web-ready photo" --outputs \'[{"format":"webp","quality":"balanced"}]\' --rename "{name}-web" --name "Blog photos", then batches.preview --batch <id> (names, sizes, a few real encodes), then batches.run --batch <id> (or leave it for the person, per the policy); batches.get shows progress and the files.',
+      'Describe images': run + ' images images.render --image <id>, write a short alt text (what it shows and why it matters, under 125 characters) and images.update --image <id> --alt_text "..." --keywords \'["..",".."]\'; exports carry the alt text as the description.',
+      'Undo': run + ' history history.list --image <id> shows batches (newest first) with kind edit, undo or redo; history.undo --image <id> steps back one batch, history.redo forward; history.revert --batch <id> undoes a specific batch.',
+      'See what changed in quality': run + ' export export.compare --image <id> --format webp --quality small returns a before and after crop at 100 % (paths) so you can judge artefacts.',
     },
     export_folder: require(`${__hooks}/lib_app.js`).settingsJson(app).export_folder || '(not set: the person sets it in Settings; until then exports stay in the app)',
   };

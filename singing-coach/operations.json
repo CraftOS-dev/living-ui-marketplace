@@ -1,300 +1,64 @@
 {
-  "opsVersion": 1,
   "operations": [
     {
-      "name": "health",
-      "description": "Liveness check (PocketBase built-in).",
-      "system": true,
-      "params": {},
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/health"
-      }
-    },
-    {
-      "name": "ops.list",
-      "description": "Return this operations manifest.",
-      "system": true,
-      "params": {},
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/_ops"
-      }
-    },
-    {
       "name": "app.guide",
-      "description": "Start here: what the app is, how songs are written in ABC with words (w: lines), the levels, the vocalises, the microphone's limits, the health rules, the protocols for song requests, questions and session reviews.",
-      "label": "Guide app",
+      "description": "What the app is, how songs are written in ABC with words (w: lines), the levels, the vocalises, the microphone's limits, the health rules…",
+      "destructive": false,
       "readOnly": true,
-      "returns": "summary",
+      "module": "app",
       "params": {
         "topic": {
           "type": "string",
           "description": "one part only: protocol|words|recordings|abc|health|levels|curriculum (all when left out)"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/app/guide"
       }
     },
     {
       "name": "app.state",
       "description": "The shell's one call: settings, the voice, today's health and load, unread coach messages, the open session.",
-      "label": "State app",
+      "destructive": false,
       "readOnly": true,
-      "returns": "summary",
-      "params": {},
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/app/state"
-      }
+      "module": "app",
+      "params": {}
     },
     {
       "name": "app.context",
       "description": "What the person is looking at right now (view, song, bars, mode, key, lesson or drill) and their voice.",
-      "label": "Context app",
+      "destructive": false,
       "readOnly": true,
-      "returns": "summary",
-      "params": {},
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/app/context"
-      }
-    },
-    {
-      "name": "app.ui",
-      "description": "The page reports where the person is. (person only)",
-      "label": "Ui app",
-      "returns": "record",
-      "params": {
-        "view": {
-          "type": "string",
-          "description": "today|learn|train|library|reference|practice|exercise|edit|coach|settings",
-          "required": true
-        },
-        "song": {
-          "type": "string",
-          "description": "song id"
-        },
-        "mode": {
-          "type": "string",
-          "description": "practice mode"
-        },
-        "from": {
-          "type": "number",
-          "description": "first bar"
-        },
-        "to": {
-          "type": "number",
-          "description": "last bar"
-        },
-        "tempo": {
-          "type": "number",
-          "description": "tempo %"
-        },
-        "key": {
-          "type": "number",
-          "description": "key shift"
-        },
-        "lesson": {
-          "type": "string",
-          "description": "lesson key"
-        },
-        "skill": {
-          "type": "string",
-          "description": "skill key"
-        },
-        "title": {
-          "type": "string",
-          "description": "exercise title"
-        }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/app/ui"
-      }
+      "module": "app",
+      "params": {}
     },
     {
       "name": "settings.get",
       "description": "The settings.",
-      "label": "Get setting",
+      "destructive": false,
       "readOnly": true,
-      "returns": "summary",
-      "params": {},
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/settings/get"
-      }
-    },
-    {
-      "name": "settings.update",
-      "description": "Change settings (the person only).",
-      "label": "Update setting",
-      "returns": "record",
-      "params": {
-        "daily_minutes": {
-          "type": "number",
-          "description": "5-180"
-        },
-        "strictness": {
-          "type": "string",
-          "description": "lenient|normal|strict"
-        },
-        "feedback": {
-          "type": "string",
-          "description": "auto|full|after"
-        },
-        "guide": {
-          "type": "string",
-          "description": "voice|piano|start|off"
-        },
-        "under18": {
-          "type": "boolean",
-          "description": "under-18 mode"
-        },
-        "coach_reviews": {
-          "type": "boolean",
-          "description": "session reviews on"
-        },
-        "coach_plans": {
-          "type": "boolean",
-          "description": "coach plans on"
-        }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/settings/update"
-      }
+      "module": "settings",
+      "params": {}
     },
     {
       "name": "voice.get",
       "description": "The singer's voice: measured range, comfortable range, voice family and clef, passaggio estimate, sustain, history of range tests.",
-      "label": "Get voice",
+      "destructive": false,
       "readOnly": true,
-      "returns": "summary",
-      "params": {},
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/voice/get"
-      }
-    },
-    {
-      "name": "voice.test",
-      "description": "Save a range test the person sang (the person only).",
-      "label": "Test voice",
-      "returns": "record",
-      "params": {
-        "low": {
-          "type": "number",
-          "description": "lowest note held a second (MIDI)",
-          "required": true
-        },
-        "high": {
-          "type": "number",
-          "description": "highest note held a second (MIDI)",
-          "required": true
-        },
-        "speaking_hz": {
-          "type": "number",
-          "description": "speaking pitch"
-        },
-        "sustain_s": {
-          "type": "number",
-          "description": "seconds on one breath"
-        },
-        "kind": {
-          "type": "string",
-          "description": "onboarding|quick|full|manual"
-        },
-        "breaks": {
-          "type": "string",
-          "description": "pitch jumps found in glides [{at, jump}] (JSON)"
-        }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/voice/test"
-      }
+      "module": "voice",
+      "params": {}
     },
     {
       "name": "health.get",
-      "description": "Voice health: today's load against the cap, light or rest day, flags (heavy yesterday, pain, bad check-in, ramp, see a doctor), voice checks of 60 days, voiced minutes of 28 days.",
-      "label": "Get health",
+      "description": "Voice health: today's load against the cap, light or rest day, flags (heavy yesterday, pain, bad check-in, ramp, see a doctor), voice…",
+      "destructive": false,
       "readOnly": true,
-      "returns": "summary",
-      "params": {},
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/health/get"
-      }
-    },
-    {
-      "name": "health.checkin",
-      "description": "The person answers a voice check (1 = fine to 5 = bad). (person only)",
-      "label": "Checkin health",
-      "returns": "record",
-      "params": {
-        "when": {
-          "type": "string",
-          "description": "before|after|other"
-        },
-        "hoarse": {
-          "type": "number",
-          "description": "1-5"
-        },
-        "effort": {
-          "type": "number",
-          "description": "1-5"
-        },
-        "discomfort": {
-          "type": "number",
-          "description": "1-5"
-        },
-        "high_loss": {
-          "type": "number",
-          "description": "1-5"
-        },
-        "clearing": {
-          "type": "number",
-          "description": "1-5"
-        },
-        "pain": {
-          "type": "boolean",
-          "description": "pain"
-        },
-        "sz_ratio": {
-          "type": "number",
-          "description": "s/z ratio"
-        },
-        "note": {
-          "type": "string",
-          "description": "a note"
-        }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/health/checkin"
-      }
+      "module": "health",
+      "params": {}
     },
     {
       "name": "songs.list",
       "description": "The library (lean for the agent): id, title, level, language, range and span, status, key shift, sections with stages.",
-      "label": "List song",
+      "destructive": false,
       "readOnly": true,
-      "returns": "summary",
+      "module": "songs",
       "params": {
         "q": {
           "type": "string",
@@ -320,46 +84,36 @@
           "type": "boolean",
           "description": "removed songs"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/songs/list"
       }
     },
     {
       "name": "songs.get",
       "description": "One song: details, sections and stages, its fit for this voice, recent takes; --abc true adds the notation.",
-      "label": "Get song",
+      "destructive": false,
       "readOnly": true,
-      "returns": "summary",
+      "module": "songs",
       "params": {
         "song": {
           "type": "string",
-          "description": "song id",
-          "required": true
+          "required": true,
+          "description": "song id"
         },
         "abc": {
           "type": "boolean",
           "description": "include the notation"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/songs/get"
       }
     },
     {
       "name": "songs.check",
-      "description": "Check ABC notation with words without saving: every problem by line, verse and bar, the singing checks for the level (span, breath, source), the summary and the key that fits the singer.",
-      "label": "Check song",
-      "returns": "record",
+      "description": "Check ABC notation with words without saving: every problem by line, verse and bar, the singing checks for the level (span, breath…",
+      "destructive": false,
+      "module": "songs",
       "params": {
         "abc": {
           "type": "string",
-          "description": "the notation; pass it from a file: --abc \"$(cat song.abc)\"",
-          "required": true
+          "required": true,
+          "description": "the notation; pass it from a file: --abc \"$(cat song.abc)\""
         },
         "level": {
           "type": "number",
@@ -373,23 +127,18 @@
           "type": "string",
           "description": "check it as a change to this song (the rules songs.update applies), with what it changes"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/songs/check"
       }
     },
     {
       "name": "songs.add",
       "description": "Add a song or vocalise (refused with every problem listed when the notation, words, span or source are not right).",
-      "label": "Add song",
-      "returns": "record",
+      "destructive": false,
+      "module": "songs",
       "params": {
         "abc": {
           "type": "string",
-          "description": "the notation with w: lines",
-          "required": true
+          "required": true,
+          "description": "the notation with w: lines"
         },
         "level": {
           "type": "number",
@@ -427,23 +176,18 @@
           "type": "boolean",
           "description": "add another version of a title"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/songs/add"
       }
     },
     {
       "name": "songs.update",
       "description": "Change a song's details, its sections, the coach's note, the gloss or the notation (sections whose bars did not change keep their progress).",
-      "label": "Update song",
-      "returns": "record",
+      "destructive": false,
+      "module": "songs",
       "params": {
         "song": {
           "type": "string",
-          "description": "song id",
-          "required": true
+          "required": true,
+          "description": "song id"
         },
         "note": {
           "type": "string",
@@ -481,24 +225,19 @@
           "type": "string",
           "description": "song|vocalise"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/songs/update"
       }
     },
     {
       "name": "songs.words",
-      "description": "A song's words bar by bar: each sung note with its syllable in each verse, and the notation line it is written on. Read it before changing words, and name bars as it numbers them (a pickup is bar 0).",
-      "label": "Words song",
+      "description": "A song's words bar by bar: each sung note with its syllable in each verse, and the notation line it is written on.",
+      "destructive": false,
       "readOnly": true,
-      "returns": "summary",
+      "module": "songs",
       "params": {
         "song": {
           "type": "string",
-          "description": "song id",
-          "required": true
+          "required": true,
+          "description": "song id"
         },
         "bars": {
           "type": "string",
@@ -508,28 +247,23 @@
           "type": "number",
           "description": "one verse (1 = the first)"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/songs/words"
       }
     },
     {
       "name": "songs.shift-words",
-      "description": "Move a verse's words one note earlier (--by -1) or later (--by 1), from one note to the end of its phrase (or of the song): the fix for words a note late or early. Answers with the bars as they now are.",
-      "label": "Shift words song",
-      "returns": "record",
+      "description": "Move a verse's words one note earlier (--by -1) or later (--by 1), from one note to the end of its phrase (or of the song): the fix for…",
+      "destructive": false,
+      "module": "songs",
       "params": {
         "song": {
           "type": "string",
-          "description": "song id",
-          "required": true
+          "required": true,
+          "description": "song id"
         },
         "bar": {
           "type": "number",
-          "description": "the bar of the first syllable to move (as songs.words numbers it)",
-          "required": true
+          "required": true,
+          "description": "the bar of the first syllable to move (as songs.words numbers it)"
         },
         "note": {
           "type": "number",
@@ -537,8 +271,8 @@
         },
         "by": {
           "type": "number",
-          "description": "-1 earlier or 1 later",
-          "required": true
+          "required": true,
+          "description": "-1 earlier or 1 later"
         },
         "verse": {
           "type": "number",
@@ -548,201 +282,41 @@
           "type": "string",
           "description": "phrase (default) or song"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/songs/shift-words"
       }
     },
     {
       "name": "songs.set-words",
-      "description": "Lay words on the sung notes of some bars, in order: spaces part words, hyphens part syllables, each Japanese, Chinese or Korean character is a syllable, _ holds one over the next note; notes left over hold the last syllable. A new verse number adds a verse. Answers with the bars as they now are.",
-      "label": "Set words song",
-      "returns": "record",
+      "description": "Lay words on the sung notes of some bars, in order: spaces part words, hyphens part syllables, each Japanese, Chinese or Korean character…",
+      "destructive": false,
+      "module": "songs",
       "params": {
         "song": {
           "type": "string",
-          "description": "song id",
-          "required": true
+          "required": true,
+          "description": "song id"
         },
         "bars": {
           "type": "string",
-          "description": "a bar or a range, e.g. 4-7",
-          "required": true
+          "required": true,
+          "description": "a bar or a range, e.g. 4-7"
         },
         "text": {
           "type": "string",
-          "description": "the words, e.g. \"sa-i go no ki-su wa\"",
-          "required": true
+          "required": true,
+          "description": "the words, e.g. \"sa-i go no ki-su wa\""
         },
         "verse": {
           "type": "number",
           "description": "default 1"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/songs/set-words"
-      }
-    },
-    {
-      "name": "songs.open",
-      "description": "The person opens a song to sing (the model, the key that fits). (person only)",
-      "label": "Open song",
-      "returns": "record",
-      "params": {
-        "song": {
-          "type": "string",
-          "description": "song id",
-          "required": true
-        }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/songs/open"
-      }
-    },
-    {
-      "name": "songs.transpose",
-      "description": "The person sings a song in another key (semitones; stages are kept per key). (person only)",
-      "label": "Transpose song",
-      "returns": "record",
-      "params": {
-        "song": {
-          "type": "string",
-          "description": "song id",
-          "required": true
-        },
-        "shift": {
-          "type": "number",
-          "description": "-12..12",
-          "required": true
-        }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/songs/transpose"
-      }
-    },
-    {
-      "name": "songs.backing",
-      "description": "Attach the recording a song was made from as its backing track (multipart: file, map with the beats found); then, with part=voice or part=music, the voice or the music separated from it (ogg, opus, wav or webm); or take them all off with remove=true. (person only)",
-      "label": "Backing song",
-      "returns": "record",
-      "params": {
-        "song": {
-          "type": "string",
-          "description": "song id",
-          "required": true
-        },
-        "map": {
-          "type": "string",
-          "description": "{bpm, beats, downbeat, beat_q, bar1_q, duration, channels, source} (JSON)"
-        },
-        "part": {
-          "type": "string",
-          "description": "recording|voice|music (default recording)"
-        },
-        "remove": {
-          "type": "boolean",
-          "description": "take the recording, voice and music off"
-        }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/songs/backing"
-      }
-    },
-    {
-      "name": "songs.remove",
-      "description": "Remove a song from the library (restorable). (person only)",
-      "label": "Remove song",
-      "destructive": true,
-      "returns": "record",
-      "params": {
-        "song": {
-          "type": "string",
-          "description": "song id",
-          "required": true
-        }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/songs/remove"
-      }
-    },
-    {
-      "name": "songs.restore",
-      "description": "Restore a removed song. (person only)",
-      "label": "Restore song",
-      "returns": "record",
-      "params": {
-        "song": {
-          "type": "string",
-          "description": "song id",
-          "required": true
-        }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/songs/restore"
-      }
-    },
-    {
-      "name": "songs.reset",
-      "description": "Start a song over (its sections back to new). (person only)",
-      "label": "Reset song",
-      "destructive": true,
-      "returns": "record",
-      "params": {
-        "song": {
-          "type": "string",
-          "description": "song id",
-          "required": true
-        }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/songs/reset"
-      }
-    },
-    {
-      "name": "runs.save",
-      "description": "Save one take (the practice screen does this after every take). (person only)",
-      "label": "Save run",
-      "returns": "record",
-      "params": {
-        "song": {
-          "type": "string",
-          "description": "song id",
-          "required": true
-        },
-        "mode": {
-          "type": "string",
-          "description": "listen|echo|sing|solo",
-          "required": true
-        }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/runs/save"
       }
     },
     {
       "name": "runs.list",
       "description": "Recent takes with their numbers (pitch share, in-tune share, cents bias, steadiness, vibrato, timing).",
-      "label": "List run",
+      "destructive": false,
       "readOnly": true,
-      "returns": "summary",
+      "module": "runs",
       "params": {
         "days": {
           "type": "number",
@@ -756,253 +330,111 @@
           "type": "number",
           "description": "1-500"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/runs/list"
       }
     },
     {
       "name": "runs.get",
       "description": "One take in detail: per phrase and per note (status, cents, onset, scoop/fall/vibrato flags).",
-      "label": "Get run",
+      "destructive": false,
       "readOnly": true,
-      "returns": "summary",
+      "module": "runs",
       "params": {
         "run": {
           "type": "string",
-          "description": "run id",
-          "required": true
+          "required": true,
+          "description": "run id"
         },
         "track": {
           "type": "boolean",
           "description": "include the pitch track"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/runs/get"
-      }
-    },
-    {
-      "name": "runs.dispute",
-      "description": "The person disputes a judged note; the take is scored again without it. (person only)",
-      "label": "Dispute run",
-      "returns": "record",
-      "params": {
-        "run": {
-          "type": "string",
-          "description": "run id",
-          "required": true
-        },
-        "note": {
-          "type": "number",
-          "description": "melody note index",
-          "required": true
-        }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/runs/dispute"
-      }
-    },
-    {
-      "name": "runs.track",
-      "description": "Store a take's pitch track (and audio when recordings are kept). (person only)",
-      "label": "Track run",
-      "returns": "record",
-      "params": {
-        "run": {
-          "type": "string",
-          "description": "run id",
-          "required": true
-        },
-        "frames": {
-          "type": "string",
-          "description": "base64 frames",
-          "required": true
-        }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/runs/track"
-      }
-    },
-    {
-      "name": "runs.forget-audio",
-      "description": "Delete every stored recording. (person only)",
-      "label": "Forget audio run",
-      "destructive": true,
-      "returns": "record",
-      "params": {},
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/runs/forget-audio"
       }
     },
     {
       "name": "sessions.list",
       "description": "Practice sessions: minutes, voiced minutes, vocal dose, warm-up and cool-down, songs, reviews.",
-      "label": "List session",
+      "destructive": false,
       "readOnly": true,
-      "returns": "summary",
+      "module": "sessions",
       "params": {
         "limit": {
           "type": "number",
           "description": "1-200"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/sessions/list"
       }
     },
     {
       "name": "sessions.get",
       "description": "One session with its takes.",
-      "label": "Get session",
+      "destructive": false,
       "readOnly": true,
-      "returns": "summary",
+      "module": "sessions",
       "params": {
         "session": {
           "type": "string",
-          "description": "session id",
-          "required": true
-        }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/sessions/get"
-      }
-    },
-    {
-      "name": "sessions.end",
-      "description": "The person ends the session (asks the coach for a review when it lasted 3 minutes or more). (person only)",
-      "label": "End session",
-      "returns": "record",
-      "params": {
-        "session": {
-          "type": "string",
+          "required": true,
           "description": "session id"
-        },
-        "pain": {
-          "type": "boolean",
-          "description": "ended because it hurt"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/sessions/end"
       }
     },
     {
       "name": "sessions.review",
-      "description": "The coach writes the session's review (3-6 sentences; writing again replaces it). (coach only)",
-      "label": "Review session",
-      "returns": "record",
+      "description": "The coach writes the session's review (3-6 sentences; writing again replaces it).",
+      "destructive": false,
+      "module": "sessions",
       "params": {
         "session": {
           "type": "string",
-          "description": "session id",
-          "required": true
+          "required": true,
+          "description": "session id"
         },
         "text": {
           "type": "string",
-          "description": "the review",
-          "required": true
+          "required": true,
+          "description": "the review"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/sessions/review"
       }
     },
     {
       "name": "review.pack",
-      "description": "Everything to review a session, under about 6,000 characters: takes with numbers, the weakest phrase and its words, stage changes, drills, lessons, voice checks, health flags, units, and what the microphone cannot hear.",
-      "label": "Pack review",
+      "description": "Everything to review a session, under about 6,000 characters: takes with numbers, the weakest phrase and its words, stage changes, drills…",
+      "destructive": false,
       "readOnly": true,
-      "returns": "summary",
+      "module": "review",
       "params": {
         "session": {
           "type": "string",
           "description": "session id (default the latest)"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/review/pack"
       }
     },
     {
       "name": "coach.list",
       "description": "The conversation.",
-      "label": "List coach",
+      "destructive": false,
       "readOnly": true,
-      "returns": "summary",
-      "params": {},
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/coach/list"
-      }
+      "module": "coach",
+      "params": {}
     },
     {
       "name": "coach.get",
       "description": "One message of the person's with what they were looking at, the conversation before it, their level, voice and health.",
-      "label": "Get coach",
+      "destructive": false,
       "readOnly": true,
-      "returns": "summary",
+      "module": "coach",
       "params": {
         "message": {
           "type": "string",
-          "description": "message id",
-          "required": true
+          "required": true,
+          "description": "message id"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/coach/get"
-      }
-    },
-    {
-      "name": "coach.send",
-      "description": "The person writes to the coach. (person only)",
-      "label": "Send coach",
-      "returns": "record",
-      "params": {
-        "text": {
-          "type": "string",
-          "description": "the message",
-          "required": true
-        },
-        "kind": {
-          "type": "string",
-          "description": "chat|request"
-        }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/coach/send"
       }
     },
     {
       "name": "coach.reply",
-      "description": "The coach answers a message (songs added with --message show under it). --message is required; to write to the person unasked (a plan, a nudge), pass --new true instead. (coach only)",
-      "label": "Reply coach",
-      "returns": "record",
+      "description": "The coach answers a message (songs added with --message show under it).",
+      "destructive": false,
+      "module": "coach",
       "params": {
         "message": {
           "type": "string",
@@ -1010,8 +442,8 @@
         },
         "text": {
           "type": "string",
-          "description": "the answer",
-          "required": true
+          "required": true,
+          "description": "the answer"
         },
         "new": {
           "type": "boolean",
@@ -1021,123 +453,44 @@
           "type": "boolean",
           "description": "could not do it"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/coach/reply"
       }
     },
     {
       "name": "coach.unsend",
-      "description": "Take back one of the coach's own messages (a mistake): within 30 minutes and before the person has read it; the question it answered waits again. (coach only)",
-      "label": "Unsend coach",
-      "returns": "record",
+      "description": "Take back one of the coach's own messages (a mistake): within 30 minutes and before the person has read it; the question it answered waits…",
+      "destructive": false,
+      "module": "coach",
       "params": {
         "message": {
           "type": "string",
-          "description": "id of the coach's message",
-          "required": true
+          "required": true,
+          "description": "id of the coach's message"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/coach/unsend"
-      }
-    },
-    {
-      "name": "coach.read",
-      "description": "The person has read the coach's messages. (person only)",
-      "label": "Read coach",
-      "returns": "record",
-      "params": {},
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/coach/read"
-      }
-    },
-    {
-      "name": "coach.retry",
-      "description": "Ask the coach again. (person only)",
-      "label": "Retry coach",
-      "returns": "record",
-      "params": {
-        "message": {
-          "type": "string",
-          "description": "message id",
-          "required": true
-        }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/coach/retry"
       }
     },
     {
       "name": "plan.today",
       "description": "Today's plan (stored, or the rules' plan): blocks with kind, minutes, why, sitting.",
-      "label": "Today plan",
+      "destructive": false,
       "readOnly": true,
-      "returns": "summary",
+      "module": "plan",
       "params": {
         "day": {
           "type": "string",
           "description": "YYYY-MM-DD"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/plan/today"
-      }
-    },
-    {
-      "name": "plan.start",
-      "description": "The person starts today's plan. (person only)",
-      "label": "Start plan",
-      "returns": "record",
-      "params": {},
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/plan/start"
-      }
-    },
-    {
-      "name": "plan.done",
-      "description": "Tick a block of today's plan. (person only)",
-      "label": "Done plan",
-      "returns": "record",
-      "params": {
-        "block": {
-          "type": "number",
-          "description": "block index",
-          "required": true
-        },
-        "undo": {
-          "type": "boolean",
-          "description": "untick"
-        }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/plan/done"
       }
     },
     {
       "name": "plan.set",
-      "description": "The coach proposes a plan (today if not started, else tomorrow), checked against the health rules: warm-up first (5 min+), cool-down last (3 min+), near the goal, songs that fit the voice, gentle work on light days, no singing on rest days.",
-      "label": "Set plan",
-      "returns": "record",
+      "description": "The coach proposes a plan (today if not started, else tomorrow), checked against the health rules: warm-up first (5 min+), cool-down last…",
+      "destructive": false,
+      "module": "plan",
       "params": {
         "blocks": {
           "type": "string",
-          "description": "a JSON list of blocks (see app.guide) (JSON)",
-          "required": true
+          "required": true,
+          "description": "a JSON list of blocks (see app.guide) (JSON)"
         },
         "note": {
           "type": "string",
@@ -1147,187 +500,89 @@
           "type": "string",
           "description": "YYYY-MM-DD"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/plan/set"
-      }
-    },
-    {
-      "name": "plan.reset",
-      "description": "Back to the app's own plan for today. (person only)",
-      "label": "Reset plan",
-      "destructive": true,
-      "returns": "record",
-      "params": {},
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/plan/reset"
       }
     },
     {
       "name": "stats.home",
-      "description": "The dashboard: 30 days of minutes, voiced minutes, pitch and in-tune shares, steadiness; streak; level; voice; load; voice map; songs in progress.",
-      "label": "Home stat",
+      "description": "The dashboard: 30 days of minutes, voiced minutes, pitch and in-tune shares, steadiness; streak; level; voice; load; voice map; songs in…",
+      "destructive": false,
       "readOnly": true,
-      "returns": "summary",
-      "params": {},
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/stats/home"
-      }
+      "module": "stats",
+      "params": {}
     },
     {
       "name": "stats.song",
       "description": "One song over time: tempo ladders per section, minutes and pitch share per day, trouble bars.",
-      "label": "Song stat",
+      "destructive": false,
       "readOnly": true,
-      "returns": "summary",
+      "module": "stats",
       "params": {
         "song": {
           "type": "string",
-          "description": "song id",
-          "required": true
+          "required": true,
+          "description": "song id"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/stats/song"
       }
     },
     {
       "name": "stats.voice",
       "description": "The voice over time: range tests, steadiness, sustain, health and load, the voice map.",
-      "label": "Voice stat",
+      "destructive": false,
       "readOnly": true,
-      "returns": "summary",
-      "params": {},
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/stats/voice"
-      }
+      "module": "stats",
+      "params": {}
     },
     {
       "name": "learn.state",
-      "description": "The curriculum and the path (lean for the agent): level, lessons done, the next lesson, the weakest requirement and skill, what the level still misses, plan block examples.",
-      "label": "State learn",
+      "description": "The curriculum and the path (lean for the agent): level, lessons done, the next lesson, the weakest requirement and skill, what the level…",
+      "destructive": false,
       "readOnly": true,
-      "returns": "summary",
-      "params": {},
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/learn/state"
-      }
-    },
-    {
-      "name": "learn.lesson",
-      "description": "The person finished a lesson. (person only)",
-      "label": "Lesson learn",
-      "returns": "record",
-      "params": {
-        "lesson": {
-          "type": "string",
-          "description": "lesson key",
-          "required": true
-        },
-        "score": {
-          "type": "number",
-          "description": "0-1"
-        }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/learn/lesson"
-      }
-    },
-    {
-      "name": "drills.save",
-      "description": "Save a drill run. (person only)",
-      "label": "Save drill",
-      "returns": "record",
-      "params": {
-        "drill": {
-          "type": "string",
-          "description": "quiz|sing|speak|exercise|sight",
-          "required": true
-        },
-        "skill": {
-          "type": "string",
-          "description": "skill key",
-          "required": true
-        }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/drills/save"
-      }
+      "module": "learn",
+      "params": {}
     },
     {
       "name": "drills.list",
       "description": "Recent drill runs.",
-      "label": "List drill",
+      "destructive": false,
       "readOnly": true,
-      "returns": "summary",
+      "module": "drills",
       "params": {
         "days": {
           "type": "number",
           "description": "1-400"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/drills/list"
       }
     },
     {
       "name": "abc.parse",
       "description": "Parse notation into the practice model without saving.",
-      "label": "Parse abc",
-      "returns": "record",
+      "destructive": false,
+      "module": "abc",
       "params": {
         "abc": {
           "type": "string",
-          "description": "the notation",
-          "required": true
+          "required": true,
+          "description": "the notation"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/abc/parse"
       }
     },
     {
       "name": "models.part",
-      "description": "One 16 MB part of a model file the page uses to turn a recording into a song: Demucs (voice and music apart) and Whisper (the words), fetched once from Hugging Face at a pinned revision and kept on this computer. Answers bytes, not JSON; the page asks for these, an agent has no need to.",
-      "label": "Part model",
+      "description": "One 16 MB part of a model file the page uses to turn a recording into a song: Demucs (voice and music apart) and Whisper (the words)…",
+      "destructive": false,
       "readOnly": true,
-      "returns": "summary",
+      "module": "models",
       "params": {
         "f": {
           "type": "string",
-          "description": "the file: demucs, whisper/config.json, whisper/onnx/encoder_model_q4.onnx…",
-          "required": true
+          "required": true,
+          "description": "the file: demucs, whisper/config.json, whisper/onnx/encoder_model_q4.onnx…"
         },
         "i": {
           "type": "number",
-          "description": "the part, from 0",
-          "required": true
+          "required": true,
+          "description": "the part, from 0"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/models/part"
       }
     }
   ]

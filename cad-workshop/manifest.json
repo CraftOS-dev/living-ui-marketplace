@@ -1,30 +1,138 @@
 {
-  "id": "{{PROJECT_ID}}",
-  "name": "{{PROJECT_NAME}}",
-  "description": "{{PROJECT_DESCRIPTION}}",
-  "agentAppVersion": 2,
-  "createdAt": "{{CREATED_AT}}",
+  "id": "cad-workshop",
+  "name": "CAD Workshop",
+  "agentAppVersion": "0.1.0",
+  "adapterVersion": "0.2.0",
+  "appVersion": "1.0.0",
   "authMode": "none",
-  "port": "{{PORT}}",
-  "pbVersion": "0.39.7",
-  "kitVersion": "0.6.0",
-  "craftbotVersion": "1.4.3",
-  "pipeline": {
-    "install": "npm install --ignore-scripts --prefix frontend",
-    "build": "npm run build --prefix frontend",
-    "start": "pocketbase serve --http=127.0.0.1:{{PORT}} --dir pb/pb_data --hooksDir pb/pb_hooks --migrationsDir pb/pb_migrations --publicDir pb/pb_public",
-    "health": "/api/health"
-  },
+  "modules": [
+    {
+      "name": "app",
+      "summary": "guide, status",
+      "entities": []
+    },
+    {
+      "name": "settings",
+      "summary": "get, update",
+      "entities": [
+        "settings"
+      ]
+    },
+    {
+      "name": "jobs",
+      "summary": "run",
+      "entities": []
+    },
+    {
+      "name": "parts",
+      "summary": "list, get, create, update, duplicate",
+      "entities": [
+        "parts",
+        "parameters"
+      ]
+    },
+    {
+      "name": "params",
+      "summary": "set",
+      "entities": []
+    },
+    {
+      "name": "features",
+      "summary": "schema, add, update, move, roll-to",
+      "entities": [
+        "features"
+      ]
+    },
+    {
+      "name": "edits",
+      "summary": "batch",
+      "entities": []
+    },
+    {
+      "name": "builds",
+      "summary": "get, run, cancel",
+      "entities": [
+        "builds"
+      ]
+    },
+    {
+      "name": "model",
+      "summary": "describe, measure, properties, check",
+      "entities": []
+    },
+    {
+      "name": "refs",
+      "summary": "resolve",
+      "entities": []
+    },
+    {
+      "name": "views",
+      "summary": "render",
+      "entities": []
+    },
+    {
+      "name": "compare",
+      "summary": "builds",
+      "entities": [
+        "compares"
+      ]
+    },
+    {
+      "name": "exports",
+      "summary": "create, list",
+      "entities": [
+        "exports"
+      ]
+    },
+    {
+      "name": "changes",
+      "summary": "list, revert",
+      "entities": [
+        "changes"
+      ]
+    },
+    {
+      "name": "selection",
+      "summary": "get, set",
+      "entities": [
+        "selections"
+      ]
+    },
+    {
+      "name": "checks",
+      "summary": "list, save, run",
+      "entities": [
+        "checks"
+      ]
+    },
+    {
+      "name": "assets",
+      "summary": "add, list",
+      "entities": [
+        "assets"
+      ]
+    },
+    {
+      "name": "requests",
+      "summary": "create, list, get, update",
+      "entities": []
+    },
+    {
+      "name": "records",
+      "summary": "delete",
+      "entities": [
+        "briefs"
+      ]
+    }
+  ],
+  "modificationLock": false,
   "capabilities": {
-    "external_hosts": [
-      "files.pythonhosted.org",
-      "www.python.org"
-    ],
-    "triggers": [
-      "design_requested",
-      "repair_requested",
-      "review_requested"
-    ]
+    "integrations": []
   },
-  "adapterVersion": "1.9.0"
+  "pipeline": {
+    "install": "node pb-fetch.mjs && npm --prefix frontend install --ignore-scripts --no-audit --no-fund",
+    "build": "node pb-build.mjs",
+    "start": "node pb-serve.mjs",
+    "health": "/api/_a2app"
+  }
 }

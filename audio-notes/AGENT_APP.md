@@ -7,9 +7,70 @@ Whisper engine and its speakers are told apart by voice (Person 1, Person 2,
 action items (owner + due date). Weekly digest, search across transcripts,
 Markdown / TXT / SRT export.
 
-## Operating it (agents)
+## Plan
 
-Use the ops, never raw data writes: `agent-app ops <project>` lists them.
+Audio Notes.
+
+## Modules
+
+Every operation and every collection an agent can reach belongs to one module. `a2app <app>` lists them; `a2app <app> <module>` lists a module's operations.
+
+| Module | Operations | Collections |
+| --- | --- | --- |
+| `notes` | 15 | `notes` |
+| `actions` | 5 | — |
+| `digest` | 1 | — |
+| `engine` | 2 | — |
+| `records` | 0 | `live_chunks` |
+
+## Entities
+
+See `reference/requirements.md` § Data Requirements.
+
+## Operations
+
+Call an operation with `a2app <app> <module> <operation> --param value` (`<app>` is the app directory, its id or its name). A destructive one first answers `approval_required` with an approval key: ask the person, then repeat the call with `--approve <key>`. `a2app <app> --find <word>` locates an operation by name. Every operation below runs the same handler the app's own screens use.
+
+### notes
+
+- `notes.list` *(read-only)* — List notes, newest first, with summary, status and open action count. Filters combine. Params: `q` (string), `category` (string), `starred` (boolean), `from` (string), `to` (string), `limit` (number).
+- `notes.get` *(read-only)* — One note in full: summary, key points, decisions, action items (with ids), attendees, my notes, transcript and timed segments (each with its speaker once detected: Person 1, Person 2, ...), plus pipeline status (live = recording now, finishing = transcribing its last seconds). peak_db at -91 means the audio is pure silence (nothing was recorded). Params: `note_id` (string, required), `include_transcript` (boolean).
+- `notes.create` — Create a note from text (no audio), e.g. a pasted meeting transcript. With a transcript, CraftBot's AI writes the summary, key points, decisions and action items in the background. Params: `title` (string), `date` (string), `category` (string), `transcript` (string), `my_notes` (string), `attendees` (string), `generate` (boolean).
+- `notes.import-audio` — Import an audio or video file from a local path as a new note. It is transcribed on this PC (Whisper), then CraftBot's AI writes the notes. Poll notes.get or engine.status for progress. Params: `path` (string, required), `title` (string), `date` (string), `category` (string), `language` (string).
+- `notes.update` — Edit a note's fields. Only the params given change. Setting title stops the AI from renaming the note. Params: `note_id` (string, required), `title` (string), `date` (string), `category` (string), `starred` (boolean), `overview` (string), `summary` (string), `my_notes` (string), `attendees` (string), `key_points` (string), `decisions` (string), `language` (string), `action_items` (string), `transcript` (string).
+- `notes.delete` *(destructive)* — Delete a note with its audio and transcript. Stops its transcription if running. Params: `note_id` (string, required).
+- `notes.duplicate` — Copy a note, including its audio file, transcript and notes. Params: `note_id` (string, required).
+- `notes.transcribe` — Transcribe (or re-transcribe) a note's audio on this PC. The current transcript stays until the new one is ready. Notes are written automatically only when the note has none yet; otherwise run notes.generate. Params: `note_id` (string, required), `language` (string).
+- `notes.generate` — Have CraftBot's AI (re)write the note from its transcript: overview, summary, key points, decisions, action items, and the title while it is automatic. Replaces those fields; attendees and my_notes are kept. Params: `note_id` (string, required).
+- `notes.attach-audio` — Attach an audio file to an existing note and transcribe it (multipart upload with an "audio" file; used by the app). To add a file from disk as a new note use notes.import-audio. Params: `note_id` (string, required), `duration` (number).
+- `notes.finish-live` — Finish a recording whose page stopped while recording (status live): transcribe the pieces already received, then write the notes. The app's own Stop button does this and also attaches the audio file. Params: `note_id` (string, required).
+- `notes.detect-people` — Tell the speakers of a recorded note apart by their voices (local speaker engine, no names guessed): each transcript segment gets its speaker (Person 1, Person 2, ... in order of first speech) and the attendees gain every speaker, including ones removed before. Runs by itself after every transcription; use this to redo it, or with speakers=N when the number of people is known and the detection got it wrong. Poll notes.get people_status (people_error says why a run failed). Params: `note_id` (string, required), `speakers` (number).
+- `notes.rename-speaker` — Rename a speaker (e.g. Person 1) or attendee everywhere in a note: the transcript lines they speak, the attendees, and action items assigned to them. A detected voice keeps the name through later speaker detections. Renaming to another speaker's name merges the two (fixes one voice detected as two people). Params: `note_id` (string, required), `speaker` (string, required), `name` (string, required).
+- `notes.cancel` — Cancel a note's queued or running transcription / note writing. The note keeps whatever it already had. Params: `note_id` (string, required).
+- `notes.export` *(read-only)* — Export a note as text: md (full note), txt (timestamped transcript) or srt (subtitles). Returns {filename, mime, content}. Params: `note_id` (string, required), `format` (md|txt|srt).
+
+### actions
+
+- `actions.add` — Add an action item to a note. Params: `note_id` (string, required), `title` (string, required), `assignee` (string), `due` (string).
+- `actions.update` — Edit or complete an action item (ids come from notes.get or actions.open). Params: `note_id` (string, required), `action_id` (string, required), `title` (string), `assignee` (string), `due` (string), `done` (boolean).
+- `actions.delete` *(destructive)* — Remove an action item from a note. Params: `note_id` (string, required), `action_id` (string, required).
+- `actions.clear-done` *(destructive)* — Remove a note's completed action items. Params: `note_id` (string, required).
+- `actions.open` *(read-only)* — Every open action item across all notes, soonest due first. Params: `assignee` (string).
+
+### digest
+
+- `digest.week` *(read-only)* — Weekly digest (Monday to Sunday): totals, each note's summary, decisions and action items, plus a ready-to-share markdown version. Params: `week` (string).
+
+### engine
+
+- `engine.status` *(read-only)* — Speech engine: installed or missing files, the first-run download (setup: state ready|pending|off|downloading|installing|failed, bytes done/total, error), the running job with progress percent, and queue sizes.
+- `engine.install` — Download the speech engine (~410 MB, once) from its official sources into the app's engine folder, checking every file's SHA-256; starts by itself on a fresh install, so use this to retry after a failed download. Returns the setup status; follow engine.status.
+
+## Conventions
+
+### Operating it (agents)
+
+Use the ops, never raw data writes: `a2app <app>` lists them.
 
 - Find notes: `notes.list` (q searches titles, summaries and transcripts), `notes.get`.
 - Add audio: `notes.import-audio --path <absolute file path>` (any audio/video ffmpeg reads).
@@ -27,7 +88,7 @@ Use the ops, never raw data writes: `agent-app ops <project>` lists them.
 - Share: `notes.export --format md|txt|srt`, `digest.week`.
 - Every `note_id` accepts the record id or the note's exact title.
 
-## Pipeline
+### Pipeline
 
 Recordings are transcribed LIVE: pressing Start creates the note (`live`) and
 opens its page, which is the recorder (live transcript + My notes tabs; a slim
@@ -81,7 +142,7 @@ waits more than a couple of seconds. A note that was
 processing when the app stopped is re-queued at boot, and an orphaned engine
 process is killed (matched by pid and image name).
 
-## Recording (frontend)
+### Recording (frontend)
 
 `frontend/src/app/recorder/`: microphone, tab/screen audio, or both mixed. Never
 records a substitute stream: a refused or missing source is an explained error.
@@ -99,7 +160,7 @@ is offered for saving on the next load.
 Inside CraftBot the app is a cross-origin frame: the host must delegate
 `microphone` / `display-capture` (CraftBot's iframePool sets `allow`).
 
-## Engine (`engine/`, downloaded on first run, not built, not backed up)
+### Engine (`engine/`, downloaded on first run, not built, not backed up)
 
 The engine (~420 MB) is not part of the app package. `pb_hooks/lib_setup.js`
 (its own cron lane) downloads it once into `engine/` on the first launch,
@@ -132,15 +193,24 @@ took 284 s (two passes, as its voices merged), a fixed count 113 s. Model choice
 rule were measured on the user's real 2-person call and clean 2- and
 4-speaker recordings (see `lib_engine.diarizeArgs`, `lib_people.countPeople`).
 
-## Data
+### Data
 
 One collection, `notes` (open rules: `authMode` none, loopback). JSON fields:
 `segments [{start,end,text,speaker}]`, `key_points [string]`, `decisions [string]`,
 `attendees [string]`, `action_items [{id,title,assignee,due,done}]`. Shapes are
 enforced on every save by `lib_notes.normalize`.
 
-## Files
+### Files
 
 - `pb/pb_hooks/ops.pb.js` routes, `notes.pb.js` record hooks + worker cron,
   `lib_*.js` logic (require inside callbacks).
 - `frontend/src/app/` UI; `operations.json` op declarations.
+
+### Ownership map
+
+- **System-owned (hash-locked, from the `blueprint-pocketbase-kit` toolkit — never edit):** `manifest.json`, `pb-serve.mjs`, `pb-fetch.mjs`, `pb-check.mjs`, `pb-build.mjs`, `pb/pb_hooks/_a2app.pb.js`, `pb/pb_hooks/_a2app_impl.js`, `pb/pb_hooks/_a2app_rules.js`, `pb/pb_hooks/_compat_lib.js`, `pb/pb_hooks/_compat_rules.js`, `pb/pb_hooks/_compat_system.js`, `pb/pb_hooks/_system.pb.js`, `pb/pb_hooks/_triggers.pb.js`, `pb/pb_hooks/_triggers_lib.js`, `pb/pb_hooks/_craftbot_bridge.js`.
+- **Agent-owned:** `operations.json`, `events.json`, `AGENT_APP.md`, `reference/`, `pb/pb_hooks/a2app_routes.pb.js` (regenerate with `tools/agent-app-migrate` rather than hand-edit), every other file under `pb/pb_hooks/` and `pb/pb_migrations/`, and `frontend/`.
+
+## Checklist
+
+Build and verification tasks live in `reference/tasks.md`.

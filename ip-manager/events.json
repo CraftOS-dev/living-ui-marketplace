@@ -1,0 +1,110 @@
+{
+  "events": [
+    {
+      "type": "document_docketing_requested",
+      "capability": "document_docketing_requested",
+      "description": "Can ask your agent to read an uploaded office action, letter or certificate and propose the docket entries for review",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "document_id": {
+          "type": "string",
+          "required": true,
+          "description": "documents record id"
+        },
+        "matter_id": {
+          "type": "string",
+          "description": "Matter the uploader chose, if any"
+        }
+      },
+      "cooldownSeconds": 5
+    },
+    {
+      "type": "agreement_extraction_requested",
+      "capability": "agreement_extraction_requested",
+      "description": "Can ask your agent to read a contract and propose the agreement record, rights scope and obligations for review",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "document_id": {
+          "type": "string",
+          "required": true,
+          "description": "documents record id"
+        }
+      },
+      "cooldownSeconds": 10
+    },
+    {
+      "type": "renewal_instructions_requested",
+      "capability": "renewal_instructions_requested",
+      "description": "Can ask your agent to draft the renewal instruction email to your renewal provider",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "renewal_ids": {
+          "type": "string",
+          "required": true,
+          "description": "Comma-separated renewal record ids"
+        },
+        "provider": {
+          "type": "string",
+          "required": true
+        },
+        "provider_email": {
+          "type": "string",
+          "required": true
+        },
+        "po_number": {
+          "type": "string"
+        }
+      },
+      "cooldownSeconds": 30
+    },
+    {
+      "type": "portfolio_question_asked",
+      "capability": "portfolio_question_asked",
+      "description": "Can ask your agent a question about the IP portfolio and get a plain-language answer",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "question": {
+          "type": "string",
+          "required": true
+        }
+      },
+      "cooldownSeconds": 5
+    },
+    {
+      "type": "invention_assist_requested",
+      "capability": "invention_assist_requested",
+      "description": "Can ask your agent to turn an inventor's rough notes into a structured invention disclosure draft",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "disclosure_id": {
+          "type": "string",
+          "required": true
+        }
+      },
+      "cooldownSeconds": 20
+    }
+  ],
+  "conventions": {
+    "guide": "Every operation's parameters, and how to do each task the app queues, are in AGENT_APP.md in the app's directory."
+  }
+}

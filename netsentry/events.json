@@ -1,0 +1,64 @@
+{
+  "events": [
+    {
+      "type": "triage_queue_ready",
+      "capability": "triage_queue_ready",
+      "description": "Security incidents in NetSentry are waiting for triage.",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        }
+      },
+      "cooldownSeconds": 120
+    },
+    {
+      "type": "daily_digest",
+      "capability": "daily_digest",
+      "description": "NetSentry's daily security digest is due.",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        }
+      },
+      "cooldownSeconds": 72000
+    },
+    {
+      "type": "source_unhealthy",
+      "capability": "source_unhealthy",
+      "description": "A NetSentry data source has failed repeatedly.",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "source_id": {
+          "type": "string",
+          "required": true,
+          "description": "The failing source's record id"
+        }
+      },
+      "cooldownSeconds": 21600
+    },
+    {
+      "type": "help_requested",
+      "capability": "help_requested",
+      "description": "A person asked for help with their server from NetSentry's Home.",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        }
+      },
+      "cooldownSeconds": 10
+    }
+  ],
+  "conventions": {
+    "guide": "Every operation's parameters, and how to do each task the app queues, are in AGENT_APP.md in the app's directory."
+  }
+}

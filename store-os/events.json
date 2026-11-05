@@ -1,0 +1,24 @@
+{
+  "events": [
+    {
+      "type": "work_requested",
+      "capability": "work_requested",
+      "description": "Hands your AI agent the store work you ask for in Store OS: syncing a shop, writing listings, drafting or sending buyer replies, setting stock on shops, checking tracking, helping set up a shop, and your messages",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "count": {
+          "type": "number",
+          "description": "How many tasks were waiting when the app asked"
+        }
+      },
+      "cooldownSeconds": 10
+    }
+  ],
+  "conventions": {
+    "guide": "Every operation's parameters, and how to do each task the app queues, are in AGENT_APP.md in the app's directory."
+  }
+}

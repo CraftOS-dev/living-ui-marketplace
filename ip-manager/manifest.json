@@ -1,44 +1,183 @@
 {
-  "id": "{{PROJECT_ID}}",
-  "name": "{{PROJECT_NAME}}",
-  "description": "{{PROJECT_DESCRIPTION}}",
-  "agentAppVersion": 2,
-  "createdAt": "{{CREATED_AT}}",
+  "id": "ip-manager",
+  "name": "IP Manager",
+  "agentAppVersion": "0.1.0",
+  "adapterVersion": "0.2.0",
+  "appVersion": "1.0.0",
   "authMode": "multi-user",
-  "port": "{{PORT}}",
-  "pbVersion": "0.39.7",
-  "kitVersion": "0.6.0",
-  "craftbotVersion": "1.4.3",
-  "pipeline": {
-    "install": "npm install --ignore-scripts --prefix frontend",
-    "build": "npm run build --prefix frontend",
-    "start": "pocketbase serve --http=127.0.0.1:{{PORT}} --dir pb/pb_data --hooksDir pb/pb_hooks --migrationsDir pb/pb_migrations --publicDir pb/pb_public",
-    "health": "/api/health"
-  },
+  "modules": [
+    {
+      "name": "session",
+      "summary": "check",
+      "entities": []
+    },
+    {
+      "name": "meta",
+      "summary": "meta",
+      "entities": []
+    },
+    {
+      "name": "onboarding",
+      "summary": "complete",
+      "entities": []
+    },
+    {
+      "name": "portfolio",
+      "summary": "summary, search",
+      "entities": []
+    },
+    {
+      "name": "matters",
+      "summary": "preview-event, record-event, regenerate, info, lookup…",
+      "entities": [
+        "families",
+        "events"
+      ]
+    },
+    {
+      "name": "import",
+      "summary": "matters, watch",
+      "entities": []
+    },
+    {
+      "name": "deadlines",
+      "summary": "close, extend, reassign, move, upcoming, explain",
+      "entities": [
+        "users"
+      ]
+    },
+    {
+      "name": "inbox",
+      "summary": "propose, preview, decide",
+      "entities": [
+        "settings",
+        "parties",
+        "grants",
+        "documents",
+        "inbox_items"
+      ]
+    },
+    {
+      "name": "renewals",
+      "summary": "decide, instruct, record-payment, forecast, refresh-costs",
+      "entities": [
+        "renewals"
+      ]
+    },
+    {
+      "name": "rights",
+      "summary": "availability",
+      "entities": [
+        "dimensions"
+      ]
+    },
+    {
+      "name": "agreements",
+      "summary": "check-conflicts, sync",
+      "entities": []
+    },
+    {
+      "name": "works",
+      "summary": "copyright-term",
+      "entities": [
+        "works"
+      ]
+    },
+    {
+      "name": "properties",
+      "summary": "coverage",
+      "entities": [
+        "properties"
+      ]
+    },
+    {
+      "name": "disclosures",
+      "summary": "submit, move, review, convert",
+      "entities": [
+        "disclosures"
+      ]
+    },
+    {
+      "name": "approvals",
+      "summary": "decide",
+      "entities": [
+        "approvals"
+      ]
+    },
+    {
+      "name": "offices",
+      "summary": "save, test, sync-all",
+      "entities": []
+    },
+    {
+      "name": "fx",
+      "summary": "refresh",
+      "entities": [
+        "fx_rates"
+      ]
+    },
+    {
+      "name": "calendars",
+      "summary": "refresh",
+      "entities": []
+    },
+    {
+      "name": "calendar",
+      "summary": "feed, ics",
+      "entities": [
+        "calendar_years"
+      ]
+    },
+    {
+      "name": "rules",
+      "summary": "test",
+      "entities": [
+        "rules"
+      ]
+    },
+    {
+      "name": "digest",
+      "summary": "preview, send",
+      "entities": []
+    },
+    {
+      "name": "reports",
+      "summary": "run",
+      "entities": []
+    },
+    {
+      "name": "records",
+      "summary": "the app's other stored records",
+      "entities": [
+        "office_connections",
+        "goods_services",
+        "dimension_values",
+        "disclosure_reviews",
+        "scoring_criteria",
+        "disputes",
+        "office_calendars",
+        "fee_schedule",
+        "clearances",
+        "approval_rounds",
+        "royalty_reports",
+        "watch_hits",
+        "involvements",
+        "saved_views",
+        "audit_log",
+        "notifications",
+        "sync_runs",
+        "ics_tokens"
+      ]
+    }
+  ],
+  "modificationLock": false,
   "capabilities": {
-    "external_hosts": [
-      "api-sandbox.euipo.europa.eu",
-      "api.euipo.europa.eu",
-      "api.uspto.gov",
-      "auth-sandbox.euipo.europa.eu",
-      "auth.euipo.europa.eu",
-      "ip-data.jpo.go.jp",
-      "ops.epo.org",
-      "tsdrapi.uspto.gov",
-      "www.ecb.europa.eu",
-      "www8.cao.go.jp"
-    ],
-    "actions": [
-      "send_gmail",
-      "send_slack_message"
-    ],
-    "triggers": [
-      "agreement_extraction_requested",
-      "document_docketing_requested",
-      "invention_assist_requested",
-      "portfolio_question_asked",
-      "renewal_instructions_requested"
-    ]
+    "integrations": []
   },
-  "adapterVersion": "1.9.0"
+  "pipeline": {
+    "install": "node pb-fetch.mjs && npm --prefix frontend install --ignore-scripts --no-audit --no-fund",
+    "build": "node pb-build.mjs",
+    "start": "node pb-serve.mjs",
+    "health": "/api/_a2app"
+  }
 }

@@ -1,0 +1,33 @@
+{
+  "events": [
+    {
+      "type": "edit_requested",
+      "capability": "edit_requested",
+      "description": "Asks your AI agent to edit one or more images from a request you wrote in the app",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "The request (its id)"
+        }
+      },
+      "cooldownSeconds": 20
+    },
+    {
+      "type": "describe_requested",
+      "capability": "describe_requested",
+      "description": "Asks your AI agent to write alt text, a title and keywords for images",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "The request (its id)"
+        }
+      },
+      "cooldownSeconds": 20
+    }
+  ],
+  "conventions": {
+    "guide": "Every operation's parameters, and how to do each task the app queues, are in AGENT_APP.md in the app's directory."
+  }
+}

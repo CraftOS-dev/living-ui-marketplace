@@ -1,0 +1,40 @@
+# Tasks: Kanban Board
+
+Every task cites what it implements. These features already exist in the published app `kanban-board` 2.0.0, so the build tasks are recorded as done.
+
+## Build
+- [x] T-1 (F-FRM-1, F-FRM-2, F-FRM-3): the sidebar (`components/Sidebar.tsx`). It holds New card, the views with the Inbox and Review counts, folding Boards with a working dot and need-you counts, and the agent with its status and on switch, plus Settings at the foot. It collapses to a rail, and the choice is remembered (`kb.sidebar`).
+- [x] T-2 (F-FRM-4): the phone drawer, opened by `MenuButton` with its attention dot and closed on navigation (`App.tsx`, `components/ui.tsx`).
+- [x] T-3 (F-FRM-5, F-REV-3): keyboard shortcuts: C, /, Esc and Ctrl/Cmd+Z globally (`App.tsx`), and J/K, A and R on Review (`pages/Review.tsx`).
+- [x] T-4 (F-FRM-6, F-SET-3): interruption notices from the attention preferences (up to four, the oldest leaving after 9 s) in `lib/context.tsx` and `App.tsx`, and the "What interrupts you" settings.
+- [x] T-5 (F-FRM-7): the `--kb-*` tokens mixed from the kit's warm-neutral tokens: grey steps, Inter, 8 px corners, light and dark, state colors, the hand cursor, lucide icons and the app's marks (`theme.css`, `components/marks.tsx`).
+- [x] T-6 (F-FRM-8): reload onto a new build after a reconnect or a tab show, waiting while a dialog is open (`lib/live.ts`).
+- [x] T-7 (F-BRD-1, F-BRD-15): New board from the five templates, with a name and a key (automatic when empty), and the "No board yet" state (`components/NewBoard.tsx`, `lib_boards.js`).
+- [x] T-8 (F-BRD-2, F-BRD-7): the board view: columns with category icons, WIP pills, "Agent works here" and gates, cards, and the live status in the header or strip (`components/board/BoardView.tsx`, `boards.get`).
+- [x] T-9 (F-BRD-3, F-BRD-4): animated drag and drop: lift, tilt, a placeholder that makes room, settle, press-and-hold on touch, and edge auto-scroll. The `Glide` component makes cards the agent moves glide (FLIP).
+- [x] T-10 (F-BRD-5): quick add at the bottom of a column, and the column's "+" opening the New card dialog.
+- [x] T-11 (F-BRD-6): search by title or key, filters (assignee, agent state, priority, labels), and swimlanes by assignee or priority, where a drop reassigns or reprioritizes.
+- [x] T-12 (F-BRD-8, F-BRD-9): columns: add, rename, collapse, move, and remove behind a confirmation that names where the cards go. Column settings hold the contract (stage, who works here, gates, lease, attempts, flow, aging, policy, instructions) and save as they change (`components/board/ColumnSettings.tsx`, `lib_boards.columnUpdate`).
+- [x] T-13 (F-BRD-10, F-BRD-11, F-BRD-12): Board settings: general (name, key, description, how we work), freeze, swimlanes, columns, labels, rules (When / If / Then builder, on/off, runs, switched-off reason, remove), and Delete board with its confirmation. The only board is protected (`components/board/BoardSettings.tsx`, `lib_auto.js`).
+- [x] T-14 (F-BRD-13, F-BRD-14): column-entry effects in one place (`lib_cards.place`, `queueOnEntry`, `queueCard`): handing a card to the agent, queueing it, asking for criteria when the column needs them. Turning the agent on for a column queues the cards already there that are not the person's.
+- [x] T-15 (F-CRD-1): the card face: key, priority, title, the live progress line and sweeping edge, labels, due, checklist and plan progress, the state chip, age dots and the assignee (`components/board/CardFace.tsx`, `marks.tsx`).
+- [x] T-16 (F-CRD-2): the New card dialog: title (Enter, multi-line paste), description, board, column, the You / Agent switch (locked in an agent column), priority, the acceptance criteria field for agent work and the note on what happens next (`components/Composer.tsx`).
+- [x] T-17 (F-CRD-3, F-CRD-4): the card panel docked on the right over the live board: title, properties (status, assignee switch, priority, labels, due, created), markdown description, criteria and checklist (`components/card/CardPanel.tsx`, `lib/markdown.tsx`).
+- [x] T-18 (F-CRD-5): the session box: working (progress, plan, lease, attempt, Stop), queued, plan approval, a question with options and Take it over, criteria to add, needs attention (Retry, Give it to the agent, I'll handle it), and proposed (Accept, Dismiss) (`cards.stop`, `cards.answer`, `cards.approve_plan`, `cards.retry`, `cards.accept`).
+- [x] T-19 (F-CRD-6, F-REV-1, F-REV-2, F-REV-4): the review packet and the Approve / Request changes / Reject flows (`components/card/Review.tsx`, `lib_cards.approve`, `changes`, `reject`). The Review page has a list and a detail and selects the next card after a decision (`pages/Review.tsx`). A drag to Done approves, and a drag back clears the review (`lib_cards.place`).
+- [x] T-20 (F-CRD-7, F-CRD-8, F-CRD-9): comments that reach the agent through `feedback`, block and unblock, archive and restore, and delete behind "Delete this card?".
+- [x] T-21 (F-CRD-10, F-ACT-1, F-ACT-2, F-ACT-3): attributed events with before and after (`lib_model.log`), the card's activity with folded agent steps, the Activity page with filters and "Load older" (`pages/Activity.tsx`), per-event revert, and Ctrl/Cmd+Z undo of the person's own last change within 30 minutes (`lib_app.revert`, `undo`).
+- [x] T-22 (F-INB-1, F-INB-2, F-INB-3, F-INB-4): Inbox: the "Needs you" groups with inline actions and the review link, "Since you were away" grouped by day with "Mark all as seen", and the empty states (`pages/Inbox.tsx`, `lib_app.inbox`, `inboxSeen`).
+- [x] T-23 (F-INS-1, F-INS-2, F-INS-3, F-INS-4): Insights: board and window choice, KPIs split between the agent and the person, the agent's report card, and the aging WIP, cycle time, throughput and cumulative flow charts (`pages/Insights.tsx`, `lib_app.flow`, `agentStats`).
+- [x] T-24 (F-SET-1, F-SET-2, F-SET-4): Settings: your name, "Let the agent work", cards at once, the explainer and the shortcut list (`pages/Settings.tsx`, `settings.update`), with the optimistic pause switch shared with the sidebar (`lib/context.tsx`).
+- [x] T-25 (F-AGT-1, F-AGT-2): the 38 agent operations in `operations.json`, served by `a2app_routes.pb.js` through the View's own handlers, with refusals that carry codes and messages. `app.guide` gives the model, the protocol, the rules and the error codes (`lib_guide.js`), and the agent's reads are lean (`lib_model.cardBrief`, `cardForAgent`).
+- [x] T-26 (F-AGT-3, F-AGT-4, F-AGT-5, F-AGT-6, F-AGT-7): the work protocol in `lib_work.js`. Atomic `work.next` claims (most urgent first, moving into the next in-progress column), the shared cards-at-once limit, held cards and `work.resume`, and plan, log, heartbeat, ask, submit, return, fail and release. Leases are expired by `kb_work`.
+- [x] T-27 (F-AGT-8, F-AGT-9, F-AGT-11): the server-enforced agent rules: never Done or Canceled, never a review decision, never structure, settings, assignment, delete, archive or revert, the claim requirement on started cards, WIP, frozen and pause refusals, and proposals into triage capped at 20 a day (`lib_model.personOnly`, `agentMayWrite`, `lib_cards.agentEditGuard`, `place`, `add`). Direct record writes are refused (`hooks.pb.js`, `lib_rules.js`).
+- [x] T-28 (F-AGT-10): `work_waiting` fired by `fireIfNeeded` when work is queued, not while the agent has called in the last 90 s, and re-fired for newer work or after 10 minutes by `kb_work`. It comes with the `work_waiting` playbook (`events.json`, AGENT_APP.md).
+
+## Verification
+- [x] Framework-files check (`validateFrameworkFiles` of the Agent App CLI) reports no problems for manifest.json, operations.json, AGENT_APP.md, reference/requirements.md and reference/tasks.md.
+- [x] ## Operations Design in reference/requirements.md lists exactly the 38 operations of operations.json, each under its declared module.
+- [ ] Agent App Framework gate (`agent-app <dir> validate`) passes, including the describe budget on a dev instance.
+- [ ] Every declared operation answers through `a2app` on a live instance.
+- [ ] The View renders identically to the published build (screenshot comparison).

@@ -114,7 +114,7 @@ function guide(ctx, p) {
     areas_on: C.enabledKinds(app),
     currency: s.getString('currency') || 'USD',
     units: s.getString('units') || 'metric',
-    start: 'Read agent.brief for the state of today. Read the recipe for your task: app.guide --topic <' + Object.keys(RECIPES).join('|') + '>. List the operations of an area, each parameter explained, with agent-app ops <project> <area>.',
+    start: 'Read agent.brief for the state of today. Read the recipe for your task: app.guide --topic <' + Object.keys(RECIPES).join('|') + '>. List the operations of an area, each parameter explained, with a2app <app> <area>.',
     rules: [
       'You log and capture freely: cards (tasks.create, complete, move, check), habit days (habits.tap, habits.log), health logs and workouts, money entries, being in touch (people.touch), books, chores, shopping, focus and wins, goal check-ins. Everything you write is in Activity and can be undone.',
       "What the person defined goes through proposals with --why: new or changed goals, habits, projects and people, deletions of them, a plan for the day (board.plan), settings (settings.update, including the order of Home's rows: --home_rows '[\"news\",\"today\",\"habits\",\"goals\",\"days\"]'), and switching or ordering the parts of life (areas.set, areas.reorder). The person keeps only the items they tick.",

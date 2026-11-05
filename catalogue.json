@@ -12,7 +12,8 @@
     },
     {
       "id": "research-board",
-      "livingUIVersion": 2,
+      "agentAppVersion": "0.1.0",
+      "toolkit": "blueprint-pocketbase-kit",
       "name": "Research Board",
       "description": "A sidebar of boards and a zoomable canvas: notes, web links, YouTube videos, images, videos, documents and quotes, grouped in sections and joined by links that support, contradict or lead to each other. Link previews, drag and drop, paste, find, tags and Markdown export. Your AI agent summarizes cards and reviews a board, proposing the links it sees.",
       "folder": "research-board",
@@ -24,7 +25,8 @@
     },
     {
       "id": "kanban-board",
-      "livingUIVersion": 2,
+      "agentAppVersion": "0.1.0",
+      "toolkit": "blueprint-pocketbase-kit",
       "name": "Kanban Board",
       "description": "A Kanban board you share with your AI agent. Every card is yours or the agent's, and every column is a contract: let the agent work a column and any card you drag into it is handed over and picked up automatically, with WIP limits that bind the agent, a plan to approve first, acceptance criteria, and where finished work goes. The agent holds cards with leases, shows what it is doing live, asks when it would have to guess, and hands work back with evidence; you approve, request changes or reject, and only you move cards to Done. An inbox of what needs you, a review queue, flow insights with the agent's report card (aging work, cycle time, throughput, cumulative flow, first-pass approval), rules, an activity log where every change can be reverted, a limit on how many cards the agent works at once, and one switch that pauses it. Smooth drag and drop, in CraftBot's own look, light and dark.",
       "folder": "kanban-board",
@@ -43,7 +45,8 @@
     },
     {
       "id": "ledgerflow",
-      "livingUIVersion": 2,
+      "agentAppVersion": "0.1.0",
+      "toolkit": "blueprint-pocketbase-kit",
       "name": "Ledgerflow",
       "description": "Double-entry books for a business, a household or both. Import bank statements (OFX, QIF, CSV, CAMT, MT940) into an inbox where matches, open invoices, transfers, rules and your history suggest how to book every line; review by keyboard. Invoices and bills with tax and other currencies, reconciliation, profit and loss (accrual or cash), balance sheet, cash flow, aged balances, VAT/GST summary, budgets and month-end close with lock dates. Your AI agent categorizes what is left with its reasons, reads receipts, answers questions and prepares the close; its work stays proposed under your policy and every change can be reverted.",
       "folder": "ledgerflow",
@@ -52,7 +55,8 @@
     },
     {
       "id": "trading-view",
-      "livingUIVersion": 2,
+      "agentAppVersion": "0.1.0",
+      "toolkit": "blueprint-pocketbase-kit",
       "name": "Trading View",
       "description": "A trading terminal of drag-and-resize widgets: charts with 31 indicators, 15 drawing tools, comparisons and pre/post-market, multi-timeframe grids, watchlists, details, news, screener and heatmap over stocks, ETFs, indices, forex and futures (Yahoo Finance) and crypto (Binance). Alerts run on the server around the clock. Your AI agent analyzes charts and watchlists, draws its levels, sets and explains alerts, and every change it makes can be reverted.",
       "folder": "trading-view",
@@ -61,7 +65,8 @@
     },
     {
       "id": "crm-system",
-      "livingUIVersion": 2,
+      "agentAppVersion": "0.1.0",
+      "toolkit": "blueprint-pocketbase-kit",
       "name": "CRM System",
       "description": "A relationship CRM for founders and small teams: people, companies and deals in sales, fundraising, hiring and partnership pipelines. Home shows the pipeline, forecast, won and lost, your round against its target and who is going cold. Every email, call and meeting lands on one timeline with relationship strength and keep-in-touch reminders; a Today queue, boards with rotting deals, tables with inline editing and filters, CSV import, duplicate merging and reports with the formula behind every number. Your AI agent researches people, turns meeting notes into updates and follow-ups, drafts and sends email and answers questions; changes to your data wait in Review under your policy and every change can be undone.",
       "folder": "crm-system",
@@ -70,7 +75,8 @@
     },
     {
       "id": "crm",
-      "livingUIVersion": 2,
+      "agentAppVersion": "0.1.0",
+      "toolkit": "blueprint-pocketbase-kit",
       "name": "CRM",
       "description": "The relationship CRM in the Company OS look, with diagrams for everything that matters: won by month running into the forecast, your network as a constellation of your strongest and coldest relationships, a year of deals flowing stage to stage, and a month calendar of tasks, closes, people to get back to and birthdays. A Network map shows how your people, companies and deals connect. People, companies and deals across sales, fundraising, hiring and partnership pipelines; every email, call and meeting on one timeline with relationship strength; a Today queue, boards, tables with inline editing, CSV import, duplicate merging and reports. Your AI agent researches people, turns meeting notes into updates and follow-ups, drafts and sends email and answers questions; changes to your data wait in Review under your policy and every change can be undone.",
       "folder": "crm",
@@ -129,7 +135,8 @@
     },
     {
       "id": "image-utility",
-      "livingUIVersion": 2,
+      "agentAppVersion": "0.1.0",
+      "toolkit": "blueprint-pocketbase-kit",
       "name": "Image Utility",
       "description": "Crop, straighten, resize, frame, adjust, annotate, redact, watermark and cut out images on your computer, then export small files with real sizes before you save. A desktop-editor workspace in the CAD Workshop look: a toolbar with shortcuts, a non-destructive edit stack over the untouched original (reorder, turn off, undo and revert anything), a stage with zoom to real pixels and hold-to-compare, and live previews in every tool. Export WebP, AVIF, JPEG, PNG, GIF, ICO and TIFF with several formats at once, a size target, a 100 % before-and-after comparison, and the location stripped from metadata. Batches run one recipe over many images with rename patterns and a preview of every file. Your AI agent uses the same tools: it redacts screenshots, writes alt text and prepares folders for the web, as proposals you accept or reject. The image engine (about 32 MB) downloads once on first run; background removal is an optional 20 MB add-on.",
       "folder": "image-utility",
@@ -156,7 +163,8 @@
     },
     {
       "id": "ip-manager",
-      "livingUIVersion": 2,
+      "agentAppVersion": "0.1.0",
+      "toolkit": "blueprint-pocketbase-kit",
       "name": "IP Manager",
       "description": "One register for everything an organization owns: patents, trademarks, designs, copyrights and creative works, inventions, and the agreements that license them. A rules-based deadline engine with explained dates, renewal decisions with multi-currency cost forecasts, rights availability with conflict checks, office data sync (USPTO, EPO, EUIPO, JPO) through a review inbox, and CraftBot reading documents and contracts into reviewable proposals.",
       "folder": "ip-manager",
@@ -165,7 +173,8 @@
     },
     {
       "id": "entertainment-ip-manager",
-      "livingUIVersion": 2,
+      "agentAppVersion": "0.1.0",
+      "toolkit": "blueprint-pocketbase-kit",
       "name": "Entertainment IP Manager",
       "description": "One register for an entertainment company's IP: characters and their rights stacks, VTubers and voice talent, anime titles and production committees, songs and recordings, licences and merchandise approvals, trademarks and enforcement. A rules-based deadline engine with explained dates, a Can we? check that names who decides, and CraftBot reading contracts, statements and samples into reviewable proposals. English and Japanese.",
       "folder": "entertainment-ip-manager",
@@ -174,7 +183,8 @@
     },
     {
       "id": "audio-notes",
-      "livingUIVersion": 2,
+      "agentAppVersion": "0.1.0",
+      "toolkit": "blueprint-pocketbase-kit",
       "name": "Audio Notes",
       "description": "Record meetings (microphone, a call's tab audio, or both) with a live transcript, or import audio and video files. Everything is transcribed on this PC by a local Whisper engine (99 languages) that also tells the speakers apart by voice; CraftBot then writes the summary, key points, decisions, and action items with owners and due dates. Weekly digest, search across transcripts, and Markdown/TXT/SRT export. Windows; the speech engine (~410 MB) downloads once on first launch.",
       "folder": "audio-notes",
@@ -200,8 +210,9 @@
       "version": "1.0.0"
     },
     {
-      "id": "netsentry", 
-      "livingUIVersion": 2, 
+      "id": "netsentry",
+      "agentAppVersion": "0.1.0",
+      "toolkit": "blueprint-pocketbase-kit", 
       "name": "NetSentry", 
       "description": "Look after the server it runs on, in plain words: what runs, what to fix (each with its one button), app updates and backups, files, app settings, any app from a Compose file, disk space, programs, the firewall, SSH keys, scheduled jobs, a recorded terminal — and an agent that prepares fixes you confirm with one tap. Every change is previewed, confirmed by a person and can be undone.", 
       "folder": "netsentry", 
@@ -220,7 +231,8 @@
     },
     {
       "id": "inventory",
-      "livingUIVersion": 2,
+      "agentAppVersion": "0.1.0",
+      "toolkit": "blueprint-pocketbase-kit",
       "name": "Inventory",
       "description": "Inventory for a small stockroom: know what you have, where it is and when to reorder. Scan stock in and out with a USB or Bluetooth barcode scanner, see every place on a 3D stockroom map, run shelf counts, print barcode and QR labels, track suppliers and purchase orders, and import or export CSV. A ledger behind every quantity makes each change one-step undoable, and CraftBot drafts purchase orders and reads packing slips for you.",
       "folder": "inventory",
@@ -229,7 +241,8 @@
     },
     {
       "id": "advance-pos",
-      "livingUIVersion": 2,
+      "agentAppVersion": "0.1.0",
+      "toolkit": "blueprint-pocketbase-kit",
       "name": "Advance POS",
       "description": "Full point of sale for a shop or cafe. Ring up sales from product tiles, search or a barcode scanner, then take cash, card, gift cards, store credit and loyalty points, split any way, with tips; returns and exchanges come back onto the same screen. Behind the register: products with variants and option groups, stock with history, customers with points and credit, promotions (automatic, coupon codes, buy X get Y), gift cards, a cash drawer with X and Z reports, staff PINs with roles, manager approvals and a time clock, an audit log, reports with CSV export, 58 and 80 mm receipts, and a customer-facing display. CraftBot sends receipts, reviews each closed drawer, drafts restock lists and answers questions about the business.",
       "folder": "advance-pos",
@@ -238,7 +251,8 @@
     },
     {
       "id": "pos",
-      "livingUIVersion": 2,
+      "agentAppVersion": "0.1.0",
+      "toolkit": "blueprint-pocketbase-kit",
       "name": "POS",
       "description": "Point of sale for cafes, restaurants and shops: a fast touch-first register with sizes and options, dine-in, takeaway and delivery orders, split payments by cash, card or QR, returns and exchanges, and open tickets for tabs and tables. Around it: a kitchen screen with an order board, a customer display, stock with low-stock marks, customers, shifts with blind cash-ups and X and Z reports, staff PINs with roles and manager approvals, a training mode, gapless receipt numbers, and tax presets for Malaysia, Singapore, Japan, Australia, New Zealand, the UK and the US. CraftBot imports menus from a photo, PDF or spreadsheet, emails receipts and writes the daily brief.",
       "folder": "pos",
@@ -247,7 +261,8 @@
     },
     {
       "id": "erp",
-      "livingUIVersion": 2,
+      "agentAppVersion": "0.1.0",
+      "toolkit": "blueprint-pocketbase-kit",
       "name": "ERP",
       "description": "Run the whole business in one app: sales (quotes, orders, deliveries, invoices, credit notes), purchasing (orders, goods receipts, bills), inventory across warehouses with stock counts and reorder suggestions, manufacturing with bills of materials and builds, payments and bank reconciliation with statement import, and a double-entry ledger with chart of accounts, journals, taxes, multi-currency with live rates, month-end close, fixed assets and budgets. 12 reports with CSV export, people (directory, org chart, leave, expense claims, payroll) and projects (task boards, timesheets, billing time, profitability). Team accounts with per-module roles, approval limits and an audit trail, and a setup wizard with 22 country presets. CraftBot drafts the paperwork, reads files dropped in the Inbox, reconciles bank lines, chases overdue invoices and reviews the month-end close; postings and payments come to you as proposals to approve.",
       "folder": "erp",
@@ -256,7 +271,8 @@
     },
     {
       "id": "cad-workshop",
-      "livingUIVersion": 2,
+      "agentAppVersion": "0.1.0",
+      "toolkit": "blueprint-pocketbase-kit",
       "name": "CAD Workshop",
       "description": "Design real, editable parts for 3D printing and machining. A parametric feature tree (sketch, extrude, revolve, holes, fillets, chamfers, shell, push/pull, patterns, mirror, booleans, STEP import) driven by named parameters and built by the OpenCascade kernel on your computer. The workspace works like desktop CAD: a toolbar with shortcuts, sketch mode with snapping and typed sizes, drag handles, box select, exact measurements kept as checks that re-run on every build, undo and revert of any batch, and STEP, 3MF, STL and GLB export. CraftBot designs parts from a description, fixes failed builds and reviews a part for 3D printing, resin or CNC. The geometry engine (about 79 MB) downloads once on first run.",
       "folder": "cad-workshop",
@@ -265,7 +281,8 @@
     },
     {
       "id": "research-os",
-      "livingUIVersion": 2,
+      "agentAppVersion": "0.1.0",
+      "toolkit": "blueprint-pocketbase-kit",
       "name": "Research OS",
       "description": "A research workspace for academics: a library of papers and their PDFs (add by DOI, arXiv, PubMed, OpenAlex or ISBN; import BibTeX, RIS and CSL JSON; open-access PDFs fetched on their own), a reader with color-coded highlights, comments and area marks, and projects built around a research question with a reading list, a claims map where every piece of evidence stays tied to its exact passage, boards, to-do lists, experiments, a file repository and notes. Discovery searches the open registries with saved-search alerts and a citation map; the writing desk typesets manuscripts with LaTeX (live citations in 7 styles, tracked changes, snapshots, a PDF built on your computer, Word and LaTeX export), and systematic reviews get blinded dual screening with a PRISMA 2020 flow. CraftBot identifies PDFs, maps claims, answers questions with quotes, runs deep searches, drafts passages as tracked changes and screens records, with everything it judges waiting for your review.",
       "folder": "research-os",
@@ -274,7 +291,8 @@
     },
     {
       "id": "life-os",
-      "livingUIVersion": 2,
+      "agentAppVersion": "0.1.0",
+      "toolkit": "blueprint-pocketbase-kit",
       "name": "Life OS",
       "description": "Your whole life on one screen that keeps itself up to date. Home shows today at a glance: a landscape that follows the time of day, the season and the weather where you live, an hourly and seven-day forecast, your agent's note for the day, heads-ups for birthdays, people you have not talked to in a while, bills and trips, your top three, one-tap habits, mood and water, money left this month, what is coming up and the news, in rows you can drag into your own order. A pinboard for every card (Inbox, Today, Coming up, Later) with the week's weather, a habit tracker with streaks, and a balance chart of eight parts of life scored from what you actually do. Each part has its own tool: health logs and workouts, money with savings jars and bills, a connection map of friends and family, focus and wins for work, chores and shopping for home, books and learning, trips with packing lists and a bucket list, and calm minutes for the mind. Goals fill themselves from the jar, the books you finish, your weigh-ins or the habits you keep; projects are journeys of stepping stones and the journal is a page of paper your agent reads only when you share it. CraftBot writes the morning note, plans your day, sorts the inbox, breaks goals into steps, writes the weekly recap and answers questions, with new goals, habits and plans arriving as proposals you keep item by item. Optional read-only Google Calendar mirror.",
       "folder": "life-os",
@@ -293,7 +311,8 @@
     },
     {
       "id": "store-os",
-      "livingUIVersion": 2,
+      "agentAppVersion": "0.1.0",
+      "toolkit": "blueprint-pocketbase-kit",
       "name": "Store OS",
       "description": "Run every online shop from one place. Add the shops you already run or open new ones on 16 platforms (Shopify, WooCommerce, Shopee, Lazada, TikTok Shop, Amazon, eBay, Etsy, Tokopedia, Zalora and more), each with a setup checklist that links to the platform's own sign-up and seller centre. One catalog keeps a listing per shop with its own title, text and price, checked against that platform's rules before it goes live. One stock ledger feeds every shop with a stock rule per shop. Every order, shipment and buyer message from every shop lands in one queue with ship-by and reply clocks, and the overview shows net sales, profit and margin by shop against the period before. Bring in seller-centre exports (CSV or Excel) with column matching. CraftBot syncs shops, writes listings, drafts buyer replies with its reasons, checks tracking and helps set new shops up; its listing, price, stock and order changes wait in Approvals with before and after, and listing text, prices and stock can be undone.",
       "folder": "store-os",
@@ -312,7 +331,8 @@
     },
     {
       "id": "singing-coach",
-      "livingUIVersion": 2,
+      "agentAppVersion": "0.1.0",
+      "toolkit": "blueprint-pocketbase-kit",
       "name": "Singing Coach",
       "description": "Learn to sing, from matching your first note to recital songs, with your AI agent as coach. Sing into the microphone and the Voice Dial shows your pitch live against the note you are aiming for, in cents, with a pitch lane or sheet music and the words underneath; every note is judged for pitch, onset, steadiness, scoops and vibrato, phrase by phrase. Find your range once and every song and exercise sits in a key that suits your voice. Songs move from learning to steady to mastered through Listen, Echo, Sing and Solo, with spaced reviews; a daily plan starts with a warm-up and ends with a cool-down. 80 interactive lessons in 13 units teach the voice, breath, onset, resonance and vowels, registers, pitch, rhythm, reading, intervals, diction, expression, styles and voice care, with tasks you sing. Drills train 41 skills, from interval singing and melodic echo to 33 vocalises and adaptive sight-singing over 30 levels; a ten-level path moves you up when a level is done. Your voice is looked after: voice load counted, session caps, light and rest days, voice check-ins and a Stop button. A reference has a tuner and pitch pipe, voice types, solfège with hand signs, a vowel chart that sings, and a tone lab. Ask CraftBot for a song and it writes it with its words at your level, checked line by line; it reviews sessions, plans days and answers questions. Starts with 29 public-domain songs in four languages and 12 vocalises; import ABC, MusicXML or UltraStar, or drop in an mp3 or a voice memo: the app separates the singer from the band on your computer, finds the melody, beat, key and chords, hears the words (Japanese, English and more) with their timing, and keeps the song's voice and music for practice, each turned on or off; light and dark.",
       "folder": "singing-coach",
@@ -321,7 +341,8 @@
     },
     {
       "id": "speedrun-application",
-      "livingUIVersion": 2,
+      "agentAppVersion": "0.1.0",
+      "toolkit": "blueprint-pocketbase-kit",
       "name": "a16z speedrun Application",
       "description": "Takes founders from their links to a submitted a16z speedrun application. Add your website, each founder's LinkedIn and GitHub, or your deck, and CraftBot reads them and fills every part of speedrun's form (the team, startup details, traction with revenue and usage metrics, funding history, the active round and each founder's profile and relevant experience), asking you only for what it cannot find. Its words never overwrite yours: they arrive as answers for a founder to read and confirm. When you ask, every answer is reviewed the way a speedrun investor reads it (buzzwords, jargon, vague claims, overclaims, the best news buried, wins undersold, text that sounds machine-written, a shorter version), then the whole application for track record, founder-market fit, earned insight, differentiation and momentum. About 50 checks from speedrun's own guidance, metric sanity checks and a 100 point odds model weighted to the team show your chance of getting in and the moves worth most, with the open cohort and its deadline, team video rules and the confirmations only founders can make. When it is ready, CraftBot types the application into speedrun's form in its browser and stops before Submit; you press it, and the app keeps what was sent. Copy by hand or export Markdown any time.",
       "folder": "speedrun-application",

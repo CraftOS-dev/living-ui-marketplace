@@ -1,0 +1,180 @@
+{
+  "events": [
+    {
+      "type": "day_plan_requested",
+      "capability": "day_plan_requested",
+      "description": "Asks your AI agent to plan the person's day (moves, today's top three, new cards, a note) as a proposal the person keeps item by item",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "date": {
+          "type": "string",
+          "required": true,
+          "description": "The day YYYY-MM-DD"
+        },
+        "brief": {
+          "type": "string",
+          "description": "Anything the person added"
+        }
+      },
+      "cooldownSeconds": 60
+    },
+    {
+      "type": "inbox_sort_requested",
+      "capability": "inbox_sort_requested",
+      "description": "Asks your AI agent to suggest a day, an area, a goal or a person for each card in the inbox",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "brief": {
+          "type": "string",
+          "description": "Anything the person added"
+        }
+      },
+      "cooldownSeconds": 60
+    },
+    {
+      "type": "breakdown_requested",
+      "capability": "breakdown_requested",
+      "description": "Asks your AI agent to break a goal down into first steps (cards, habits, milestones, a project) as a proposal",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "goal_id": {
+          "type": "string",
+          "required": true,
+          "description": "The goal"
+        },
+        "brief": {
+          "type": "string",
+          "description": "Anything the person added"
+        }
+      },
+      "cooldownSeconds": 30
+    },
+    {
+      "type": "habit_help_requested",
+      "capability": "habit_help_requested",
+      "description": "Asks your AI agent to look at a habit that is not sticking and suggest small changes",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "habit_id": {
+          "type": "string",
+          "required": true,
+          "description": "The habit"
+        },
+        "brief": {
+          "type": "string",
+          "description": "Anything the person added"
+        }
+      },
+      "cooldownSeconds": 30
+    },
+    {
+      "type": "recap_requested",
+      "capability": "recap_requested",
+      "description": "Asks your AI agent to write its paragraph of the week's recap (the weekly routine, or a button)",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "week_start": {
+          "type": "string",
+          "required": true,
+          "description": "The first day of the week"
+        }
+      },
+      "cooldownSeconds": 120
+    },
+    {
+      "type": "morning_note_due",
+      "capability": "morning_note_due",
+      "description": "The morning routine: your AI agent writes today's note on Home (weather, what matters, a nudge)",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "date": {
+          "type": "string",
+          "required": true,
+          "description": "The day"
+        }
+      },
+      "cooldownSeconds": 300
+    },
+    {
+      "type": "question_asked",
+      "capability": "question_asked",
+      "description": "Asks your AI agent a question typed in the app",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "ask_id": {
+          "type": "string",
+          "required": true,
+          "description": "The question"
+        }
+      },
+      "cooldownSeconds": 10
+    },
+    {
+      "type": "evening_checkin",
+      "capability": "evening_checkin",
+      "description": "The evening routine: your AI agent sends one short message about the day and offers to move what is left",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "date": {
+          "type": "string",
+          "required": true,
+          "description": "The day"
+        }
+      },
+      "cooldownSeconds": 300
+    },
+    {
+      "type": "proposal_returned",
+      "capability": "proposal_returned",
+      "description": "Tells your AI agent the person sent one of its proposals back with what to change",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "proposal_id": {
+          "type": "string",
+          "required": true,
+          "description": "The proposal"
+        }
+      },
+      "cooldownSeconds": 10
+    }
+  ],
+  "conventions": {
+    "guide": "Every operation's parameters, and how to do each task the app queues, are in AGENT_APP.md in the app's directory."
+  }
+}

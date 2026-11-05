@@ -1,0 +1,43 @@
+{
+  "events": [
+    {
+      "type": "coach_message",
+      "capability": "coach_message",
+      "description": "The person wrote to you in Singing Coach: a question about their singing, voice or practice, or a request for a song to learn",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "message": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the person's message"
+        }
+      },
+      "cooldownSeconds": 10
+    },
+    {
+      "type": "session_review",
+      "capability": "session_review",
+      "description": "The person finished a singing session in Singing Coach (3 minutes or more) and it is waiting for your review",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "session": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the session to review"
+        }
+      },
+      "cooldownSeconds": 30
+    }
+  ],
+  "conventions": {
+    "guide": "Every operation's parameters, and how to do each task the app queues, are in AGENT_APP.md in the app's directory."
+  }
+}

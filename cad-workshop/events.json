@@ -1,0 +1,71 @@
+{
+  "events": [
+    {
+      "type": "design_requested",
+      "capability": "design_requested",
+      "description": "Asks your AI agent to design or change a part from a request you wrote in the app",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "brief": {
+          "type": "string",
+          "required": true,
+          "description": "The request (its id)"
+        }
+      },
+      "cooldownSeconds": 30
+    },
+    {
+      "type": "repair_requested",
+      "capability": "repair_requested",
+      "description": "Asks your AI agent to fix a part whose build failed",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "brief": {
+          "type": "string",
+          "required": true,
+          "description": "The request (its id)"
+        }
+      },
+      "cooldownSeconds": 30
+    },
+    {
+      "type": "review_requested",
+      "capability": "review_requested",
+      "description": "Asks your AI agent to review a part for how it will be made (3D printing or machining) and report findings",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "brief": {
+          "type": "string",
+          "required": true,
+          "description": "The request (its id)"
+        },
+        "process": {
+          "type": "enum",
+          "values": [
+            "fdm_print",
+            "resin_print",
+            "cnc_3axis",
+            "general"
+          ],
+          "description": "How the part will be made"
+        }
+      },
+      "cooldownSeconds": 60
+    }
+  ],
+  "conventions": {
+    "guide": "Every operation's parameters, and how to do each task the app queues, are in AGENT_APP.md in the app's directory."
+  }
+}
