@@ -1,0 +1,42 @@
+# Tasks: Image Utility
+
+Every task cites what it implements. These features already exist in the published app `image-utility` 2.0.0, so the build tasks are recorded as done.
+
+## Build
+- [x] T-1 (F-FRM-1, F-FRM-2, F-FRM-3, F-FRM-9): the icon rail with counts and hover names, the phone bottom bar with Import in the middle and a menu for the rest, and back buttons along the app's own trail (`components/Shell.tsx`, `lib/router.ts`).
+- [x] T-2 (F-FRM-4, F-FRM-6): CAD Workshop's visual system: corner tokens, 28 px controls, dense rows, Manrope on the 12/13/14/15/26 px scale, pointer cursors, line icons and no emoji (`theme.css`, `components/ui.tsx`).
+- [x] T-3 (F-FRM-5): `--iu-*` colors and the checkerboard derived from the host theme tokens with contrast checks, re-derived on each theme change (`lib/themeColors.ts`).
+- [x] T-4 (F-FRM-7, F-WSP-7): layouts from phone to desktop, with the workspace's Image, Layers and Details tabs below 1024 px.
+- [x] T-5 (F-FRM-8): the realtime hub and the reload onto a newly deployed build, waiting while a dialog is open (`lib/live.ts`).
+- [x] T-6 (F-LIB-1, F-LIB-2, F-LIB-3): Home as the library: search, filter, sort, card sizes, the Add images tile, cards with result, facts, original's path, edit count, animation and proposal marks; pinned first (`pages/Home.tsx`, `images.list`).
+- [x] T-7 (F-IMP-1, F-IMP-2, F-IMP-3): import from the dialog (files, a file or folder path), the tile, drops on any page and paste; one image opens, several go to the library; unsupported files refused with the reason (`components/Importer.tsx`, `lib_images.js`).
+- [x] T-8 (F-IMP-4, C-14): images kept pending until the engine is ready and read by the worker (`lib_images.refreshPending`, `img_worker`).
+- [x] T-9 (F-WSP-1, F-WSP-2, F-WSP-3): the workspace frame: header (status, proposals, sizes, undo, redo, Export, menu with pin, duplicate, download the original, delete), toolbar, left panel, stage and inspector tabs (`pages/Image.tsx`).
+- [x] T-10 (F-WSP-4, F-WSP-5, F-WSP-6): the photo tools with their keys and quick actions; the tool dialog that saves as it changes (one save at a time, 320 ms after sliders stop, a no-op removes the edit), its undo and redo, and live previews or the crop overlay (`workspace/tools.ts`, `workspace/ToolDialog.tsx`, `workspace/forms.tsx`, `workspace/overlays.tsx`).
+- [x] T-11 (F-CROP-1, F-RSZ-1, F-CNV-1): crop and straighten (ratios, handles, thirds, typed size, smart crop, turns, flips), resize (modes, social sizes, no enlarging unless asked, resampling, light sharpen) and canvas (padding, ratio, backgrounds, corners, shadow) (`workspace/forms.tsx`, `lib_kinds.js`, `engine/img_engine/geom.py`, `draw.py`).
+- [x] T-12 (F-ADJ-1, F-FLT-1): Adjust with Auto and slider resets, and 12 looks with previews of this image and a strength (`tone.py`, `filters.previews`).
+- [x] T-13 (F-RBG-1, F-RBG-2, F-ENG-3): background removal with the fast or detailed model, background, edge and refine; install in place with progress; masks made once per image, upstream edits and model (`ai.py`, `lib_render.js`, `components/EngineSetup.tsx`).
+- [x] T-14 (F-LAY-1, F-LAY-2, F-LAY-3, F-LAY-4, F-LAY-5): layers on the stage: the layer tools and keys, typing in place, self-numbering steps, selection with move, resize, rotate and end handles, keyboard nudges and arrangement, all drawn live in SVG and by the engine for exports (`workspace/LayersOverlay.tsx`, `lib/layers.ts`, `lib_layers.js`, `layers.py`).
+- [x] T-15 (F-LAY-6): the Layers list with select, restack, hide, lock, rename, delete and the agent's marks, above the photo's edits (`workspace/LayersList.tsx`).
+- [x] T-16 (F-LAY-7, F-LAY-8, F-LAY-9): the floating layer properties (text, stroke, fill, radius, steps, arrow heads, redaction modes with the solid-is-safe note, logos, tiling, opacity, rotation, pinning, order, lock, hide, duplicate, delete) and remembered styles for the next layers (`workspace/LayerDialog.tsx`).
+- [x] T-17 (F-STK-1, F-STK-2, F-STK-4): the edit stack (click to edit, reorder, turn off, remove, the agent's marks), its menu (apply or save a recipe, copy edits to other images, back to the original after confirmation) and the library strip (`workspace/StackPanel.tsx`, `edits.*`, `presets.save`).
+- [x] T-18 (F-STK-3, F-AGT-5): proposals: the agent's edits kept as one open proposal per image under the propose policy, previewed, accepted or rejected with a reason; `agent_propose_only` for the person's edits (`lib_stack.js`, `proposals.*`).
+- [x] T-19 (F-STG-1, F-STG-2): the stage: zoom around the pointer, pan, fit, 100 % and 200 %, full-resolution tiles, backdrops, full screen, the pixel readout and the original on hold (`workspace/Stage.tsx`).
+- [x] T-20 (F-INF-1, F-INF-2, F-INF-3): the Image tab: result, histogram, original file, camera, location, and details (name, title, alt text with the 125-character guide and the describe ask, keywords, notes, pin) (`workspace/InfoPanel.tsx`, `images.info`, `images.update`).
+- [x] T-21 (F-EXP-1, F-EXP-2, F-EXP-3, F-EXP-4, F-EXP-5): the Export tab: presets, several outputs, per-output settings, real encodes with savings and the chosen quality, the 100 % comparison, metadata and location, matte, file name, folder copy, downloads, save as a preset and exported before (`workspace/ExportPanel.tsx`, `lib_export.js`, `encode.py`).
+- [x] T-22 (F-HIS-1): the journal of changes with undo, redo and revert of any one batch (a revert is itself a batch), shown in the History tab (`lib_stack.js`, `workspace/HistoryPanel.tsx`).
+- [x] T-23 (F-AGP-1, F-AGP-2, F-AGT-7, F-AGT-8): the Agent tab (edit or description, a region drawn on the image, quick asks, the policy badge, this image's requests) and `requests.create` firing the `edit_requested` and `describe_requested` triggers, with their playbooks (`workspace/AgentPanel.tsx`, `lib_app.js`).
+- [x] T-24 (F-BAT-1, F-BAT-2, F-BAT-3, F-BAT-4): Batches: the planner (images, edits, recipe or size, outputs, metadata, rename tokens, folder and collisions), the preview of every file with test encodes, the background worker with progress, stop, resume, retry, zip, show the files and delete; the agent's batches waiting for Run or Reject (`pages/Batches.tsx`, `lib_batch.js`).
+- [x] T-25 (F-EXS-1, F-EXS-2): the Exports page with totals, format and batch filters, download and delete with confirmation (`pages/Exports.tsx`, `exports.*`).
+- [x] T-26 (F-REQ-1, F-ACT-1): the Requests page with its status filter, and the Activity page grouped by day with open and revert (`pages/Requests.tsx`, `pages/Activity.tsx`, `history.list`).
+- [x] T-27 (F-SET-1, F-SET-2, F-SET-3, F-SET-4, F-SET-5, F-SET-6): Settings: the engine and the two background models, export defaults, the agent's policy (person only), presets with new sizes, logos and the keyboard shortcuts (`pages/Settings.tsx`, `settings.update`, `assets.*`).
+- [x] T-28 (F-ENG-1, F-ENG-2): the first-run setup lane: pinned downloads checked by size and SHA-256, resumable, unpacked under a mark, retried on request, with progress in `app.status` (`lib_setup.js`, `img_engine_setup`).
+- [x] T-29 (F-AGT-6, C-8, C-9): person-only actions refused for the agent, the export-folder limit on agent writes, and record guards that refuse direct writes and name the operation (`lib_app.js`, `lib_export.js`, `hooks.pb.js`, `lib_rules.js`).
+- [x] T-30 (F-AGT-1, F-AGT-2, F-AGT-3, F-AGT-4, F-AGT-9): the 62 operations in `operations.json`, served to agents by `a2app_routes.pb.js` through the same handlers the View calls; `app.guide`, `app.schema`, `app.status`, `app.context` fed by `app.ui`; `images.render`, `analyze.image`, dry runs, estimates and comparisons; destructive operations through the adapter's approval (`lib_guide.js`, `lib_app.js`).
+
+## Verification
+- [x] Framework-files check (`validateFrameworkFiles` of the Agent App CLI) reports no problems for manifest.json, operations.json, AGENT_APP.md, reference/requirements.md and reference/tasks.md.
+- [x] ## Operations Design in reference/requirements.md lists exactly the 62 operations of operations.json, each under its declared module.
+- [ ] Agent App Framework gate (`agent-app <dir> validate`) passes, including the describe budget on a dev instance.
+- [ ] Every declared operation answers through `a2app` on a live instance.
+- [ ] The View renders identically to the published build (screenshot comparison).

@@ -42,7 +42,42 @@ function skipLiteral(src, i) {
     }
     return j + 1;
   }
+  if (c === "/" && regexMayStart(src, i)) {
+    let j = i + 1;
+    let inClass = false;
+    while (j < src.length && src[j] !== "\n") {
+      const d = src[j];
+      if (d === "\\") j++;
+      else if (d === "[") inClass = true;
+      else if (d === "]") inClass = false;
+      else if (d === "/" && !inClass) {
+        j++;
+        while (j < src.length && /[a-z]/i.test(src[j])) j++;
+        return j;
+      }
+      j++;
+    }
+    // No closing slash on this line: a division after all.
+  }
   return -1;
+}
+
+/**
+ * Can a `/` at `i` open a regex literal (`/[",\n]/.test(s)`) rather than divide?
+ * It can after an operator, an opening bracket, a separator or a keyword such
+ * as `return`; after a name, a number or a closing bracket it divides. A quote
+ * inside a regex read as a string start would desynchronise the whole scan.
+ */
+function regexMayStart(src, i) {
+  let k = i - 1;
+  while (k >= 0 && /\s/.test(src[k])) k--;
+  if (k < 0) return true;
+  const p = src[k];
+  if ("(,=:[!&|?{};+-*%<>~^".includes(p)) return true;
+  if (!/[\w$]/.test(p)) return false;
+  let s = k;
+  while (s > 0 && /[\w$]/.test(src[s - 1])) s--;
+  return /^(?:return|typeof|case|in|of|delete|void|throw|new|else|yield|await)$/.test(src.slice(s, k + 1));
 }
 
 /** From an opening bracket at `i`, the index just past its matching close. */

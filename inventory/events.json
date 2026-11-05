@@ -1,0 +1,51 @@
+{
+  "events": [
+    {
+      "type": "restock_review",
+      "capability": "restock_review",
+      "description": "Asks your AI agent to review the items running low and draft purchase orders for them (it never sends or places them)",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        }
+      },
+      "cooldownSeconds": 300
+    },
+    {
+      "type": "documents_waiting",
+      "capability": "documents_waiting",
+      "description": "Asks your AI agent to read the packing slips and invoices you added and record the stock they list as received",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        }
+      },
+      "cooldownSeconds": 20
+    },
+    {
+      "type": "order_send_requested",
+      "capability": "order_send_requested",
+      "description": "Asks your AI agent to email a purchase order to its supplier and then mark it as ordered",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "order_id": {
+          "type": "string",
+          "required": true,
+          "description": "The purchase order to send (its id)"
+        }
+      },
+      "cooldownSeconds": 10
+    }
+  ],
+  "conventions": {
+    "guide": "Every operation's parameters, and how to do each task the app queues, are in AGENT_APP.md in the app's directory."
+  }
+}

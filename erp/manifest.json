@@ -1,34 +1,372 @@
 {
-  "id": "{{PROJECT_ID}}",
-  "name": "{{PROJECT_NAME}}",
-  "description": "{{PROJECT_DESCRIPTION}}",
-  "agentAppVersion": 2,
-  "createdAt": "{{CREATED_AT}}",
+  "id": "erp",
+  "name": "ERP",
+  "agentAppVersion": "0.1.0",
+  "adapterVersion": "0.2.0",
+  "appVersion": "1.0.0",
   "authMode": "none",
-  "port": "{{PORT}}",
-  "pbVersion": "0.39.7",
-  "kitVersion": "0.6.0",
-  "craftbotVersion": "1.4.4",
-  "pipeline": {
-    "install": "npm install --ignore-scripts --prefix frontend",
-    "build": "npm run build --prefix frontend",
-    "start": "pocketbase serve --http=127.0.0.1:{{PORT}} --dir pb/pb_data --hooksDir pb/pb_hooks --migrationsDir pb/pb_migrations --publicDir pb/pb_public",
-    "health": "/api/health"
-  },
+  "modules": [
+    {
+      "name": "app",
+      "summary": "guide",
+      "entities": []
+    },
+    {
+      "name": "setup",
+      "summary": "status, presets",
+      "entities": []
+    },
+    {
+      "name": "auth",
+      "summary": "logout, me",
+      "entities": []
+    },
+    {
+      "name": "members",
+      "summary": "list, get",
+      "entities": [
+        "members"
+      ]
+    },
+    {
+      "name": "roles",
+      "summary": "list",
+      "entities": [
+        "roles"
+      ]
+    },
+    {
+      "name": "settings",
+      "summary": "get",
+      "entities": [
+        "settings"
+      ]
+    },
+    {
+      "name": "activity",
+      "summary": "list",
+      "entities": []
+    },
+    {
+      "name": "notes",
+      "summary": "add, delete",
+      "entities": [
+        "notes"
+      ]
+    },
+    {
+      "name": "attachments",
+      "summary": "list, add, get, delete",
+      "entities": [
+        "attachments"
+      ]
+    },
+    {
+      "name": "audit",
+      "summary": "list",
+      "entities": [
+        "audit"
+      ]
+    },
+    {
+      "name": "parties",
+      "summary": "list, get, add, update, delete, statement",
+      "entities": [
+        "parties"
+      ]
+    },
+    {
+      "name": "contacts",
+      "summary": "add, update, delete",
+      "entities": [
+        "contacts"
+      ]
+    },
+    {
+      "name": "docs",
+      "summary": "list, get, preview, preview-void, text",
+      "entities": []
+    },
+    {
+      "name": "docs-edit",
+      "summary": "create, update, set-lines, add-line, update-line…",
+      "entities": []
+    },
+    {
+      "name": "items",
+      "summary": "list, get, add, update, archive, delete, photo",
+      "entities": [
+        "items"
+      ]
+    },
+    {
+      "name": "categories",
+      "summary": "list, add, update, delete",
+      "entities": []
+    },
+    {
+      "name": "warehouses",
+      "summary": "list, add, update, delete",
+      "entities": [
+        "warehouses"
+      ]
+    },
+    {
+      "name": "stock",
+      "summary": "levels, moves, change, preview-change, changes, change-get…",
+      "entities": [
+        "stock",
+        "stock_changes",
+        "stock_moves"
+      ]
+    },
+    {
+      "name": "reorder",
+      "summary": "list, create-orders",
+      "entities": []
+    },
+    {
+      "name": "boms",
+      "summary": "list, get, add, update, delete",
+      "entities": [
+        "boms"
+      ]
+    },
+    {
+      "name": "builds",
+      "summary": "list, get, create, update, complete, preview-complete, void…",
+      "entities": [
+        "builds"
+      ]
+    },
+    {
+      "name": "payments",
+      "summary": "list, get, create, update, post, record, void…",
+      "entities": [
+        "payments",
+        "allocations"
+      ]
+    },
+    {
+      "name": "banks",
+      "summary": "list, get",
+      "entities": [
+        "banks"
+      ]
+    },
+    {
+      "name": "bank",
+      "summary": "lines, imports, suggest, preview-create-payment…",
+      "entities": [
+        "bank_lines"
+      ]
+    },
+    {
+      "name": "bank-edit",
+      "summary": "add-line, delete-line, import-preview, import-run…",
+      "entities": []
+    },
+    {
+      "name": "accounts",
+      "summary": "list, get, add, update, delete",
+      "entities": [
+        "accounts"
+      ]
+    },
+    {
+      "name": "journals",
+      "summary": "list, get, preview, post, reverse, preview-reverse",
+      "entities": [
+        "journals"
+      ]
+    },
+    {
+      "name": "taxes",
+      "summary": "list",
+      "entities": [
+        "taxes"
+      ]
+    },
+    {
+      "name": "terms",
+      "summary": "list",
+      "entities": []
+    },
+    {
+      "name": "currencies",
+      "summary": "list, set, refresh",
+      "entities": [
+        "currencies"
+      ]
+    },
+    {
+      "name": "reports",
+      "summary": "pnl, balance-sheet, cash-flow, trial-balance, ledger, aging…",
+      "entities": [
+        "valuation"
+      ]
+    },
+    {
+      "name": "close",
+      "summary": "status",
+      "entities": []
+    },
+    {
+      "name": "budgets",
+      "summary": "get, set",
+      "entities": [
+        "budgets"
+      ]
+    },
+    {
+      "name": "assets",
+      "summary": "list, get, add, update, depreciate, preview-depreciate, delete",
+      "entities": [
+        "assets"
+      ]
+    },
+    {
+      "name": "departments",
+      "summary": "list, add, update, delete",
+      "entities": [
+        "departments"
+      ]
+    },
+    {
+      "name": "employees",
+      "summary": "list, get, add, update, delete, org",
+      "entities": [
+        "employees"
+      ]
+    },
+    {
+      "name": "leave",
+      "summary": "types, type-add, type-update, type-archive, holidays…",
+      "entities": [
+        "leave_types",
+        "holidays",
+        "leave_requests",
+        "leave_adjustments"
+      ]
+    },
+    {
+      "name": "claims",
+      "summary": "list, expense-types, get, receipt, create, update…",
+      "entities": []
+    },
+    {
+      "name": "payroll",
+      "summary": "components, runs, run-get, preview-post, preview-pay…",
+      "entities": [
+        "payroll_runs",
+        "payslips"
+      ]
+    },
+    {
+      "name": "payroll-edit",
+      "summary": "component-add, component-update, component-delete, assign…",
+      "entities": []
+    },
+    {
+      "name": "projects",
+      "summary": "list, get, add, update, delete, profit, summary",
+      "entities": [
+        "projects"
+      ]
+    },
+    {
+      "name": "todos",
+      "summary": "list, add, update, move, delete",
+      "entities": []
+    },
+    {
+      "name": "timesheets",
+      "summary": "week, save-week, submit, list, bill",
+      "entities": [
+        "timesheets"
+      ]
+    },
+    {
+      "name": "home",
+      "summary": "summary, needs",
+      "entities": []
+    },
+    {
+      "name": "search",
+      "summary": "global",
+      "entities": []
+    },
+    {
+      "name": "proposals",
+      "summary": "list, get, withdraw",
+      "entities": [
+        "proposals"
+      ]
+    },
+    {
+      "name": "inbox",
+      "summary": "list, add, get, start, complete, fail, retry, delete",
+      "entities": [
+        "inbox"
+      ]
+    },
+    {
+      "name": "asks",
+      "summary": "list, working, answer, fail, delete",
+      "entities": [
+        "asks"
+      ]
+    },
+    {
+      "name": "marks",
+      "summary": "set, clear",
+      "entities": []
+    },
+    {
+      "name": "agent",
+      "summary": "activity",
+      "entities": []
+    },
+    {
+      "name": "import",
+      "summary": "preview, run, list, undo, template",
+      "entities": [
+        "imports"
+      ]
+    },
+    {
+      "name": "export",
+      "summary": "csv",
+      "entities": []
+    },
+    {
+      "name": "records",
+      "summary": "the app's other stored records",
+      "entities": [
+        "counters",
+        "field_marks",
+        "ledger_months",
+        "payment_terms",
+        "project_tasks",
+        "item_categories",
+        "journal_lines",
+        "document_lines",
+        "expense_claims",
+        "claim_lines",
+        "pay_components",
+        "employee_components",
+        "bom_lines"
+      ]
+    }
+  ],
+  "modificationLock": false,
   "capabilities": {
-    "external_hosts": [
-      "api.frankfurter.dev",
-      "cdn.jsdelivr.net"
-    ],
-    "triggers": [
-      "bank_lines_waiting",
-      "close_review_requested",
-      "collections_requested",
-      "doc_send_requested",
-      "inbox_waiting",
-      "question_asked",
-      "reorder_review"
-    ]
+    "integrations": []
   },
-  "adapterVersion": "1.9.0"
+  "pipeline": {
+    "install": "node pb-fetch.mjs && npm --prefix frontend install --ignore-scripts --no-audit --no-fund",
+    "build": "node pb-build.mjs",
+    "start": "node pb-serve.mjs",
+    "health": "/api/_a2app"
+  }
 }

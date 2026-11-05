@@ -1,0 +1,118 @@
+{
+  "events": [
+    {
+      "type": "inbox_waiting",
+      "capability": "inbox_waiting",
+      "description": "Asks your AI agent to read the files dropped in the ERP Inbox (bills, receipts, statements) and turn them into drafts for approval",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        }
+      },
+      "cooldownSeconds": 20
+    },
+    {
+      "type": "bank_lines_waiting",
+      "capability": "bank_lines_waiting",
+      "description": "Asks your AI agent to reconcile new bank statement lines (it matches what is already in the books and proposes the rest)",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "bank_id": {
+          "type": "string",
+          "required": true,
+          "description": "The bank account whose lines arrived"
+        }
+      },
+      "cooldownSeconds": 30
+    },
+    {
+      "type": "question_asked",
+      "capability": "question_asked",
+      "description": "Asks your AI agent a question typed in the ERP; the answer comes back into the app",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "ask_id": {
+          "type": "string",
+          "required": true,
+          "description": "The question to answer"
+        }
+      },
+      "cooldownSeconds": 10
+    },
+    {
+      "type": "reorder_review",
+      "capability": "reorder_review",
+      "description": "Asks your AI agent to review what is running low and draft purchase orders (it never sends them)",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        }
+      },
+      "cooldownSeconds": 300
+    },
+    {
+      "type": "collections_requested",
+      "capability": "collections_requested",
+      "description": "Asks your AI agent to chase overdue invoices: a polite reminder to each customer by email, with the invoice",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        }
+      },
+      "cooldownSeconds": 600
+    },
+    {
+      "type": "doc_send_requested",
+      "capability": "doc_send_requested",
+      "description": "Asks your AI agent to email a quote, invoice or purchase order to the customer or supplier",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "doc_id": {
+          "type": "string",
+          "required": true,
+          "description": "The document to send (its id)"
+        }
+      },
+      "cooldownSeconds": 10
+    },
+    {
+      "type": "close_review_requested",
+      "capability": "close_review_requested",
+      "description": "Asks your AI agent to prepare the month-end close: it works through the checklist and proposes what is missing",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "month": {
+          "type": "string",
+          "required": true,
+          "description": "The month to close, YYYY-MM"
+        }
+      },
+      "cooldownSeconds": 60
+    }
+  ],
+  "conventions": {
+    "guide": "Every operation's parameters, and how to do each task the app queues, are in AGENT_APP.md in the app's directory."
+  }
+}

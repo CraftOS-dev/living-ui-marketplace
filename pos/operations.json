@@ -1,72 +1,43 @@
 {
-  "opsVersion": 1,
   "operations": [
     {
-      "name": "health",
-      "description": "Liveness check (PocketBase built-in).",
-      "system": true,
-      "params": {},
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/health"
-      }
-    },
-    {
-      "name": "ops.list",
-      "description": "Return this operations manifest.",
-      "system": true,
-      "params": {},
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/_ops"
-      }
-    },
-    {
       "name": "app.guide",
-      "description": "START HERE: conventions (money as text in major units, ids or names), today's trading day, the currency, tax classes, categories, registers, what your AI agent may and may not do, and ready-to-run recipes.",
-      "params": {},
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/app/guide"
-      }
+      "description": "Conventions (money as text in major units, ids or names), today's trading day, the currency, tax classes, categories, registers, what your…",
+      "destructive": false,
+      "readOnly": true,
+      "module": "app",
+      "params": {}
     },
     {
       "name": "app.status",
-      "description": "At a glance: set up or not, registers and their open shifts, open tickets (and how many your AI agent saved), products to review, imports waiting, kitchen orders open, products running low.",
-      "params": {},
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/app/status"
-      }
+      "description": "At a glance: set up or not, registers and their open shifts, open tickets (and how many your AI agent saved), products to review, imports…",
+      "destructive": false,
+      "readOnly": true,
+      "module": "app",
+      "params": {}
     },
     {
       "name": "setup.regions",
       "description": "The country presets the first-run setup offers: currency, tax classes and rates, price mode, cash rounding.",
-      "params": {},
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/setup/regions"
-      }
+      "destructive": false,
+      "readOnly": true,
+      "module": "setup",
+      "params": {}
     },
     {
       "name": "setup.complete",
-      "description": "First run: the business, its country preset and the owner with their PIN. Runs once. Owner only, at the counter; your AI agent is refused.",
+      "description": "First run: the business, its country preset and the owner with their PIN.",
+      "destructive": false,
+      "module": "setup",
       "params": {
         "business_name": {
           "type": "string",
-          "description": "The business name on receipts",
-          "required": true
+          "required": true,
+          "description": "The business name on receipts"
         },
         "region": {
-          "type": "string",
-          "description": "Country preset",
-          "required": true,
-          "enum": [
+          "type": "enum",
+          "values": [
             "MY",
             "SG",
             "JP",
@@ -75,7 +46,9 @@
             "GB",
             "US",
             "OTHER"
-          ]
+          ],
+          "required": true,
+          "description": "Country preset"
         },
         "currency": {
           "type": "string",
@@ -83,221 +56,196 @@
         },
         "owner_name": {
           "type": "string",
-          "description": "The owner's name",
-          "required": true
+          "required": true,
+          "description": "The owner's name"
         },
         "pin": {
           "type": "string",
-          "description": "The owner's PIN, 4 to 6 digits",
-          "required": true
+          "required": true,
+          "description": "The owner's PIN, 4 to 6 digits"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/setup/complete"
       }
     },
     {
       "name": "auth.me",
       "description": "Who is signed in on this page (from its session), or null.",
-      "params": {},
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/auth/me"
-      }
+      "destructive": false,
+      "readOnly": true,
+      "module": "auth",
+      "params": {}
     },
     {
       "name": "auth.login",
-      "description": "Sign in with a PIN; returns a session token the page sends as X-Pos-Session. Counter only: needs a person signed in with their PIN; your AI agent is refused.",
+      "description": "Sign in with a PIN; returns a session token the page sends as X-Pos-Session.",
+      "destructive": false,
+      "module": "auth",
       "params": {
         "staff": {
           "type": "string",
-          "description": "Staff id or name",
-          "required": true
+          "required": true,
+          "description": "Staff id or name"
         },
         "pin": {
           "type": "string",
-          "description": "Their PIN",
-          "required": true
+          "required": true,
+          "description": "Their PIN"
         },
         "register": {
           "type": "string",
           "description": "Register id or code"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/auth/login"
       }
     },
     {
       "name": "auth.logout",
       "description": "End this page's session (lock the register).",
-      "params": {},
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/auth/logout"
-      }
+      "destructive": false,
+      "module": "auth",
+      "params": {}
     },
     {
       "name": "auth.first-pin",
-      "description": "Someone without a PIN (new, or cleared) chooses one and is signed in. Counter only: needs a person signed in with their PIN; your AI agent is refused.",
+      "description": "Someone without a PIN (new, or cleared) chooses one and is signed in.",
+      "destructive": false,
+      "module": "auth",
       "params": {
         "staff": {
           "type": "string",
-          "description": "Staff id or name",
-          "required": true
+          "required": true,
+          "description": "Staff id or name"
         },
         "pin": {
           "type": "string",
-          "description": "The new PIN, 4 to 6 digits",
-          "required": true
+          "required": true,
+          "description": "The new PIN, 4 to 6 digits"
         },
         "register": {
           "type": "string",
           "description": "Register id or code"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/auth/first-pin"
       }
     },
     {
       "name": "auth.change-pin",
-      "description": "The signed-in person changes their own PIN. Counter only: needs a person signed in with their PIN; your AI agent is refused.",
+      "description": "The signed-in person changes their own PIN.",
+      "destructive": false,
+      "module": "auth",
       "params": {
         "current": {
           "type": "string",
-          "description": "Their current PIN",
-          "required": true
+          "required": true,
+          "description": "Their current PIN"
         },
         "pin": {
           "type": "string",
-          "description": "The new PIN",
-          "required": true
+          "required": true,
+          "description": "The new PIN"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/auth/change-pin"
       }
     },
     {
       "name": "auth.approve",
-      "description": "A manager approves an action for the person at the counter with their PIN; returns a one-time approval (30 minutes) to pass as approval (or in approvals at finalize). Counter only: needs a person signed in with their PIN; your AI agent is refused.",
+      "description": "A manager approves an action for the person at the counter with their PIN; returns a one-time approval (30 minutes) to pass as approval…",
+      "destructive": false,
+      "module": "auth",
       "params": {
         "staff": {
           "type": "string",
-          "description": "The approving manager or owner (id or name)",
-          "required": true
+          "required": true,
+          "description": "The approving manager or owner (id or name)"
         },
         "pin": {
           "type": "string",
-          "description": "Their PIN",
-          "required": true
+          "required": true,
+          "description": "Their PIN"
         },
         "action": {
-          "type": "string",
-          "description": "What is approved",
-          "required": true,
-          "enum": [
+          "type": "enum",
+          "values": [
             "discount_over",
             "price_override",
             "refund",
             "refund_blind",
             "void_ticket",
             "cash_move"
-          ]
+          ],
+          "required": true,
+          "description": "What is approved"
         },
         "scope": {
           "type": "string",
           "description": "What it is for (shown in the audit trail)"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/auth/approve"
       }
     },
     {
       "name": "staff.list",
       "description": "Staff with role, color, training mode and whether they have a PIN (PINs are never shown), plus what each role may do.",
+      "destructive": false,
+      "readOnly": true,
+      "module": "staff",
       "params": {
         "include_inactive": {
           "type": "boolean",
           "description": "Include staff who were turned off"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/staff/list"
       }
     },
     {
       "name": "staff.add",
-      "description": "Add a person with a role and their PIN. Owner only, at the counter; your AI agent is refused.",
+      "description": "Add a person with a role and their PIN.",
+      "destructive": false,
+      "module": "staff",
       "params": {
         "name": {
           "type": "string",
-          "description": "Name",
-          "required": true
+          "required": true,
+          "description": "Name"
         },
         "role": {
-          "type": "string",
-          "description": "Role",
-          "required": true,
-          "enum": [
+          "type": "enum",
+          "values": [
             "owner",
             "manager",
             "cashier"
-          ]
+          ],
+          "required": true,
+          "description": "Role"
         },
         "pin": {
           "type": "string",
-          "description": "Their PIN, 4 to 6 digits",
-          "required": true
+          "required": true,
+          "description": "Their PIN, 4 to 6 digits"
         },
         "color": {
           "type": "string",
           "description": "Color slot 1 to 8"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/staff/add"
       }
     },
     {
       "name": "staff.update",
-      "description": "Change a person's name, role, color, training mode or turn them off. Owner only, at the counter; your AI agent is refused.",
+      "description": "Change a person's name, role, color, training mode or turn them off.",
+      "destructive": false,
+      "module": "staff",
       "params": {
         "staff": {
           "type": "string",
-          "description": "Staff id or name",
-          "required": true
+          "required": true,
+          "description": "Staff id or name"
         },
         "name": {
           "type": "string",
           "description": "New name"
         },
         "role": {
-          "type": "string",
-          "description": "Role",
-          "enum": [
+          "type": "enum",
+          "values": [
             "owner",
             "manager",
             "cashier"
-          ]
+          ],
+          "description": "Role"
         },
         "color": {
           "type": "string",
@@ -311,63 +259,52 @@
           "type": "boolean",
           "description": "Training mode: their sales are practice (not counted)"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/staff/update"
       }
     },
     {
       "name": "staff.set-pin",
-      "description": "Set someone's PIN. Owner only, at the counter; your AI agent is refused.",
+      "description": "Set someone's PIN.",
+      "destructive": false,
+      "module": "staff",
       "params": {
         "staff": {
           "type": "string",
-          "description": "Staff id or name",
-          "required": true
+          "required": true,
+          "description": "Staff id or name"
         },
         "pin": {
           "type": "string",
-          "description": "The new PIN",
-          "required": true
+          "required": true,
+          "description": "The new PIN"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/staff/set-pin"
       }
     },
     {
       "name": "staff.reset-pin",
-      "description": "Clear a forgotten PIN when the owner asks: the person chooses a new one at their next sign-in. Ends their sessions.",
+      "description": "Clear a forgotten PIN when the owner asks: the person chooses a new one at their next sign-in.",
+      "destructive": false,
+      "module": "staff",
       "params": {
         "staff": {
           "type": "string",
-          "description": "Staff id or name",
-          "required": true
+          "required": true,
+          "description": "Staff id or name"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/staff/reset-pin"
       }
     },
     {
       "name": "settings.get",
-      "description": "The shop's settings: business details, currency and decimals, price mode, tax rounding, cash rounding, order types, service charge, receipt options, kitchen, lock time, cashier discount limit, trading-day cutoff.",
-      "params": {},
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/settings/get"
-      }
+      "description": "The shop's settings: business details, currency and decimals, price mode, tax rounding, cash rounding, order types, service charge…",
+      "destructive": false,
+      "readOnly": true,
+      "module": "settings",
+      "params": {}
     },
     {
       "name": "settings.update",
-      "description": "Change settings. Your AI agent may change only the business details and receipt wording (business_name, address, phone, email, website, receipt_header, receipt_footer); the rest is for the owner.",
+      "description": "Change settings.",
+      "destructive": false,
+      "module": "settings",
       "params": {
         "business_name": {
           "type": "string",
@@ -410,9 +347,8 @@
           "description": "Owner: company registration number"
         },
         "region": {
-          "type": "string",
-          "description": "Owner: country preset label",
-          "enum": [
+          "type": "enum",
+          "values": [
             "MY",
             "SG",
             "JP",
@@ -421,28 +357,29 @@
             "GB",
             "US",
             "OTHER"
-          ]
+          ],
+          "description": "Owner: country preset label"
         },
         "currency": {
           "type": "string",
           "description": "Owner: currency (only before the first sale)"
         },
         "price_mode": {
-          "type": "string",
-          "description": "Owner: prices include tax or not",
-          "enum": [
+          "type": "enum",
+          "values": [
             "inclusive",
             "exclusive"
-          ]
+          ],
+          "description": "Owner: prices include tax or not"
         },
         "tax_rounding": {
-          "type": "string",
-          "description": "Owner: how per-rate tax rounds",
-          "enum": [
+          "type": "enum",
+          "values": [
             "half_up",
             "floor",
             "ceil"
-          ]
+          ],
+          "description": "Owner: how per-rate tax rounds"
         },
         "cash_rounding": {
           "type": "string",
@@ -461,37 +398,37 @@
           "description": "Owner: service charge percent, e.g. 10 (0 is off)"
         },
         "service_charge_scope": {
-          "type": "string",
-          "description": "Owner: on dine-in orders or all",
-          "enum": [
+          "type": "enum",
+          "values": [
             "dine_in",
             "all"
-          ]
+          ],
+          "description": "Owner: on dine-in orders or all"
         },
         "service_charge_tax": {
           "type": "string",
           "description": "Owner: tax class of the service charge (empty: untaxed)"
         },
         "receipt_width": {
-          "type": "string",
-          "description": "Owner: paper width in mm",
-          "enum": [
+          "type": "enum",
+          "values": [
             "80",
             "58"
-          ]
+          ],
+          "description": "Owner: paper width in mm"
         },
         "receipt_barcode": {
           "type": "boolean",
           "description": "Owner: print the receipt number as a barcode (scan it to find the sale)"
         },
         "after_sale": {
-          "type": "string",
-          "description": "Owner: after payment, ask about a receipt, print one, or none",
-          "enum": [
+          "type": "enum",
+          "values": [
             "ask",
             "print",
             "none"
-          ]
+          ],
+          "description": "Owner: after payment, ask about a receipt, print one, or none"
         },
         "kitchen_enabled": {
           "type": "boolean",
@@ -521,41 +458,36 @@
           "type": "boolean",
           "description": "Owner: remove the receipt logo"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/settings/update"
       }
     },
     {
       "name": "tax.list",
       "description": "Tax classes with their rate, the rate when eaten in (if different), receipt mark, default, and how many products use each.",
+      "destructive": false,
+      "readOnly": true,
+      "module": "tax",
       "params": {
         "include_archived": {
           "type": "boolean",
           "description": "Include archived classes"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/tax/list"
       }
     },
     {
       "name": "tax.add",
-      "description": "Add a tax class. Owner only, at the counter; your AI agent is refused.",
+      "description": "Add a tax class.",
+      "destructive": false,
+      "module": "tax",
       "params": {
         "name": {
           "type": "string",
-          "description": "Name, e.g. SST 6%",
-          "required": true
+          "required": true,
+          "description": "Name, e.g. SST 6%"
         },
         "rate": {
           "type": "string",
-          "description": "Rate percent, e.g. 6",
-          "required": true
+          "required": true,
+          "description": "Rate percent, e.g. 6"
         },
         "dine_in_rate": {
           "type": "string",
@@ -569,21 +501,18 @@
           "type": "boolean",
           "description": "The class new products get"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/tax/add"
       }
     },
     {
       "name": "tax.update",
-      "description": "Change a tax class (past sales keep the rate they were sold at). Owner only, at the counter; your AI agent is refused.",
+      "description": "Change a tax class (past sales keep the rate they were sold at).",
+      "destructive": false,
+      "module": "tax",
       "params": {
         "tax_class": {
           "type": "string",
-          "description": "Tax class id or name",
-          "required": true
+          "required": true,
+          "description": "Tax class id or name"
         },
         "name": {
           "type": "string",
@@ -605,67 +534,59 @@
           "type": "boolean",
           "description": "Make it the default"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/tax/update"
       }
     },
     {
       "name": "tax.archive",
-      "description": "Archive (or restore) a tax class no product uses. Owner only, at the counter; your AI agent is refused.",
+      "description": "Archive (or restore) a tax class no product uses.",
+      "destructive": false,
+      "module": "tax",
       "params": {
         "tax_class": {
           "type": "string",
-          "description": "Tax class id or name",
-          "required": true
+          "required": true,
+          "description": "Tax class id or name"
         },
         "archived": {
           "type": "boolean",
           "description": "false restores it"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/tax/archive"
       }
     },
     {
       "name": "tenders.list",
       "description": "Payment methods (cash, card, QR, other) with their QR image when they have one.",
+      "destructive": false,
+      "readOnly": true,
+      "module": "tenders",
       "params": {
         "include_inactive": {
           "type": "boolean",
           "description": "Include methods that are turned off"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/tenders/list"
       }
     },
     {
       "name": "tenders.add",
-      "description": "Add a payment method. Owner only, at the counter; your AI agent is refused.",
+      "description": "Add a payment method.",
+      "destructive": false,
+      "module": "tenders",
       "params": {
         "name": {
           "type": "string",
-          "description": "Name, e.g. DuitNow QR",
-          "required": true
+          "required": true,
+          "description": "Name, e.g. DuitNow QR"
         },
         "kind": {
-          "type": "string",
-          "description": "Kind",
-          "required": true,
-          "enum": [
+          "type": "enum",
+          "values": [
             "cash",
             "card",
             "qr",
             "other"
-          ]
+          ],
+          "required": true,
+          "description": "Kind"
         },
         "ask_reference": {
           "type": "boolean",
@@ -675,21 +596,18 @@
           "type": "string",
           "description": "Absolute path of the QR image customers scan"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/tenders/add"
       }
     },
     {
       "name": "tenders.update",
-      "description": "Change a payment method (name, on or off, order, QR image). Owner only, at the counter; your AI agent is refused.",
+      "description": "Change a payment method (name, on or off, order, QR image).",
+      "destructive": false,
+      "module": "tenders",
       "params": {
         "tender": {
           "type": "string",
-          "description": "Payment method id or name",
-          "required": true
+          "required": true,
+          "description": "Payment method id or name"
         },
         "name": {
           "type": "string",
@@ -715,56 +633,48 @@
           "type": "boolean",
           "description": "Remove the QR image"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/tenders/update"
       }
     },
     {
       "name": "registers.list",
       "description": "Registers with their open shift, if any.",
+      "destructive": false,
+      "readOnly": true,
+      "module": "registers",
       "params": {
         "include_archived": {
           "type": "boolean",
           "description": "Include archived registers"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/registers/list"
       }
     },
     {
       "name": "registers.add",
-      "description": "Add a register (code R2, R3... by default). Owner only, at the counter; your AI agent is refused.",
+      "description": "Add a register (code R2, R3...",
+      "destructive": false,
+      "module": "registers",
       "params": {
         "name": {
           "type": "string",
-          "description": "Name, e.g. Bar",
-          "required": true
+          "required": true,
+          "description": "Name, e.g. Bar"
         },
         "code": {
           "type": "string",
           "description": "Code, up to 8 letters or digits"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/registers/add"
       }
     },
     {
       "name": "registers.update",
-      "description": "Rename or archive a register. Owner only, at the counter; your AI agent is refused.",
+      "description": "Rename or archive a register.",
+      "destructive": false,
+      "module": "registers",
       "params": {
         "register": {
           "type": "string",
-          "description": "Register id or code (R1)",
-          "required": true
+          "required": true,
+          "description": "Register id or code (R1)"
         },
         "name": {
           "type": "string",
@@ -774,41 +684,34 @@
           "type": "boolean",
           "description": "Archive it (it must be closed)"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/registers/update"
       }
     },
     {
       "name": "catalog.register",
-      "description": "Everything the register sells, in one call: categories, active products with variants, barcodes, stock and modifier groups, the modifier groups with options, and preset discounts.",
-      "params": {},
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/catalog/register"
-      }
+      "description": "Everything the register sells, in one call: categories, active products with variants, barcodes, stock and modifier groups, the modifier…",
+      "destructive": false,
+      "readOnly": true,
+      "module": "catalog",
+      "params": {}
     },
     {
       "name": "categories.list",
       "description": "Categories with color, icon, kitchen flag and product count, plus the icons a category can use.",
-      "params": {},
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/categories/list"
-      }
+      "destructive": false,
+      "readOnly": true,
+      "module": "categories",
+      "params": {}
     },
     {
       "name": "categories.add",
       "description": "Add a category.",
+      "destructive": false,
+      "module": "categories",
       "params": {
         "name": {
           "type": "string",
-          "description": "Name",
-          "required": true
+          "required": true,
+          "description": "Name"
         },
         "icon": {
           "type": "string",
@@ -822,21 +725,18 @@
           "type": "boolean",
           "description": "Its products go to the kitchen screen"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/categories/add"
       }
     },
     {
       "name": "categories.update",
       "description": "Change a category.",
+      "destructive": false,
+      "module": "categories",
       "params": {
         "category": {
           "type": "string",
-          "description": "Category id or name",
-          "required": true
+          "required": true,
+          "description": "Category id or name"
         },
         "name": {
           "type": "string",
@@ -854,49 +754,40 @@
           "type": "boolean",
           "description": "Kitchen items"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/categories/update"
       }
     },
     {
       "name": "categories.delete",
       "description": "Delete a category; its products stay, without a category.",
+      "destructive": true,
+      "module": "categories",
       "params": {
         "category": {
           "type": "string",
-          "description": "Category id or name",
-          "required": true
+          "required": true,
+          "description": "Category id or name"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/categories/delete"
-      },
-      "destructive": true
+      }
     },
     {
       "name": "categories.reorder",
       "description": "Put categories in a new order.",
+      "destructive": false,
+      "module": "categories",
       "params": {
         "categories": {
           "type": "string",
-          "description": "JSON list of category ids or names, in order",
-          "required": true
+          "required": true,
+          "description": "JSON list of category ids or names, in order"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/categories/reorder"
       }
     },
     {
       "name": "products.list",
       "description": "Products: search by name, SKU or barcode; filter by category, status and availability.",
+      "destructive": false,
+      "readOnly": true,
+      "module": "products",
       "params": {
         "q": {
           "type": "string",
@@ -907,60 +798,55 @@
           "description": "Category id or name, or none"
         },
         "status": {
-          "type": "string",
-          "description": "Default active",
-          "enum": [
+          "type": "enum",
+          "values": [
             "active",
             "draft",
             "archived",
             "all"
-          ]
+          ],
+          "description": "Default active"
         },
         "availability": {
-          "type": "string",
-          "description": "Filter",
-          "enum": [
+          "type": "enum",
+          "values": [
             "any",
             "available",
             "sold_out",
             "low_stock"
-          ]
+          ],
+          "description": "Filter"
         },
         "limit": {
           "type": "string",
           "description": "At most this many (0 for all)"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/products/list"
       }
     },
     {
       "name": "products.get",
       "description": "One product with variants, barcodes, modifier groups, stock and the last 30 days of sales.",
+      "destructive": false,
+      "readOnly": true,
+      "module": "products",
       "params": {
         "product": {
           "type": "string",
-          "description": "Product id, SKU, barcode or exact name",
-          "required": true
+          "required": true,
+          "description": "Product id, SKU, barcode or exact name"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/products/get"
       }
     },
     {
       "name": "products.add",
       "description": "Add a product (with variants, barcodes, modifier groups, stock tracking).",
+      "destructive": false,
+      "module": "products",
       "params": {
         "name": {
           "type": "string",
-          "description": "Name",
-          "required": true
+          "required": true,
+          "description": "Name"
         },
         "stock": {
           "type": "string",
@@ -1034,21 +920,18 @@
           "type": "boolean",
           "description": "Remove the photo"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/products/add"
       }
     },
     {
       "name": "products.update",
       "description": "Change a product; lists given (variants, barcodes, modifier groups) replace the current ones.",
+      "destructive": false,
+      "module": "products",
       "params": {
         "product": {
           "type": "string",
-          "description": "Product id, SKU, barcode or exact name",
-          "required": true
+          "required": true,
+          "description": "Product id, SKU, barcode or exact name"
         },
         "name": {
           "type": "string",
@@ -1122,165 +1005,138 @@
           "type": "boolean",
           "description": "Remove the photo"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/products/update"
       }
     },
     {
       "name": "products.set-available",
-      "description": "Mark a product sold out (or back). Anyone signed in may do this at the counter.",
+      "description": "Mark a product sold out (or back).",
+      "destructive": false,
+      "module": "products",
       "params": {
         "product": {
           "type": "string",
-          "description": "Product id, SKU, barcode or exact name",
-          "required": true
+          "required": true,
+          "description": "Product id, SKU, barcode or exact name"
         },
         "available": {
           "type": "boolean",
-          "description": "false: sold out",
-          "required": true
+          "required": true,
+          "description": "false: sold out"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/products/set-available"
       }
     },
     {
       "name": "products.archive",
       "description": "Archive a product (it stops selling; history keeps it).",
+      "destructive": false,
+      "module": "products",
       "params": {
         "product": {
           "type": "string",
-          "description": "Product id, SKU, barcode or exact name",
-          "required": true
+          "required": true,
+          "description": "Product id, SKU, barcode or exact name"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/products/archive"
       }
     },
     {
       "name": "products.restore",
       "description": "Bring an archived product back.",
+      "destructive": false,
+      "module": "products",
       "params": {
         "product": {
           "type": "string",
-          "description": "Product id, SKU, barcode or exact name",
-          "required": true
+          "required": true,
+          "description": "Product id, SKU, barcode or exact name"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/products/restore"
       }
     },
     {
       "name": "products.reorder",
       "description": "Put products in a new order (on the register within their category, or within Favorites).",
+      "destructive": false,
+      "module": "products",
       "params": {
         "products": {
           "type": "string",
-          "description": "JSON list of product ids, in order",
-          "required": true
+          "required": true,
+          "description": "JSON list of product ids, in order"
         },
         "favorites": {
           "type": "boolean",
           "description": "Order Favorites instead"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/products/reorder"
       }
     },
     {
       "name": "products.approve",
-      "description": "Approve imported products (to review) so they sell. A person does this on the Products page; your AI agent is refused.",
+      "description": "Approve imported products (to review) so they sell.",
+      "destructive": false,
+      "module": "products",
       "params": {
         "products": {
           "type": "string",
-          "description": "JSON list of product ids",
-          "required": true
+          "required": true,
+          "description": "JSON list of product ids"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/products/approve"
       }
     },
     {
       "name": "products.discard",
       "description": "Throw away imported products that are still to review.",
+      "destructive": true,
+      "module": "products",
       "params": {
         "products": {
           "type": "string",
-          "description": "JSON list of product ids",
-          "required": true
+          "required": true,
+          "description": "JSON list of product ids"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/products/discard"
-      },
-      "destructive": true
+      }
     },
     {
       "name": "products.import",
-      "description": "Add many products at once. Rows: [{\"name\",\"category\",\"price\",\"sku\",\"barcode\",\"cost\",\"description\",\"tax_class\",\"variants\":[{\"name\",\"price\"}],\"track_stock\",\"stock\"}]. Missing categories are created. What your AI agent imports waits for a person's review. All or nothing.",
+      "description": "Add many products at once.",
+      "destructive": false,
+      "module": "products",
       "params": {
         "rows": {
           "type": "string",
-          "description": "JSON list of rows",
-          "required": true
+          "required": true,
+          "description": "JSON list of rows"
         },
         "import": {
           "type": "string",
           "description": "The import (file) these came from"
         },
         "status": {
-          "type": "string",
-          "description": "A person's import: active (default) or draft",
-          "enum": [
+          "type": "enum",
+          "values": [
             "active",
             "draft"
-          ]
+          ],
+          "description": "A person's import: active (default) or draft"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/products/import"
       }
     },
     {
       "name": "modifiers.list",
       "description": "Modifier groups (Milk, Size, Add-ons...) with their rules (min, max) and options with prices.",
-      "params": {},
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/modifiers/list"
-      }
+      "destructive": false,
+      "readOnly": true,
+      "module": "modifiers",
+      "params": {}
     },
     {
       "name": "modifiers.add-group",
       "description": "Add a modifier group with its options.",
+      "destructive": false,
+      "module": "modifiers",
       "params": {
         "name": {
           "type": "string",
-          "description": "Name, e.g. Milk",
-          "required": true
+          "required": true,
+          "description": "Name, e.g. Milk"
         },
         "min": {
           "type": "string",
@@ -1292,24 +1148,21 @@
         },
         "options": {
           "type": "string",
-          "description": "JSON list, e.g. [{\"name\":\"Oat\",\"price\":\"1.00\"},{\"name\":\"Full\",\"price\":\"0\",\"is_default\":true}] (prices may be negative)",
-          "required": true
+          "required": true,
+          "description": "JSON list, e.g. [{\"name\":\"Oat\",\"price\":\"1.00\"},{\"name\":\"Full\",\"price\":\"0\",\"is_default\":true}] (prices may be negative)"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/modifiers/add-group"
       }
     },
     {
       "name": "modifiers.update-group",
       "description": "Change a modifier group; options given replace the current ones.",
+      "destructive": false,
+      "module": "modifiers",
       "params": {
         "group": {
           "type": "string",
-          "description": "Group id or name",
-          "required": true
+          "required": true,
+          "description": "Group id or name"
         },
         "name": {
           "type": "string",
@@ -1327,38 +1180,31 @@
           "type": "string",
           "description": "JSON list of options"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/modifiers/update-group"
       }
     },
     {
       "name": "modifiers.delete-group",
       "description": "Delete a modifier group (it is removed from its products).",
+      "destructive": true,
+      "module": "modifiers",
       "params": {
         "group": {
           "type": "string",
-          "description": "Group id or name",
-          "required": true
+          "required": true,
+          "description": "Group id or name"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/modifiers/delete-group"
-      },
-      "destructive": true
+      }
     },
     {
       "name": "modifiers.set-available",
-      "description": "Mark an option sold out (or back), e.g. oat milk. Anyone signed in may do this.",
+      "description": "Mark an option sold out (or back), e.g.",
+      "destructive": false,
+      "module": "modifiers",
       "params": {
         "option": {
           "type": "string",
-          "description": "Option id, or its name with group",
-          "required": true
+          "required": true,
+          "description": "Option id, or its name with group"
         },
         "group": {
           "type": "string",
@@ -1366,189 +1212,168 @@
         },
         "available": {
           "type": "boolean",
-          "description": "false: sold out",
-          "required": true
+          "required": true,
+          "description": "false: sold out"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/modifiers/set-available"
       }
     },
     {
       "name": "discounts.list",
       "description": "Preset discounts offered at the counter.",
-      "params": {},
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/discounts/list"
-      }
+      "destructive": false,
+      "readOnly": true,
+      "module": "discounts",
+      "params": {}
     },
     {
       "name": "discounts.add",
       "description": "Add a preset discount.",
+      "destructive": false,
+      "module": "discounts",
       "params": {
         "name": {
           "type": "string",
-          "description": "Name, e.g. Staff",
-          "required": true
+          "required": true,
+          "description": "Name, e.g. Staff"
         },
         "kind": {
-          "type": "string",
-          "description": "Kind",
-          "required": true,
-          "enum": [
+          "type": "enum",
+          "values": [
             "percent",
             "amount"
-          ]
+          ],
+          "required": true,
+          "description": "Kind"
         },
         "value": {
           "type": "string",
-          "description": "A percent like 10, or an amount like 2.00",
-          "required": true
+          "required": true,
+          "description": "A percent like 10, or an amount like 2.00"
         },
         "scope": {
-          "type": "string",
-          "description": "On the whole order or one item",
-          "enum": [
+          "type": "enum",
+          "values": [
             "order",
             "item"
-          ]
+          ],
+          "description": "On the whole order or one item"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/discounts/add"
       }
     },
     {
       "name": "discounts.update",
       "description": "Change a preset discount.",
+      "destructive": false,
+      "module": "discounts",
       "params": {
         "discount": {
           "type": "string",
-          "description": "Discount id or name",
-          "required": true
+          "required": true,
+          "description": "Discount id or name"
         },
         "name": {
           "type": "string",
           "description": "Name"
         },
         "kind": {
-          "type": "string",
-          "description": "Kind",
-          "enum": [
+          "type": "enum",
+          "values": [
             "percent",
             "amount"
-          ]
+          ],
+          "description": "Kind"
         },
         "value": {
           "type": "string",
           "description": "Percent or amount"
         },
         "scope": {
-          "type": "string",
-          "description": "Scope",
-          "enum": [
+          "type": "enum",
+          "values": [
             "order",
             "item"
-          ]
+          ],
+          "description": "Scope"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/discounts/update"
       }
     },
     {
       "name": "discounts.delete",
       "description": "Delete a preset discount.",
+      "destructive": true,
+      "module": "discounts",
       "params": {
         "discount": {
           "type": "string",
-          "description": "Discount id or name",
-          "required": true
+          "required": true,
+          "description": "Discount id or name"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/discounts/delete"
-      },
-      "destructive": true
+      }
     },
     {
       "name": "lookup.code",
       "description": "What a scanned or typed code is: a product (and variant), a receipt, or nothing.",
+      "destructive": false,
+      "readOnly": true,
+      "module": "lookup",
       "params": {
         "code": {
           "type": "string",
-          "description": "Barcode, SKU or receipt number",
-          "required": true
+          "required": true,
+          "description": "Barcode, SKU or receipt number"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/lookup/code"
       }
     },
     {
       "name": "stock.list",
       "description": "Products that track stock, with what is on hand per variant; low and out counts.",
+      "destructive": false,
+      "readOnly": true,
+      "module": "stock",
       "params": {
         "q": {
           "type": "string",
           "description": "Part of a name or SKU"
         },
         "only": {
-          "type": "string",
-          "description": "Filter",
-          "enum": [
+          "type": "enum",
+          "values": [
             "all",
             "low",
             "out"
-          ]
+          ],
+          "description": "Filter"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/stock/list"
       }
     },
     {
       "name": "stock.history",
       "description": "A product's stock moves (sold, refunded, received, adjusted, counted), newest first.",
+      "destructive": false,
+      "readOnly": true,
+      "module": "stock",
       "params": {
         "product": {
           "type": "string",
-          "description": "Product id, SKU, barcode or exact name",
-          "required": true
+          "required": true,
+          "description": "Product id, SKU, barcode or exact name"
         },
         "limit": {
           "type": "string",
           "description": "How many (default 50)"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/stock/history"
       }
     },
     {
       "name": "stock.receive",
       "description": "Stock in (a delivery).",
+      "destructive": false,
+      "module": "stock",
       "params": {
         "product": {
           "type": "string",
-          "description": "Product id, SKU, barcode or exact name",
-          "required": true
+          "required": true,
+          "description": "Product id, SKU, barcode or exact name"
         },
         "variant": {
           "type": "string",
@@ -1556,28 +1381,25 @@
         },
         "qty": {
           "type": "string",
-          "description": "How many came in",
-          "required": true
+          "required": true,
+          "description": "How many came in"
         },
         "reason": {
           "type": "string",
           "description": "e.g. Delivery from <supplier>"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/stock/receive"
       }
     },
     {
       "name": "stock.adjust",
       "description": "Correct stock up or down with a reason (broken, expired, found).",
+      "destructive": false,
+      "module": "stock",
       "params": {
         "product": {
           "type": "string",
-          "description": "Product id, SKU, barcode or exact name",
-          "required": true
+          "required": true,
+          "description": "Product id, SKU, barcode or exact name"
         },
         "variant": {
           "type": "string",
@@ -1585,29 +1407,26 @@
         },
         "qty": {
           "type": "string",
-          "description": "The change, e.g. -2",
-          "required": true
+          "required": true,
+          "description": "The change, e.g. -2"
         },
         "reason": {
           "type": "string",
-          "description": "Why",
-          "required": true
+          "required": true,
+          "description": "Why"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/stock/adjust"
       }
     },
     {
       "name": "stock.count",
       "description": "Set what is on hand to what was counted.",
+      "destructive": false,
+      "module": "stock",
       "params": {
         "product": {
           "type": "string",
-          "description": "Product id, SKU, barcode or exact name",
-          "required": true
+          "required": true,
+          "description": "Product id, SKU, barcode or exact name"
         },
         "variant": {
           "type": "string",
@@ -1615,202 +1434,174 @@
         },
         "counted": {
           "type": "string",
-          "description": "How many are there",
-          "required": true
+          "required": true,
+          "description": "How many are there"
         },
         "reason": {
           "type": "string",
           "description": "Note"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/stock/count"
       }
     },
     {
       "name": "imports.list",
       "description": "Menu and price-list files for your AI agent to read, with their status and how many products wait for review.",
+      "destructive": false,
+      "readOnly": true,
+      "module": "imports",
       "params": {
         "status": {
-          "type": "string",
-          "description": "Filter",
-          "enum": [
+          "type": "enum",
+          "values": [
             "all",
             "waiting",
             "reading",
             "done",
             "failed"
-          ]
+          ],
+          "description": "Filter"
         },
         "limit": {
           "type": "string",
           "description": "How many"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/imports/list"
       }
     },
     {
       "name": "imports.add",
       "description": "Add a menu photo, PDF or spreadsheet for your AI agent to read (it is asked at once).",
+      "destructive": false,
+      "module": "imports",
       "params": {
         "path": {
           "type": "string",
-          "description": "Absolute path of the file",
-          "required": true
+          "required": true,
+          "description": "Absolute path of the file"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/imports/add"
       }
     },
     {
       "name": "imports.start",
       "description": "Your AI agent takes a waiting import.",
+      "destructive": false,
+      "module": "imports",
       "params": {
         "import": {
           "type": "string",
-          "description": "Import id",
-          "required": true
+          "required": true,
+          "description": "Import id"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/imports/start"
       }
     },
     {
       "name": "imports.complete",
       "description": "Finish an import with a summary of what was added for review.",
+      "destructive": false,
+      "module": "imports",
       "params": {
         "import": {
           "type": "string",
-          "description": "Import id",
-          "required": true
+          "required": true,
+          "description": "Import id"
         },
         "summary": {
           "type": "string",
-          "description": "What was added and what was left out",
-          "required": true
+          "required": true,
+          "description": "What was added and what was left out"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/imports/complete"
       }
     },
     {
       "name": "imports.fail",
       "description": "Mark an import as not readable, with a reason the user can act on.",
+      "destructive": false,
+      "module": "imports",
       "params": {
         "import": {
           "type": "string",
-          "description": "Import id",
-          "required": true
+          "required": true,
+          "description": "Import id"
         },
         "reason": {
           "type": "string",
-          "description": "Why",
-          "required": true
+          "required": true,
+          "description": "Why"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/imports/fail"
       }
     },
     {
       "name": "imports.retry",
       "description": "Ask your AI agent to read a failed import again.",
+      "destructive": false,
+      "module": "imports",
       "params": {
         "import": {
           "type": "string",
-          "description": "Import id",
-          "required": true
+          "required": true,
+          "description": "Import id"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/imports/retry"
       }
     },
     {
       "name": "imports.delete",
       "description": "Delete an import file (products it added stay).",
+      "destructive": true,
+      "module": "imports",
       "params": {
         "import": {
           "type": "string",
-          "description": "Import id",
-          "required": true
+          "required": true,
+          "description": "Import id"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/imports/delete"
-      },
-      "destructive": true
+      }
     },
     {
       "name": "tickets.list",
       "description": "Open tickets (saved carts: tabs, orders to collect, orders your AI agent took), newest first.",
+      "destructive": false,
+      "readOnly": true,
+      "module": "tickets",
       "params": {
         "status": {
-          "type": "string",
-          "description": "Default open",
-          "enum": [
+          "type": "enum",
+          "values": [
             "open",
             "done",
             "void",
             "all"
-          ]
+          ],
+          "description": "Default open"
         },
         "limit": {
           "type": "string",
           "description": "How many"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/tickets/list"
       }
     },
     {
       "name": "tickets.get",
       "description": "One ticket with its lines.",
+      "destructive": false,
+      "readOnly": true,
+      "module": "tickets",
       "params": {
         "ticket": {
           "type": "string",
-          "description": "Ticket id or ref",
-          "required": true
+          "required": true,
+          "description": "Ticket id or ref"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/tickets/get"
       }
     },
     {
       "name": "tickets.park",
-      "description": "Save the counter's cart as a ticket. Counter only: needs a person signed in with their PIN; your AI agent is refused.",
+      "description": "Save the counter's cart as a ticket.",
+      "destructive": false,
+      "module": "tickets",
       "params": {
         "ref": {
           "type": "string",
-          "description": "The ticket's ref",
-          "required": true
+          "required": true,
+          "description": "The ticket's ref"
         },
         "register": {
           "type": "string",
@@ -1822,8 +1613,8 @@
         },
         "lines": {
           "type": "string",
-          "description": "JSON cart lines",
-          "required": true
+          "required": true,
+          "description": "JSON cart lines"
         },
         "discount": {
           "type": "string",
@@ -1841,88 +1632,75 @@
           "type": "string",
           "description": "Note"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/tickets/park"
       }
     },
     {
       "name": "tickets.resume",
-      "description": "Open a ticket on a register. Counter only: needs a person signed in with their PIN; your AI agent is refused.",
+      "description": "Open a ticket on a register.",
+      "destructive": false,
+      "module": "tickets",
       "params": {
         "ticket": {
           "type": "string",
-          "description": "Ticket id or ref",
-          "required": true
+          "required": true,
+          "description": "Ticket id or ref"
         },
         "register": {
           "type": "string",
           "description": "Register id or code"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/tickets/resume"
       }
     },
     {
       "name": "tickets.release",
-      "description": "Put an opened ticket back to waiting, unchanged. Counter only: needs a person signed in with their PIN; your AI agent is refused.",
+      "description": "Put an opened ticket back to waiting, unchanged.",
+      "destructive": false,
+      "module": "tickets",
       "params": {
         "ticket": {
           "type": "string",
-          "description": "Ticket id or ref",
-          "required": true
+          "required": true,
+          "description": "Ticket id or ref"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/tickets/release"
       }
     },
     {
       "name": "tickets.void",
-      "description": "Void a ticket with a reason (a cashier needs a manager's approval). Counter only: needs a person signed in with their PIN; your AI agent is refused.",
+      "description": "Void a ticket with a reason (a cashier needs a manager's approval).",
+      "destructive": true,
+      "module": "tickets",
       "params": {
         "ticket": {
           "type": "string",
-          "description": "Ticket id or ref",
-          "required": true
+          "required": true,
+          "description": "Ticket id or ref"
         },
         "reason": {
           "type": "string",
-          "description": "Why",
-          "required": true
+          "required": true,
+          "description": "Why"
         },
         "approval": {
           "type": "string",
           "description": "A manager's approval (auth.approve)"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/tickets/void"
-      },
-      "destructive": true
+      }
     },
     {
       "name": "tickets.draft",
-      "description": "Save an order you took (phone, chat) as a ticket for staff to check and take payment. Lines name products by id, SKU, barcode or exact name, a variant and options by name; default options apply when none are named.",
+      "description": "Save an order you took (phone, chat) as a ticket for staff to check and take payment.",
+      "destructive": false,
+      "module": "tickets",
       "params": {
         "name": {
           "type": "string",
-          "description": "Ticket name, e.g. Phone order: Sam",
-          "required": true
+          "required": true,
+          "description": "Ticket name, e.g. Phone order: Sam"
         },
         "lines": {
           "type": "string",
-          "description": "JSON list, e.g. [{\"product\":\"Latte\",\"variant\":\"Large\",\"qty\":2,\"modifiers\":[\"Oat\"],\"note\":\"Extra hot\"}]",
-          "required": true
+          "required": true,
+          "description": "JSON list, e.g. [{\"product\":\"Latte\",\"variant\":\"Large\",\"qty\":2,\"modifiers\":[\"Oat\"],\"note\":\"Extra hot\"}]"
         },
         "order_type": {
           "type": "string",
@@ -1936,36 +1714,33 @@
           "type": "string",
           "description": "Note, e.g. Pick up 12:30"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/tickets/draft"
       }
     },
     {
       "name": "sales.finalize",
-      "description": "Record a paid sale, refund or exchange: re-prices every line, checks the total, takes the payments and assigns the receipt number. Counter only: needs a person signed in with their PIN; your AI agent is refused.",
+      "description": "Record a paid sale, refund or exchange: re-prices every line, checks the total, takes the payments and assigns the receipt number.",
+      "destructive": false,
+      "module": "sales",
       "params": {
         "ref": {
           "type": "string",
-          "description": "A unique ref for this sale, reused on retries",
-          "required": true
+          "required": true,
+          "description": "A unique ref for this sale, reused on retries"
         },
         "register": {
           "type": "string",
-          "description": "Register id or code (R1)",
-          "required": true
+          "required": true,
+          "description": "Register id or code (R1)"
         },
         "lines": {
           "type": "string",
-          "description": "JSON cart lines",
-          "required": true
+          "required": true,
+          "description": "JSON cart lines"
         },
         "payments": {
           "type": "string",
-          "description": "JSON payments [{\"tender\",\"amount\",\"tendered\",\"reference\"}] in minor units",
-          "required": true
+          "required": true,
+          "description": "JSON payments [{\"tender\",\"amount\",\"tendered\",\"reference\"}] in minor units"
         },
         "discount": {
           "type": "string",
@@ -1999,21 +1774,18 @@
           "type": "string",
           "description": "The ticket this sale pays"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/sales/finalize"
       }
     },
     {
       "name": "sales.preview",
-      "description": "Price a cart without saving anything: lines, discounts, service charge, tax per rate and the total. Use it to quote an order.",
+      "description": "Price a cart without saving anything: lines, discounts, service charge, tax per rate and the total.",
+      "destructive": false,
+      "module": "sales",
       "params": {
         "lines": {
           "type": "string",
-          "description": "JSON cart lines: [{\"product\":\"<id>\",\"variant\":\"<id>\",\"qty\":1,\"modifiers\":[\"<option id>\"]}] (ids from catalog.register)",
-          "required": true
+          "required": true,
+          "description": "JSON cart lines: [{\"product\":\"<id>\",\"variant\":\"<id>\",\"qty\":1,\"modifiers\":[\"<option id>\"]}] (ids from catalog.register)"
         },
         "discount": {
           "type": "string",
@@ -2023,16 +1795,14 @@
           "type": "string",
           "description": "Order type"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/sales/preview"
       }
     },
     {
       "name": "sales.list",
-      "description": "Sales, newest first: search by receipt number, ticket name, customer or order number; filter by days, kind, register, staff, customer, payment kind.",
+      "description": "Sales, newest first: search by receipt number, ticket name, customer or order number; filter by days, kind, register, staff, customer…",
+      "destructive": false,
+      "readOnly": true,
+      "module": "sales",
       "params": {
         "q": {
           "type": "string",
@@ -2047,14 +1817,14 @@
           "description": "A trading day, YYYY-MM-DD"
         },
         "kind": {
-          "type": "string",
-          "description": "Kind",
-          "enum": [
+          "type": "enum",
+          "values": [
             "all",
             "sale",
             "refund",
             "exchange"
-          ]
+          ],
+          "description": "Kind"
         },
         "register": {
           "type": "string",
@@ -2069,14 +1839,14 @@
           "description": "Customer id, phone, email or name"
         },
         "tender_kind": {
-          "type": "string",
-          "description": "Paid by",
-          "enum": [
+          "type": "enum",
+          "values": [
             "cash",
             "card",
             "qr",
             "other"
-          ]
+          ],
+          "description": "Paid by"
         },
         "training": {
           "type": "boolean",
@@ -2090,130 +1860,114 @@
           "type": "string",
           "description": "Skip this many"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/sales/list"
       }
     },
     {
       "name": "sales.get",
       "description": "One sale with lines, taxes, payments, returns against it and the sale it returns from.",
+      "destructive": false,
+      "readOnly": true,
+      "module": "sales",
       "params": {
         "sale": {
           "type": "string",
-          "description": "Sale id or receipt number (R1-000123)",
-          "required": true
+          "required": true,
+          "description": "Sale id or receipt number (R1-000123)"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/sales/get"
       }
     },
     {
       "name": "sales.refundable",
       "description": "What can still be returned from a sale, line by line.",
+      "destructive": false,
+      "readOnly": true,
+      "module": "sales",
       "params": {
         "sale": {
           "type": "string",
-          "description": "Sale id or receipt number (R1-000123)",
-          "required": true
+          "required": true,
+          "description": "Sale id or receipt number (R1-000123)"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/sales/refundable"
       }
     },
     {
       "name": "sales.receipt-text",
       "description": "A sale's receipt as plain text with an email subject.",
+      "destructive": false,
+      "readOnly": true,
+      "module": "sales",
       "params": {
         "sale": {
           "type": "string",
-          "description": "Sale id or receipt number (R1-000123)",
-          "required": true
+          "required": true,
+          "description": "Sale id or receipt number (R1-000123)"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/sales/receipt-text"
       }
     },
     {
       "name": "receipts.email",
       "description": "Email a receipt to a customer: asks your AI agent (receipt_email_requested) to send it from the user's email account.",
+      "destructive": false,
+      "module": "receipts",
       "params": {
         "sale": {
           "type": "string",
-          "description": "Sale id or receipt number (R1-000123)",
-          "required": true
+          "required": true,
+          "description": "Sale id or receipt number (R1-000123)"
         },
         "email": {
           "type": "string",
-          "description": "Email address",
-          "required": true
+          "required": true,
+          "description": "Email address"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/receipts/email"
       }
     },
     {
       "name": "receipts.reprint",
-      "description": "Record a reprint and return the sale to print. Counter only: needs a person signed in with their PIN; your AI agent is refused.",
+      "description": "Record a reprint and return the sale to print.",
+      "destructive": false,
+      "module": "receipts",
       "params": {
         "sale": {
           "type": "string",
-          "description": "Sale id or receipt number (R1-000123)",
-          "required": true
+          "required": true,
+          "description": "Sale id or receipt number (R1-000123)"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/receipts/reprint"
       }
     },
     {
       "name": "shifts.current",
       "description": "A register's open shift with its live X report (sales, tenders, expected cash), or null.",
+      "destructive": false,
+      "readOnly": true,
+      "module": "shifts",
       "params": {
         "register": {
           "type": "string",
-          "description": "Register id or code (R1)",
-          "required": true
+          "required": true,
+          "description": "Register id or code (R1)"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/shifts/current"
       }
     },
     {
       "name": "shifts.list",
       "description": "Shifts, newest first, with totals and the cash count of closed ones.",
+      "destructive": false,
+      "readOnly": true,
+      "module": "shifts",
       "params": {
         "register": {
           "type": "string",
           "description": "Register id or code"
         },
         "status": {
-          "type": "string",
-          "description": "Filter",
-          "enum": [
+          "type": "enum",
+          "values": [
             "all",
             "open",
             "closed"
-          ]
+          ],
+          "description": "Filter"
         },
         "limit": {
           "type": "string",
@@ -2223,37 +1977,32 @@
           "type": "string",
           "description": "Skip this many"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/shifts/list"
       }
     },
     {
       "name": "shifts.report",
       "description": "The X report of an open shift (live) or the Z report of a closed one (frozen at close).",
+      "destructive": false,
+      "readOnly": true,
+      "module": "shifts",
       "params": {
         "shift": {
           "type": "string",
-          "description": "Shift id",
-          "required": true
+          "required": true,
+          "description": "Shift id"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/shifts/report"
       }
     },
     {
       "name": "shifts.open",
-      "description": "Open a register with its counted float. Counter only: needs a person signed in with their PIN; your AI agent is refused.",
+      "description": "Open a register with its counted float.",
+      "destructive": false,
+      "module": "shifts",
       "params": {
         "register": {
           "type": "string",
-          "description": "Register id or code (R1)",
-          "required": true
+          "required": true,
+          "description": "Register id or code (R1)"
         },
         "float": {
           "type": "string",
@@ -2263,21 +2012,18 @@
           "type": "string",
           "description": "Or the float counted by note and coin: JSON {\"<value in minor units>\": count}"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/shifts/open"
       }
     },
     {
       "name": "shifts.close",
-      "description": "Close a register: the counted cash (or counts), the expected cash and the difference; writes the Z report and asks your AI agent for the day's brief. Counter only: needs a person signed in with their PIN; your AI agent is refused.",
+      "description": "Close a register: the counted cash (or counts), the expected cash and the difference; writes the Z report and asks your AI agent for the…",
+      "destructive": false,
+      "module": "shifts",
       "params": {
         "register": {
           "type": "string",
-          "description": "Register id or code (R1)",
-          "required": true
+          "required": true,
+          "description": "Register id or code (R1)"
         },
         "counted": {
           "type": "string",
@@ -2291,121 +2037,106 @@
           "type": "string",
           "description": "Why the cash is over or short"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/shifts/close"
       }
     },
     {
       "name": "cash.move",
-      "description": "Put cash in, take it out (paid out) or drop it to the safe, with a reason (a cashier needs a manager's approval). Counter only: needs a person signed in with their PIN; your AI agent is refused.",
+      "description": "Put cash in, take it out (paid out) or drop it to the safe, with a reason (a cashier needs a manager's approval).",
+      "destructive": false,
+      "module": "cash",
       "params": {
         "register": {
           "type": "string",
-          "description": "Register id or code (R1)",
-          "required": true
+          "required": true,
+          "description": "Register id or code (R1)"
         },
         "kind": {
-          "type": "string",
-          "description": "Kind",
-          "required": true,
-          "enum": [
+          "type": "enum",
+          "values": [
             "pay_in",
             "pay_out",
             "drop"
-          ]
+          ],
+          "required": true,
+          "description": "Kind"
         },
         "amount": {
           "type": "string",
-          "description": "An amount in the shop currency with \".\" as the decimal point, e.g. 4.50 (no decimals for JPY)",
-          "required": true
+          "required": true,
+          "description": "An amount in the shop currency with \".\" as the decimal point, e.g. 4.50 (no decimals for JPY)"
         },
         "reason": {
           "type": "string",
-          "description": "Why",
-          "required": true
+          "required": true,
+          "description": "Why"
         },
         "approval": {
           "type": "string",
           "description": "A manager's approval"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/cash/move"
       }
     },
     {
       "name": "kitchen.list",
       "description": "Kitchen tickets being made and ready (or the last collected), with the all-day count of items to make.",
+      "destructive": false,
+      "readOnly": true,
+      "module": "kitchen",
       "params": {
         "view": {
-          "type": "string",
-          "description": "Default active",
-          "enum": [
+          "type": "enum",
+          "values": [
             "active",
             "done"
-          ]
+          ],
+          "description": "Default active"
         },
         "limit": {
           "type": "string",
           "description": "How many collected tickets"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/kitchen/list"
       }
     },
     {
       "name": "kitchen.board",
       "description": "The customer board: order numbers being made and ready.",
-      "params": {},
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/kitchen/board"
-      }
+      "destructive": false,
+      "readOnly": true,
+      "module": "kitchen",
+      "params": {}
     },
     {
       "name": "kitchen.bump",
-      "description": "Move a kitchen ticket on: new to ready (called), ready to done (collected). Counter only: needs a person signed in with their PIN; your AI agent is refused.",
+      "description": "Move a kitchen ticket on: new to ready (called), ready to done (collected).",
+      "destructive": false,
+      "module": "kitchen",
       "params": {
         "ticket": {
           "type": "string",
-          "description": "Kitchen ticket id",
-          "required": true
+          "required": true,
+          "description": "Kitchen ticket id"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/kitchen/bump"
       }
     },
     {
       "name": "kitchen.recall",
-      "description": "Move a kitchen ticket back one step. Counter only: needs a person signed in with their PIN; your AI agent is refused.",
+      "description": "Move a kitchen ticket back one step.",
+      "destructive": false,
+      "module": "kitchen",
       "params": {
         "ticket": {
           "type": "string",
-          "description": "Kitchen ticket id",
-          "required": true
+          "required": true,
+          "description": "Kitchen ticket id"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/kitchen/recall"
       }
     },
     {
       "name": "customers.list",
       "description": "Customers: search by name, phone or email; with visits, spend and last visit.",
+      "destructive": false,
+      "readOnly": true,
+      "module": "customers",
       "params": {
         "q": {
           "type": "string",
@@ -2419,37 +2150,32 @@
           "type": "string",
           "description": "How many"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/customers/list"
       }
     },
     {
       "name": "customers.get",
       "description": "One customer with their recent sales and favourite products.",
+      "destructive": false,
+      "readOnly": true,
+      "module": "customers",
       "params": {
         "customer": {
           "type": "string",
-          "description": "Customer id, phone, email or exact name",
-          "required": true
+          "required": true,
+          "description": "Customer id, phone, email or exact name"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/customers/get"
       }
     },
     {
       "name": "customers.add",
       "description": "Add a customer.",
+      "destructive": false,
+      "module": "customers",
       "params": {
         "name": {
           "type": "string",
-          "description": "Name",
-          "required": true
+          "required": true,
+          "description": "Name"
         },
         "phone": {
           "type": "string",
@@ -2467,21 +2193,18 @@
           "type": "boolean",
           "description": "Agreed to marketing"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/customers/add"
       }
     },
     {
       "name": "customers.update",
       "description": "Change a customer.",
+      "destructive": false,
+      "module": "customers",
       "params": {
         "customer": {
           "type": "string",
-          "description": "Customer id",
-          "required": true
+          "required": true,
+          "description": "Customer id"
         },
         "name": {
           "type": "string",
@@ -2503,36 +2226,31 @@
           "type": "boolean",
           "description": "Agreed to marketing"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/customers/update"
       }
     },
     {
       "name": "customers.archive",
       "description": "Archive (or restore) a customer.",
+      "destructive": false,
+      "module": "customers",
       "params": {
         "customer": {
           "type": "string",
-          "description": "Customer id",
-          "required": true
+          "required": true,
+          "description": "Customer id"
         },
         "archived": {
           "type": "boolean",
           "description": "false restores them"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/customers/archive"
       }
     },
     {
       "name": "reports.summary",
-      "description": "Sales over trading days: net sales, collected, orders, average, items, discounts, returns, tax, gross profit; by day and hour; top products, categories, payment methods, staff, order types, discounts, taxes; and the previous period.",
+      "description": "Sales over trading days: net sales, collected, orders, average, items, discounts, returns, tax, gross profit; by day and hour; top…",
+      "destructive": false,
+      "readOnly": true,
+      "module": "reports",
       "params": {
         "from": {
           "type": "string",
@@ -2546,25 +2264,23 @@
           "type": "string",
           "description": "One register only"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/reports/summary"
       }
     },
     {
       "name": "reports.export",
       "description": "CSV of sales, sale lines or payments over trading days (returned as text with a file name).",
+      "destructive": false,
+      "readOnly": true,
+      "module": "reports",
       "params": {
         "what": {
-          "type": "string",
-          "description": "Rows",
-          "enum": [
+          "type": "enum",
+          "values": [
             "sales",
             "lines",
             "payments"
-          ]
+          ],
+          "description": "Rows"
         },
         "from": {
           "type": "string",
@@ -2574,27 +2290,25 @@
           "type": "string",
           "description": "A trading day, YYYY-MM-DD"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/reports/export"
       }
     },
     {
       "name": "audit.list",
       "description": "The audit trail: sales, refunds, overrides, voids, cash, shifts, failed PINs and changes, with who did and approved them.",
+      "destructive": false,
+      "readOnly": true,
+      "module": "audit",
       "params": {
         "group": {
-          "type": "string",
-          "description": "Filter",
-          "enum": [
+          "type": "enum",
+          "values": [
             "all",
             "money",
             "exceptions",
             "changes",
             "agent"
-          ]
+          ],
+          "description": "Filter"
         },
         "kind": {
           "type": "string",
@@ -2624,11 +2338,6 @@
           "type": "string",
           "description": "Skip this many"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/audit/list"
       }
     }
   ]

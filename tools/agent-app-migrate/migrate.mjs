@@ -47,7 +47,9 @@ const require = createRequire(import.meta.url);
 const core = require(join(kitTemplate, "pb", "pb_hooks", "_a2app_rules.js"));
 
 const BUDGET = core.DESCRIBE_BUDGET_CHARS;
-const RESERVED_RENAME = { data: "datasets", identity: "profile", whoami: "me", context: "context-info", tasks: "todos", events: "calendar" };
+// Module names the protocol uses itself, and the names a group of that name
+// takes instead: the first one no other group already has.
+const RESERVED_RENAME = { data: ["datasets", "data-sets"], identity: ["profile", "identity-info"], whoami: ["me", "my-account"], context: ["context-info", "app-context"], tasks: ["todos", "to-dos", "task-list"], events: ["calendar", "schedule", "agenda"] };
 const OLD_SYSTEM_FILES = ["pb/pb_hooks/_a2app_lib.js"];
 const TODAY = new Date().toISOString().slice(0, 10);
 
@@ -150,11 +152,18 @@ function mapFields(col) {
 
 /* ------------------------------------------------------------- operations */
 
-function moduleNameFor(group) {
+function naturalName(group) {
   let name = String(group).toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/^-+|-+$/g, "");
   if (!/^[a-z]/.test(name)) name = "m-" + name;
-  if (RESERVED_RENAME[name]) name = RESERVED_RENAME[name];
   return name.slice(0, 32);
+}
+
+/** A group's module name; a reserved one takes the first stand-in no other group is named. */
+function moduleNameFor(group, taken = new Set()) {
+  const name = naturalName(group);
+  const alts = RESERVED_RENAME[name];
+  if (!alts) return name;
+  return alts.find((a) => !taken.has(a)) ?? alts[0];
 }
 
 function groupOf(opName) {
@@ -281,18 +290,21 @@ function planLayout({ appId, appName, authMode, ops, entityDefs, entityModuleHin
   const moduleOf = new Map();
   const modules = [];
   const used = new Set();
+  const natural = new Set([...groups.keys()].map(naturalName));
+  const moduleOfGroup = new Map();
   for (const [g, list] of groups) {
-    let name = moduleNameFor(g);
+    let name = moduleNameFor(g, new Set([...natural, ...used]));
     while (used.has(name)) name = (name + "-x").slice(0, 32);
     used.add(name);
     modules.push({ name, summary: moduleSummary(list), entities: [] });
     for (const o of list) moduleOf.set(o.name, name);
+    moduleOfGroup.set(g, name);
   }
   // Collections: into the module of the same name (singular/plural), else the
   // module whose operations mention it most, else a "records" module.
   const entityModule = {};
   for (const name of Object.keys(entityDefs)) {
-    const hint = entityModuleHint(name, modules.map((m) => m.name));
+    const hint = entityModuleHint(name, modules.map((m) => m.name), moduleOfGroup);
     let mod = hint;
     if (!mod) {
       if (!used.has("records")) {
@@ -319,22 +331,38 @@ function planLayout({ appId, appName, authMode, ops, entityDefs, entityModuleHin
     modules: modules.map((m) => ({ name: m.name, ...(m.summary ? { summary: m.summary } : {}) })),
     conventions: () => conventions,
   });
-  const report = [];
-  for (const m of modules) {
+  // The longest descriptions each module can carry within the budget.
+  const fit = (m) => {
     const mine = decls.filter((o) => o.module === m.name);
-    let chosen = null;
     for (const max of [140, 110, 90, 72, 60, 48, 36, 24, 0]) {
       for (const o of mine) o.description = max === 0 ? undefined : shorten(o.fullDescription, max);
       const size = sizeOf(depsFor(), m.name);
-      if (size <= BUDGET) {
-        chosen = { max, size };
-        break;
-      }
+      if (size <= BUDGET) return { max, size };
     }
-    if (!chosen) {
-      const size = sizeOf(depsFor(), m.name);
-      report.push({ level: "module", path: m.name, size, ok: false });
-    } else report.push({ level: "module", path: m.name, size: chosen.size, ok: true, max: chosen.max });
+    return { max: undefined, size: sizeOf(depsFor(), m.name), over: true };
+  };
+  // A module that only fits with descriptions cut below MIN_DESCRIPTION leaves
+  // the agent guessing ("Record that the…"): its changing operations move to a
+  // sibling `<module>-edit`, so both halves keep readable descriptions.
+  const MIN_DESCRIPTION = 48;
+  for (const m of [...modules]) {
+    const f = fit(m);
+    if (!f.over && f.max >= MIN_DESCRIPTION) continue;
+    const mine = decls.filter((o) => o.module === m.name);
+    const writes = mine.filter((o) => !o.readOnly);
+    if (writes.length === 0 || writes.length === mine.length) continue;
+    let name = `${m.name}-edit`.slice(0, 32);
+    while (used.has(name)) name = (name + "-x").slice(0, 32);
+    used.add(name);
+    for (const o of writes) o.module = name;
+    m.summary = moduleSummary(mine.filter((o) => o.readOnly));
+    modules.splice(modules.indexOf(m) + 1, 0, { name, summary: moduleSummary(writes), entities: [] });
+  }
+  const report = [];
+  for (const m of modules) {
+    const f = fit(m);
+    if (f.over) report.push({ level: "module", path: m.name, size: f.size, ok: false });
+    else report.push({ level: "module", path: m.name, size: f.size, ok: true, max: f.max });
   }
   const deps = depsFor();
   const root = core.buildRoot(deps, core.FULL_ACCESS, {});
@@ -616,21 +644,40 @@ async function main() {
       if (o.readOnly === true || (method === "GET" && o.destructive !== true)) decl.readOnly = true;
       return decl;
     });
-  const singular = (s) => s.replace(/ies$/, "y").replace(/s$/, "");
-  const entityModuleHint = (col, moduleNames) => {
+  const singular = (s) => s.replace(/ies$/, "y").replace(/(ch|sh|ss|x)es$/, "$1").replace(/s$/, "");
+  const entityModuleHint = (col, moduleNames, moduleOfGroup) => {
+    // The module of the operation group named like the collection (also when
+    // that group was renamed, e.g. events → calendar).
+    for (const [g, m] of moduleOfGroup) if (g === col || singular(g) === singular(col)) return m;
     for (const m of moduleNames) if (m === col || singular(m) === singular(col)) return m;
+    // A prefixed collection belongs to its prefix's module: ms_blocks → ms.
+    const prefixed = moduleNames.filter((m) => col.startsWith(m + "_")).sort((a, b) => b.length - a.length)[0];
+    if (prefixed) return prefixed;
     const counts = {};
     for (const o of ops) {
       const text = (o.name + " " + o.fullDescription).toLowerCase();
       if (text.includes(singular(col).toLowerCase())) {
-        const m = moduleNameFor(groupOf(o.name));
+        const m = moduleOfGroup.get(groupOf(o.name));
         counts[m] = (counts[m] || 0) + 1;
       }
     }
     const best = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
     return best ? best[0] : null;
   };
-  const layout = planLayout({ appId: folder, appName: name, authMode: old.authMode === "multi-user" ? "multi-user" : "none", ops, entityDefs, entityModuleHint, conventions });
+  const plan = () => planLayout({ appId: folder, appName: name, authMode: old.authMode === "multi-user" ? "multi-user" : "none", ops, entityDefs, entityModuleHint, conventions });
+  let layout = plan();
+  // The check above measures under a placeholder module; the real module name
+  // is longer and appears in the level's path and next moves, so a collection
+  // at the edge can still overflow once placed. It is not listed either.
+  const overflowing = layout.report.filter((r) => r.level === "entity" && !r.ok);
+  if (overflowing.length) {
+    for (const r of overflowing) {
+      const n = r.path.split("/").pop();
+      tooWide.push(`${n} (${r.size} chars)`);
+      delete entityDefs[n];
+    }
+    layout = plan();
+  }
   const moduleOfOp = Object.fromEntries(layout.decls.map((o) => [o.name, o.module]));
 
   console.log(`▸ ${ops.length} operations declared (${denied.size} person-only left undeclared), ${Object.keys(entityDefs).length} collections, ${events.length} task capabilities`);
@@ -683,7 +730,7 @@ async function main() {
   const lines = [
     "/// <reference path=\"../pb_data/types.d.ts\" />",
     "/**",
-    " * A2App operation routes — GENERATED by tools/agent-app-migrate from the app's own",
+    " * A2App operation routes - GENERATED by tools/agent-app-migrate from the app's own",
     " * routes (agent-owned; regenerate rather than hand-edit).",
     " *",
     " * Every declared operation is served at POST /api/ops/<name> by the SAME handler",
@@ -725,7 +772,7 @@ async function main() {
     const text = readFileSync(file, "utf8");
     const next = text
       // `agent-app run <project> <op> --param value` with a placeholder op: the walk form.
-      .replace(/`agent-app run <project> <op> --param value`/g, "`a2app <app> <module> <op> --param value` (`a2app <app> --find <op>` names an operation's module)")
+      .replace(/`agent-app run <project> <op> --param value`/g, "`a2app <app> <module> <op> --param value` (`a2app <app> --find <op>` names the module of an operation)")
       // A concrete operation after the prefix gets its module.
       .replace(/agent-app run (?:<project>|\{project\}) ([a-z][a-z0-9-]*\.[a-z0-9._-]+)/g, (all, op) => (moduleOfOp[op] ? `a2app <app> ${moduleOfOp[op]} ${op}` : all))
       // A prefix held in a variable (`const run = 'agent-app run <project>'; run + ' op …'`).
@@ -735,6 +782,14 @@ async function main() {
       .replace(/agent-app data (?:<project>|\{project\})/g, "a2app <app> data");
     if (next === text) continue;
     writeFileSync(file, next);
+    // The new text lands inside the app's own string literals: a quote in it
+    // would end the string, and the gate does not parse library files.
+    try {
+      execFileSync(process.execPath, ["--check", file], { stdio: "pipe" });
+    } catch (err) {
+      writeFileSync(file, text);
+      fail(`rewriting CLI strings broke ${relative(appDir, file)} (restored):\n${String(err.stderr || err.message).slice(0, 400)}`);
+    }
     console.log(`  rewrote CLI strings in ${relative(appDir, file)}`);
   }
 
@@ -744,14 +799,36 @@ async function main() {
   mkdirSync(join(appDir, "reference"), { recursive: true });
   const reqPath = join(appDir, "reference", "requirements.md");
   const oldReq = sourceText(appDir, "reference/requirements.md");
-  writeFileSync(
-    reqPath,
-    buildRequirements({ name, version, folder, oldReq, schema, entityModule: layout.entityModule, decls: layout.decls, events, external: (old.capabilities && old.capabilities.external_hosts) || [] }),
-  );
-  writeFileSync(
-    join(appDir, "reference", "tasks.md"),
-    [`# Tasks: ${name}`, "", "## Build", "- <REPLACE: one ticked task per feature, citing its F-ID — the features already exist in the published app>", "", "## Verification", "- [ ] Agent App Framework gate (`agent-app <dir> validate`) passes, including the describe budget on a dev instance.", "- [ ] Every declared operation answers through `a2app` on a live instance.", "- [ ] The View renders identically to the published build (screenshot comparison).", ""].join("\n"),
-  );
+  const freshReq = buildRequirements({ name, version, folder, oldReq, schema, entityModule: layout.entityModule, decls: layout.decls, events, external: (old.capabilities && old.capabilities.external_hosts) || [] });
+  // --keep-docs: requirements.md and tasks.md were already authored. Keep them,
+  // and refresh only the two generated sections, "## Data Requirements" and
+  // "## Operations Design", so they match the manifest and operations.json above.
+  const authored = existsSync(reqPath) && !readFileSync(reqPath, "utf8").includes("<REPLACE:");
+  if (args.includes("--keep-docs") && authored) {
+    const section = (text, heading) => {
+      const at = text.search(new RegExp(`^## ${heading}\\s*$`, "m"));
+      if (at < 0) return null;
+      const rest = text.slice(at + 1);
+      const next = rest.search(/^## /m);
+      return [at, next < 0 ? text.length : at + 1 + next];
+    };
+    let cur = readFileSync(reqPath, "utf8");
+    const nl = cur.includes("\r\n") ? "\r\n" : "\n";
+    for (const heading of ["Data Requirements", "Operations Design"]) {
+      const a = section(cur, heading);
+      const b = section(freshReq, heading);
+      if (!a || !b) fail(`--keep-docs: no ## ${heading} section to refresh`);
+      cur = cur.slice(0, a[0]) + freshReq.slice(b[0], b[1]).replace(/\r?\n/g, nl) + cur.slice(a[1]);
+    }
+    writeFileSync(reqPath, cur);
+    console.log("  kept the authored requirements.md and tasks.md; refreshed ## Data Requirements and ## Operations Design");
+  } else {
+    writeFileSync(reqPath, freshReq);
+    writeFileSync(
+      join(appDir, "reference", "tasks.md"),
+      [`# Tasks: ${name}`, "", "## Build", "- <REPLACE: one ticked task per feature, citing its F-ID — the features already exist in the published app>", "", "## Verification", "- [ ] Agent App Framework gate (`agent-app <dir> validate`) passes, including the describe budget on a dev instance.", "- [ ] Every declared operation answers through `a2app` on a live instance.", "- [ ] The View renders identically to the published build (screenshot comparison).", ""].join("\n"),
+    );
+  }
   copyFileSync(join(kitTemplate, "reference", "blueprint.md"), join(appDir, "reference", "blueprint.md"));
 
   // .gitignore: the kit's rules, plus whatever the app already ignored.

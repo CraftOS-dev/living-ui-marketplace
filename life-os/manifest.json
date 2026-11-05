@@ -1,41 +1,274 @@
 {
-  "id": "{{PROJECT_ID}}",
-  "name": "{{PROJECT_NAME}}",
-  "description": "{{PROJECT_DESCRIPTION}}",
-  "agentAppVersion": 2,
-  "createdAt": "{{CREATED_AT}}",
+  "id": "life-os",
+  "name": "Life OS",
+  "agentAppVersion": "0.1.0",
+  "adapterVersion": "0.2.0",
+  "appVersion": "1.0.0",
   "authMode": "none",
-  "port": "{{PORT}}",
-  "pbVersion": "0.39.7",
-  "kitVersion": "0.6.0",
-  "craftbotVersion": "",
-  "pipeline": {
-    "install": "npm install --ignore-scripts --prefix frontend",
-    "build": "npm run build --prefix frontend",
-    "start": "pocketbase serve --http=127.0.0.1:{{PORT}} --dir pb/pb_data --hooksDir pb/pb_hooks --migrationsDir pb/pb_migrations --publicDir pb/pb_public",
-    "health": "/api/health"
-  },
+  "modules": [
+    {
+      "name": "app",
+      "summary": "guide, status",
+      "entities": []
+    },
+    {
+      "name": "home",
+      "summary": "summary",
+      "entities": []
+    },
+    {
+      "name": "find",
+      "summary": "all",
+      "entities": []
+    },
+    {
+      "name": "settings",
+      "summary": "get, update",
+      "entities": [
+        "settings"
+      ]
+    },
+    {
+      "name": "activity",
+      "summary": "list, undo, last",
+      "entities": [
+        "activity"
+      ]
+    },
+    {
+      "name": "calendar",
+      "summary": "status, events, sync",
+      "entities": [
+        "calendar_events"
+      ]
+    },
+    {
+      "name": "routines",
+      "summary": "list",
+      "entities": [
+        "routines"
+      ]
+    },
+    {
+      "name": "world",
+      "summary": "place, places, weather, news",
+      "entities": []
+    },
+    {
+      "name": "agent",
+      "summary": "brief, status",
+      "entities": []
+    },
+    {
+      "name": "asks",
+      "summary": "list, get, working, answer, fail",
+      "entities": [
+        "asks"
+      ]
+    },
+    {
+      "name": "proposals",
+      "summary": "list, withdraw",
+      "entities": [
+        "proposals"
+      ]
+    },
+    {
+      "name": "suggestions",
+      "summary": "list, create",
+      "entities": [
+        "suggestions"
+      ]
+    },
+    {
+      "name": "life",
+      "summary": "overview, area",
+      "entities": []
+    },
+    {
+      "name": "areas",
+      "summary": "set, reorder",
+      "entities": [
+        "areas"
+      ]
+    },
+    {
+      "name": "goals",
+      "summary": "list, get, create, update, set-state, checkin, uncheckin…",
+      "entities": [
+        "goals"
+      ]
+    },
+    {
+      "name": "board",
+      "summary": "get, week, plan",
+      "entities": []
+    },
+    {
+      "name": "todos",
+      "summary": "list, get, create, add-many, update, move, complete, top…",
+      "entities": [
+        "tasks"
+      ]
+    },
+    {
+      "name": "projects",
+      "summary": "list, get, create, update, set-state, reorder, delete",
+      "entities": [
+        "projects"
+      ]
+    },
+    {
+      "name": "habits",
+      "summary": "list, get, create, update, reorder, tap, log, unlog, delete",
+      "entities": [
+        "habits"
+      ]
+    },
+    {
+      "name": "days",
+      "summary": "get, month, note",
+      "entities": [
+        "days"
+      ]
+    },
+    {
+      "name": "journal",
+      "summary": "list, get, photo, memories, heat",
+      "entities": [
+        "journal_entries"
+      ]
+    },
+    {
+      "name": "recap",
+      "summary": "week, write",
+      "entities": [
+        "recaps"
+      ]
+    },
+    {
+      "name": "people",
+      "summary": "list, get, reach, create, update, link, touch, untouch, delete",
+      "entities": [
+        "people"
+      ]
+    },
+    {
+      "name": "schedule",
+      "summary": "list, create, update, delete",
+      "entities": [
+        "events"
+      ]
+    },
+    {
+      "name": "health",
+      "summary": "day, log, trend",
+      "entities": [
+        "health_logs"
+      ]
+    },
+    {
+      "name": "workouts",
+      "summary": "list, add, update, delete",
+      "entities": [
+        "workouts"
+      ]
+    },
+    {
+      "name": "money",
+      "summary": "month, entries, add, update, delete",
+      "entities": [
+        "money_pots",
+        "money_entries"
+      ]
+    },
+    {
+      "name": "pots",
+      "summary": "list, create, update, add, delete",
+      "entities": []
+    },
+    {
+      "name": "bills",
+      "summary": "list, create, update, pay, delete",
+      "entities": [
+        "bills"
+      ]
+    },
+    {
+      "name": "books",
+      "summary": "shelf, list, add, update, delete",
+      "entities": [
+        "books"
+      ]
+    },
+    {
+      "name": "learning",
+      "summary": "list, add, update, practice, delete",
+      "entities": [
+        "learning"
+      ]
+    },
+    {
+      "name": "bucket",
+      "summary": "list, add, update, delete",
+      "entities": [
+        "bucket_items"
+      ]
+    },
+    {
+      "name": "trips",
+      "summary": "list, add, update, pack, delete",
+      "entities": [
+        "trips"
+      ]
+    },
+    {
+      "name": "chores",
+      "summary": "list, add, update, done, delete",
+      "entities": [
+        "chores"
+      ]
+    },
+    {
+      "name": "shopping",
+      "summary": "list, add, check, update, clear, delete",
+      "entities": [
+        "shopping_items"
+      ]
+    },
+    {
+      "name": "focus",
+      "summary": "week, list, log, delete",
+      "entities": [
+        "focus_sessions"
+      ]
+    },
+    {
+      "name": "wins",
+      "summary": "list, add, update, delete",
+      "entities": [
+        "wins"
+      ]
+    },
+    {
+      "name": "records",
+      "summary": "the app's other stored records",
+      "entities": [
+        "goal_checkins",
+        "interactions",
+        "habit_logs",
+        "routine_runs"
+      ]
+    }
+  ],
+  "modificationLock": false,
   "capabilities": {
-    "actions": [
-      "list_google_calendar_events"
-    ],
-    "triggers": [
-      "breakdown_requested",
-      "day_plan_requested",
-      "evening_checkin",
-      "habit_help_requested",
-      "inbox_sort_requested",
-      "morning_note_due",
-      "proposal_returned",
-      "question_asked",
-      "recap_requested"
-    ],
-    "external_hosts": [
-      "api.open-meteo.com",
-      "geocoding-api.open-meteo.com",
-      "ipwho.is",
-      "news.google.com"
-    ]
+    "integrations": []
   },
-  "adapterVersion": "1.9.0"
+  "pipeline": {
+    "install": "node pb-fetch.mjs && npm --prefix frontend install --ignore-scripts --no-audit --no-fund",
+    "build": "node pb-build.mjs",
+    "start": "node pb-serve.mjs",
+    "health": "/api/_a2app"
+  }
 }

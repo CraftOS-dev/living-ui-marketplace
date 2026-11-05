@@ -2,7 +2,7 @@
  * Generate the operation surface from the catalog (pb/pb_hooks/cat_*.js):
  *
  *   pb/pb_hooks/routes.pb.js            one routerAdd per operation
- *   operations.json                     what agents discover (agent-app ops)
+ *   tools/operations.catalog.json       the catalog's own operation listing (operations.json is generated from it by tools/agent-app-migrate)
  *   frontend/src/app/lib/ops.gen.ts     the op names and methods for the UI
  *
  * It also checks the catalog: names, methods, effects, parameter types, and
@@ -135,7 +135,10 @@ for (const op of ops) {
   if (op.destructive) entry.destructive = true;
   manifest.operations.push(entry);
 }
-writeFileSync(join(root, 'operations.json'), JSON.stringify(manifest, null, 2) + '\n');
+// operations.json is the Agent App Framework declaration now (module, typed
+// params, destructive), produced from this catalog by the marketplace's
+// tools/agent-app-migrate. The catalog's own listing goes beside this script.
+writeFileSync(join(root, 'tools', 'operations.catalog.json'), JSON.stringify(manifest, null, 2) + '\n');
 
 /* ops.gen.ts */
 const tsLines = [

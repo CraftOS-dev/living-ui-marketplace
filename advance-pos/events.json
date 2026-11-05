@@ -1,0 +1,59 @@
+{
+  "events": [
+    {
+      "type": "receipt_requested",
+      "capability": "receipt_requested",
+      "description": "Asks your AI agent to send a sale's receipt to a customer's email or phone",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "The request (its id)"
+        }
+      },
+      "cooldownSeconds": 10
+    },
+    {
+      "type": "shift_review_requested",
+      "capability": "shift_review_requested",
+      "description": "Asks your AI agent to review a closed drawer session and report anything unusual",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "The request (its id)"
+        }
+      },
+      "cooldownSeconds": 30
+    },
+    {
+      "type": "restock_requested",
+      "capability": "restock_requested",
+      "description": "Asks your AI agent to draft a restock list from low stock and recent sales",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "The request (its id)"
+        }
+      },
+      "cooldownSeconds": 30
+    },
+    {
+      "type": "question_asked",
+      "capability": "question_asked",
+      "description": "Asks your AI agent a question about the business, answered from the store's own numbers",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "The request (its id)"
+        }
+      },
+      "cooldownSeconds": 30
+    }
+  ],
+  "conventions": {
+    "guide": "Every operation's parameters, and how to do each task the app queues, are in AGENT_APP.md in the app's directory."
+  }
+}

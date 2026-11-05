@@ -1,51 +1,25 @@
 {
-  "opsVersion": 1,
   "operations": [
     {
-      "name": "health",
-      "description": "Liveness check (PocketBase built-in).",
-      "system": true,
-      "params": {},
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/health"
-      }
-    },
-    {
-      "name": "ops.list",
-      "description": "Return this operations manifest.",
-      "system": true,
-      "params": {},
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/_ops"
-      }
-    },
-    {
       "name": "app.guide",
-      "description": "START HERE: conventions (items, locations, quantities, costs, statuses), the locations and categories, and ready-to-run recipes for deliveries, reorders, counts, imports and history.",
-      "params": {},
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/app/guide"
-      }
+      "description": "Conventions (items, locations, quantities, costs, statuses), the locations and categories, and ready-to-run recipes for deliveries…",
+      "destructive": false,
+      "module": "app",
+      "params": {}
     },
     {
       "name": "settings.get",
       "description": "Currency, whether stock may go below zero, and whether the AI agent drafts reorders on its own.",
-      "params": {},
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/settings/get"
-      }
+      "destructive": false,
+      "readOnly": true,
+      "module": "settings",
+      "params": {}
     },
     {
       "name": "settings.update",
-      "description": "Change settings. Switching currency relabels costs without converting them.",
+      "description": "Change settings.",
+      "destructive": false,
+      "module": "settings",
       "params": {
         "currency": {
           "type": "string",
@@ -63,77 +37,65 @@
           "type": "boolean",
           "description": "Ask the AI agent to draft purchase orders whenever an item newly runs low"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/settings/update"
       }
     },
     {
       "name": "dashboard.summary",
-      "description": "Home overview: stock value and units, item counts per status, the last 30 days of stock in and out, what needs attention, most used items, idle stock, recent history, incoming orders, stock per top-level place.",
-      "params": {},
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/dashboard/summary"
-      }
+      "description": "Home overview: stock value and units, item counts per status, the last 30 days of stock in and out, what needs attention, most used items…",
+      "destructive": false,
+      "readOnly": true,
+      "module": "dashboard",
+      "params": {}
     },
     {
       "name": "lookup.code",
       "description": "What a scanned or typed code is: an item (by barcode or SKU, with full details), a location (by its code), or none yet (type none).",
+      "destructive": false,
+      "readOnly": true,
+      "module": "lookup",
       "params": {
         "code": {
           "type": "string",
-          "description": "The scanned or typed code",
-          "required": true
+          "required": true,
+          "description": "The scanned or typed code"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/lookup/code"
       }
     },
     {
       "name": "categories.list",
       "description": "Categories with how many active items each has, and the icons a category can use.",
-      "params": {},
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/categories/list"
-      }
+      "destructive": false,
+      "readOnly": true,
+      "module": "categories",
+      "params": {}
     },
     {
       "name": "categories.add",
       "description": "Add a category.",
+      "destructive": false,
+      "module": "categories",
       "params": {
         "name": {
           "type": "string",
-          "description": "Category name",
-          "required": true
+          "required": true,
+          "description": "Category name"
         },
         "icon": {
           "type": "string",
           "description": "Icon name from categories.list icons (default package)"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/categories/add"
       }
     },
     {
       "name": "categories.update",
       "description": "Rename a category, change its icon or its position.",
+      "destructive": false,
+      "module": "categories",
       "params": {
         "category": {
           "type": "string",
-          "description": "Category name or id",
-          "required": true
+          "required": true,
+          "description": "Category name or id"
         },
         "name": {
           "type": "string",
@@ -147,87 +109,73 @@
           "type": "number",
           "description": "Position (lower comes first)"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/categories/update"
       }
     },
     {
       "name": "categories.delete",
-      "description": "Delete a category; its items become uncategorized. preview=true shows how many items that affects.",
+      "description": "Delete a category; its items become uncategorized.",
       "destructive": true,
+      "module": "categories",
       "params": {
         "category": {
           "type": "string",
-          "description": "Category name or id",
-          "required": true
+          "required": true,
+          "description": "Category name or id"
         },
         "preview": {
           "type": "boolean",
           "description": "Only show what would change"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/categories/delete"
       }
     },
     {
       "name": "map.get",
-      "description": "The Home stockroom map: every place (kind, parent, depth, map layout {x, z, w, d} or null for automatic, own items, units and value), the items stored anywhere plus out-of-stock items with a home place (status, on hand, reorder point, target), stock by place, and status counts.",
-      "params": {},
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/map/get"
-      }
+      "description": "The Home stockroom map: every place (kind, parent, depth, map layout {x, z, w, d} or null for automatic, own items, units and value), the…",
+      "destructive": false,
+      "readOnly": true,
+      "module": "map",
+      "params": {}
     },
     {
       "name": "locations.list",
       "description": "Every location as a tree with code, kind, path, and the items, units and value stored in it (its own and including the places inside it).",
-      "params": {},
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/locations/list"
-      }
+      "destructive": false,
+      "readOnly": true,
+      "module": "locations",
+      "params": {}
     },
     {
       "name": "locations.get",
       "description": "One location: where it sits, the places inside it, and every item stored in it or inside it with quantities.",
+      "destructive": false,
+      "readOnly": true,
+      "module": "locations",
       "params": {
         "location": {
           "type": "string",
-          "description": "Location id, code (LOC-001), exact name or path (\"Main stockroom / Shelf A\")",
-          "required": true
+          "required": true,
+          "description": "Location id, code (LOC-001), exact name or path (\"Main stockroom / Shelf A\")"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/locations/get"
       }
     },
     {
       "name": "locations.add",
-      "description": "Add a location (a site, room, shelf, bin...). It gets a scannable code (LOC-002...) unless one is given. Places nest by size (app.guide place_holds): a place must fit inside its parent, e.g. no vehicle inside a box.",
+      "description": "Add a location (a site, room, shelf, bin...).",
+      "destructive": false,
+      "module": "locations",
       "params": {
         "name": {
           "type": "string",
-          "description": "Name, e.g. \"Shelf A\"",
-          "required": true
+          "required": true,
+          "description": "Name, e.g. \"Shelf A\""
         },
         "parent": {
           "type": "string",
           "description": "The location it sits inside (empty for top level)"
         },
         "kind": {
-          "type": "string",
-          "description": "What kind of place",
-          "enum": [
+          "type": "enum",
+          "values": [
             "site",
             "room",
             "area",
@@ -242,7 +190,8 @@
             "bin",
             "box",
             "other"
-          ]
+          ],
+          "description": "What kind of place"
         },
         "code": {
           "type": "string",
@@ -252,21 +201,18 @@
           "type": "string",
           "description": "Notes"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/locations/add"
       }
     },
     {
       "name": "locations.update",
-      "description": "Rename or move a location, or change its kind, code or notes. The nesting rules apply both ways: it must fit its parent, and a new kind must still hold what is inside it.",
+      "description": "Rename or move a location, or change its kind, code or notes.",
+      "destructive": false,
+      "module": "locations",
       "params": {
         "location": {
           "type": "string",
-          "description": "Location id, code (LOC-001), exact name or path (\"Main stockroom / Shelf A\")",
-          "required": true
+          "required": true,
+          "description": "Location id, code (LOC-001), exact name or path (\"Main stockroom / Shelf A\")"
         },
         "name": {
           "type": "string",
@@ -277,9 +223,8 @@
           "description": "New parent location (empty for top level)"
         },
         "kind": {
-          "type": "string",
-          "description": "What kind of place",
-          "enum": [
+          "type": "enum",
+          "values": [
             "site",
             "room",
             "area",
@@ -294,7 +239,8 @@
             "bin",
             "box",
             "other"
-          ]
+          ],
+          "description": "What kind of place"
         },
         "code": {
           "type": "string",
@@ -304,16 +250,13 @@
           "type": "string",
           "description": "Notes"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/locations/update"
       }
     },
     {
       "name": "locations.place",
-      "description": "Set where a place stands on the Home stockroom map and how big it is (map units of about a metre), or reset it to the automatic layout. x, z: the centre (top-level: on the floor; inside another place: from that place's far corner). w, d: width and depth (left out: kept; empty: automatic, as big as its contents need). Refused, with the reason, when it would overlap a sized place in the same space, stand outside a sized space, or sit inside furniture. all=true with reset=true resets every place.",
+      "description": "Set where a place stands on the Home stockroom map and how big it is (map units of about a metre), or reset it to the automatic layout.",
+      "destructive": false,
+      "module": "locations",
       "params": {
         "location": {
           "type": "string",
@@ -343,84 +286,70 @@
           "type": "boolean",
           "description": "With reset=true: every place"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/locations/place"
       }
     },
     {
       "name": "locations.arrange",
-      "description": "Set the map layout of several places at once, all or nothing (what arrange mode saves): positions is a JSON list of {location, x, z, w?, d?} or {location, reset: true}, with x, z, w, d as in locations.place. Refused as a whole, with the reason, when two sized places would overlap in the same space, a place would stand outside a sized space, or a place sits inside furniture.",
+      "description": "Set the map layout of several places at once, all or nothing (what arrange mode saves): positions is a JSON list of {location, x, z, w?…",
+      "destructive": false,
+      "module": "locations",
       "params": {
         "positions": {
           "type": "string",
-          "description": "JSON list, e.g. [{\"location\":\"LOC-001\",\"x\":6,\"z\":4,\"w\":10,\"d\":6}]",
-          "required": true
+          "required": true,
+          "description": "JSON list, e.g. [{\"location\":\"LOC-001\",\"x\":6,\"z\":4,\"w\":10,\"d\":6}]"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/locations/arrange"
       }
     },
     {
       "name": "locations.delete",
-      "description": "Delete an empty location. Places inside it move up a level; its history entries are removed. Refused while it holds stock. preview=true shows the effect.",
+      "description": "Delete an empty location.",
       "destructive": true,
+      "module": "locations",
       "params": {
         "location": {
           "type": "string",
-          "description": "Location id, code (LOC-001), exact name or path (\"Main stockroom / Shelf A\")",
-          "required": true
+          "required": true,
+          "description": "Location id, code (LOC-001), exact name or path (\"Main stockroom / Shelf A\")"
         },
         "preview": {
           "type": "boolean",
           "description": "Only show what would change"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/locations/delete"
       }
     },
     {
       "name": "suppliers.list",
       "description": "Suppliers with contact details, lead time, how many items they supply, open orders and the last order date.",
-      "params": {},
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/suppliers/list"
-      }
+      "destructive": false,
+      "readOnly": true,
+      "module": "suppliers",
+      "params": {}
     },
     {
       "name": "suppliers.get",
       "description": "One supplier with the items it supplies (with stock figures) and its latest orders.",
+      "destructive": false,
+      "readOnly": true,
+      "module": "suppliers",
       "params": {
         "supplier": {
           "type": "string",
-          "description": "Supplier name or id",
-          "required": true
+          "required": true,
+          "description": "Supplier name or id"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/suppliers/get"
       }
     },
     {
       "name": "suppliers.add",
       "description": "Add a supplier.",
+      "destructive": false,
+      "module": "suppliers",
       "params": {
         "name": {
           "type": "string",
-          "description": "Supplier name",
-          "required": true
+          "required": true,
+          "description": "Supplier name"
         },
         "contact": {
           "type": "string",
@@ -446,21 +375,18 @@
           "type": "string",
           "description": "Notes"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/suppliers/add"
       }
     },
     {
       "name": "suppliers.update",
       "description": "Change a supplier's details.",
+      "destructive": false,
+      "module": "suppliers",
       "params": {
         "supplier": {
           "type": "string",
-          "description": "Supplier name or id",
-          "required": true
+          "required": true,
+          "description": "Supplier name or id"
         },
         "name": {
           "type": "string",
@@ -490,52 +416,46 @@
           "type": "string",
           "description": "Notes"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/suppliers/update"
       }
     },
     {
       "name": "suppliers.delete",
-      "description": "Delete a supplier. Its items and orders stay, without a supplier. preview=true shows the effect.",
+      "description": "Delete a supplier.",
       "destructive": true,
+      "module": "suppliers",
       "params": {
         "supplier": {
           "type": "string",
-          "description": "Supplier name or id",
-          "required": true
+          "required": true,
+          "description": "Supplier name or id"
         },
         "preview": {
           "type": "boolean",
           "description": "Only show what would change"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/suppliers/delete"
       }
     },
     {
       "name": "items.list",
-      "description": "Items with on hand, incoming, status, value, usage, days left and reorder suggestion, plus counts per status. Filters combine.",
+      "description": "Items with on hand, incoming, status, value, usage, days left and reorder suggestion, plus counts per status.",
+      "destructive": false,
+      "readOnly": true,
+      "module": "items",
       "params": {
         "q": {
           "type": "string",
           "description": "Search name, SKU, barcode or description"
         },
         "status": {
-          "type": "string",
-          "description": "Only this status",
-          "enum": [
+          "type": "enum",
+          "values": [
             "ok",
             "low",
             "out",
             "over",
             "reorder"
-          ]
+          ],
+          "description": "Only this status"
         },
         "category": {
           "type": "string",
@@ -554,25 +474,25 @@
           "description": "Supplier name or id; none for no supplier"
         },
         "archived": {
-          "type": "string",
-          "description": "Which items",
-          "enum": [
+          "type": "enum",
+          "values": [
             "active",
             "archived",
             "all"
-          ]
+          ],
+          "description": "Which items"
         },
         "sort": {
-          "type": "string",
-          "description": "Sort by",
-          "enum": [
+          "type": "enum",
+          "values": [
             "name",
             "qty",
             "value",
             "updated",
             "status",
             "days_left"
-          ]
+          ],
+          "description": "Sort by"
         },
         "desc": {
           "type": "boolean",
@@ -586,37 +506,32 @@
           "type": "number",
           "description": "Skip this many (paging)"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/items/list"
       }
     },
     {
       "name": "items.get",
-      "description": "One item in full: stock per location, barcodes, open order lines, the last 25 history entries, 90 days of on-hand levels, usage and reorder figures.",
+      "description": "One item in full: stock per location, barcodes, open order lines, the last 25 history entries, 90 days of on-hand levels, usage and…",
+      "destructive": false,
+      "readOnly": true,
+      "module": "items",
       "params": {
         "item": {
           "type": "string",
-          "description": "Item id, SKU, barcode or exact name",
-          "required": true
+          "required": true,
+          "description": "Item id, SKU, barcode or exact name"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/items/get"
       }
     },
     {
       "name": "items.add",
-      "description": "Add an item, with barcodes and opening stock in one go. Returns the item.",
+      "description": "Add an item, with barcodes and opening stock in one go.",
+      "destructive": false,
+      "module": "items",
       "params": {
         "name": {
           "type": "string",
-          "description": "Item name",
-          "required": true
+          "required": true,
+          "description": "Item name"
         },
         "qty": {
           "type": "string",
@@ -682,21 +597,18 @@
           "type": "string",
           "description": "Absolute path of a photo file to use as the item photo"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/items/add"
       }
     },
     {
       "name": "items.update",
-      "description": "Change an item's details (not its quantity: use the stock operations). barcode/barcodes add codes; remove_photo clears the photo.",
+      "description": "Change an item's details (not its quantity: use the stock operations).",
+      "destructive": false,
+      "module": "items",
       "params": {
         "item": {
           "type": "string",
-          "description": "Item id, SKU, barcode or exact name",
-          "required": true
+          "required": true,
+          "description": "Item id, SKU, barcode or exact name"
         },
         "name": {
           "type": "string",
@@ -766,163 +678,140 @@
           "type": "string",
           "description": "Absolute path of a photo file to use as the item photo"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/items/update"
       }
     },
     {
       "name": "items.delete",
-      "description": "Delete an item with its stock, history, barcodes and order lines. preview=true shows what that removes.",
+      "description": "Delete an item with its stock, history, barcodes and order lines.",
       "destructive": true,
+      "module": "items",
       "params": {
         "item": {
           "type": "string",
-          "description": "Item id, SKU, barcode or exact name",
-          "required": true
+          "required": true,
+          "description": "Item id, SKU, barcode or exact name"
         },
         "preview": {
           "type": "boolean",
           "description": "Only show what would be removed"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/items/delete"
       }
     },
     {
       "name": "items.delete-many",
       "description": "Delete several items with their stock, history and barcodes.",
       "destructive": true,
+      "module": "items",
       "params": {
         "ids": {
           "type": "string",
-          "description": "JSON list of item ids or SKUs",
-          "required": true
+          "required": true,
+          "description": "JSON list of item ids or SKUs"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/items/delete-many"
       }
     },
     {
       "name": "items.set-category",
       "description": "Put several items in one category.",
+      "destructive": false,
+      "module": "items",
       "params": {
         "ids": {
           "type": "string",
-          "description": "JSON list of item ids or SKUs",
-          "required": true
+          "required": true,
+          "description": "JSON list of item ids or SKUs"
         },
         "category": {
           "type": "string",
-          "description": "Category name or id; \"\" (empty) for none",
-          "required": true
+          "required": true,
+          "description": "Category name or id; \"\" (empty) for none"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/items/set-category"
       }
     },
     {
       "name": "items.set-archived",
       "description": "Archive (hide from lists and reorders) or restore several items.",
+      "destructive": false,
+      "module": "items",
       "params": {
         "ids": {
           "type": "string",
-          "description": "JSON list of item ids or SKUs",
-          "required": true
+          "required": true,
+          "description": "JSON list of item ids or SKUs"
         },
         "archived": {
           "type": "boolean",
-          "description": "true to archive, false to restore",
-          "required": true
+          "required": true,
+          "description": "true to archive, false to restore"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/items/set-archived"
       }
     },
     {
       "name": "items.add-barcode",
       "description": "Give an item another scannable barcode (must not belong to anything else).",
+      "destructive": false,
+      "module": "items",
       "params": {
         "item": {
           "type": "string",
-          "description": "Item id, SKU, barcode or exact name",
-          "required": true
+          "required": true,
+          "description": "Item id, SKU, barcode or exact name"
         },
         "code": {
           "type": "string",
-          "description": "The barcode text",
-          "required": true
+          "required": true,
+          "description": "The barcode text"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/items/add-barcode"
       }
     },
     {
       "name": "items.remove-barcode",
       "description": "Remove one of an item's barcodes.",
+      "destructive": false,
+      "module": "items",
       "params": {
         "item": {
           "type": "string",
-          "description": "Item id, SKU, barcode or exact name",
-          "required": true
+          "required": true,
+          "description": "Item id, SKU, barcode or exact name"
         },
         "code": {
           "type": "string",
-          "description": "The barcode text",
-          "required": true
+          "required": true,
+          "description": "The barcode text"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/items/remove-barcode"
       }
     },
     {
       "name": "stock.in",
-      "description": "Stock coming in that is not on a purchase order. Location defaults to the item's home location.",
+      "description": "Stock coming in that is not on a purchase order.",
+      "destructive": false,
+      "module": "stock",
       "params": {
         "item": {
           "type": "string",
-          "description": "Item id, SKU, barcode or exact name",
-          "required": true
+          "required": true,
+          "description": "Item id, SKU, barcode or exact name"
         },
         "qty": {
           "type": "string",
-          "description": "Quantity, a plain number like 12 or 2.5",
-          "required": true
+          "required": true,
+          "description": "Quantity, a plain number like 12 or 2.5"
         },
         "location": {
           "type": "string",
           "description": "Location id, code (LOC-001), exact name or path (\"Main stockroom / Shelf A\")"
         },
         "reason": {
-          "type": "string",
-          "description": "Why (default received)",
-          "enum": [
+          "type": "enum",
+          "values": [
             "received",
             "returned",
             "found",
             "produced",
             "opening"
-          ]
+          ],
+          "description": "Why (default received)"
         },
         "unit_cost": {
           "type": "string",
@@ -932,35 +821,31 @@
           "type": "string",
           "description": "Note"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/stock/in"
       }
     },
     {
       "name": "stock.out",
-      "description": "Stock going out (used, sold, damaged...). Location defaults to the only place holding the item, or its home location when that holds some.",
+      "description": "Stock going out (used, sold, damaged...).",
+      "destructive": false,
+      "module": "stock",
       "params": {
         "item": {
           "type": "string",
-          "description": "Item id, SKU, barcode or exact name",
-          "required": true
+          "required": true,
+          "description": "Item id, SKU, barcode or exact name"
         },
         "qty": {
           "type": "string",
-          "description": "Quantity, a plain number like 12 or 2.5",
-          "required": true
+          "required": true,
+          "description": "Quantity, a plain number like 12 or 2.5"
         },
         "location": {
           "type": "string",
           "description": "Location id, code (LOC-001), exact name or path (\"Main stockroom / Shelf A\")"
         },
         "reason": {
-          "type": "string",
-          "description": "Why (default used)",
-          "enum": [
+          "type": "enum",
+          "values": [
             "sold",
             "used",
             "damaged",
@@ -968,32 +853,30 @@
             "expired",
             "sample",
             "returned"
-          ]
+          ],
+          "description": "Why (default used)"
         },
         "note": {
           "type": "string",
           "description": "Note"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/stock/out"
       }
     },
     {
       "name": "stock.move",
       "description": "Move stock from one location to another.",
+      "destructive": false,
+      "module": "stock",
       "params": {
         "item": {
           "type": "string",
-          "description": "Item id, SKU, barcode or exact name",
-          "required": true
+          "required": true,
+          "description": "Item id, SKU, barcode or exact name"
         },
         "qty": {
           "type": "string",
-          "description": "Quantity, a plain number like 12 or 2.5",
-          "required": true
+          "required": true,
+          "description": "Quantity, a plain number like 12 or 2.5"
         },
         "from": {
           "type": "string",
@@ -1001,83 +884,75 @@
         },
         "to": {
           "type": "string",
-          "description": "Where it goes",
-          "required": true
+          "required": true,
+          "description": "Where it goes"
         },
         "note": {
           "type": "string",
           "description": "Note"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/stock/move"
       }
     },
     {
       "name": "stock.set",
       "description": "Set the quantity at a location to what is really there (records the difference as a correction).",
+      "destructive": false,
+      "module": "stock",
       "params": {
         "item": {
           "type": "string",
-          "description": "Item id, SKU, barcode or exact name",
-          "required": true
+          "required": true,
+          "description": "Item id, SKU, barcode or exact name"
         },
         "qty": {
           "type": "string",
-          "description": "The quantity that is really there",
-          "required": true
+          "required": true,
+          "description": "The quantity that is really there"
         },
         "location": {
           "type": "string",
           "description": "Location id, code (LOC-001), exact name or path (\"Main stockroom / Shelf A\")"
         },
         "reason": {
-          "type": "string",
-          "description": "Why (default correction)",
-          "enum": [
+          "type": "enum",
+          "values": [
             "correction",
             "found",
             "damaged",
             "lost",
             "expired"
-          ]
+          ],
+          "description": "Why (default correction)"
         },
         "note": {
           "type": "string",
           "description": "Note"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/stock/set"
       }
     },
     {
       "name": "stock.batch",
-      "description": "Several stock changes as one action (one history batch, one undo). Each line: kind in|out|move|set, item, qty, and location / from / to / reason / unit_cost / note as for the single operations.",
+      "description": "Several stock changes as one action (one history batch, one undo).",
+      "destructive": false,
+      "module": "stock",
       "params": {
         "lines": {
           "type": "string",
-          "description": "JSON list of {kind, item, qty, location?, from?, to?, reason?, unit_cost?, note?} (max 500)",
-          "required": true
+          "required": true,
+          "description": "JSON list of {kind, item, qty, location?, from?, to?, reason?, unit_cost?, note?} (max 500)"
         },
         "note": {
           "type": "string",
           "description": "Note for every line"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/stock/batch"
       }
     },
     {
       "name": "movements.list",
-      "description": "History of stock changes, newest first, 25 at a time (limit up to 500; more=true means there are older ones). Each entry has its batch id (undo with movements.undo).",
+      "description": "History of stock changes, newest first, 25 at a time (limit up to 500; more=true means there are older ones).",
+      "destructive": false,
+      "readOnly": true,
+      "module": "movements",
       "params": {
         "item": {
           "type": "string",
@@ -1092,20 +967,19 @@
           "description": "With location: include places inside it (default true)"
         },
         "kind": {
-          "type": "string",
-          "description": "Kind",
-          "enum": [
+          "type": "enum",
+          "values": [
             "in",
             "out",
             "move",
             "adjust",
             "count"
-          ]
+          ],
+          "description": "Kind"
         },
         "reason": {
-          "type": "string",
-          "description": "Reason",
-          "enum": [
+          "type": "enum",
+          "values": [
             "received",
             "returned",
             "found",
@@ -1121,29 +995,30 @@
             "count",
             "opening",
             "undo"
-          ]
+          ],
+          "description": "Reason"
         },
         "actor": {
-          "type": "string",
-          "description": "Who",
-          "enum": [
+          "type": "enum",
+          "values": [
             "you",
             "agent",
             "system"
-          ]
+          ],
+          "description": "Who"
         },
         "batch": {
           "type": "string",
           "description": "One batch"
         },
         "ref_type": {
-          "type": "string",
-          "description": "Source",
-          "enum": [
+          "type": "enum",
+          "values": [
             "order",
             "count",
             "import"
-          ]
+          ],
+          "description": "Source"
         },
         "ref": {
           "type": "string",
@@ -1169,63 +1044,51 @@
           "type": "number",
           "description": "Skip this many (paging)"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/movements/list"
       }
     },
     {
       "name": "movements.undo",
-      "description": "Undo a change: posts the opposite of a batch (both stay in the history). Order receipts and counts follow automatically.",
+      "description": "Undo a change: posts the opposite of a batch (both stay in the history).",
+      "destructive": false,
+      "module": "movements",
       "params": {
         "batch": {
           "type": "string",
-          "description": "Batch id from movements.list",
-          "required": true
+          "required": true,
+          "description": "Batch id from movements.list"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/movements/undo"
       }
     },
     {
       "name": "movements.delete",
-      "description": "Delete a batch from the history (and its undo, if any); stock goes back as if it never happened. preview=true shows the effect.",
+      "description": "Delete a batch from the history (and its undo, if any); stock goes back as if it never happened.",
       "destructive": true,
+      "module": "movements",
       "params": {
         "batch": {
           "type": "string",
-          "description": "Batch id from movements.list",
-          "required": true
+          "required": true,
+          "description": "Batch id from movements.list"
         },
         "preview": {
           "type": "boolean",
           "description": "Only show what would change"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/movements/delete"
       }
     },
     {
       "name": "reorder.list",
-      "description": "Items that need reordering, grouped by supplier: on hand, incoming, reorder point, target, usage, days left, the suggested quantity with a plain-words \"why\", and drafts they are already on.",
-      "params": {},
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/reorder/list"
-      }
+      "description": "Items that need reordering, grouped by supplier: on hand, incoming, reorder point, target, usage, days left, the suggested quantity with a…",
+      "destructive": false,
+      "readOnly": true,
+      "module": "reorder",
+      "params": {}
     },
     {
       "name": "reorder.create-orders",
-      "description": "Put items on draft purchase orders, one per supplier (an existing draft for that supplier is reused; lines are set, never doubled). With no items, every suggestion is used.",
+      "description": "Put items on draft purchase orders, one per supplier (an existing draft for that supplier is reused; lines are set, never doubled).",
+      "destructive": false,
+      "module": "reorder",
       "params": {
         "items": {
           "type": "string",
@@ -1235,21 +1098,18 @@
           "type": "string",
           "description": "Why these orders (shown on the order as the AI agent's note)"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/reorder/create-orders"
       }
     },
     {
       "name": "orders.list",
       "description": "Purchase orders with lines, totals and progress, plus counts per status.",
+      "destructive": false,
+      "readOnly": true,
+      "module": "orders",
       "params": {
         "status": {
-          "type": "string",
-          "description": "Which orders (default open = draft, ordered, partial)",
-          "enum": [
+          "type": "enum",
+          "values": [
             "open",
             "all",
             "draft",
@@ -1257,7 +1117,8 @@
             "partial",
             "received",
             "cancelled"
-          ]
+          ],
+          "description": "Which orders (default open = draft, ordered, partial)"
         },
         "supplier": {
           "type": "string",
@@ -1279,48 +1140,41 @@
           "type": "number",
           "description": "Skip this many (paging)"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/orders/list"
       }
     },
     {
       "name": "orders.get",
-      "description": "One purchase order with its lines (ordered, received, remaining, cost), documents and receipt history.",
+      "description": "One purchase order with its lines (ordered, received, remaining…",
+      "destructive": false,
+      "readOnly": true,
+      "module": "orders",
       "params": {
         "order": {
           "type": "string",
-          "description": "Purchase order id or number (PO-0001)",
-          "required": true
+          "required": true,
+          "description": "Purchase order id or number (PO-0001)"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/orders/get"
       }
     },
     {
       "name": "orders.text",
-      "description": "A purchase order as plain text with the supplier email and a subject, ready to send.",
+      "description": "A purchase order as plain text with the supplier email and a subject…",
+      "destructive": false,
+      "readOnly": true,
+      "module": "orders",
       "params": {
         "order": {
           "type": "string",
-          "description": "Purchase order id or number (PO-0001)",
-          "required": true
+          "required": true,
+          "description": "Purchase order id or number (PO-0001)"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/orders/text"
       }
     },
     {
       "name": "orders.create",
       "description": "Create a draft purchase order, optionally with lines.",
+      "destructive": false,
+      "module": "orders",
       "params": {
         "supplier": {
           "type": "string",
@@ -1347,29 +1201,26 @@
           "description": "JSON list of {item, qty, unit_cost?}"
         },
         "origin": {
-          "type": "string",
-          "description": "Who started it",
-          "enum": [
+          "type": "enum",
+          "values": [
             "you",
             "agent",
             "reorder"
-          ]
+          ],
+          "description": "Who started it"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/orders/create"
       }
     },
     {
       "name": "orders.update",
-      "description": "Change a purchase order's supplier, delivery location, expected date or notes.",
+      "description": "Change a purchase order's supplier, delivery location, expected date…",
+      "destructive": false,
+      "module": "orders",
       "params": {
         "order": {
           "type": "string",
-          "description": "Purchase order id or number (PO-0001)",
-          "required": true
+          "required": true,
+          "description": "Purchase order id or number (PO-0001)"
         },
         "supplier": {
           "type": "string",
@@ -1391,59 +1242,53 @@
           "type": "string",
           "description": "The AI agent's note"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/orders/update"
       }
     },
     {
       "name": "orders.add-line",
-      "description": "Add an item to an open purchase order (raises the quantity if it is already on it; mode=set replaces it).",
+      "description": "Add an item to an open purchase order (raises the quantity if it is…",
+      "destructive": false,
+      "module": "orders",
       "params": {
         "order": {
           "type": "string",
-          "description": "Purchase order id or number (PO-0001)",
-          "required": true
+          "required": true,
+          "description": "Purchase order id or number (PO-0001)"
         },
         "item": {
           "type": "string",
-          "description": "Item id, SKU, barcode or exact name",
-          "required": true
+          "required": true,
+          "description": "Item id, SKU, barcode or exact name"
         },
         "qty": {
           "type": "string",
-          "description": "Quantity, a plain number like 12 or 2.5",
-          "required": true
+          "required": true,
+          "description": "Quantity, a plain number like 12 or 2.5"
         },
         "unit_cost": {
           "type": "string",
           "description": "Cost per unit (default the item cost)"
         },
         "mode": {
-          "type": "string",
-          "description": "add (default) or set",
-          "enum": [
+          "type": "enum",
+          "values": [
             "add",
             "set"
-          ]
+          ],
+          "description": "add (default) or set"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/orders/add-line"
       }
     },
     {
       "name": "orders.update-line",
       "description": "Change a line's quantity or cost.",
+      "destructive": false,
+      "module": "orders",
       "params": {
         "line": {
           "type": "string",
-          "description": "Line id from orders.get",
-          "required": true
+          "required": true,
+          "description": "Line id from orders.get"
         },
         "qty": {
           "type": "string",
@@ -1453,74 +1298,61 @@
           "type": "string",
           "description": "Cost per unit"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/orders/update-line"
       }
     },
     {
       "name": "orders.remove-line",
       "description": "Remove a line nothing has arrived for.",
       "destructive": true,
+      "module": "orders",
       "params": {
         "line": {
           "type": "string",
-          "description": "Line id from orders.get",
-          "required": true
+          "required": true,
+          "description": "Line id from orders.get"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/orders/remove-line"
       }
     },
     {
       "name": "orders.mark-ordered",
-      "description": "Mark a draft as sent to the supplier: its quantities now count as incoming. Expected date defaults from the supplier lead time.",
+      "description": "Mark a draft as sent to the supplier: its quantities now count as…",
+      "destructive": false,
+      "module": "orders",
       "params": {
         "order": {
           "type": "string",
-          "description": "Purchase order id or number (PO-0001)",
-          "required": true
+          "required": true,
+          "description": "Purchase order id or number (PO-0001)"
         },
         "expected_on": {
           "type": "string",
           "description": "Expected delivery YYYY-MM-DD"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/orders/mark-ordered"
       }
     },
     {
       "name": "orders.back-to-draft",
       "description": "Put an ordered purchase order back to draft while nothing has arrived.",
+      "destructive": false,
+      "module": "orders",
       "params": {
         "order": {
           "type": "string",
-          "description": "Purchase order id or number (PO-0001)",
-          "required": true
+          "required": true,
+          "description": "Purchase order id or number (PO-0001)"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/orders/back-to-draft"
       }
     },
     {
       "name": "orders.receive",
-      "description": "Record what arrived for an order (one history batch). Short deliveries leave it partial.",
+      "description": "Record what arrived for an order (one history batch).",
+      "destructive": false,
+      "module": "orders",
       "params": {
         "order": {
           "type": "string",
-          "description": "Purchase order id or number (PO-0001)",
-          "required": true
+          "required": true,
+          "description": "Purchase order id or number (PO-0001)"
         },
         "lines": {
           "type": "string",
@@ -1538,95 +1370,79 @@
           "type": "string",
           "description": "Note"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/orders/receive"
       }
     },
     {
       "name": "orders.close",
-      "description": "Close a partly received order: the rest is not coming and stops counting as incoming.",
+      "description": "Close a partly received order: the rest is not coming and stops…",
+      "destructive": false,
+      "module": "orders",
       "params": {
         "order": {
           "type": "string",
-          "description": "Purchase order id or number (PO-0001)",
-          "required": true
+          "required": true,
+          "description": "Purchase order id or number (PO-0001)"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/orders/close"
       }
     },
     {
       "name": "orders.cancel",
       "description": "Cancel an order nothing has arrived for.",
       "destructive": true,
+      "module": "orders",
       "params": {
         "order": {
           "type": "string",
-          "description": "Purchase order id or number (PO-0001)",
-          "required": true
+          "required": true,
+          "description": "Purchase order id or number (PO-0001)"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/orders/cancel"
       }
     },
     {
       "name": "orders.reopen",
       "description": "Reopen a cancelled order (as a draft) or a closed-short order.",
+      "destructive": false,
+      "module": "orders",
       "params": {
         "order": {
           "type": "string",
-          "description": "Purchase order id or number (PO-0001)",
-          "required": true
+          "required": true,
+          "description": "Purchase order id or number (PO-0001)"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/orders/reopen"
       }
     },
     {
       "name": "orders.delete",
-      "description": "Delete a purchase order and its lines; stock it already brought in stays in the history. preview=true shows the effect.",
+      "description": "Delete a purchase order and its lines; stock it already brought in…",
       "destructive": true,
+      "module": "orders",
       "params": {
         "order": {
           "type": "string",
-          "description": "Purchase order id or number (PO-0001)",
-          "required": true
+          "required": true,
+          "description": "Purchase order id or number (PO-0001)"
         },
         "preview": {
           "type": "boolean",
           "description": "Only show what would change"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/orders/delete"
       }
     },
     {
       "name": "counts.list",
       "description": "Stock counts with progress and, once completed, their summary.",
+      "destructive": false,
+      "readOnly": true,
+      "module": "counts",
       "params": {
         "status": {
-          "type": "string",
-          "description": "Only this status",
-          "enum": [
+          "type": "enum",
+          "values": [
             "counting",
             "completed",
             "cancelled"
-          ]
+          ],
+          "description": "Only this status"
         },
         "limit": {
           "type": "number",
@@ -1636,36 +1452,31 @@
           "type": "number",
           "description": "Skip this many (paging)"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/counts/list"
       }
     },
     {
       "name": "counts.get",
-      "description": "One stock count with every line (expected, counted, difference). Blind counts hide expected numbers unless reveal=true.",
+      "description": "One stock count with every line (expected, counted, difference).",
+      "destructive": false,
+      "readOnly": true,
+      "module": "counts",
       "params": {
         "count": {
           "type": "string",
-          "description": "Stock count id or number (C-0001)",
-          "required": true
+          "required": true,
+          "description": "Stock count id or number (C-0001)"
         },
         "reveal": {
           "type": "boolean",
           "description": "Show expected numbers of a blind count (for the review)"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/counts/get"
       }
     },
     {
       "name": "counts.start",
-      "description": "Start a stock count of a location (and the places inside it), or of everything. Takes a snapshot of what is expected.",
+      "description": "Start a stock count of a location (and the places inside it), or of everything.",
+      "destructive": false,
+      "module": "counts",
       "params": {
         "location": {
           "type": "string",
@@ -1687,21 +1498,18 @@
           "type": "string",
           "description": "Note"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/counts/start"
       }
     },
     {
       "name": "counts.set-line",
-      "description": "Record a line: counted (the total counted) or add (one more, e.g. 1), or clear=true to un-count it.",
+      "description": "Record a line: counted (the total counted) or add (one more, e.g.",
+      "destructive": false,
+      "module": "counts",
       "params": {
         "line": {
           "type": "string",
-          "description": "Line id from counts.get",
-          "required": true
+          "required": true,
+          "description": "Line id from counts.get"
         },
         "counted": {
           "type": "string",
@@ -1715,26 +1523,23 @@
           "type": "boolean",
           "description": "Mark the line as not counted"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/counts/set-line"
       }
     },
     {
       "name": "counts.scan",
       "description": "A scanned barcode or SKU counts one more of its item (adds a line if it was found somewhere unexpected).",
+      "destructive": false,
+      "module": "counts",
       "params": {
         "count": {
           "type": "string",
-          "description": "Stock count id or number (C-0001)",
-          "required": true
+          "required": true,
+          "description": "Stock count id or number (C-0001)"
         },
         "code": {
           "type": "string",
-          "description": "The scanned code",
-          "required": true
+          "required": true,
+          "description": "The scanned code"
         },
         "qty": {
           "type": "string",
@@ -1744,201 +1549,171 @@
           "type": "string",
           "description": "Where it was counted (default the count location or the item home)"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/counts/scan"
       }
     },
     {
       "name": "counts.add-item",
       "description": "Add a line for an item found where it was not expected.",
+      "destructive": false,
+      "module": "counts",
       "params": {
         "count": {
           "type": "string",
-          "description": "Stock count id or number (C-0001)",
-          "required": true
+          "required": true,
+          "description": "Stock count id or number (C-0001)"
         },
         "item": {
           "type": "string",
-          "description": "Item id, SKU, barcode or exact name",
-          "required": true
+          "required": true,
+          "description": "Item id, SKU, barcode or exact name"
         },
         "location": {
           "type": "string",
           "description": "Location id, code (LOC-001), exact name or path (\"Main stockroom / Shelf A\")"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/counts/add-item"
       }
     },
     {
       "name": "counts.remove-line",
       "description": "Remove a line from a count in progress.",
+      "destructive": false,
+      "module": "counts",
       "params": {
         "line": {
           "type": "string",
-          "description": "Line id from counts.get",
-          "required": true
+          "required": true,
+          "description": "Line id from counts.get"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/counts/remove-line"
       }
     },
     {
       "name": "counts.complete",
-      "description": "Finish a count: every counted line sets the stock to what was counted (one history batch). Lines not counted are kept, or set to zero with uncounted=zero.",
+      "description": "Finish a count: every counted line sets the stock to what was counted (one history batch).",
+      "destructive": false,
+      "module": "counts",
       "params": {
         "count": {
           "type": "string",
-          "description": "Stock count id or number (C-0001)",
-          "required": true
+          "required": true,
+          "description": "Stock count id or number (C-0001)"
         },
         "uncounted": {
-          "type": "string",
-          "description": "What to do with lines nobody counted",
-          "enum": [
+          "type": "enum",
+          "values": [
             "keep",
             "zero"
-          ]
+          ],
+          "description": "What to do with lines nobody counted"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/counts/complete"
       }
     },
     {
       "name": "counts.cancel",
       "description": "Cancel a count in progress (nothing changes).",
+      "destructive": false,
+      "module": "counts",
       "params": {
         "count": {
           "type": "string",
-          "description": "Stock count id or number (C-0001)",
-          "required": true
+          "required": true,
+          "description": "Stock count id or number (C-0001)"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/counts/cancel"
       }
     },
     {
       "name": "counts.reopen",
       "description": "Reopen a completed count (its adjustments are undone) or a cancelled one.",
+      "destructive": false,
+      "module": "counts",
       "params": {
         "count": {
           "type": "string",
-          "description": "Stock count id or number (C-0001)",
-          "required": true
+          "required": true,
+          "description": "Stock count id or number (C-0001)"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/counts/reopen"
       }
     },
     {
       "name": "counts.delete",
-      "description": "Delete a count and its lines; adjustments it made stay in the history. preview=true shows the effect.",
+      "description": "Delete a count and its lines; adjustments it made stay in the history.",
       "destructive": true,
+      "module": "counts",
       "params": {
         "count": {
           "type": "string",
-          "description": "Stock count id or number (C-0001)",
-          "required": true
+          "required": true,
+          "description": "Stock count id or number (C-0001)"
         },
         "preview": {
           "type": "boolean",
           "description": "Only show what would change"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/counts/delete"
       }
     },
     {
       "name": "documents.list",
       "description": "Packing slips and invoices handed to the AI agent, with status (waiting, reading, done, failed), the file path to read, and summaries.",
+      "destructive": false,
+      "readOnly": true,
+      "module": "documents",
       "params": {
         "status": {
-          "type": "string",
-          "description": "Only this status",
-          "enum": [
+          "type": "enum",
+          "values": [
             "waiting",
             "reading",
             "done",
             "failed"
-          ]
+          ],
+          "description": "Only this status"
         },
         "limit": {
           "type": "number",
           "description": "How many (default 50)"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/documents/list"
       }
     },
     {
       "name": "documents.add",
-      "description": "Store a packing slip, delivery note or invoice (photo or PDF) for reading. Status waiting.",
+      "description": "Store a packing slip, delivery note or invoice (photo or PDF) for reading.",
+      "destructive": false,
+      "module": "documents",
       "params": {
         "path": {
           "type": "string",
-          "description": "Absolute path of the image or PDF",
-          "required": true
+          "required": true,
+          "description": "Absolute path of the image or PDF"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/documents/add"
       }
     },
     {
       "name": "documents.start",
       "description": "Mark a document as being read.",
+      "destructive": false,
+      "module": "documents",
       "params": {
         "document": {
           "type": "string",
-          "description": "Document id",
-          "required": true
+          "required": true,
+          "description": "Document id"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/documents/start"
       }
     },
     {
       "name": "documents.complete",
       "description": "Mark a document as recorded, with a summary the user sees.",
+      "destructive": false,
+      "module": "documents",
       "params": {
         "document": {
           "type": "string",
-          "description": "Document id",
-          "required": true
+          "required": true,
+          "description": "Document id"
         },
         "summary": {
           "type": "string",
-          "description": "What was recorded, e.g. \"Received 3 lines on PO-0004\"",
-          "required": true
+          "required": true,
+          "description": "What was recorded, e.g. \"Received 3 lines on PO-0004\""
         },
         "order": {
           "type": "string",
@@ -1948,70 +1723,57 @@
           "type": "string",
           "description": "The history batch it created"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/documents/complete"
       }
     },
     {
       "name": "documents.fail",
       "description": "Mark a document as not recordable, with a reason the user can act on.",
+      "destructive": false,
+      "module": "documents",
       "params": {
         "document": {
           "type": "string",
-          "description": "Document id",
-          "required": true
+          "required": true,
+          "description": "Document id"
         },
         "reason": {
           "type": "string",
-          "description": "Why, in a short sentence",
-          "required": true
+          "required": true,
+          "description": "Why, in a short sentence"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/documents/fail"
       }
     },
     {
       "name": "documents.retry",
       "description": "Ask the AI agent to read a failed document again.",
+      "destructive": false,
+      "module": "documents",
       "params": {
         "document": {
           "type": "string",
-          "description": "Document id",
-          "required": true
+          "required": true,
+          "description": "Document id"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/documents/retry"
       }
     },
     {
       "name": "documents.delete",
       "description": "Delete a document (stock it recorded stays).",
       "destructive": true,
+      "module": "documents",
       "params": {
         "document": {
           "type": "string",
-          "description": "Document id",
-          "required": true
+          "required": true,
+          "description": "Document id"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/documents/delete"
       }
     },
     {
       "name": "import.preview",
-      "description": "Read a CSV of items: which column each field uses, counts (create, update, invalid, empty) and the rows with problems. Re-run with import_id and options to adjust.",
+      "description": "Read a CSV of items: which column each field uses, counts (create, update, invalid, empty) and the rows with problems.",
+      "destructive": false,
+      "module": "import",
       "params": {
         "path": {
           "type": "string",
@@ -2070,12 +1832,12 @@
           "description": "Column for Description"
         },
         "quantities": {
-          "type": "string",
-          "description": "set: quantities are what is on the shelf; add: they are a delivery",
-          "enum": [
+          "type": "enum",
+          "values": [
             "set",
             "add"
-          ]
+          ],
+          "description": "set: quantities are what is on the shelf; add: they are a delivery"
         },
         "create_missing": {
           "type": "boolean",
@@ -2085,21 +1847,18 @@
           "type": "number",
           "description": "How many rows to show (default 50)"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/import/preview"
       }
     },
     {
       "name": "import.run",
-      "description": "Import a previewed CSV (valid rows; rows with problems are skipped and listed). Same options as import.preview.",
+      "description": "Import a previewed CSV (valid rows; rows with problems are skipped and listed).",
+      "destructive": false,
+      "module": "import",
       "params": {
         "import_id": {
           "type": "string",
-          "description": "Import id from import.preview",
-          "required": true
+          "required": true,
+          "description": "Import id from import.preview"
         },
         "map_name": {
           "type": "string",
@@ -2150,96 +1909,80 @@
           "description": "Column for Description"
         },
         "quantities": {
-          "type": "string",
-          "description": "set or add",
-          "enum": [
+          "type": "enum",
+          "values": [
             "set",
             "add"
-          ]
+          ],
+          "description": "set or add"
         },
         "create_missing": {
           "type": "boolean",
           "description": "Create missing categories, suppliers and locations"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/import/run"
       }
     },
     {
       "name": "import.list",
       "description": "Past imports with how many items each added, changed and skipped.",
+      "destructive": false,
+      "readOnly": true,
+      "module": "import",
       "params": {
         "limit": {
           "type": "number",
           "description": "How many (default 50)"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/import/list"
       }
     },
     {
       "name": "import.undo",
       "description": "Undo an import: delete the items it created, restore the ones it changed, reverse its stock changes.",
       "destructive": true,
+      "module": "import",
       "params": {
         "import_id": {
           "type": "string",
-          "description": "Import id from import.list",
-          "required": true
+          "required": true,
+          "description": "Import id from import.list"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/import/undo"
       }
     },
     {
       "name": "import.delete",
       "description": "Delete an import record that was undone or never run.",
       "destructive": true,
+      "module": "import",
       "params": {
         "import_id": {
           "type": "string",
-          "description": "Import id",
-          "required": true
+          "required": true,
+          "description": "Import id"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/import/delete"
       }
     },
     {
       "name": "export.items",
       "description": "CSV of every item: details (importable back to bulk-edit them) and figures (on hand, incoming, value, status, stock by location).",
-      "params": {},
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/export/items"
-      }
+      "destructive": false,
+      "readOnly": true,
+      "module": "export",
+      "params": {}
     },
     {
       "name": "export.stock",
       "description": "CSV of stock per item and location; importing it back sets the stock to those numbers.",
-      "params": {},
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/export/stock"
-      }
+      "destructive": false,
+      "readOnly": true,
+      "module": "export",
+      "params": {}
     },
     {
       "name": "export.movements",
       "description": "CSV of the history between two days (default the last 30 days).",
+      "destructive": false,
+      "readOnly": true,
+      "module": "export",
       "params": {
         "from": {
           "type": "string",
@@ -2249,22 +1992,15 @@
           "type": "string",
           "description": "To day YYYY-MM-DD"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/export/movements"
       }
     },
     {
       "name": "export.template",
       "description": "An empty CSV with the columns import understands.",
-      "params": {},
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/export/template"
-      }
+      "destructive": false,
+      "readOnly": true,
+      "module": "export",
+      "params": {}
     }
   ]
 }

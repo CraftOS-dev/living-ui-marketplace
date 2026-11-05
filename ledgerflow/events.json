@@ -1,0 +1,59 @@
+{
+  "events": [
+    {
+      "type": "lines_imported",
+      "capability": "lines_imported",
+      "description": "Sends your AI agent the imported bank lines Ledgerflow could not categorize with confidence, so it proposes a category, a match or a transfer for each with its reason",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        }
+      },
+      "cooldownSeconds": 30
+    },
+    {
+      "type": "documents_received",
+      "capability": "documents_received",
+      "description": "Sends your AI agent the receipts, invoices and documents dropped into Ledgerflow, so it reads them, attaches each to its entry or drafts the bill",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        }
+      },
+      "cooldownSeconds": 30
+    },
+    {
+      "type": "agent_asked",
+      "capability": "agent_asked",
+      "description": "Sends your AI agent the questions you ask in Ledgerflow (about your numbers, a report to explain, a payment reminder to draft) so it answers from your books",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        }
+      },
+      "cooldownSeconds": 20
+    },
+    {
+      "type": "close_requested",
+      "capability": "close_requested",
+      "description": "Asks your AI agent to prepare a month for close: work through the checks, fix what it can and tell you what is left",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        }
+      },
+      "cooldownSeconds": 60
+    }
+  ],
+  "conventions": {
+    "guide": "Every operation's parameters, and how to do each task the app queues, are in AGENT_APP.md in the app's directory."
+  }
+}

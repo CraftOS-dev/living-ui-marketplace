@@ -1,0 +1,17 @@
+{
+  "manifest.json": "sha256:b1feafc55089fc768564d959ec3f0a75b3f263f352c61d78259abda49945e24a",
+  "pb-serve.mjs": "sha256:e204c47475acc99d50b6eec65450005da569910bfbb88fad9afdbbcaf9f2abf2",
+  "pb-fetch.mjs": "sha256:eda088280ee1074c67dd69cc3cef6ad5831be40c60ca0e842445dbdc1d9bce56",
+  "pb-check.mjs": "sha256:c01e49a9e9b3cf781454fbe24192752fc058e5071d57a07a0ca558f0f7ebf923",
+  "pb-build.mjs": "sha256:557fffa3f533a9f4472c304e58a5a124aea627073c65180437254508a0271436",
+  "pb/pb_hooks/_a2app.pb.js": "sha256:c5c788a8c0b9fa5217a64ac2a5ff6d9f36c65c6bf5c33a29e8af2abe686fc430",
+  "pb/pb_hooks/_a2app_impl.js": "sha256:4ef1da9f19cba9e49c4cc56a3dfa786fa71d65cdb8e884d3a7c9011ccd5777d2",
+  "pb/pb_hooks/_a2app_rules.js": "sha256:895b651b86a1b643dc7845abb83d62db0dc7431477342c4f396b11af46ea7f4a",
+  "pb/pb_hooks/_compat_lib.js": "sha256:69cfa08f88d479a943bd2057301df982dbd2dbfe768ebd09615aa7cc111eb2de",
+  "pb/pb_hooks/_compat_rules.js": "sha256:b1a6c53b6ec456dc856ae088f04e8ee0a4616426aeedfc29c2bc3530e6673388",
+  "pb/pb_hooks/_compat_system.js": "sha256:6bf0035c03b8f22dc54af785f73de2c09b3efc5f1b24c4ec91655bb77164be34",
+  "pb/pb_hooks/_system.pb.js": "sha256:beddacd02491e9810f666ac1b1cf3ae63484f3eafb37c06109919fe135782036",
+  "pb/pb_hooks/_triggers.pb.js": "sha256:647d1b1c8d007f038d3b0de6353831df829931b0dca770b81e4aafb1e4716ce7",
+  "pb/pb_hooks/_triggers_lib.js": "sha256:705883c319dd19cab2c493815d53de6ec5c2373aa43fa9f257d45e3779111ad4",
+  "pb/pb_hooks/_craftbot_bridge.js": "sha256:12a2e4050e95a2d999683ccce8dcbcf18be217f0ec88739d5443d9e590a4c41d"
+}

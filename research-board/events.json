@@ -1,0 +1,33 @@
+{
+  "events": [
+    {
+      "type": "digests_waiting",
+      "capability": "digests_waiting",
+      "description": "Asks your AI agent to read cards you want summarized (web pages, documents, videos, images) and write a short summary on each",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        }
+      },
+      "cooldownSeconds": 20
+    },
+    {
+      "type": "reviews_waiting",
+      "capability": "reviews_waiting",
+      "description": "Asks your AI agent to review a research board: it adds notes on what is missing, proposes links between related cards and leaves a short review",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        }
+      },
+      "cooldownSeconds": 30
+    }
+  ],
+  "conventions": {
+    "guide": "Every operation's parameters, and how to do each task the app queues, are in AGENT_APP.md in the app's directory."
+  }
+}

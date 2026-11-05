@@ -7,7 +7,7 @@
 
 const RULES = [
   'Store OS runs every online shop of one seller: Shops (each shop on each platform, plus Direct for chat and social orders), Products (one catalog; a listing per shop with its own title, text and price), Stock (one ledger; each shop shows a share of what is available), Orders (one queue across shops), Inbox (buyer conversations), Approvals (changes you propose) and reports.',
-  'Every command is `agent-app run <project> <op> --param value`. Start with app.status, then tasks.list. Names work as references: --shop takes an id or the shop name, --product an id, title or SKU, --variant an id or SKU, --order an id or the order number.',
+  'Every command is `a2app <app> <module> <op> --param value` (`a2app <app> --find <op>` names the module of an operation). Start with app.status, then tasks.list. Names work as references: --shop takes an id or the shop name, --product an id, title or SKU, --variant an id or SKU, --order an id or the order number.',
   'Work every open task: tasks.start --task <id>, follow the recipe for its kind (below), then tasks.finish --task <id> --note "<what you did, in a line>" (or --failed true --note "<why>"). The seller reads your notes.',
   'Money parameters are major units (59.90, not 5990). Product prices and costs are in the base currency (settings.get); listing prices and order amounts are in the shop\'s or the order\'s currency.',
   'Operations marked [Becomes a proposal...] wait for the seller in Approvals unless the seller set that kind of change to automatic. Give --why. Put related changes in one proposal with proposals.create --title --why --items \'[{"op":"listings.draft","params":{...}}, ...]\'.',

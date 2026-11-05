@@ -1,0 +1,33 @@
+{
+  "events": [
+    {
+      "type": "analysis_requested",
+      "capability": "analysis_requested",
+      "description": "Asks your AI agent to analyze a chart you picked (trend, momentum, key levels, scenarios, drawn on the chart) or to review a watchlist",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        }
+      },
+      "cooldownSeconds": 20
+    },
+    {
+      "type": "alert_fired",
+      "capability": "alert_fired",
+      "description": "Sends your AI agent the alerts you marked for it when they fire, so it explains what happened and what to watch next",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        }
+      },
+      "cooldownSeconds": 30
+    }
+  ],
+  "conventions": {
+    "guide": "Every operation's parameters, and how to do each task the app queues, are in AGENT_APP.md in the app's directory."
+  }
+}

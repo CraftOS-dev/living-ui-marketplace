@@ -1,97 +1,54 @@
 {
-  "opsVersion": 1,
   "operations": [
     {
-      "name": "health",
-      "description": "Liveness check (PocketBase built-in).",
-      "system": true,
-      "params": {},
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/health"
-      }
-    },
-    {
-      "name": "ops.list",
-      "description": "Return this operations manifest.",
-      "system": true,
-      "params": {},
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/_ops"
-      }
-    },
-    {
       "name": "app.guide",
-      "description": "START HERE: the books (entity, home currency, tax region, lock dates), the posting policy and house rules, conventions (money in minor units in answers, decimals in params), every account with when to use it, tax codes, what is on screen, and recipes for categorizing bank lines, reading receipts, answering questions, preparing a close and drafting invoices.",
-      "label": "App guide",
+      "description": "The books (entity, home currency, tax region, lock dates), the posting policy and house rules, conventions (money in minor units in…",
+      "destructive": false,
       "readOnly": true,
-      "returns": "summary",
-      "params": {},
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/app/guide"
-      }
+      "module": "app",
+      "params": {}
     },
     {
       "name": "app.context",
       "description": "The view the person has open, its filters and the selected line, entry, document, account or report, plus the books summary and settings.",
-      "label": "What is on screen",
+      "destructive": false,
       "readOnly": true,
-      "returns": "summary",
-      "params": {},
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/app/context"
-      }
+      "module": "app",
+      "params": {}
     },
     {
       "name": "app.summary",
-      "description": "Cash, card balances, what customers owe (open, overdue), what is owed to suppliers, tax owed, inbox and proposals waiting, this month and last month income and expenses, lock dates.",
-      "label": "Books at a glance",
+      "description": "Cash, card balances, what customers owe (open, overdue), what is owed to suppliers, tax owed, inbox and proposals waiting, this month and…",
+      "destructive": false,
       "readOnly": true,
-      "returns": "summary",
-      "params": {},
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/app/summary"
-      }
+      "module": "app",
+      "params": {}
     },
     {
       "name": "app.dashboard",
-      "description": "The home dashboard: headline numbers for a period against the one before (cash, income, expenses, net, receivables, overdue, payables, tax owed, runway, savings rate), cash balance by day for 180 days, income and expenses by month for 12 months, top expense and income categories, receivables and payables by age, invoices and bills due within two weeks, recurring items, bank and card balances with 30-day trends, budgets this month, what waits in the inbox and recent activity.",
-      "label": "Dashboard",
+      "description": "The home dashboard: headline numbers for a period against the one before (cash, income, expenses, net, receivables, overdue, payables, tax…",
+      "destructive": false,
       "readOnly": true,
-      "returns": "summary",
+      "module": "app",
       "params": {
         "range": {
-          "type": "string",
-          "description": "Period for the headline numbers and categories (default this_month)",
-          "enum": [
+          "type": "enum",
+          "values": [
             "this_month",
             "last_month",
             "this_quarter",
             "ytd",
             "last_12_months"
-          ]
+          ],
+          "description": "Period for the headline numbers and categories (default this_month)"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/app/dashboard"
       }
     },
     {
       "name": "app.ui",
-      "description": "The UI reports what is on screen (view, selection, filters). Not for the AI agent.",
-      "label": "Report screen",
-      "returns": "none",
+      "description": "The UI reports what is on screen (view, selection, filters).",
+      "destructive": false,
+      "module": "app",
       "params": {
         "view": {
           "type": "string",
@@ -99,66 +56,55 @@
         },
         "selection": {
           "type": "string",
-          "description": "JSON {\"type\":\"line|transaction|document|account|report\",\"id\":\"..\"}",
-          "format": "json"
+          "format": "json",
+          "description": "JSON {\"type\":\"line|transaction|document|account|report\",\"id\":\"..\"}"
         },
         "filters": {
           "type": "string",
-          "description": "JSON filters",
-          "format": "json"
+          "format": "json",
+          "description": "JSON filters"
         },
         "prefs": {
           "type": "string",
-          "description": "JSON UI preferences",
-          "format": "json"
+          "format": "json",
+          "description": "JSON UI preferences"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/app/ui"
       }
     },
     {
       "name": "setup.get",
       "description": "Settings, the tax regions with their codes, and the supported currencies.",
-      "label": "Setup",
+      "destructive": false,
       "readOnly": true,
-      "returns": "record",
-      "params": {},
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/setup/get"
-      }
+      "module": "setup",
+      "params": {}
     },
     {
       "name": "setup.apply",
-      "description": "Set up the books: name, business, personal or both, home currency, sales tax / VAT region and fiscal year start. Creates the chart of accounts and tax codes (existing ones are kept).",
-      "label": "Set up books",
-      "returns": "record",
+      "description": "Set up the books: name, business, personal or both, home currency, sales tax / VAT region and fiscal year start.",
+      "destructive": false,
+      "module": "setup",
       "params": {
         "business_name": {
           "type": "string",
           "description": "Business or household name"
         },
         "entity": {
-          "type": "string",
-          "description": "What the books are for",
-          "enum": [
+          "type": "enum",
+          "values": [
             "business",
             "personal",
             "both"
-          ]
+          ],
+          "description": "What the books are for"
         },
         "home_currency": {
           "type": "string",
           "description": "ISO code, e.g. USD, GBP, EUR, MYR"
         },
         "region": {
-          "type": "string",
-          "description": "Tax preset",
-          "enum": [
+          "type": "enum",
+          "values": [
             "none",
             "uk_vat",
             "eu_vat",
@@ -169,24 +115,20 @@
             "ca_gst",
             "us_sales",
             "in_gst"
-          ]
+          ],
+          "description": "Tax preset"
         },
         "fiscal_year_start": {
           "type": "number",
           "description": "First month of the fiscal year (1 to 12)"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/setup/apply"
       }
     },
     {
       "name": "settings.update",
-      "description": "Business details for invoices, invoice and credit note numbering, payment terms, fiscal year start, tax rounding, tax region (adds its codes), whether the AI agent categorizes imported lines.",
-      "label": "Change settings",
-      "returns": "record",
+      "description": "Business details for invoices, invoice and credit note numbering, payment terms, fiscal year start, tax rounding, tax region (adds its…",
+      "destructive": false,
+      "module": "settings",
       "params": {
         "business_name": {
           "type": "string",
@@ -194,8 +136,8 @@
         },
         "business_address": {
           "type": "string",
-          "description": "Address on invoices",
-          "format": "multiline"
+          "format": "multiline",
+          "description": "Address on invoices"
         },
         "business_email": {
           "type": "string",
@@ -207,8 +149,8 @@
         },
         "invoice_footer": {
           "type": "string",
-          "description": "Footer on invoices (payment details)",
-          "format": "multiline"
+          "format": "multiline",
+          "description": "Footer on invoices (payment details)"
         },
         "invoice_prefix": {
           "type": "string",
@@ -235,17 +177,16 @@
           "description": "First month of the fiscal year"
         },
         "rounding": {
-          "type": "string",
-          "description": "Tax rounding per line or per document",
-          "enum": [
+          "type": "enum",
+          "values": [
             "line",
             "document"
-          ]
+          ],
+          "description": "Tax rounding per line or per document"
         },
         "region": {
-          "type": "string",
-          "description": "Tax preset",
-          "enum": [
+          "type": "enum",
+          "values": [
             "none",
             "uk_vat",
             "eu_vat",
@@ -256,16 +197,17 @@
             "ca_gst",
             "us_sales",
             "in_gst"
-          ]
+          ],
+          "description": "Tax preset"
         },
         "entity": {
-          "type": "string",
-          "description": "What the books are for",
-          "enum": [
+          "type": "enum",
+          "values": [
             "business",
             "personal",
             "both"
-          ]
+          ],
+          "description": "What the books are for"
         },
         "home_currency": {
           "type": "string",
@@ -275,18 +217,13 @@
           "type": "boolean",
           "description": "Send imported lines without a confident suggestion to the AI agent"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/settings/update"
       }
     },
     {
       "name": "policy.update",
-      "description": "What the AI agent may do on its own: post high-confidence proposals up to a ceiling, which system suggestions post on import, and the house rules it follows. The person only.",
-      "label": "AI agent policy",
-      "returns": "record",
+      "description": "What the AI agent may do on its own: post high-confidence proposals up to a ceiling, which system suggestions post on import, and the…",
+      "destructive": false,
+      "module": "policy",
       "params": {
         "agent_auto_post": {
           "type": "boolean",
@@ -298,26 +235,21 @@
         },
         "auto_methods": {
           "type": "string",
-          "description": "JSON list of suggestion methods that post on import when high confidence: match, transfer, document, memory",
-          "format": "json"
+          "format": "json",
+          "description": "JSON list of suggestion methods that post on import when high confidence: match, transfer, document, memory"
         },
         "house_rules": {
           "type": "string",
-          "description": "Standing instructions for categorizing",
-          "format": "multiline"
+          "format": "multiline",
+          "description": "Standing instructions for categorizing"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/policy/update"
       }
     },
     {
       "name": "locks.set",
-      "description": "Move the books lock date (nobody changes entries on or before it), the AI agent lock date, or the tax lock date. Empty clears. The person only.",
-      "label": "Lock dates",
-      "returns": "record",
+      "description": "Move the books lock date (nobody changes entries on or before it), the AI agent lock date, or the tax lock date.",
+      "destructive": false,
+      "module": "locks",
       "params": {
         "lock_date": {
           "type": "string",
@@ -331,30 +263,25 @@
           "type": "string",
           "description": "Tax lock date (YYYY-MM-DD; also today, yesterday, t-7)"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/locks/set"
       }
     },
     {
       "name": "accounts.list",
-      "description": "Accounts with code, type, subtype, currency, \"use when\" description, system role, balance (home currency and account currency) and inbox lines waiting.",
-      "label": "Chart of accounts",
+      "description": "Accounts with code, type, subtype, currency, \"use when\" description, system role, balance (home currency and account currency) and inbox…",
+      "destructive": false,
       "readOnly": true,
-      "returns": "list",
+      "module": "accounts",
       "params": {
         "type": {
-          "type": "string",
-          "description": "Only this type",
-          "enum": [
+          "type": "enum",
+          "values": [
             "asset",
             "liability",
             "equity",
             "income",
             "expense"
-          ]
+          ],
+          "description": "Only this type"
         },
         "archived": {
           "type": "boolean",
@@ -364,60 +291,49 @@
           "type": "string",
           "description": "Balances as of (YYYY-MM-DD; also today, yesterday, t-7)"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/accounts/list"
       }
     },
     {
       "name": "accounts.get",
       "description": "One account with its balance and last reconciliation.",
-      "label": "Account",
+      "destructive": false,
       "readOnly": true,
-      "returns": "record",
+      "module": "accounts",
       "params": {
         "account": {
           "type": "string",
-          "description": "Account id, code (e.g. 6020) or exact name",
           "required": true,
-          "format": "ref:accounts"
+          "format": "ref:accounts",
+          "description": "Account id, code (e.g. 6020) or exact name"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/accounts/get"
       }
     },
     {
       "name": "accounts.create",
-      "description": "Add an account. The code is picked when left out. Bank, card and cash accounts can carry an opening balance.",
-      "label": "New account",
-      "returns": "record",
+      "description": "Add an account.",
+      "destructive": false,
+      "module": "accounts",
       "params": {
         "name": {
           "type": "string",
-          "description": "Name",
-          "required": true
+          "required": true,
+          "description": "Name"
         },
         "type": {
-          "type": "string",
-          "description": "Type",
-          "required": true,
-          "enum": [
+          "type": "enum",
+          "values": [
             "asset",
             "liability",
             "equity",
             "income",
             "expense"
-          ]
+          ],
+          "required": true,
+          "description": "Type"
         },
         "subtype": {
-          "type": "string",
-          "description": "Kind (bank, card, cash, expense, income, ...)",
-          "enum": [
+          "type": "enum",
+          "values": [
             "bank",
             "cash",
             "card",
@@ -439,7 +355,8 @@
             "expense",
             "cogs",
             "other_expense"
-          ]
+          ],
+          "description": "Kind (bank, card, cash, expense, income, ...)"
         },
         "code": {
           "type": "string",
@@ -451,23 +368,23 @@
         },
         "description": {
           "type": "string",
-          "description": "When to use it (the AI agent reads this)",
-          "format": "multiline"
+          "format": "multiline",
+          "description": "When to use it (the AI agent reads this)"
         },
         "parent": {
           "type": "string",
-          "description": "Account id, code or exact name",
-          "format": "ref:accounts"
+          "format": "ref:accounts",
+          "description": "Account id, code or exact name"
         },
         "cashflow": {
-          "type": "string",
-          "description": "Cash flow class",
-          "enum": [
+          "type": "enum",
+          "values": [
             "cash",
             "operating",
             "investing",
             "financing"
-          ]
+          ],
+          "description": "Cash flow class"
         },
         "bank_name": {
           "type": "string",
@@ -485,24 +402,19 @@
           "type": "string",
           "description": "Opening balance date (YYYY-MM-DD; also today, yesterday, t-7)"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/accounts/create"
       }
     },
     {
       "name": "accounts.update",
       "description": "Rename, recode or describe an account; type and currency change only while it has no entries.",
-      "label": "Edit account",
-      "returns": "record",
+      "destructive": false,
+      "module": "accounts",
       "params": {
         "account": {
           "type": "string",
-          "description": "Account id, code (e.g. 6020) or exact name",
           "required": true,
-          "format": "ref:accounts"
+          "format": "ref:accounts",
+          "description": "Account id, code (e.g. 6020) or exact name"
         },
         "name": {
           "type": "string",
@@ -513,20 +425,19 @@
           "description": "Code"
         },
         "type": {
-          "type": "string",
-          "description": "Type",
-          "enum": [
+          "type": "enum",
+          "values": [
             "asset",
             "liability",
             "equity",
             "income",
             "expense"
-          ]
+          ],
+          "description": "Type"
         },
         "subtype": {
-          "type": "string",
-          "description": "Kind",
-          "enum": [
+          "type": "enum",
+          "values": [
             "bank",
             "cash",
             "card",
@@ -548,7 +459,8 @@
             "expense",
             "cogs",
             "other_expense"
-          ]
+          ],
+          "description": "Kind"
         },
         "currency": {
           "type": "string",
@@ -556,23 +468,23 @@
         },
         "description": {
           "type": "string",
-          "description": "When to use it",
-          "format": "multiline"
+          "format": "multiline",
+          "description": "When to use it"
         },
         "parent": {
           "type": "string",
-          "description": "Parent account (empty for none)",
-          "format": "ref:accounts"
+          "format": "ref:accounts",
+          "description": "Parent account (empty for none)"
         },
         "cashflow": {
-          "type": "string",
-          "description": "Cash flow class",
-          "enum": [
+          "type": "enum",
+          "values": [
             "cash",
             "operating",
             "investing",
             "financing"
-          ]
+          ],
+          "description": "Cash flow class"
         },
         "bank_name": {
           "type": "string",
@@ -582,101 +494,79 @@
           "type": "string",
           "description": "Last 4 digits"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/accounts/update"
       }
     },
     {
       "name": "accounts.archive",
       "description": "Archive (or restore) an account with no balance; it disappears from pickers.",
-      "label": "Archive account",
-      "returns": "record",
+      "destructive": false,
+      "module": "accounts",
       "params": {
         "account": {
           "type": "string",
-          "description": "Account id, code (e.g. 6020) or exact name",
           "required": true,
-          "format": "ref:accounts"
+          "format": "ref:accounts",
+          "description": "Account id, code (e.g. 6020) or exact name"
         },
         "archived": {
           "type": "boolean",
           "description": "Archive (default) or restore"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/accounts/archive"
       }
     },
     {
       "name": "accounts.delete",
       "description": "Delete an account nothing uses.",
-      "label": "Delete account",
       "destructive": true,
-      "confirm": "Delete this account?",
-      "returns": "none",
+      "module": "accounts",
       "params": {
         "account": {
           "type": "string",
-          "description": "Account id, code (e.g. 6020) or exact name",
           "required": true,
-          "format": "ref:accounts"
+          "format": "ref:accounts",
+          "description": "Account id, code (e.g. 6020) or exact name"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/accounts/delete"
       }
     },
     {
       "name": "accounts.opening",
-      "description": "Record opening balances for balance sheet accounts on a date, against Opening balance equity. Amounts as statements show them (cards and loans: what is owed).",
-      "label": "Opening balances",
-      "returns": "record",
+      "description": "Record opening balances for balance sheet accounts on a date, against Opening balance equity.",
+      "destructive": false,
+      "module": "accounts",
       "params": {
         "date": {
           "type": "string",
-          "description": "Date (YYYY-MM-DD; also today, yesterday, t-7)",
-          "required": true
+          "required": true,
+          "description": "Date (YYYY-MM-DD; also today, yesterday, t-7)"
         },
         "balances": {
           "type": "string",
-          "description": "JSON list [{\"account\":\"1000\",\"amount\":\"2500.00\"},{\"account\":\"2000\",\"amount\":\"340.12\"}]",
           "required": true,
-          "format": "json"
+          "format": "json",
+          "description": "JSON list [{\"account\":\"1000\",\"amount\":\"2500.00\"},{\"account\":\"2000\",\"amount\":\"340.12\"}]"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/accounts/opening"
       }
     },
     {
       "name": "contacts.list",
       "description": "Customers, suppliers and others with what they owe or are owed.",
-      "label": "Contacts",
+      "destructive": false,
       "readOnly": true,
-      "returns": "list",
+      "module": "contacts",
       "params": {
         "q": {
           "type": "string",
           "description": "Name, email or alias contains"
         },
         "kind": {
-          "type": "string",
-          "description": "Only this kind",
-          "enum": [
+          "type": "enum",
+          "values": [
             "customer",
             "vendor",
             "both",
             "other"
-          ]
+          ],
+          "description": "Only this kind"
         },
         "archived": {
           "type": "boolean",
@@ -686,53 +576,43 @@
           "type": "number",
           "description": "At most this many"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/contacts/list"
       }
     },
     {
       "name": "contacts.get",
       "description": "One contact with documents, recent entries and 12-month spending and earnings.",
-      "label": "Contact",
+      "destructive": false,
       "readOnly": true,
-      "returns": "record",
+      "module": "contacts",
       "params": {
         "contact": {
           "type": "string",
-          "description": "Contact id or exact name",
           "required": true,
-          "format": "ref:contacts"
+          "format": "ref:contacts",
+          "description": "Contact id or exact name"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/contacts/get"
       }
     },
     {
       "name": "contacts.create",
       "description": "Add a customer, supplier or other contact.",
-      "label": "New contact",
-      "returns": "record",
+      "destructive": false,
+      "module": "contacts",
       "params": {
         "name": {
           "type": "string",
-          "description": "Name",
-          "required": true
+          "required": true,
+          "description": "Name"
         },
         "kind": {
-          "type": "string",
-          "description": "Kind",
-          "enum": [
+          "type": "enum",
+          "values": [
             "customer",
             "vendor",
             "both",
             "other"
-          ]
+          ],
+          "description": "Kind"
         },
         "email": {
           "type": "string",
@@ -744,8 +624,8 @@
         },
         "address": {
           "type": "string",
-          "description": "Address",
-          "format": "multiline"
+          "format": "multiline",
+          "description": "Address"
         },
         "tax_id": {
           "type": "string",
@@ -761,13 +641,13 @@
         },
         "default_account": {
           "type": "string",
-          "description": "Account id, code or exact name",
-          "format": "ref:accounts"
+          "format": "ref:accounts",
+          "description": "Account id, code or exact name"
         },
         "default_tax": {
           "type": "string",
-          "description": "Default tax code",
-          "format": "ref:tax_codes"
+          "format": "ref:tax_codes",
+          "description": "Default tax code"
         },
         "aliases": {
           "type": "string",
@@ -775,41 +655,36 @@
         },
         "notes": {
           "type": "string",
-          "description": "Notes",
-          "format": "multiline"
+          "format": "multiline",
+          "description": "Notes"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/contacts/create"
       }
     },
     {
       "name": "contacts.update",
       "description": "Change a contact.",
-      "label": "Edit contact",
-      "returns": "record",
+      "destructive": false,
+      "module": "contacts",
       "params": {
         "contact": {
           "type": "string",
-          "description": "Contact id or exact name",
           "required": true,
-          "format": "ref:contacts"
+          "format": "ref:contacts",
+          "description": "Contact id or exact name"
         },
         "name": {
           "type": "string",
           "description": "Name"
         },
         "kind": {
-          "type": "string",
-          "description": "Kind",
-          "enum": [
+          "type": "enum",
+          "values": [
             "customer",
             "vendor",
             "both",
             "other"
-          ]
+          ],
+          "description": "Kind"
         },
         "email": {
           "type": "string",
@@ -821,8 +696,8 @@
         },
         "address": {
           "type": "string",
-          "description": "Address",
-          "format": "multiline"
+          "format": "multiline",
+          "description": "Address"
         },
         "tax_id": {
           "type": "string",
@@ -838,13 +713,13 @@
         },
         "default_account": {
           "type": "string",
-          "description": "Default account (empty for none)",
-          "format": "ref:accounts"
+          "format": "ref:accounts",
+          "description": "Default account (empty for none)"
         },
         "default_tax": {
           "type": "string",
-          "description": "Default tax code (empty for none)",
-          "format": "ref:tax_codes"
+          "format": "ref:tax_codes",
+          "description": "Default tax code (empty for none)"
         },
         "aliases": {
           "type": "string",
@@ -852,94 +727,72 @@
         },
         "notes": {
           "type": "string",
-          "description": "Notes",
-          "format": "multiline"
+          "format": "multiline",
+          "description": "Notes"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/contacts/update"
       }
     },
     {
       "name": "contacts.archive",
       "description": "Archive or restore a contact.",
-      "label": "Archive contact",
-      "returns": "record",
+      "destructive": false,
+      "module": "contacts",
       "params": {
         "contact": {
           "type": "string",
-          "description": "Contact id or exact name",
           "required": true,
-          "format": "ref:contacts"
+          "format": "ref:contacts",
+          "description": "Contact id or exact name"
         },
         "archived": {
           "type": "boolean",
           "description": "Archive (default) or restore"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/contacts/archive"
       }
     },
     {
       "name": "contacts.merge",
       "description": "Merge a duplicate contact into another: entries and documents move over and its name becomes an alias.",
-      "label": "Merge contacts",
       "destructive": true,
-      "confirm": "Merge these contacts?",
-      "returns": "record",
+      "module": "contacts",
       "params": {
         "from": {
           "type": "string",
-          "description": "The duplicate",
           "required": true,
-          "format": "ref:contacts"
+          "format": "ref:contacts",
+          "description": "The duplicate"
         },
         "into": {
           "type": "string",
-          "description": "The contact to keep",
           "required": true,
-          "format": "ref:contacts"
+          "format": "ref:contacts",
+          "description": "The contact to keep"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/contacts/merge"
       }
     },
     {
       "name": "tax.list",
       "description": "Sales tax / VAT codes with rate, group (standard, reduced, zero, exempt, reverse, outside) and when to use them.",
-      "label": "Tax codes",
+      "destructive": false,
       "readOnly": true,
-      "returns": "list",
+      "module": "tax",
       "params": {
         "archived": {
           "type": "boolean",
           "description": "Include archived"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/tax/list"
       }
     },
     {
       "name": "tax.create",
       "description": "Add a tax code.",
-      "label": "New tax code",
-      "returns": "record",
+      "destructive": false,
+      "module": "tax",
       "params": {
         "code": {
           "type": "string",
-          "description": "Code, e.g. S20",
-          "required": true
+          "required": true,
+          "description": "Code, e.g. S20"
         },
         "name": {
           "type": "string",
@@ -947,58 +800,53 @@
         },
         "rate": {
           "type": "string",
-          "description": "Percent, e.g. 20 or 8.25",
-          "required": true
+          "required": true,
+          "description": "Percent, e.g. 20 or 8.25"
         },
         "scope": {
-          "type": "string",
-          "description": "Used on",
-          "enum": [
+          "type": "enum",
+          "values": [
             "sales",
             "purchases",
             "both"
-          ]
+          ],
+          "description": "Used on"
         },
         "group": {
-          "type": "string",
-          "description": "Group",
-          "enum": [
+          "type": "enum",
+          "values": [
             "standard",
             "reduced",
             "zero",
             "exempt",
             "reverse",
             "outside"
-          ]
+          ],
+          "description": "Group"
         },
         "account": {
           "type": "string",
-          "description": "Account id, code or exact name",
-          "format": "ref:accounts"
+          "format": "ref:accounts",
+          "description": "Account id, code or exact name"
         },
         "description": {
           "type": "string",
-          "description": "When to use it",
-          "format": "multiline"
+          "format": "multiline",
+          "description": "When to use it"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/tax/create"
       }
     },
     {
       "name": "tax.update",
       "description": "Change a tax code (a new rate applies to new entries).",
-      "label": "Edit tax code",
-      "returns": "record",
+      "destructive": false,
+      "module": "tax",
       "params": {
         "tax_code": {
           "type": "string",
-          "description": "Tax code id or code",
           "required": true,
-          "format": "ref:tax_codes"
+          "format": "ref:tax_codes",
+          "description": "Tax code id or code"
         },
         "code": {
           "type": "string",
@@ -1013,53 +861,48 @@
           "description": "Percent"
         },
         "scope": {
-          "type": "string",
-          "description": "Used on",
-          "enum": [
+          "type": "enum",
+          "values": [
             "sales",
             "purchases",
             "both"
-          ]
+          ],
+          "description": "Used on"
         },
         "group": {
-          "type": "string",
-          "description": "Group",
-          "enum": [
+          "type": "enum",
+          "values": [
             "standard",
             "reduced",
             "zero",
             "exempt",
             "reverse",
             "outside"
-          ]
+          ],
+          "description": "Group"
         },
         "account": {
           "type": "string",
-          "description": "Account id, code or exact name",
-          "format": "ref:accounts"
+          "format": "ref:accounts",
+          "description": "Account id, code or exact name"
         },
         "description": {
           "type": "string",
-          "description": "When to use it",
-          "format": "multiline"
+          "format": "multiline",
+          "description": "When to use it"
         },
         "archived": {
           "type": "boolean",
           "description": "Archive"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/tax/update"
       }
     },
     {
       "name": "transactions.list",
-      "description": "Entries newest first with their postings (amounts in minor units). Filter by dates, account, contact, words or an amount, status, kind, who added them, AI run, method; dupes=true keeps likely duplicates.",
-      "label": "Entries",
+      "description": "Entries newest first with their postings (amounts in minor units).",
+      "destructive": false,
       "readOnly": true,
-      "returns": "list",
+      "module": "transactions",
       "params": {
         "from": {
           "type": "string",
@@ -1071,52 +914,51 @@
         },
         "account": {
           "type": "string",
-          "description": "Account id, code or exact name",
-          "format": "ref:accounts"
+          "format": "ref:accounts",
+          "description": "Account id, code or exact name"
         },
         "contact": {
           "type": "string",
-          "description": "Contact",
-          "format": "ref:contacts"
+          "format": "ref:contacts",
+          "description": "Contact"
         },
         "q": {
           "type": "string",
           "description": "Words in the description, reference or contact, or an amount like 64.20"
         },
         "status": {
-          "type": "string",
-          "description": "Status (default posted and proposed)",
-          "enum": [
+          "type": "enum",
+          "values": [
             "posted",
             "proposed",
             "voided",
             "all"
-          ]
+          ],
+          "description": "Status (default posted and proposed)"
         },
         "kind": {
           "type": "string",
           "description": "Kind, e.g. expense, income, transfer, journal, invoice, bill, payment"
         },
         "added_by": {
-          "type": "string",
-          "description": "Who added them",
-          "enum": [
+          "type": "enum",
+          "values": [
             "user",
             "agent",
             "rule",
             "import",
             "recurring",
             "system"
-          ]
+          ],
+          "description": "Who added them"
         },
         "run": {
           "type": "string",
           "description": "AI agent run"
         },
         "method": {
-          "type": "string",
-          "description": "How it was categorized",
-          "enum": [
+          "type": "enum",
+          "values": [
             "manual",
             "rule",
             "match",
@@ -1125,7 +967,8 @@
             "transfer",
             "recurring",
             "document"
-          ]
+          ],
+          "description": "How it was categorized"
         },
         "dupes": {
           "type": "boolean",
@@ -1139,48 +982,38 @@
           "type": "number",
           "description": "Skip this many"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/transactions/list"
       }
     },
     {
       "name": "transactions.get",
       "description": "One entry with its postings (account names), files, statement lines, document, payments, reversal and history.",
-      "label": "Entry",
+      "destructive": false,
       "readOnly": true,
-      "returns": "record",
+      "module": "transactions",
       "params": {
         "txn": {
           "type": "string",
-          "description": "Transaction id",
           "required": true,
-          "format": "ref:transactions"
+          "format": "ref:transactions",
+          "description": "Transaction id"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/transactions/get"
       }
     },
     {
       "name": "transactions.create",
-      "description": "Record an entry. Simple: kind expense (from + category), income (to + category) or transfer (from + to, amount_to across currencies) with amount and optional tax_code. Journal: postings. The AI agent's entries are proposed until the person approves them.",
-      "label": "New entry",
-      "returns": "record",
+      "description": "Record an entry.",
+      "destructive": false,
+      "module": "transactions",
       "params": {
         "kind": {
-          "type": "string",
-          "description": "Kind (default journal)",
-          "enum": [
+          "type": "enum",
+          "values": [
             "expense",
             "income",
             "transfer",
             "journal"
-          ]
+          ],
+          "description": "Kind (default journal)"
         },
         "date": {
           "type": "string",
@@ -1192,23 +1025,23 @@
         },
         "from": {
           "type": "string",
-          "description": "Paid from (bank, card, cash)",
-          "format": "ref:accounts"
+          "format": "ref:accounts",
+          "description": "Paid from (bank, card, cash)"
         },
         "to": {
           "type": "string",
-          "description": "Paid into",
-          "format": "ref:accounts"
+          "format": "ref:accounts",
+          "description": "Paid into"
         },
         "category": {
           "type": "string",
-          "description": "Income or expense account",
-          "format": "ref:accounts"
+          "format": "ref:accounts",
+          "description": "Income or expense account"
         },
         "tax_code": {
           "type": "string",
-          "description": "Tax code",
-          "format": "ref:tax_codes"
+          "format": "ref:tax_codes",
+          "description": "Tax code"
         },
         "inclusive": {
           "type": "boolean",
@@ -1220,8 +1053,8 @@
         },
         "postings": {
           "type": "string",
-          "description": "Journal lines as JSON [{\"account\":\"6130\",\"debit\":\"50.00\"},{\"account\":\"1510\",\"credit\":\"50.00\"}] or with signed \"amount\" (debit positive); optional memo, tax_code",
-          "format": "json"
+          "format": "json",
+          "description": "Journal lines as JSON [{\"account\":\"6130\",\"debit\":\"50.00\"},{\"account\":\"1510\",\"credit\":\"50.00\"}] or with signed \"amount\" (debit positive); optional memo, tax_code"
         },
         "narration": {
           "type": "string",
@@ -1244,49 +1077,44 @@
           "description": "Memo"
         },
         "status": {
-          "type": "string",
-          "description": "posted or proposed",
-          "enum": [
+          "type": "enum",
+          "values": [
             "posted",
             "proposed"
-          ]
+          ],
+          "description": "posted or proposed"
         },
         "reason": {
           "type": "string",
           "description": "Why (AI agent)"
         },
         "confidence": {
-          "type": "string",
-          "description": "How sure (AI agent)",
-          "enum": [
+          "type": "enum",
+          "values": [
             "high",
             "medium",
             "low"
-          ]
+          ],
+          "description": "How sure (AI agent)"
         },
         "file": {
           "type": "string",
-          "description": "Attach this file",
-          "format": "ref:files"
+          "format": "ref:files",
+          "description": "Attach this file"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/transactions/create"
       }
     },
     {
       "name": "transactions.update",
-      "description": "Change an entry: date, description, contact, reference, tags, or its lines (simple fields or postings). Reconciled lines keep their account, amount and date.",
-      "label": "Edit entry",
-      "returns": "record",
+      "description": "Change an entry: date, description, contact, reference, tags, or its lines (simple fields or postings).",
+      "destructive": false,
+      "module": "transactions",
       "params": {
         "txn": {
           "type": "string",
-          "description": "Transaction id",
           "required": true,
-          "format": "ref:transactions"
+          "format": "ref:transactions",
+          "description": "Transaction id"
         },
         "date": {
           "type": "string",
@@ -1309,14 +1137,14 @@
           "description": "Tags"
         },
         "kind": {
-          "type": "string",
-          "description": "Simple form kind",
-          "enum": [
+          "type": "enum",
+          "values": [
             "expense",
             "income",
             "transfer",
             "journal"
-          ]
+          ],
+          "description": "Simple form kind"
         },
         "amount": {
           "type": "string",
@@ -1324,144 +1152,115 @@
         },
         "from": {
           "type": "string",
-          "description": "From",
-          "format": "ref:accounts"
+          "format": "ref:accounts",
+          "description": "From"
         },
         "to": {
           "type": "string",
-          "description": "To",
-          "format": "ref:accounts"
+          "format": "ref:accounts",
+          "description": "To"
         },
         "category": {
           "type": "string",
-          "description": "Category",
-          "format": "ref:accounts"
+          "format": "ref:accounts",
+          "description": "Category"
         },
         "tax_code": {
           "type": "string",
-          "description": "Tax code",
-          "format": "ref:tax_codes"
+          "format": "ref:tax_codes",
+          "description": "Tax code"
         },
         "postings": {
           "type": "string",
-          "description": "Journal lines as JSON [{\"account\":\"6130\",\"debit\":\"50.00\"},{\"account\":\"1510\",\"credit\":\"50.00\"}] or with signed \"amount\" (debit positive); optional memo, tax_code",
-          "format": "json"
+          "format": "json",
+          "description": "Journal lines as JSON [{\"account\":\"6130\",\"debit\":\"50.00\"},{\"account\":\"1510\",\"credit\":\"50.00\"}] or with signed \"amount\" (debit positive); optional memo, tax_code"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/transactions/update"
       }
     },
     {
       "name": "transactions.void",
-      "description": "Void an entry: kept for the record, out of every balance. Its bank lines go back to the inbox.",
-      "label": "Void entry",
+      "description": "Void an entry: kept for the record, out of every balance.",
       "destructive": true,
-      "confirm": "Void this entry?",
-      "returns": "record",
+      "module": "transactions",
       "params": {
         "txn": {
           "type": "string",
-          "description": "Transaction id",
           "required": true,
-          "format": "ref:transactions"
+          "format": "ref:transactions",
+          "description": "Transaction id"
         },
         "reason": {
           "type": "string",
           "description": "Why"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/transactions/void"
       }
     },
     {
       "name": "transactions.approve",
-      "description": "Post proposed entries (the AI agent's, recurring ones). The person only.",
-      "label": "Approve entries",
-      "returns": "summary",
+      "description": "Post proposed entries (the AI agent's, recurring ones).",
+      "destructive": false,
+      "module": "transactions",
       "params": {
         "txn": {
           "type": "string",
-          "description": "Entry id",
-          "format": "ref:transactions"
+          "format": "ref:transactions",
+          "description": "Entry id"
         },
         "txns": {
           "type": "string",
-          "description": "JSON list of entry ids",
-          "format": "json"
+          "format": "json",
+          "description": "JSON list of entry ids"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/transactions/approve"
       }
     },
     {
       "name": "transactions.reject",
       "description": "Delete proposed entries.",
-      "label": "Reject entries",
       "destructive": true,
-      "confirm": "Reject these proposed entries?",
-      "returns": "summary",
+      "module": "transactions",
       "params": {
         "txn": {
           "type": "string",
-          "description": "Entry id",
-          "format": "ref:transactions"
+          "format": "ref:transactions",
+          "description": "Entry id"
         },
         "txns": {
           "type": "string",
-          "description": "JSON list of entry ids",
-          "format": "json"
+          "format": "json",
+          "description": "JSON list of entry ids"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/transactions/reject"
       }
     },
     {
       "name": "transactions.reverse",
-      "description": "Add the opposite entry on a date (e.g. to undo an accrual next month).",
-      "label": "Reverse entry",
-      "returns": "record",
+      "description": "Add the opposite entry on a date (e.g.",
+      "destructive": false,
+      "module": "transactions",
       "params": {
         "txn": {
           "type": "string",
-          "description": "Transaction id",
           "required": true,
-          "format": "ref:transactions"
+          "format": "ref:transactions",
+          "description": "Transaction id"
         },
         "date": {
           "type": "string",
           "description": "Date of the reversal (default today) (YYYY-MM-DD; also today, yesterday, t-7)"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/transactions/reverse"
       }
     },
     {
       "name": "ledger.register",
       "description": "An account's entries with running balance (account currency), newest first, opening and closing balance.",
-      "label": "Account register",
+      "destructive": false,
       "readOnly": true,
-      "returns": "record",
+      "module": "ledger",
       "params": {
         "account": {
           "type": "string",
-          "description": "Account id, code (e.g. 6020) or exact name",
           "required": true,
-          "format": "ref:accounts"
+          "format": "ref:accounts",
+          "description": "Account id, code (e.g. 6020) or exact name"
         },
         "from": {
           "type": "string",
@@ -1476,13 +1275,13 @@
           "description": "Words"
         },
         "recon": {
-          "type": "string",
-          "description": "Reconciliation state",
-          "enum": [
+          "type": "enum",
+          "values": [
             "uncleared",
             "cleared",
             "reconciled"
-          ]
+          ],
+          "description": "Reconciliation state"
         },
         "include_proposed": {
           "type": "boolean",
@@ -1496,24 +1295,18 @@
           "type": "number",
           "description": "Skip this many"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/ledger/register"
       }
     },
     {
       "name": "inbox.list",
-      "description": "Imported bank lines (default: waiting to be booked) with their suggestion (method, confidence, reason) and AI agent state; counts per status.",
-      "label": "Inbox",
+      "description": "Imported bank lines (default: waiting to be booked) with…",
+      "destructive": false,
       "readOnly": true,
-      "returns": "list",
+      "module": "inbox",
       "params": {
         "status": {
-          "type": "string",
-          "description": "Which lines (default open)",
-          "enum": [
+          "type": "enum",
+          "values": [
             "open",
             "new",
             "proposed",
@@ -1522,38 +1315,39 @@
             "excluded",
             "done",
             "all"
-          ]
+          ],
+          "description": "Which lines (default open)"
         },
         "account": {
           "type": "string",
-          "description": "Account id, code or exact name",
-          "format": "ref:accounts"
+          "format": "ref:accounts",
+          "description": "Account id, code or exact name"
         },
         "import": {
           "type": "string",
-          "description": "Only this import",
-          "format": "ref:statement_imports"
+          "format": "ref:statement_imports",
+          "description": "Only this import"
         },
         "agent": {
-          "type": "string",
-          "description": "AI agent state",
-          "enum": [
+          "type": "enum",
+          "values": [
             "waiting",
             "working",
             "done"
-          ]
+          ],
+          "description": "AI agent state"
         },
         "suggestion": {
-          "type": "string",
-          "description": "Only lines whose suggestion is",
-          "enum": [
+          "type": "enum",
+          "values": [
             "any",
             "none",
             "high",
             "agent",
             "rule",
             "match"
-          ]
+          ],
+          "description": "Only lines whose suggestion is"
         },
         "q": {
           "type": "string",
@@ -1568,12 +1362,12 @@
           "description": "To (YYYY-MM-DD; also today, yesterday, t-7)"
         },
         "sort": {
-          "type": "string",
-          "description": "Order",
-          "enum": [
+          "type": "enum",
+          "values": [
             "newest",
             "oldest"
-          ]
+          ],
+          "description": "Order"
         },
         "limit": {
           "type": "number",
@@ -1583,45 +1377,35 @@
           "type": "number",
           "description": "Skip this many"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/inbox/list"
       }
     },
     {
       "name": "inbox.get",
-      "description": "One bank line with its suggestion, how the same payee was booked before, and its entry when booked.",
-      "label": "Bank line",
+      "description": "One bank line with its suggestion, how the same payee was…",
+      "destructive": false,
       "readOnly": true,
-      "returns": "record",
+      "module": "inbox",
       "params": {
         "line": {
           "type": "string",
-          "description": "Bank statement line id",
           "required": true,
-          "format": "ref:statement_lines"
+          "format": "ref:statement_lines",
+          "description": "Bank statement line id"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/inbox/get"
       }
     },
     {
       "name": "inbox.preview",
-      "description": "Read a statement file (OFX, QFX, QIF, CSV, CAMT.053, MT940) without importing: format, lines, new vs already imported, period, closing balance, CSV columns and date order.",
-      "label": "Preview statement",
+      "description": "Read a statement file (OFX, QFX, QIF, CSV, CAMT.053…",
+      "destructive": false,
       "readOnly": true,
-      "returns": "record",
+      "module": "inbox",
       "params": {
         "account": {
           "type": "string",
-          "description": "Account id, code (e.g. 6020) or exact name",
           "required": true,
-          "format": "ref:accounts"
+          "format": "ref:accounts",
+          "description": "Account id, code (e.g. 6020) or exact name"
         },
         "path": {
           "type": "string",
@@ -1629,60 +1413,55 @@
         },
         "file_id": {
           "type": "string",
-          "description": "A stored file",
-          "format": "ref:files"
+          "format": "ref:files",
+          "description": "A stored file"
         },
         "content": {
           "type": "string",
-          "description": "The file text",
-          "format": "multiline"
+          "format": "multiline",
+          "description": "The file text"
         },
         "file_name": {
           "type": "string",
           "description": "File name (helps detect the format)"
         },
         "format": {
-          "type": "string",
-          "description": "Force a format",
-          "enum": [
+          "type": "enum",
+          "values": [
             "ofx",
             "qif",
             "csv",
             "camt",
             "mt940"
-          ]
+          ],
+          "description": "Force a format"
         },
         "mapping": {
           "type": "string",
-          "description": "CSV columns as JSON {\"date\":0,\"amount\":2,\"description\":[1],\"debit\":-1,\"credit\":-1,\"flip\":false,\"date_order\":\"dmy\"}",
-          "format": "json"
+          "format": "json",
+          "description": "CSV columns as JSON {\"date\":0,\"amount\":2,\"description\":[1],\"debit\":-1,\"credit\":-1,\"flip\":false,\"date_order\":\"dmy\"}"
         },
         "date_order": {
-          "type": "string",
-          "description": "Day/month order for ambiguous dates",
-          "enum": [
+          "type": "enum",
+          "values": [
             "dmy",
             "mdy"
-          ]
+          ],
+          "description": "Day/month order for ambiguous dates"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/inbox/preview"
       }
     },
     {
       "name": "inbox.import",
-      "description": "Import a statement into a bank, card or cash account. Lines already imported are skipped; new ones get suggestions, rules that post automatically book them, the rest wait in the inbox (and go to the AI agent).",
-      "label": "Import statement",
-      "returns": "summary",
+      "description": "Import a statement into a bank, card or cash account.",
+      "destructive": false,
+      "module": "inbox",
       "params": {
         "account": {
           "type": "string",
-          "description": "Account id, code (e.g. 6020) or exact name",
           "required": true,
-          "format": "ref:accounts"
+          "format": "ref:accounts",
+          "description": "Account id, code (e.g. 6020) or exact name"
         },
         "path": {
           "type": "string",
@@ -1690,41 +1469,41 @@
         },
         "file_id": {
           "type": "string",
-          "description": "A stored file",
-          "format": "ref:files"
+          "format": "ref:files",
+          "description": "A stored file"
         },
         "content": {
           "type": "string",
-          "description": "The file text",
-          "format": "multiline"
+          "format": "multiline",
+          "description": "The file text"
         },
         "file_name": {
           "type": "string",
           "description": "File name"
         },
         "format": {
-          "type": "string",
-          "description": "Force a format",
-          "enum": [
+          "type": "enum",
+          "values": [
             "ofx",
             "qif",
             "csv",
             "camt",
             "mt940"
-          ]
+          ],
+          "description": "Force a format"
         },
         "mapping": {
           "type": "string",
-          "description": "CSV columns as JSON (see inbox.preview)",
-          "format": "json"
+          "format": "json",
+          "description": "CSV columns as JSON (see inbox.preview)"
         },
         "date_order": {
-          "type": "string",
-          "description": "Day/month order",
-          "enum": [
+          "type": "enum",
+          "values": [
             "dmy",
             "mdy"
-          ]
+          ],
+          "description": "Day/month order"
         },
         "save_profile": {
           "type": "boolean",
@@ -1738,30 +1517,25 @@
           "type": "boolean",
           "description": "Import a file seen before (only new lines are added)"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/inbox/import"
       }
     },
     {
       "name": "inbox.add_lines",
-      "description": "Add statement lines directly (e.g. read from a PDF statement): money in positive, money out negative. Duplicates are skipped.",
-      "label": "Add bank lines",
-      "returns": "summary",
+      "description": "Add statement lines directly (e.g.",
+      "destructive": false,
+      "module": "inbox",
       "params": {
         "account": {
           "type": "string",
-          "description": "Account id, code (e.g. 6020) or exact name",
           "required": true,
-          "format": "ref:accounts"
+          "format": "ref:accounts",
+          "description": "Account id, code (e.g. 6020) or exact name"
         },
         "lines": {
           "type": "string",
-          "description": "JSON list [{\"date\":\"2026-09-02\",\"amount\":\"-21.00\",\"description\":\"GITHUB INC\",\"payee\":\"GitHub\"}]",
           "required": true,
-          "format": "json"
+          "format": "json",
+          "description": "JSON list [{\"date\":\"2026-09-02\",\"amount\":\"-21.00\",\"description\":\"GITHUB INC\",\"payee\":\"GitHub\"}]"
         },
         "file_name": {
           "type": "string",
@@ -1769,91 +1543,74 @@
         },
         "file": {
           "type": "string",
-          "description": "The statement file",
-          "format": "ref:files"
+          "format": "ref:files",
+          "description": "The statement file"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/inbox/add_lines"
       }
     },
     {
       "name": "inbox.imports",
-      "description": "Statement imports, newest first: file, period, lines new and duplicate, closing balance.",
-      "label": "Imports",
+      "description": "Statement imports, newest first: file, period, lines new…",
+      "destructive": false,
       "readOnly": true,
-      "returns": "list",
+      "module": "inbox",
       "params": {
         "account": {
           "type": "string",
-          "description": "Account id, code or exact name",
-          "format": "ref:accounts"
+          "format": "ref:accounts",
+          "description": "Account id, code or exact name"
         },
         "limit": {
           "type": "number",
           "description": "At most this many"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/inbox/imports"
       }
     },
     {
       "name": "inbox.undo_import",
-      "description": "Take an import back out: entries it booked are voided and its lines removed.",
-      "label": "Undo import",
+      "description": "Take an import back out: entries it booked are voided and…",
       "destructive": true,
-      "confirm": "Undo this import and remove its lines?",
-      "returns": "summary",
+      "module": "inbox",
       "params": {
         "import": {
           "type": "string",
-          "description": "Import id",
           "required": true,
-          "format": "ref:statement_imports"
+          "format": "ref:statement_imports",
+          "description": "Import id"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/inbox/undo_import"
       }
     },
     {
       "name": "inbox.accept",
-      "description": "Book a bank line: its suggestion, or what you give (account, splits, transfer_account, or match {\"type\":\"posting|document|line\",\"id\":\"..\"}). make_rule also creates a rule for the payee.",
-      "label": "Book line",
-      "returns": "record",
+      "description": "Book a bank line: its suggestion, or what you give…",
+      "destructive": false,
+      "module": "inbox",
       "params": {
         "line": {
           "type": "string",
-          "description": "Bank statement line id",
           "required": true,
-          "format": "ref:statement_lines"
+          "format": "ref:statement_lines",
+          "description": "Bank statement line id"
         },
         "account": {
           "type": "string",
-          "description": "Account id, code or exact name",
-          "format": "ref:accounts"
+          "format": "ref:accounts",
+          "description": "Account id, code or exact name"
         },
         "splits": {
           "type": "string",
-          "description": "JSON [{\"account\":\"6020\",\"percent\":60},{\"account\":\"7050\",\"percent\":40}]",
-          "format": "json"
+          "format": "json",
+          "description": "JSON [{\"account\":\"6020\",\"percent\":60},{\"account\":\"7050\",\"percent\":40}]"
         },
         "transfer_account": {
           "type": "string",
-          "description": "Other own account (transfer)",
-          "format": "ref:accounts"
+          "format": "ref:accounts",
+          "description": "Other own account (transfer)"
         },
         "match": {
           "type": "string",
-          "description": "JSON {\"type\":\"posting|document|line\",\"id\":\"..\"}",
-          "format": "json"
+          "format": "json",
+          "description": "JSON {\"type\":\"posting|document|line\",\"id\":\"..\"}"
         },
         "contact": {
           "type": "string",
@@ -1861,8 +1618,8 @@
         },
         "tax_code": {
           "type": "string",
-          "description": "Tax code",
-          "format": "ref:tax_codes"
+          "format": "ref:tax_codes",
+          "description": "Tax code"
         },
         "narration": {
           "type": "string",
@@ -1884,77 +1641,67 @@
           "type": "boolean",
           "description": "Also create a rule for this payee"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/inbox/accept"
       }
     },
     {
       "name": "inbox.accept_many",
-      "description": "Book several lines: each with its own suggestion, or all with the account given.",
-      "label": "Book lines",
-      "returns": "summary",
+      "description": "Book several lines: each with its own suggestion, or all…",
+      "destructive": false,
+      "module": "inbox",
       "params": {
         "lines": {
           "type": "string",
-          "description": "JSON list of line ids",
           "required": true,
-          "format": "json"
+          "format": "json",
+          "description": "JSON list of line ids"
         },
         "account": {
           "type": "string",
-          "description": "Account id, code or exact name",
-          "format": "ref:accounts"
+          "format": "ref:accounts",
+          "description": "Account id, code or exact name"
         },
         "tax_code": {
           "type": "string",
-          "description": "Tax code",
-          "format": "ref:tax_codes"
+          "format": "ref:tax_codes",
+          "description": "Tax code"
         },
         "contact": {
           "type": "string",
           "description": "Contact"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/inbox/accept_many"
       }
     },
     {
       "name": "inbox.propose",
-      "description": "AI agent: propose how to book a line, with a reason the person reads and a confidence. Posts only with post=true when the person's policy allows it. Never overrides the person's or a rule's choice.",
-      "label": "Propose category",
-      "returns": "record",
+      "description": "AI agent: propose how to book a line, with a reason the…",
+      "destructive": false,
+      "module": "inbox",
       "params": {
         "line": {
           "type": "string",
-          "description": "Bank statement line id",
           "required": true,
-          "format": "ref:statement_lines"
+          "format": "ref:statement_lines",
+          "description": "Bank statement line id"
         },
         "account": {
           "type": "string",
-          "description": "Account id, code or exact name",
-          "format": "ref:accounts"
+          "format": "ref:accounts",
+          "description": "Account id, code or exact name"
         },
         "splits": {
           "type": "string",
-          "description": "JSON splits",
-          "format": "json"
+          "format": "json",
+          "description": "JSON splits"
         },
         "transfer_account": {
           "type": "string",
-          "description": "Other own account",
-          "format": "ref:accounts"
+          "format": "ref:accounts",
+          "description": "Other own account"
         },
         "match": {
           "type": "string",
-          "description": "JSON {\"type\":\"posting|document|line\",\"id\":\"..\"}",
-          "format": "json"
+          "format": "json",
+          "description": "JSON {\"type\":\"posting|document|line\",\"id\":\"..\"}"
         },
         "contact": {
           "type": "string",
@@ -1962,8 +1709,8 @@
         },
         "tax_code": {
           "type": "string",
-          "description": "Tax code",
-          "format": "ref:tax_codes"
+          "format": "ref:tax_codes",
+          "description": "Tax code"
         },
         "narration": {
           "type": "string",
@@ -1971,61 +1718,51 @@
         },
         "reason": {
           "type": "string",
-          "description": "One line on why",
-          "required": true
+          "required": true,
+          "description": "One line on why"
         },
         "confidence": {
-          "type": "string",
-          "description": "How sure",
-          "enum": [
+          "type": "enum",
+          "values": [
             "high",
             "medium",
             "low"
-          ]
+          ],
+          "description": "How sure"
         },
         "post": {
           "type": "boolean",
           "description": "Book it now if the policy allows"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/inbox/propose"
       }
     },
     {
       "name": "inbox.queue",
-      "description": "AI agent: take the lines waiting for you (up to limit) with similar earlier lines, the accounts and the house rules.",
-      "label": "Take waiting lines",
-      "returns": "list",
+      "description": "AI agent: take the lines waiting for you (up to limit)…",
+      "destructive": false,
+      "module": "inbox",
       "params": {
         "limit": {
           "type": "number",
           "description": "At most this many (default 40)"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/inbox/queue"
       }
     },
     {
       "name": "inbox.exclude",
-      "description": "Exclude lines from the books (duplicates, pending items), or restore them.",
-      "label": "Exclude lines",
-      "returns": "summary",
+      "description": "Exclude lines from the books (duplicates, pending items)…",
+      "destructive": false,
+      "module": "inbox",
       "params": {
         "line": {
           "type": "string",
-          "description": "Line id",
-          "format": "ref:statement_lines"
+          "format": "ref:statement_lines",
+          "description": "Line id"
         },
         "lines": {
           "type": "string",
-          "description": "JSON list of line ids",
-          "format": "json"
+          "format": "json",
+          "description": "JSON list of line ids"
         },
         "reason": {
           "type": "string",
@@ -2035,90 +1772,65 @@
           "type": "boolean",
           "description": "Restore instead"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/inbox/exclude"
       }
     },
     {
       "name": "inbox.unmatch",
-      "description": "Put a booked line back in the inbox: its entry is voided (or a match is undone).",
-      "label": "Unbook line",
-      "returns": "record",
+      "description": "Put a booked line back in the inbox: its entry is voided…",
+      "destructive": false,
+      "module": "inbox",
       "params": {
         "line": {
           "type": "string",
-          "description": "Bank statement line id",
           "required": true,
-          "format": "ref:statement_lines"
+          "format": "ref:statement_lines",
+          "description": "Bank statement line id"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/inbox/unmatch"
       }
     },
     {
       "name": "inbox.refresh",
-      "description": "Recompute suggestions for waiting lines (after new rules, entries or documents). force replaces AI and personal choices too.",
-      "label": "Recheck inbox",
-      "returns": "summary",
+      "description": "Recompute suggestions for waiting lines (after new rules…",
+      "destructive": false,
+      "module": "inbox",
       "params": {
         "lines": {
           "type": "string",
-          "description": "JSON list of line ids (default all waiting)",
-          "format": "json"
+          "format": "json",
+          "description": "JSON list of line ids (default all waiting)"
         },
         "force": {
           "type": "boolean",
           "description": "Also replace AI agent and personal choices"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/inbox/refresh"
       }
     },
     {
       "name": "inbox.ask_agent",
       "description": "Send waiting lines (or the ones given) to the AI agent.",
-      "label": "Ask AI to categorize",
-      "returns": "summary",
+      "destructive": false,
+      "module": "inbox",
       "params": {
         "lines": {
           "type": "string",
-          "description": "JSON list of line ids",
-          "format": "json"
+          "format": "json",
+          "description": "JSON list of line ids"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/inbox/ask_agent"
       }
     },
     {
       "name": "rules.list",
       "description": "Categorization rules in order (first match wins) with hits, plus the fields and operators conditions use.",
-      "label": "Rules",
+      "destructive": false,
       "readOnly": true,
-      "returns": "list",
-      "params": {},
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/rules/list"
-      }
+      "module": "rules",
+      "params": {}
     },
     {
       "name": "rules.create",
-      "description": "Add a rule: conditions on payee, description, amount (absolute, decimal), direction (in/out) or account, and actions (account, splits, contact, tax_code, payee, memo, tags). The AI agent's rules wait for the person to turn them on. An active rule applies to waiting lines at once.",
-      "label": "New rule",
-      "returns": "record",
+      "description": "Add a rule: conditions on payee, description, amount (absolute, decimal), direction (in/out) or account, and actions (account, splits…",
+      "destructive": false,
+      "module": "rules",
       "params": {
         "name": {
           "type": "string",
@@ -2126,23 +1838,23 @@
         },
         "conditions": {
           "type": "string",
-          "description": "JSON [{\"field\":\"payee\",\"op\":\"contains\",\"value\":\"github\"},{\"field\":\"amount\",\"op\":\"lt\",\"value\":\"100\"}] (ops: contains, not_contains, equals, starts_with, ends_with, regex, gt, gte, lt, lte, between)",
           "required": true,
-          "format": "json"
+          "format": "json",
+          "description": "JSON [{\"field\":\"payee\",\"op\":\"contains\",\"value\":\"github\"},{\"field\":\"amount\",\"op\":\"lt\",\"value\":\"100\"}] (ops: contains, not_contains, equals, starts_with, ends_with, regex, gt, gte, lt, lte, between)"
         },
         "actions": {
           "type": "string",
-          "description": "JSON {\"account\":\"6020\",\"tax_code\":\"S20\",\"contact\":\"GitHub\"} or {\"splits\":[{\"account\":\"6020\",\"percent\":50},{\"account\":\"7050\",\"percent\":50}]}",
           "required": true,
-          "format": "json"
+          "format": "json",
+          "description": "JSON {\"account\":\"6020\",\"tax_code\":\"S20\",\"contact\":\"GitHub\"} or {\"splits\":[{\"account\":\"6020\",\"percent\":50},{\"account\":\"7050\",\"percent\":50}]}"
         },
         "match": {
-          "type": "string",
-          "description": "All or any condition",
-          "enum": [
+          "type": "enum",
+          "values": [
             "all",
             "any"
-          ]
+          ],
+          "description": "All or any condition"
         },
         "auto_post": {
           "type": "boolean",
@@ -2157,35 +1869,30 @@
           "description": "Put it first"
         },
         "status": {
-          "type": "string",
-          "description": "Start on or off",
-          "enum": [
+          "type": "enum",
+          "values": [
             "active",
             "disabled"
-          ]
+          ],
+          "description": "Start on or off"
         },
         "note": {
           "type": "string",
           "description": "Note"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/rules/create"
       }
     },
     {
       "name": "rules.update",
       "description": "Change a rule, turn it on or off, or approve an AI agent rule (status active).",
-      "label": "Edit rule",
-      "returns": "record",
+      "destructive": false,
+      "module": "rules",
       "params": {
         "rule": {
           "type": "string",
-          "description": "Rule id",
           "required": true,
-          "format": "ref:rules"
+          "format": "ref:rules",
+          "description": "Rule id"
         },
         "name": {
           "type": "string",
@@ -2193,21 +1900,21 @@
         },
         "conditions": {
           "type": "string",
-          "description": "JSON conditions",
-          "format": "json"
+          "format": "json",
+          "description": "JSON conditions"
         },
         "actions": {
           "type": "string",
-          "description": "JSON actions",
-          "format": "json"
+          "format": "json",
+          "description": "JSON actions"
         },
         "match": {
-          "type": "string",
-          "description": "All or any",
-          "enum": [
+          "type": "enum",
+          "values": [
             "all",
             "any"
-          ]
+          ],
+          "description": "All or any"
         },
         "auto_post": {
           "type": "boolean",
@@ -2218,13 +1925,13 @@
           "description": "One time"
         },
         "status": {
-          "type": "string",
-          "description": "Status",
-          "enum": [
+          "type": "enum",
+          "values": [
             "active",
             "proposed",
             "disabled"
-          ]
+          ],
+          "description": "Status"
         },
         "note": {
           "type": "string",
@@ -2234,229 +1941,182 @@
           "type": "boolean",
           "description": "Apply to waiting lines (default true)"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/rules/update"
       }
     },
     {
       "name": "rules.delete",
       "description": "Delete a rule.",
-      "label": "Delete rule",
       "destructive": true,
-      "confirm": "Delete this rule?",
-      "returns": "none",
+      "module": "rules",
       "params": {
         "rule": {
           "type": "string",
-          "description": "Rule id",
           "required": true,
-          "format": "ref:rules"
+          "format": "ref:rules",
+          "description": "Rule id"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/rules/delete"
       }
     },
     {
       "name": "rules.reorder",
       "description": "Put rules in a new order (first match wins).",
-      "label": "Reorder rules",
-      "returns": "none",
+      "destructive": false,
+      "module": "rules",
       "params": {
         "order": {
           "type": "string",
-          "description": "JSON list of every rule id in order",
           "required": true,
-          "format": "json"
+          "format": "json",
+          "description": "JSON list of every rule id in order"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/rules/reorder"
       }
     },
     {
       "name": "rules.test",
       "description": "Which bank lines conditions would match (count, waiting ones, a sample).",
-      "label": "Test rule",
+      "destructive": false,
       "readOnly": true,
-      "returns": "list",
+      "module": "rules",
       "params": {
         "conditions": {
           "type": "string",
-          "description": "JSON conditions",
           "required": true,
-          "format": "json"
+          "format": "json",
+          "description": "JSON conditions"
         },
         "match": {
-          "type": "string",
-          "description": "All or any",
-          "enum": [
+          "type": "enum",
+          "values": [
             "all",
             "any"
-          ]
+          ],
+          "description": "All or any"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/rules/test"
       }
     },
     {
       "name": "profiles.list",
       "description": "Column layouts remembered per bank CSV format.",
-      "label": "Saved CSV layouts",
+      "destructive": false,
       "readOnly": true,
-      "returns": "list",
-      "params": {},
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/profiles/list"
-      }
+      "module": "profiles",
+      "params": {}
     },
     {
       "name": "profiles.delete",
       "description": "Forget a saved CSV layout.",
-      "label": "Delete CSV layout",
-      "returns": "none",
+      "destructive": false,
+      "module": "profiles",
       "params": {
         "profile": {
           "type": "string",
-          "description": "Layout id",
           "required": true,
-          "format": "ref:csv_profiles"
+          "format": "ref:csv_profiles",
+          "description": "Layout id"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/profiles/delete"
       }
     },
     {
       "name": "files.list",
       "description": "Files dropped into the books (default: not filed yet), with what was read from them; the AI agent gets each file's path.",
-      "label": "Receipts and documents",
+      "destructive": false,
       "readOnly": true,
-      "returns": "list",
+      "module": "files",
       "params": {
         "status": {
-          "type": "string",
-          "description": "Which (default open)",
-          "enum": [
+          "type": "enum",
+          "values": [
             "inbox",
             "reading",
             "linked",
             "archived",
             "open",
             "all"
-          ]
+          ],
+          "description": "Which (default open)"
         },
         "agent": {
-          "type": "string",
-          "description": "AI agent state",
-          "enum": [
+          "type": "enum",
+          "values": [
             "waiting",
             "working",
             "done",
             "failed"
-          ]
+          ],
+          "description": "AI agent state"
         },
         "limit": {
           "type": "number",
           "description": "At most this many"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/files/list"
       }
     },
     {
       "name": "files.get",
       "description": "One file with what was read from it and the entries it could belong to.",
-      "label": "File",
+      "destructive": false,
       "readOnly": true,
-      "returns": "record",
+      "module": "files",
       "params": {
         "file": {
           "type": "string",
-          "description": "File id",
           "required": true,
-          "format": "ref:files"
+          "format": "ref:files",
+          "description": "File id"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/files/get"
       }
     },
     {
       "name": "files.download",
       "description": "The file itself (the UI shows it).",
-      "label": "Open file",
+      "destructive": false,
       "readOnly": true,
-      "returns": "record",
+      "module": "files",
       "params": {
         "file": {
           "type": "string",
-          "description": "File id",
           "required": true,
-          "format": "ref:files"
+          "format": "ref:files",
+          "description": "File id"
         },
         "download": {
           "type": "boolean",
           "description": "As a download"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/files/download"
       }
     },
     {
       "name": "files.upload",
-      "description": "Add a receipt, invoice or statement (upload, or --path for the AI agent), optionally attached to an entry, document or line. Files the person adds go to the AI agent to read.",
-      "label": "Add file",
-      "returns": "list",
+      "description": "Add a receipt, invoice or statement (upload, or --path for the AI agent), optionally attached to an entry, document or line.",
+      "destructive": false,
+      "module": "files",
       "params": {
         "path": {
           "type": "string",
           "description": "Absolute path of the file (AI agent)"
         },
         "kind": {
-          "type": "string",
-          "description": "Kind",
-          "enum": [
+          "type": "enum",
+          "values": [
             "receipt",
             "invoice",
             "statement",
             "other"
-          ]
+          ],
+          "description": "Kind"
         },
         "note": {
           "type": "string",
           "description": "Note"
         },
         "link_type": {
-          "type": "string",
-          "description": "Attach to",
-          "enum": [
+          "type": "enum",
+          "values": [
             "transaction",
             "document",
             "line"
-          ]
+          ],
+          "description": "Attach to"
         },
         "link_id": {
           "type": "string",
@@ -2466,39 +2126,34 @@
           "type": "boolean",
           "description": "Send to the AI agent to read (default true)"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/files/upload"
       }
     },
     {
       "name": "files.update",
       "description": "Store what a file says (extracted: vendor, date, total, tax, currency, number, lines), its kind, note or name.",
-      "label": "Edit file",
-      "returns": "record",
+      "destructive": false,
+      "module": "files",
       "params": {
         "file": {
           "type": "string",
-          "description": "File id",
           "required": true,
-          "format": "ref:files"
+          "format": "ref:files",
+          "description": "File id"
         },
         "extracted": {
           "type": "string",
-          "description": "JSON {\"vendor\":\"..\",\"date\":\"YYYY-MM-DD\",\"total\":\"12.50\",\"tax\":\"2.08\",\"currency\":\"USD\",\"number\":\"..\",\"lines\":[..]}",
-          "format": "json"
+          "format": "json",
+          "description": "JSON {\"vendor\":\"..\",\"date\":\"YYYY-MM-DD\",\"total\":\"12.50\",\"tax\":\"2.08\",\"currency\":\"USD\",\"number\":\"..\",\"lines\":[..]}"
         },
         "kind": {
-          "type": "string",
-          "description": "Kind",
-          "enum": [
+          "type": "enum",
+          "values": [
             "receipt",
             "invoice",
             "statement",
             "other"
-          ]
+          ],
+          "description": "Kind"
         },
         "note": {
           "type": "string",
@@ -2508,229 +2163,181 @@
           "type": "string",
           "description": "Name"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/files/update"
       }
     },
     {
       "name": "files.link",
       "description": "Attach a file to an entry, a document or a bank line (type none detaches it).",
-      "label": "Attach file",
-      "returns": "record",
+      "destructive": false,
+      "module": "files",
       "params": {
         "file": {
           "type": "string",
-          "description": "File id",
           "required": true,
-          "format": "ref:files"
+          "format": "ref:files",
+          "description": "File id"
         },
         "type": {
-          "type": "string",
-          "description": "Attach to",
-          "required": true,
-          "enum": [
+          "type": "enum",
+          "values": [
             "transaction",
             "document",
             "line",
             "none"
-          ]
+          ],
+          "required": true,
+          "description": "Attach to"
         },
         "id": {
           "type": "string",
           "description": "Id of the entry, document or line"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/files/link"
       }
     },
     {
       "name": "files.candidates",
       "description": "Entries that could be the purchase on a receipt (same total within a week).",
-      "label": "Matching entries",
+      "destructive": false,
       "readOnly": true,
-      "returns": "list",
+      "module": "files",
       "params": {
         "file": {
           "type": "string",
-          "description": "File id",
           "required": true,
-          "format": "ref:files"
+          "format": "ref:files",
+          "description": "File id"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/files/candidates"
       }
     },
     {
       "name": "files.archive",
       "description": "Archive (or restore) a file.",
-      "label": "Archive file",
-      "returns": "record",
+      "destructive": false,
+      "module": "files",
       "params": {
         "file": {
           "type": "string",
-          "description": "File id",
           "required": true,
-          "format": "ref:files"
+          "format": "ref:files",
+          "description": "File id"
         },
         "archived": {
           "type": "boolean",
           "description": "Archive (default) or restore"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/files/archive"
       }
     },
     {
       "name": "files.delete",
-      "description": "Delete a file for good. The person only.",
-      "label": "Delete file",
+      "description": "Delete a file for good.",
       "destructive": true,
-      "confirm": "Delete this file?",
-      "returns": "none",
+      "module": "files",
       "params": {
         "file": {
           "type": "string",
-          "description": "File id",
           "required": true,
-          "format": "ref:files"
+          "format": "ref:files",
+          "description": "File id"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/files/delete"
       }
     },
     {
       "name": "files.start",
       "description": "AI agent: take a waiting file; returns its path.",
-      "label": "Read file",
-      "returns": "record",
+      "destructive": false,
+      "module": "files",
       "params": {
         "file": {
           "type": "string",
-          "description": "File id",
           "required": true,
-          "format": "ref:files"
+          "format": "ref:files",
+          "description": "File id"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/files/start"
       }
     },
     {
       "name": "files.done",
       "description": "AI agent: finish a file with a note on what you did.",
-      "label": "File done",
-      "returns": "record",
+      "destructive": false,
+      "module": "files",
       "params": {
         "file": {
           "type": "string",
-          "description": "File id",
           "required": true,
-          "format": "ref:files"
+          "format": "ref:files",
+          "description": "File id"
         },
         "note": {
           "type": "string",
           "description": "What you did"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/files/done"
       }
     },
     {
       "name": "files.fail",
       "description": "AI agent: give a file back with the reason.",
-      "label": "File failed",
-      "returns": "record",
+      "destructive": false,
+      "module": "files",
       "params": {
         "file": {
           "type": "string",
-          "description": "File id",
           "required": true,
-          "format": "ref:files"
+          "format": "ref:files",
+          "description": "File id"
         },
         "reason": {
           "type": "string",
-          "description": "Why",
-          "required": true
+          "required": true,
+          "description": "Why"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/files/fail"
       }
     },
     {
       "name": "files.ask_agent",
       "description": "Send a file to the AI agent to read.",
-      "label": "Ask AI to read",
-      "returns": "record",
+      "destructive": false,
+      "module": "files",
       "params": {
         "file": {
           "type": "string",
-          "description": "File id",
           "required": true,
-          "format": "ref:files"
+          "format": "ref:files",
+          "description": "File id"
         },
         "note": {
           "type": "string",
           "description": "What to do with it"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/files/ask_agent"
       }
     },
     {
       "name": "docs.list",
-      "description": "Documents newest first with derived state (draft, open, overdue, partial, paid, applied, void), what is open and days overdue.",
-      "label": "Invoices and bills",
+      "description": "Documents newest first with derived state (draft, open, overdue…",
+      "destructive": false,
       "readOnly": true,
-      "returns": "list",
+      "module": "docs",
       "params": {
         "kind": {
-          "type": "string",
-          "description": "Kind",
-          "enum": [
+          "type": "enum",
+          "values": [
             "invoice",
             "bill",
             "credit_note",
             "vendor_credit"
-          ]
+          ],
+          "description": "Kind"
         },
         "side": {
-          "type": "string",
-          "description": "Sales (invoices, credit notes) or purchases (bills, vendor credits)",
-          "enum": [
+          "type": "enum",
+          "values": [
             "sales",
             "purchases"
-          ]
+          ],
+          "description": "Sales (invoices, credit notes) or purchases (bills, vendor credits)"
         },
         "state": {
-          "type": "string",
-          "description": "State (default all but void)",
-          "enum": [
+          "type": "enum",
+          "values": [
             "draft",
             "open",
             "overdue",
@@ -2740,12 +2347,13 @@
             "unpaid",
             "void",
             "all"
-          ]
+          ],
+          "description": "State (default all but void)"
         },
         "contact": {
           "type": "string",
-          "description": "Contact",
-          "format": "ref:contacts"
+          "format": "ref:contacts",
+          "description": "Contact"
         },
         "q": {
           "type": "string",
@@ -2767,67 +2375,52 @@
           "type": "number",
           "description": "Skip this many"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/docs/list"
       }
     },
     {
       "name": "docs.get",
-      "description": "One document with lines, payments and credits, files, contact, warnings (possible duplicate bills) and history.",
-      "label": "Document",
+      "description": "One document with lines, payments and credits, files, contact…",
+      "destructive": false,
       "readOnly": true,
-      "returns": "record",
+      "module": "docs",
       "params": {
         "doc": {
           "type": "string",
-          "description": "Document id or number (INV-1001)",
           "required": true,
-          "format": "ref:documents"
+          "format": "ref:documents",
+          "description": "Document id or number (INV-1001)"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/docs/get"
       }
     },
     {
       "name": "docs.summary",
-      "description": "Open and overdue amounts, drafts, due within a week and paid in the last 30 days, for sales and purchases.",
-      "label": "Receivables and payables",
+      "description": "Open and overdue amounts, drafts, due within a week and paid in the…",
+      "destructive": false,
       "readOnly": true,
-      "returns": "summary",
-      "params": {},
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/docs/summary"
-      }
+      "module": "docs",
+      "params": {}
     },
     {
       "name": "docs.create",
-      "description": "Draft an invoice, bill, credit note or vendor credit (a new contact is created). approve=true also approves it (numbers it and posts it).",
-      "label": "New document",
-      "returns": "record",
+      "description": "Draft an invoice, bill, credit note or vendor credit (a new contact is…",
+      "destructive": false,
+      "module": "docs",
       "params": {
         "kind": {
-          "type": "string",
-          "description": "Kind",
-          "required": true,
-          "enum": [
+          "type": "enum",
+          "values": [
             "invoice",
             "bill",
             "credit_note",
             "vendor_credit"
-          ]
+          ],
+          "required": true,
+          "description": "Kind"
         },
         "contact": {
           "type": "string",
-          "description": "Customer or supplier name or id",
-          "required": true
+          "required": true,
+          "description": "Customer or supplier name or id"
         },
         "issue_date": {
           "type": "string",
@@ -2843,9 +2436,9 @@
         },
         "lines": {
           "type": "string",
-          "description": "JSON list of lines [{\"description\":\"Design work\",\"quantity\":\"10\",\"unit_price\":\"120.00\",\"account\":\"4100\",\"tax_code\":\"S20\"}] (unit_price as a decimal; account and tax_code optional)",
           "required": true,
-          "format": "json"
+          "format": "json",
+          "description": "JSON list of lines [{\"description\":\"Design work\",\"quantity\":\"10\",\"unit_price\":\"120.00\",\"account\":\"4100\",\"tax_code\":\"S20\"}] (unit_price as a decimal; account and tax_code optional)"
         },
         "currency": {
           "type": "string",
@@ -2869,41 +2462,36 @@
         },
         "notes": {
           "type": "string",
-          "description": "Notes shown on the document",
-          "format": "multiline"
+          "format": "multiline",
+          "description": "Notes shown on the document"
         },
         "terms": {
           "type": "string",
-          "description": "Terms shown on the document",
-          "format": "multiline"
+          "format": "multiline",
+          "description": "Terms shown on the document"
         },
         "file": {
           "type": "string",
-          "description": "Attach this file",
-          "format": "ref:files"
+          "format": "ref:files",
+          "description": "Attach this file"
         },
         "approve": {
           "type": "boolean",
           "description": "Approve now"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/docs/create"
       }
     },
     {
       "name": "docs.update",
-      "description": "Change a draft, or an approved document without payments (its entry is rewritten).",
-      "label": "Edit document",
-      "returns": "record",
+      "description": "Change a draft, or an approved document without payments (its entry is…",
+      "destructive": false,
+      "module": "docs",
       "params": {
         "doc": {
           "type": "string",
-          "description": "Document id or number (INV-1001)",
           "required": true,
-          "format": "ref:documents"
+          "format": "ref:documents",
+          "description": "Document id or number (INV-1001)"
         },
         "contact": {
           "type": "string",
@@ -2923,8 +2511,8 @@
         },
         "lines": {
           "type": "string",
-          "description": "JSON list of lines [{\"description\":\"Design work\",\"quantity\":\"10\",\"unit_price\":\"120.00\",\"account\":\"4100\",\"tax_code\":\"S20\"}] (unit_price as a decimal; account and tax_code optional)",
-          "format": "json"
+          "format": "json",
+          "description": "JSON list of lines [{\"description\":\"Design work\",\"quantity\":\"10\",\"unit_price\":\"120.00\",\"account\":\"4100\",\"tax_code\":\"S20\"}] (unit_price as a decimal; account and tax_code optional)"
         },
         "currency": {
           "type": "string",
@@ -2948,95 +2536,78 @@
         },
         "notes": {
           "type": "string",
-          "description": "Notes",
-          "format": "multiline"
+          "format": "multiline",
+          "description": "Notes"
         },
         "terms": {
           "type": "string",
-          "description": "Terms",
-          "format": "multiline"
+          "format": "multiline",
+          "description": "Terms"
         },
         "file": {
           "type": "string",
-          "description": "Attach this file",
-          "format": "ref:files"
+          "format": "ref:files",
+          "description": "Attach this file"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/docs/update"
       }
     },
     {
       "name": "docs.approve",
       "description": "Approve drafts: number them and post them to receivables or payables.",
-      "label": "Approve",
-      "returns": "list",
+      "destructive": false,
+      "module": "docs",
       "params": {
         "doc": {
           "type": "string",
-          "description": "Document",
-          "format": "ref:documents"
+          "format": "ref:documents",
+          "description": "Document"
         },
         "docs": {
           "type": "string",
-          "description": "JSON list of document ids",
-          "format": "json"
+          "format": "json",
+          "description": "JSON list of document ids"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/docs/approve"
       }
     },
     {
       "name": "docs.void",
       "description": "Void an approved document without payments, or discard a draft.",
-      "label": "Void document",
       "destructive": true,
-      "confirm": "Void this document?",
-      "returns": "record",
+      "module": "docs",
       "params": {
         "doc": {
           "type": "string",
-          "description": "Document id or number (INV-1001)",
           "required": true,
-          "format": "ref:documents"
+          "format": "ref:documents",
+          "description": "Document id or number (INV-1001)"
         },
         "reason": {
           "type": "string",
           "description": "Why"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/docs/void"
       }
     },
     {
       "name": "docs.pay",
-      "description": "Record a payment against one or more documents of one contact from a bank, card or cash account. Without amount the full open amount is paid. Across currencies give amount (what moved in the account's currency) and doc_amount.",
-      "label": "Record payment",
-      "returns": "summary",
+      "description": "Record a payment against one or more documents of one contact from a…",
+      "destructive": false,
+      "module": "docs",
       "params": {
         "doc": {
           "type": "string",
-          "description": "Document",
-          "format": "ref:documents"
+          "format": "ref:documents",
+          "description": "Document"
         },
         "docs": {
           "type": "string",
-          "description": "JSON list of document ids",
-          "format": "json"
+          "format": "json",
+          "description": "JSON list of document ids"
         },
         "account": {
           "type": "string",
-          "description": "Account id, code (e.g. 6020) or exact name",
           "required": true,
-          "format": "ref:accounts"
+          "format": "ref:accounts",
+          "description": "Account id, code (e.g. 6020) or exact name"
         },
         "amount": {
           "type": "string",
@@ -3048,8 +2619,8 @@
         },
         "amounts": {
           "type": "string",
-          "description": "JSON list of amounts per document",
-          "format": "json"
+          "format": "json",
+          "description": "JSON list of amounts per document"
         },
         "date": {
           "type": "string",
@@ -3063,30 +2634,25 @@
           "type": "string",
           "description": "Memo"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/docs/pay"
       }
     },
     {
       "name": "docs.apply_credit",
       "description": "Apply a credit note to an invoice (or a vendor credit to a bill).",
-      "label": "Apply credit",
-      "returns": "summary",
+      "destructive": false,
+      "module": "docs",
       "params": {
         "credit": {
           "type": "string",
-          "description": "Credit note or vendor credit",
           "required": true,
-          "format": "ref:documents"
+          "format": "ref:documents",
+          "description": "Credit note or vendor credit"
         },
         "doc": {
           "type": "string",
-          "description": "Document id or number (INV-1001)",
           "required": true,
-          "format": "ref:documents"
+          "format": "ref:documents",
+          "description": "Document id or number (INV-1001)"
         },
         "amount": {
           "type": "string",
@@ -3096,26 +2662,19 @@
           "type": "string",
           "description": "Date (YYYY-MM-DD; also today, yesterday, t-7)"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/docs/apply_credit"
       }
     },
     {
       "name": "docs.write_off",
-      "description": "Write off what is left on an invoice as a bad debt. The person only.",
-      "label": "Write off",
+      "description": "Write off what is left on an invoice as a bad debt.",
       "destructive": true,
-      "confirm": "Write off the rest of this invoice?",
-      "returns": "summary",
+      "module": "docs",
       "params": {
         "doc": {
           "type": "string",
-          "description": "Document id or number (INV-1001)",
           "required": true,
-          "format": "ref:documents"
+          "format": "ref:documents",
+          "description": "Document id or number (INV-1001)"
         },
         "date": {
           "type": "string",
@@ -3125,102 +2684,80 @@
           "type": "string",
           "description": "Why"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/docs/write_off"
       }
     },
     {
       "name": "docs.remove_allocation",
-      "description": "Remove a payment (its entry is voided), a write-off, or unapply a credit.",
-      "label": "Remove payment",
+      "description": "Remove a payment (its entry is voided), a write-off, or unapply a…",
       "destructive": true,
-      "confirm": "Remove this payment?",
-      "returns": "record",
+      "module": "docs",
       "params": {
         "allocation": {
           "type": "string",
-          "description": "Allocation id (from docs.get)",
           "required": true,
-          "format": "ref:allocations"
+          "format": "ref:allocations",
+          "description": "Allocation id (from docs.get)"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/docs/remove_allocation"
       }
     },
     {
       "name": "docs.duplicate",
-      "description": "Draft a copy of a document (optionally as another kind, e.g. a credit note for an invoice).",
-      "label": "Duplicate",
-      "returns": "record",
+      "description": "Draft a copy of a document (optionally as another kind, e.g.",
+      "destructive": false,
+      "module": "docs",
       "params": {
         "doc": {
           "type": "string",
-          "description": "Document id or number (INV-1001)",
           "required": true,
-          "format": "ref:documents"
+          "format": "ref:documents",
+          "description": "Document id or number (INV-1001)"
         },
         "kind": {
-          "type": "string",
-          "description": "Kind of the copy",
-          "enum": [
+          "type": "enum",
+          "values": [
             "invoice",
             "bill",
             "credit_note",
             "vendor_credit"
-          ]
+          ],
+          "description": "Kind of the copy"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/docs/duplicate"
       }
     },
     {
       "name": "docs.remind",
-      "description": "The person: ask the AI agent to draft a payment reminder. The AI agent: save the reminder text you wrote.",
-      "label": "Payment reminder",
-      "returns": "record",
+      "description": "The person: ask the AI agent to draft a payment reminder.",
+      "destructive": false,
+      "module": "docs",
       "params": {
         "doc": {
           "type": "string",
-          "description": "Document id or number (INV-1001)",
           "required": true,
-          "format": "ref:documents"
+          "format": "ref:documents",
+          "description": "Document id or number (INV-1001)"
         },
         "text": {
           "type": "string",
-          "description": "The reminder (AI agent)",
-          "format": "multiline"
+          "format": "multiline",
+          "description": "The reminder (AI agent)"
         },
         "note": {
           "type": "string",
           "description": "What to say (the person)"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/docs/remind"
       }
     },
     {
       "name": "docs.mark_sent",
       "description": "Mark a document as sent (or not).",
-      "label": "Mark sent",
-      "returns": "record",
+      "destructive": false,
+      "module": "docs",
       "params": {
         "doc": {
           "type": "string",
-          "description": "Document id or number (INV-1001)",
           "required": true,
-          "format": "ref:documents"
+          "format": "ref:documents",
+          "description": "Document id or number (INV-1001)"
         },
         "sent": {
           "type": "boolean",
@@ -3230,109 +2767,84 @@
           "type": "string",
           "description": "When (YYYY-MM-DD; also today, yesterday, t-7)"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/docs/mark_sent"
       }
     },
     {
       "name": "reconcile.overview",
-      "description": "Bank, card, cash and loan accounts with balance, last reconciled date, open session, unreconciled entries, inbox lines and the newest statement closing balance.",
-      "label": "Reconciliation",
+      "description": "Bank, card, cash and loan accounts with balance, last reconciled date, open session, unreconciled entries, inbox lines and the newest…",
+      "destructive": false,
       "readOnly": true,
-      "returns": "list",
-      "params": {},
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/reconcile/overview"
-      }
+      "module": "reconcile",
+      "params": {}
     },
     {
       "name": "reconcile.list",
       "description": "Finished and undone reconciliations.",
-      "label": "Reconciliation history",
+      "destructive": false,
       "readOnly": true,
-      "returns": "list",
+      "module": "reconcile",
       "params": {
         "account": {
           "type": "string",
-          "description": "Account id, code or exact name",
-          "format": "ref:accounts"
+          "format": "ref:accounts",
+          "description": "Account id, code or exact name"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/reconcile/list"
       }
     },
     {
       "name": "reconcile.start",
       "description": "Start (or update) a reconciliation: the statement date and closing balance (cards and loans: what is owed).",
-      "label": "Start reconciling",
-      "returns": "record",
+      "destructive": false,
+      "module": "reconcile",
       "params": {
         "account": {
           "type": "string",
-          "description": "Account id, code (e.g. 6020) or exact name",
           "required": true,
-          "format": "ref:accounts"
+          "format": "ref:accounts",
+          "description": "Account id, code (e.g. 6020) or exact name"
         },
         "statement_date": {
           "type": "string",
-          "description": "Statement date (YYYY-MM-DD; also today, yesterday, t-7)",
-          "required": true
+          "required": true,
+          "description": "Statement date (YYYY-MM-DD; also today, yesterday, t-7)"
         },
         "statement_balance": {
           "type": "string",
-          "description": "Statement closing balance as a decimal as written, e.g. 12.50 (not cents)",
-          "required": true
+          "required": true,
+          "description": "Statement closing balance as a decimal as written, e.g. 12.50 (not cents)"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/reconcile/start"
       }
     },
     {
       "name": "reconcile.get",
       "description": "A reconciliation (or an account's open one): entries to tick, cleared balance, difference.",
-      "label": "Reconciliation",
+      "destructive": false,
       "readOnly": true,
-      "returns": "record",
+      "module": "reconcile",
       "params": {
         "reconciliation": {
           "type": "string",
-          "description": "Reconciliation id",
-          "format": "ref:reconciliations"
+          "format": "ref:reconciliations",
+          "description": "Reconciliation id"
         },
         "account": {
           "type": "string",
-          "description": "Account id, code or exact name",
-          "format": "ref:accounts"
+          "format": "ref:accounts",
+          "description": "Account id, code or exact name"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/reconcile/get"
       }
     },
     {
       "name": "reconcile.toggle",
       "description": "Tick (cleared) or untick entries in an open reconciliation.",
-      "label": "Tick entries",
-      "returns": "record",
+      "destructive": false,
+      "module": "reconcile",
       "params": {
         "reconciliation": {
           "type": "string",
-          "description": "Reconciliation id",
           "required": true,
-          "format": "ref:reconciliations"
+          "format": "ref:reconciliations",
+          "description": "Reconciliation id"
         },
         "posting": {
           "type": "string",
@@ -3340,31 +2852,26 @@
         },
         "postings": {
           "type": "string",
-          "description": "JSON list of posting ids",
-          "format": "json"
+          "format": "json",
+          "description": "JSON list of posting ids"
         },
         "cleared": {
           "type": "boolean",
           "description": "Tick (default) or untick"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/reconcile/toggle"
       }
     },
     {
       "name": "reconcile.finish",
-      "description": "Finish when the difference is zero (or book it with adjust); ticked entries become reconciled and locked. The person only.",
-      "label": "Finish reconciliation",
-      "returns": "record",
+      "description": "Finish when the difference is zero (or book it with adjust); ticked entries become reconciled and locked.",
+      "destructive": false,
+      "module": "reconcile",
       "params": {
         "reconciliation": {
           "type": "string",
-          "description": "Reconciliation id",
           "required": true,
-          "format": "ref:reconciliations"
+          "format": "ref:reconciliations",
+          "description": "Reconciliation id"
         },
         "adjust": {
           "type": "boolean",
@@ -3372,67 +2879,49 @@
         },
         "adjust_account": {
           "type": "string",
-          "description": "Account id, code or exact name",
-          "format": "ref:accounts"
+          "format": "ref:accounts",
+          "description": "Account id, code or exact name"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/reconcile/finish"
       }
     },
     {
       "name": "reconcile.undo",
-      "description": "Undo the latest reconciliation of an account. The person only.",
-      "label": "Undo reconciliation",
+      "description": "Undo the latest reconciliation of an account.",
       "destructive": true,
-      "confirm": "Undo this reconciliation?",
-      "returns": "record",
+      "module": "reconcile",
       "params": {
         "reconciliation": {
           "type": "string",
-          "description": "Reconciliation id",
           "required": true,
-          "format": "ref:reconciliations"
+          "format": "ref:reconciliations",
+          "description": "Reconciliation id"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/reconcile/undo"
       }
     },
     {
       "name": "reconcile.cancel",
       "description": "Stop an open reconciliation (ticks are kept).",
-      "label": "Stop reconciling",
-      "returns": "none",
+      "destructive": false,
+      "module": "reconcile",
       "params": {
         "reconciliation": {
           "type": "string",
-          "description": "Reconciliation id",
           "required": true,
-          "format": "ref:reconciliations"
+          "format": "ref:reconciliations",
+          "description": "Reconciliation id"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/reconcile/cancel"
       }
     },
     {
       "name": "reports.pnl",
-      "description": "Income, cost of sales, expenses, other income and expenses, gross, operating and net, by total, month or quarter, accrual or cash basis, with an optional comparison column. Minor units, home currency.",
-      "label": "Profit and loss",
+      "description": "Income, cost of sales, expenses, other income and expenses, gross, operating and net, by total, month or quarter, accrual or cash basis…",
+      "destructive": false,
       "readOnly": true,
-      "returns": "record",
+      "module": "reports",
       "params": {
         "range": {
-          "type": "string",
-          "description": "Named range (or give from/to)",
-          "enum": [
+          "type": "enum",
+          "values": [
             "this_month",
             "last_month",
             "this_quarter",
@@ -3442,7 +2931,8 @@
             "ytd",
             "last_12_months",
             "custom"
-          ]
+          ],
+          "description": "Named range (or give from/to)"
         },
         "from": {
           "type": "string",
@@ -3453,57 +2943,51 @@
           "description": "To (YYYY-MM-DD; also today, yesterday, t-7)"
         },
         "basis": {
-          "type": "string",
-          "description": "Basis (default accrual)",
-          "enum": [
+          "type": "enum",
+          "values": [
             "accrual",
             "cash"
-          ]
+          ],
+          "description": "Basis (default accrual)"
         },
         "by": {
-          "type": "string",
-          "description": "Columns",
-          "enum": [
+          "type": "enum",
+          "values": [
             "total",
             "month",
             "quarter"
-          ]
+          ],
+          "description": "Columns"
         },
         "compare": {
-          "type": "string",
-          "description": "Comparison",
-          "enum": [
+          "type": "enum",
+          "values": [
             "none",
             "previous_period",
             "previous_year"
-          ]
+          ],
+          "description": "Comparison"
         },
         "zero": {
           "type": "boolean",
           "description": "Include accounts with nothing"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/reports/pnl"
       }
     },
     {
       "name": "reports.balance",
       "description": "Assets, liabilities and equity as of a date (earnings of this and earlier years shown in equity), with an optional comparison.",
-      "label": "Balance sheet",
+      "destructive": false,
       "readOnly": true,
-      "returns": "record",
+      "module": "reports",
       "params": {
         "to": {
           "type": "string",
           "description": "As of (default today) (YYYY-MM-DD; also today, yesterday, t-7)"
         },
         "range": {
-          "type": "string",
-          "description": "Named range (or give from/to)",
-          "enum": [
+          "type": "enum",
+          "values": [
             "this_month",
             "last_month",
             "this_quarter",
@@ -3513,39 +2997,34 @@
             "ytd",
             "last_12_months",
             "custom"
-          ]
+          ],
+          "description": "Named range (or give from/to)"
         },
         "compare": {
-          "type": "string",
-          "description": "Comparison",
-          "enum": [
+          "type": "enum",
+          "values": [
             "none",
             "previous_period",
             "previous_year"
-          ]
+          ],
+          "description": "Comparison"
         },
         "zero": {
           "type": "boolean",
           "description": "Include zero balances"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/reports/balance"
       }
     },
     {
       "name": "reports.cashflow",
       "description": "Cash in and out by operating, investing and financing activity, with opening and closing cash.",
-      "label": "Cash flow",
+      "destructive": false,
       "readOnly": true,
-      "returns": "record",
+      "module": "reports",
       "params": {
         "range": {
-          "type": "string",
-          "description": "Named range (or give from/to)",
-          "enum": [
+          "type": "enum",
+          "values": [
             "this_month",
             "last_month",
             "this_quarter",
@@ -3555,7 +3034,8 @@
             "ytd",
             "last_12_months",
             "custom"
-          ]
+          ],
+          "description": "Named range (or give from/to)"
         },
         "from": {
           "type": "string",
@@ -3565,68 +3045,52 @@
           "type": "string",
           "description": "To (YYYY-MM-DD; also today, yesterday, t-7)"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/reports/cashflow"
       }
     },
     {
       "name": "reports.trial",
       "description": "Debit and credit balance of every account as of a date.",
-      "label": "Trial balance",
+      "destructive": false,
       "readOnly": true,
-      "returns": "record",
+      "module": "reports",
       "params": {
         "to": {
           "type": "string",
           "description": "As of (YYYY-MM-DD; also today, yesterday, t-7)"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/reports/trial"
       }
     },
     {
       "name": "reports.aged",
       "description": "What customers owe (or you owe suppliers) by contact and age: current, 1-30, 31-60, 61-90, over 90 days past due.",
-      "label": "Aged receivables / payables",
+      "destructive": false,
       "readOnly": true,
-      "returns": "record",
+      "module": "reports",
       "params": {
         "side": {
-          "type": "string",
-          "description": "Which",
-          "enum": [
+          "type": "enum",
+          "values": [
             "receivables",
             "payables"
-          ]
+          ],
+          "description": "Which"
         },
         "to": {
           "type": "string",
           "description": "As of (YYYY-MM-DD; also today, yesterday, t-7)"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/reports/aged"
       }
     },
     {
       "name": "reports.tax",
       "description": "Sales tax / VAT per tax code: sales and purchases net and tax, output, input and net to pay; UK VAT return boxes 1 to 9 for the UK region.",
-      "label": "Tax summary",
+      "destructive": false,
       "readOnly": true,
-      "returns": "record",
+      "module": "reports",
       "params": {
         "range": {
-          "type": "string",
-          "description": "Named range (or give from/to)",
-          "enum": [
+          "type": "enum",
+          "values": [
             "this_month",
             "last_month",
             "this_quarter",
@@ -3636,7 +3100,8 @@
             "ytd",
             "last_12_months",
             "custom"
-          ]
+          ],
+          "description": "Named range (or give from/to)"
         },
         "from": {
           "type": "string",
@@ -3650,42 +3115,31 @@
           "type": "boolean",
           "description": "Include unused codes"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/reports/tax"
       }
     },
     {
       "name": "reports.networth",
       "description": "Assets, liabilities and net worth at each month end.",
-      "label": "Net worth",
+      "destructive": false,
       "readOnly": true,
-      "returns": "record",
+      "module": "reports",
       "params": {
         "months": {
           "type": "number",
           "description": "Months (default 12)"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/reports/networth"
       }
     },
     {
       "name": "reports.spending",
       "description": "Expenses by category with share, and the top payees.",
-      "label": "Spending",
+      "destructive": false,
       "readOnly": true,
-      "returns": "record",
+      "module": "reports",
       "params": {
         "range": {
-          "type": "string",
-          "description": "Named range (or give from/to)",
-          "enum": [
+          "type": "enum",
+          "values": [
             "this_month",
             "last_month",
             "this_quarter",
@@ -3695,7 +3149,8 @@
             "ytd",
             "last_12_months",
             "custom"
-          ]
+          ],
+          "description": "Named range (or give from/to)"
         },
         "from": {
           "type": "string",
@@ -3705,30 +3160,24 @@
           "type": "string",
           "description": "To (YYYY-MM-DD; also today, yesterday, t-7)"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/reports/spending"
       }
     },
     {
       "name": "reports.drill",
       "description": "The entries of one account in a period, with opening and closing balance.",
-      "label": "Behind a number",
+      "destructive": false,
       "readOnly": true,
-      "returns": "list",
+      "module": "reports",
       "params": {
         "account": {
           "type": "string",
-          "description": "Account id, code (e.g. 6020) or exact name",
           "required": true,
-          "format": "ref:accounts"
+          "format": "ref:accounts",
+          "description": "Account id, code (e.g. 6020) or exact name"
         },
         "range": {
-          "type": "string",
-          "description": "Named range (or give from/to)",
-          "enum": [
+          "type": "enum",
+          "values": [
             "this_month",
             "last_month",
             "this_quarter",
@@ -3738,7 +3187,8 @@
             "ytd",
             "last_12_months",
             "custom"
-          ]
+          ],
+          "description": "Named range (or give from/to)"
         },
         "from": {
           "type": "string",
@@ -3752,24 +3202,17 @@
           "type": "number",
           "description": "At most this many"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/reports/drill"
       }
     },
     {
       "name": "reports.explain",
       "description": "Ask the AI agent to explain a report.",
-      "label": "Explain report",
-      "returns": "record",
+      "destructive": false,
+      "module": "reports",
       "params": {
         "report": {
-          "type": "string",
-          "description": "Report",
-          "required": true,
-          "enum": [
+          "type": "enum",
+          "values": [
             "pnl",
             "balance",
             "cashflow",
@@ -3779,63 +3222,55 @@
             "budget",
             "networth",
             "spending"
-          ]
+          ],
+          "required": true,
+          "description": "Report"
         },
         "params": {
           "type": "string",
-          "description": "JSON params of the report",
-          "format": "json"
+          "format": "json",
+          "description": "JSON params of the report"
         },
         "question": {
           "type": "string",
           "description": "What to explain"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/reports/explain"
       }
     },
     {
       "name": "budgets.get",
       "description": "Budget against actual by month for a fiscal year.",
-      "label": "Budget vs actual",
+      "destructive": false,
       "readOnly": true,
-      "returns": "record",
+      "module": "budgets",
       "params": {
         "year": {
           "type": "number",
           "description": "Year the fiscal year starts in"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/budgets/get"
       }
     },
     {
       "name": "budgets.set",
-      "description": "Budget an income or expense account for a fiscal year: 12 monthly amounts, one monthly amount, or an annual total spread evenly. All zero removes it.",
-      "label": "Set budget",
-      "returns": "record",
+      "description": "Budget an income or expense account for a fiscal year: 12 monthly amounts, one monthly amount, or an annual total spread evenly.",
+      "destructive": false,
+      "module": "budgets",
       "params": {
         "account": {
           "type": "string",
-          "description": "Account id, code (e.g. 6020) or exact name",
           "required": true,
-          "format": "ref:accounts"
+          "format": "ref:accounts",
+          "description": "Account id, code (e.g. 6020) or exact name"
         },
         "year": {
           "type": "number",
-          "description": "Year the fiscal year starts in",
-          "required": true
+          "required": true,
+          "description": "Year the fiscal year starts in"
         },
         "months": {
           "type": "string",
-          "description": "JSON list of 12 decimals",
-          "format": "json"
+          "format": "json",
+          "description": "JSON list of 12 decimals"
         },
         "monthly": {
           "type": "string",
@@ -3845,56 +3280,40 @@
           "type": "string",
           "description": "Year total as a decimal as written, e.g. 12.50 (not cents)"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/budgets/set"
       }
     },
     {
       "name": "close.list",
       "description": "Months from the first entry with their close status, lock, inbox lines and AI agent review state.",
-      "label": "Periods",
+      "destructive": false,
       "readOnly": true,
-      "returns": "list",
-      "params": {},
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/close/list"
-      }
+      "module": "close",
+      "params": {}
     },
     {
       "name": "close.get",
-      "description": "A month with its health checks (inbox, proposals, uncategorized, suspense, transfers, reconciliation, drafts, receipts, duplicates, negative cash, overdue, revaluation), checklist and the AI agent's note.",
-      "label": "Close a month",
+      "description": "A month with its health checks (inbox, proposals, uncategorized, suspense, transfers, reconciliation, drafts, receipts, duplicates…",
+      "destructive": false,
       "readOnly": true,
-      "returns": "record",
+      "module": "close",
       "params": {
         "period": {
           "type": "string",
-          "description": "Month as YYYY-MM",
-          "required": true
+          "required": true,
+          "description": "Month as YYYY-MM"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/close/get"
       }
     },
     {
       "name": "close.checks",
       "description": "Health checks for any date range.",
-      "label": "Health checks",
+      "destructive": false,
       "readOnly": true,
-      "returns": "list",
+      "module": "close",
       "params": {
         "range": {
-          "type": "string",
-          "description": "Named range (or give from/to)",
-          "enum": [
+          "type": "enum",
+          "values": [
             "this_month",
             "last_month",
             "this_quarter",
@@ -3904,7 +3323,8 @@
             "ytd",
             "last_12_months",
             "custom"
-          ]
+          ],
+          "description": "Named range (or give from/to)"
         },
         "from": {
           "type": "string",
@@ -3914,33 +3334,28 @@
           "type": "string",
           "description": "To (YYYY-MM-DD; also today, yesterday, t-7)"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/close/checks"
       }
     },
     {
       "name": "close.tick",
       "description": "Tick or untick a manual checklist item, or set the month's notes.",
-      "label": "Tick checklist",
-      "returns": "record",
+      "destructive": false,
+      "module": "close",
       "params": {
         "period": {
           "type": "string",
-          "description": "Month as YYYY-MM",
-          "required": true
+          "required": true,
+          "description": "Month as YYYY-MM"
         },
         "item": {
-          "type": "string",
-          "description": "Item",
-          "enum": [
+          "type": "enum",
+          "values": [
             "statements",
             "receipts",
             "payroll",
             "review"
-          ]
+          ],
+          "description": "Item"
         },
         "done": {
           "type": "boolean",
@@ -3948,26 +3363,21 @@
         },
         "notes": {
           "type": "string",
-          "description": "Notes",
-          "format": "multiline"
+          "format": "multiline",
+          "description": "Notes"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/close/tick"
       }
     },
     {
       "name": "close.sign_off",
-      "description": "Close a month; lock (default) moves the lock date to its last day. Failing checks block unless force. The person only.",
-      "label": "Close month",
-      "returns": "record",
+      "description": "Close a month; lock (default) moves the lock date to its last day.",
+      "destructive": false,
+      "module": "close",
       "params": {
         "period": {
           "type": "string",
-          "description": "Month as YYYY-MM",
-          "required": true
+          "required": true,
+          "description": "Month as YYYY-MM"
         },
         "lock": {
           "type": "boolean",
@@ -3977,126 +3387,94 @@
           "type": "boolean",
           "description": "Close despite failing checks"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/close/sign_off"
       }
     },
     {
       "name": "close.reopen",
-      "description": "Reopen a closed month (the lock date moves back). The person only.",
-      "label": "Reopen month",
+      "description": "Reopen a closed month (the lock date moves back).",
       "destructive": true,
-      "confirm": "Reopen this month?",
-      "returns": "record",
+      "module": "close",
       "params": {
         "period": {
           "type": "string",
-          "description": "Month as YYYY-MM",
-          "required": true
+          "required": true,
+          "description": "Month as YYYY-MM"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/close/reopen"
       }
     },
     {
       "name": "close.request_review",
       "description": "Ask the AI agent to prepare a month for close.",
-      "label": "Ask AI to prepare",
-      "returns": "record",
+      "destructive": false,
+      "module": "close",
       "params": {
         "period": {
           "type": "string",
-          "description": "Month as YYYY-MM",
-          "required": true
+          "required": true,
+          "description": "Month as YYYY-MM"
         },
         "note": {
           "type": "string",
           "description": "Anything it should know"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/close/request_review"
       }
     },
     {
       "name": "close.start",
       "description": "AI agent: take a month waiting for review; returns its checks.",
-      "label": "Start close review",
-      "returns": "record",
+      "destructive": false,
+      "module": "close",
       "params": {
         "period": {
           "type": "string",
-          "description": "Month as YYYY-MM",
-          "required": true
+          "required": true,
+          "description": "Month as YYYY-MM"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/close/start"
       }
     },
     {
       "name": "close.complete",
       "description": "AI agent: what you did and what the person must still do.",
-      "label": "Finish close review",
-      "returns": "record",
+      "destructive": false,
+      "module": "close",
       "params": {
         "period": {
           "type": "string",
-          "description": "Month as YYYY-MM",
-          "required": true
+          "required": true,
+          "description": "Month as YYYY-MM"
         },
         "note": {
           "type": "string",
-          "description": "Done and to-do, in order",
           "required": true,
-          "format": "multiline"
+          "format": "multiline",
+          "description": "Done and to-do, in order"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/close/complete"
       }
     },
     {
       "name": "close.fail",
       "description": "AI agent: give the review back with the reason.",
-      "label": "Close review failed",
-      "returns": "record",
+      "destructive": false,
+      "module": "close",
       "params": {
         "period": {
           "type": "string",
-          "description": "Month as YYYY-MM",
-          "required": true
+          "required": true,
+          "description": "Month as YYYY-MM"
         },
         "reason": {
           "type": "string",
-          "description": "Why",
-          "required": true
+          "required": true,
+          "description": "Why"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/close/fail"
       }
     },
     {
       "name": "fx.list",
       "description": "Currencies in use with their latest rate, and stored rates (home currency per 1 unit).",
-      "label": "Exchange rates",
+      "destructive": false,
       "readOnly": true,
-      "returns": "list",
+      "module": "fx",
       "params": {
         "currency": {
           "type": "string",
@@ -4106,23 +3484,18 @@
           "type": "number",
           "description": "At most this many"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/fx/list"
       }
     },
     {
       "name": "fx.set",
       "description": "Store a rate: home currency per 1 unit on a date.",
-      "label": "Set rate",
-      "returns": "record",
+      "destructive": false,
+      "module": "fx",
       "params": {
         "currency": {
           "type": "string",
-          "description": "ISO code",
-          "required": true
+          "required": true,
+          "description": "ISO code"
         },
         "date": {
           "type": "string",
@@ -4130,40 +3503,30 @@
         },
         "rate": {
           "type": "string",
-          "description": "Rate, e.g. 1.0842",
-          "required": true
+          "required": true,
+          "description": "Rate, e.g. 1.0842"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/fx/set"
       }
     },
     {
       "name": "fx.delete",
       "description": "Delete a stored rate.",
-      "label": "Delete rate",
-      "returns": "none",
+      "destructive": false,
+      "module": "fx",
       "params": {
         "rate": {
           "type": "string",
-          "description": "Rate id",
           "required": true,
-          "format": "ref:fx_rates"
+          "format": "ref:fx_rates",
+          "description": "Rate id"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/fx/delete"
       }
     },
     {
       "name": "fx.fetch",
       "description": "Fetch European Central Bank reference rates for the currencies in use (or given): the latest day, or up to 90 days.",
-      "label": "Fetch rates",
-      "returns": "summary",
+      "destructive": false,
+      "module": "fx",
       "params": {
         "currencies": {
           "type": "string",
@@ -4173,78 +3536,63 @@
           "type": "number",
           "description": "1 (latest) to 90"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/fx/fetch"
       }
     },
     {
       "name": "fx.revalue",
       "description": "Restate foreign-currency bank, card and cash accounts at the rate on a date; the change is an unrealized exchange gain or loss.",
-      "label": "Revalue currencies",
-      "returns": "summary",
+      "destructive": false,
+      "module": "fx",
       "params": {
         "date": {
           "type": "string",
-          "description": "Revaluation date (YYYY-MM-DD; also today, yesterday, t-7)",
-          "required": true
+          "required": true,
+          "description": "Revaluation date (YYYY-MM-DD; also today, yesterday, t-7)"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/fx/revalue"
       }
     },
     {
       "name": "recurring.list",
       "description": "Recurring schedules with their next date.",
-      "label": "Recurring",
+      "destructive": false,
       "readOnly": true,
-      "returns": "list",
-      "params": {},
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/recurring/list"
-      }
+      "module": "recurring",
+      "params": {}
     },
     {
       "name": "recurring.create",
-      "description": "Repeat an entry, invoice or bill. Template for an entry: {\"kind\":\"expense\",\"from\":\"2000\",\"category\":\"6020\",\"amount\":\"20.00\",\"narration\":\"Hosting\"} or {\"narration\":\"..\",\"postings\":[{\"account\":\"..\",\"amount\":\"..\"}]}; for documents the docs.create fields. Not automatic: each one waits as proposed or draft unless auto.",
-      "label": "New schedule",
-      "returns": "record",
+      "description": "Repeat an entry, invoice or bill.",
+      "destructive": false,
+      "module": "recurring",
       "params": {
         "name": {
           "type": "string",
           "description": "Name"
         },
         "kind": {
-          "type": "string",
-          "description": "What repeats",
-          "enum": [
+          "type": "enum",
+          "values": [
             "transaction",
             "invoice",
             "bill"
-          ]
+          ],
+          "description": "What repeats"
         },
         "template": {
           "type": "string",
-          "description": "JSON template",
           "required": true,
-          "format": "json"
+          "format": "json",
+          "description": "JSON template"
         },
         "frequency": {
-          "type": "string",
-          "description": "How often",
-          "enum": [
+          "type": "enum",
+          "values": [
             "weekly",
             "monthly",
             "quarterly",
             "yearly"
-          ]
+          ],
+          "description": "How often"
         },
         "interval": {
           "type": "number",
@@ -4252,8 +3600,8 @@
         },
         "next_date": {
           "type": "string",
-          "description": "First date (YYYY-MM-DD; also today, yesterday, t-7)",
-          "required": true
+          "required": true,
+          "description": "First date (YYYY-MM-DD; also today, yesterday, t-7)"
         },
         "end_date": {
           "type": "string",
@@ -4263,24 +3611,19 @@
           "type": "boolean",
           "description": "Post or approve without review (the person only)"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/recurring/create"
       }
     },
     {
       "name": "recurring.update",
       "description": "Change, pause or resume a schedule.",
-      "label": "Edit schedule",
-      "returns": "record",
+      "destructive": false,
+      "module": "recurring",
       "params": {
         "schedule": {
           "type": "string",
-          "description": "Schedule id",
           "required": true,
-          "format": "ref:recurring"
+          "format": "ref:recurring",
+          "description": "Schedule id"
         },
         "name": {
           "type": "string",
@@ -4288,18 +3631,18 @@
         },
         "template": {
           "type": "string",
-          "description": "JSON template",
-          "format": "json"
+          "format": "json",
+          "description": "JSON template"
         },
         "frequency": {
-          "type": "string",
-          "description": "How often",
-          "enum": [
+          "type": "enum",
+          "values": [
             "weekly",
             "monthly",
             "quarterly",
             "yearly"
-          ]
+          ],
+          "description": "How often"
         },
         "interval": {
           "type": "number",
@@ -4321,270 +3664,213 @@
           "type": "boolean",
           "description": "Active"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/recurring/update"
       }
     },
     {
       "name": "recurring.delete",
       "description": "Delete a schedule (what it created stays).",
-      "label": "Delete schedule",
       "destructive": true,
-      "confirm": "Delete this schedule?",
-      "returns": "none",
+      "module": "recurring",
       "params": {
         "schedule": {
           "type": "string",
-          "description": "Schedule id",
           "required": true,
-          "format": "ref:recurring"
+          "format": "ref:recurring",
+          "description": "Schedule id"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/recurring/delete"
       }
     },
     {
       "name": "recurring.run",
       "description": "Create what is due now (or the next one of a schedule).",
-      "label": "Run schedules",
-      "returns": "summary",
+      "destructive": false,
+      "module": "recurring",
       "params": {
         "schedule": {
           "type": "string",
-          "description": "Only this schedule",
-          "format": "ref:recurring"
+          "format": "ref:recurring",
+          "description": "Only this schedule"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/recurring/run"
       }
     },
     {
       "name": "recurring.from",
       "description": "A schedule template from an existing entry or document.",
-      "label": "Template from",
+      "destructive": false,
       "readOnly": true,
-      "returns": "record",
+      "module": "recurring",
       "params": {
         "type": {
-          "type": "string",
-          "description": "From",
-          "enum": [
+          "type": "enum",
+          "values": [
             "transaction",
             "document"
-          ]
+          ],
+          "description": "From"
         },
         "id": {
           "type": "string",
-          "description": "Entry or document id",
-          "required": true
+          "required": true,
+          "description": "Entry or document id"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/recurring/from"
       }
     },
     {
       "name": "asks.create",
       "description": "Ask the AI agent a question about the books (it answers from reports and entries).",
-      "label": "Ask AI",
-      "returns": "record",
+      "destructive": false,
+      "module": "asks",
       "params": {
         "question": {
           "type": "string",
-          "description": "The question",
           "required": true,
-          "format": "multiline"
+          "format": "multiline",
+          "description": "The question"
         },
         "kind": {
-          "type": "string",
-          "description": "Kind",
-          "enum": [
+          "type": "enum",
+          "values": [
             "question",
             "explain",
             "review"
-          ]
+          ],
+          "description": "Kind"
         },
         "context": {
           "type": "string",
-          "description": "JSON of what it is about (default what is on screen)",
-          "format": "json"
+          "format": "json",
+          "description": "JSON of what it is about (default what is on screen)"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/asks/create"
       }
     },
     {
       "name": "asks.list",
       "description": "Questions to the AI agent, newest first, with answers.",
-      "label": "Questions",
+      "destructive": false,
       "readOnly": true,
-      "returns": "list",
+      "module": "asks",
       "params": {
         "status": {
-          "type": "string",
-          "description": "Status",
-          "enum": [
+          "type": "enum",
+          "values": [
             "waiting",
             "working",
             "done",
             "failed"
-          ]
+          ],
+          "description": "Status"
         },
         "limit": {
           "type": "number",
           "description": "At most this many"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/asks/list"
       }
     },
     {
       "name": "asks.get",
       "description": "One question with its context and answer.",
-      "label": "Question",
+      "destructive": false,
       "readOnly": true,
-      "returns": "record",
+      "module": "asks",
       "params": {
         "ask": {
           "type": "string",
-          "description": "Ask id",
           "required": true,
-          "format": "ref:asks"
+          "format": "ref:asks",
+          "description": "Ask id"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/asks/get"
       }
     },
     {
       "name": "asks.start",
       "description": "AI agent: take a waiting question.",
-      "label": "Take question",
-      "returns": "record",
+      "destructive": false,
+      "module": "asks",
       "params": {
         "ask": {
           "type": "string",
-          "description": "Ask id",
           "required": true,
-          "format": "ref:asks"
+          "format": "ref:asks",
+          "description": "Ask id"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/asks/start"
       }
     },
     {
       "name": "asks.answer",
       "description": "AI agent: answer in plain words with formatted amounts and links to what you used.",
-      "label": "Answer",
-      "returns": "record",
+      "destructive": false,
+      "module": "asks",
       "params": {
         "ask": {
           "type": "string",
-          "description": "Ask id",
           "required": true,
-          "format": "ref:asks"
+          "format": "ref:asks",
+          "description": "Ask id"
         },
         "answer": {
           "type": "string",
-          "description": "The answer",
           "required": true,
-          "format": "multiline"
+          "format": "multiline",
+          "description": "The answer"
         },
         "links": {
           "type": "string",
-          "description": "JSON [{\"type\":\"transaction|document|account|report\",\"id\":\"..\",\"label\":\"..\"}]",
-          "format": "json"
+          "format": "json",
+          "description": "JSON [{\"type\":\"transaction|document|account|report\",\"id\":\"..\",\"label\":\"..\"}]"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/asks/answer"
       }
     },
     {
       "name": "asks.fail",
       "description": "AI agent: give a question back with the reason.",
-      "label": "Cannot answer",
-      "returns": "record",
+      "destructive": false,
+      "module": "asks",
       "params": {
         "ask": {
           "type": "string",
-          "description": "Ask id",
           "required": true,
-          "format": "ref:asks"
+          "format": "ref:asks",
+          "description": "Ask id"
         },
         "reason": {
           "type": "string",
-          "description": "Why",
-          "required": true
+          "required": true,
+          "description": "Why"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/asks/fail"
       }
     },
     {
       "name": "asks.delete",
       "description": "Delete a question.",
-      "label": "Delete question",
-      "returns": "none",
+      "destructive": false,
+      "module": "asks",
       "params": {
         "ask": {
           "type": "string",
-          "description": "Ask id",
           "required": true,
-          "format": "ref:asks"
+          "format": "ref:asks",
+          "description": "Ask id"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/asks/delete"
       }
     },
     {
       "name": "activity.list",
       "description": "Every change by the person, the AI agent, rules, imports and schedules, newest first, with what changed and whether it can be undone.",
-      "label": "Activity",
+      "destructive": false,
       "readOnly": true,
-      "returns": "list",
+      "module": "activity",
       "params": {
         "actor": {
-          "type": "string",
-          "description": "Only by",
-          "enum": [
+          "type": "enum",
+          "values": [
             "user",
             "agent",
             "rule",
             "import",
             "recurring",
             "system"
-          ]
+          ],
+          "description": "Only by"
         },
         "run": {
           "type": "string",
@@ -4602,102 +3888,75 @@
           "type": "number",
           "description": "Skip this many"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/activity/list"
       }
     },
     {
       "name": "activity.undo",
-      "description": "Undo one change (by entry id) or the caller's latest. Refused inside a locked period or when something it touched changed again later.",
-      "label": "Undo",
-      "returns": "record",
+      "description": "Undo one change (by entry id) or the caller's latest.",
+      "destructive": false,
+      "module": "activity",
       "params": {
         "entry": {
           "type": "string",
-          "description": "Activity entry id",
-          "format": "ref:activity"
+          "format": "ref:activity",
+          "description": "Activity entry id"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/activity/undo"
       }
     },
     {
       "name": "activity.redo",
       "description": "Redo an undone change (by entry id) or the caller's latest undone change.",
-      "label": "Redo",
-      "returns": "record",
+      "destructive": false,
+      "module": "activity",
       "params": {
         "entry": {
           "type": "string",
-          "description": "Activity entry id",
-          "format": "ref:activity"
+          "format": "ref:activity",
+          "description": "Activity entry id"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/activity/redo"
       }
     },
     {
       "name": "activity.runs",
       "description": "The AI agent's runs, newest first: when, how many changes and what.",
-      "label": "AI agent runs",
+      "destructive": false,
       "readOnly": true,
-      "returns": "list",
+      "module": "activity",
       "params": {
         "limit": {
           "type": "number",
           "description": "At most this many"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/activity/runs"
       }
     },
     {
       "name": "activity.revert_run",
       "description": "Undo everything an AI agent run changed, newest first (changes touched again later are skipped and listed).",
-      "label": "Revert run",
       "destructive": true,
-      "confirm": "Undo everything this AI agent run changed?",
-      "returns": "summary",
+      "module": "activity",
       "params": {
         "run": {
           "type": "string",
-          "description": "Run id",
-          "required": true
+          "required": true,
+          "description": "Run id"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/activity/revert_run"
       }
     },
     {
       "name": "export.books",
       "description": "The books as Beancount, an hledger journal or CSV of every posting (file name, type and text).",
-      "label": "Export books",
+      "destructive": false,
       "readOnly": true,
-      "returns": "record",
+      "module": "export",
       "params": {
         "format": {
-          "type": "string",
-          "description": "Format",
-          "enum": [
+          "type": "enum",
+          "values": [
             "beancount",
             "hledger",
             "csv"
-          ]
+          ],
+          "description": "Format"
         },
         "from": {
           "type": "string",
@@ -4707,11 +3966,6 @@
           "type": "string",
           "description": "To (YYYY-MM-DD; also today, yesterday, t-7)"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/export/books"
       }
     }
   ]

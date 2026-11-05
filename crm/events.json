@@ -1,0 +1,59 @@
+{
+  "events": [
+    {
+      "type": "agent_asked",
+      "capability": "agent_asked",
+      "description": "Sends your AI agent what you ask in the CRM: questions about your people, companies and deals, and jobs (research someone, draft an email, fill the CRM from your email, prepare your day, explain a report)",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        }
+      },
+      "cooldownSeconds": 20
+    },
+    {
+      "type": "research_requested",
+      "capability": "research_requested",
+      "description": "Sends your AI agent the people and companies you asked it to research, so it fills in what is missing (title, company, location, LinkedIn, industry, size, description) with its sources",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        }
+      },
+      "cooldownSeconds": 30
+    },
+    {
+      "type": "interaction_logged",
+      "capability": "interaction_logged",
+      "description": "Sends your AI agent the meetings and calls you log with notes, so it proposes the deal updates they imply, adds follow-up tasks and drafts the follow-up email",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        }
+      },
+      "cooldownSeconds": 30
+    },
+    {
+      "type": "emails_queued",
+      "capability": "emails_queued",
+      "description": "Sends your AI agent the emails you sent from the CRM, so it sends them through your email account and logs them on the person",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        }
+      },
+      "cooldownSeconds": 20
+    }
+  ],
+  "conventions": {
+    "guide": "Every operation's parameters, and how to do each task the app queues, are in AGENT_APP.md in the app's directory."
+  }
+}

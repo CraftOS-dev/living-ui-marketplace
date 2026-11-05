@@ -1,0 +1,61 @@
+{
+  "events": [
+    {
+      "type": "menu_import_waiting",
+      "capability": "menu_import_waiting",
+      "description": "Asks your AI agent to read the menus and price lists you added and put their products up for your review (nothing is sold until you approve it)",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        }
+      },
+      "cooldownSeconds": 20
+    },
+    {
+      "type": "receipt_email_requested",
+      "capability": "receipt_email_requested",
+      "description": "Asks your AI agent to email a receipt to a customer from your email account",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "sale_id": {
+          "type": "string",
+          "required": true,
+          "description": "The sale whose receipt to send (its id)"
+        },
+        "email": {
+          "type": "string",
+          "required": true,
+          "description": "The customer's email address"
+        }
+      },
+      "cooldownSeconds": 10
+    },
+    {
+      "type": "day_closed",
+      "capability": "day_closed",
+      "description": "Asks your AI agent for a short brief on the day when a register is closed (sales, best sellers, cash differences, anything unusual)",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "shift_id": {
+          "type": "string",
+          "required": true,
+          "description": "The shift that was just closed"
+        }
+      },
+      "cooldownSeconds": 60
+    }
+  ],
+  "conventions": {
+    "guide": "Every operation's parameters, and how to do each task the app queues, are in AGENT_APP.md in the app's directory."
+  }
+}

@@ -1,42 +1,303 @@
 {
-  "id": "{{PROJECT_ID}}",
+  "id": "netsentry",
   "name": "NetSentry",
-  "description": "Digital security monitor: watches your attack surface, servers, network and cloud, explains what it finds, and lets a connected agent apply approved fixes that the app then verifies.",
-  "agentAppVersion": 2,
-  "createdAt": "{{CREATED_AT}}",
+  "agentAppVersion": "0.1.0",
+  "adapterVersion": "0.2.0",
+  "appVersion": "1.0.0",
   "authMode": "multi-user",
-  "port": "{{PORT}}",
-  "pbVersion": "0.39.7",
-  "kitVersion": "0.6.0",
-  "craftbotVersion": "",
-  "pipeline": {
-    "install": "npm install --ignore-scripts --prefix frontend",
-    "build": "npm run build --prefix frontend",
-    "start": "pocketbase serve --http=127.0.0.1:{{PORT}} --dir pb/pb_data --hooksDir pb/pb_hooks --migrationsDir pb/pb_migrations --publicDir pb/pb_public",
-    "health": "/api/health"
-  },
+  "modules": [
+    {
+      "name": "assets",
+      "summary": "rescan, retire, reactivate, delete, impact, timeline",
+      "entities": [
+        "assets",
+        "observations"
+      ]
+    },
+    {
+      "name": "findings",
+      "summary": "acknowledge, resolve, suppress, unsuppress, explain",
+      "entities": [
+        "findings",
+        "suppressions"
+      ]
+    },
+    {
+      "name": "posture",
+      "summary": "overview",
+      "entities": [
+        "intel"
+      ]
+    },
+    {
+      "name": "sources",
+      "summary": "run-now, set-enabled",
+      "entities": [
+        "sources"
+      ]
+    },
+    {
+      "name": "rules",
+      "summary": "configure",
+      "entities": [
+        "rules"
+      ]
+    },
+    {
+      "name": "members",
+      "summary": "set-role",
+      "entities": []
+    },
+    {
+      "name": "settings",
+      "summary": "update",
+      "entities": [
+        "settings"
+      ]
+    },
+    {
+      "name": "audit",
+      "summary": "verify-chain, export",
+      "entities": [
+        "audit_log"
+      ]
+    },
+    {
+      "name": "retention",
+      "summary": "prune",
+      "entities": []
+    },
+    {
+      "name": "incidents",
+      "summary": "untriaged, context, triage, request-triage, set-status…",
+      "entities": [
+        "users",
+        "incidents"
+      ]
+    },
+    {
+      "name": "notifiers",
+      "summary": "create, update, delete, test",
+      "entities": [
+        "notifiers"
+      ]
+    },
+    {
+      "name": "sensors",
+      "summary": "install-info, register, revoke, checkin, live, report…",
+      "entities": [
+        "sensors",
+        "signals",
+        "reports"
+      ]
+    },
+    {
+      "name": "baselines",
+      "summary": "accept-listeners",
+      "entities": [
+        "baselines"
+      ]
+    },
+    {
+      "name": "remediations",
+      "summary": "suggest, queue, request-plan, approve, reject, mark-manual…",
+      "entities": []
+    },
+    {
+      "name": "activity",
+      "summary": "stats",
+      "entities": []
+    },
+    {
+      "name": "agent",
+      "summary": "presence",
+      "entities": [
+        "agent_access"
+      ]
+    },
+    {
+      "name": "fixes",
+      "summary": "monitor-report",
+      "entities": []
+    },
+    {
+      "name": "detections",
+      "summary": "verdict",
+      "entities": [
+        "detections"
+      ]
+    },
+    {
+      "name": "catalogue",
+      "summary": "list",
+      "entities": []
+    },
+    {
+      "name": "apps",
+      "summary": "set-intent, update, evaluate-now, settings-save…",
+      "entities": [
+        "apps",
+        "intents"
+      ]
+    },
+    {
+      "name": "accounts",
+      "summary": "set-access, remove-access, review, reviews-due",
+      "entities": []
+    },
+    {
+      "name": "installs",
+      "summary": "templates, request, request-custom",
+      "entities": []
+    },
+    {
+      "name": "backups",
+      "summary": "run-now, test-now, restore, create-plan, new-link, delete-plan",
+      "entities": [
+        "backups_taken"
+      ]
+    },
+    {
+      "name": "updates",
+      "summary": "request, rollback, set-policy, check-now",
+      "entities": []
+    },
+    {
+      "name": "os",
+      "summary": "request",
+      "entities": [
+        "networks"
+      ]
+    },
+    {
+      "name": "windows",
+      "summary": "save, delete",
+      "entities": []
+    },
+    {
+      "name": "changes",
+      "summary": "request, confirm, list, prepare-fix, undo",
+      "entities": [
+        "changes"
+      ]
+    },
+    {
+      "name": "machines",
+      "summary": "watch",
+      "entities": []
+    },
+    {
+      "name": "logs",
+      "summary": "request, result",
+      "entities": []
+    },
+    {
+      "name": "home",
+      "summary": "overview",
+      "entities": []
+    },
+    {
+      "name": "help",
+      "summary": "ask, pending, withdraw, answer",
+      "entities": [
+        "help_requests"
+      ]
+    },
+    {
+      "name": "metrics",
+      "summary": "series",
+      "entities": [
+        "metrics"
+      ]
+    },
+    {
+      "name": "digest",
+      "summary": "preview, send-now",
+      "entities": []
+    },
+    {
+      "name": "files",
+      "summary": "stage-upload, save, new-folder, rename, delete, upload",
+      "entities": [
+        "file_transfers"
+      ]
+    },
+    {
+      "name": "server",
+      "summary": "read, read-result",
+      "entities": []
+    },
+    {
+      "name": "disk",
+      "summary": "cleanup",
+      "entities": []
+    },
+    {
+      "name": "processes",
+      "summary": "stop",
+      "entities": []
+    },
+    {
+      "name": "firewall",
+      "summary": "change",
+      "entities": []
+    },
+    {
+      "name": "keys",
+      "summary": "add, remove",
+      "entities": []
+    },
+    {
+      "name": "schedules",
+      "summary": "set, create, delete",
+      "entities": []
+    },
+    {
+      "name": "remote",
+      "summary": "tailscale-install",
+      "entities": []
+    },
+    {
+      "name": "commands",
+      "summary": "prepare",
+      "entities": []
+    },
+    {
+      "name": "terminal",
+      "summary": "open, input, resize, close, sessions, transcript",
+      "entities": [
+        "terminal_sessions",
+        "terminal_io"
+      ]
+    },
+    {
+      "name": "records",
+      "summary": "the app's other stored records",
+      "entities": [
+        "scan_runs",
+        "indicators",
+        "incident_notes",
+        "backup_plans",
+        "evaluations",
+        "app_intel",
+        "devices",
+        "app_access",
+        "access_reviews",
+        "join_tokens",
+        "image_intel",
+        "maintenance_windows",
+        "live_status"
+      ]
+    }
+  ],
+  "modificationLock": false,
   "capabilities": {
-    "external_hosts": [
-      "api.first.org",
-      "api.github.com",
-      "cloudflare-dns.com",
-      "feodotracker.abuse.ch",
-      "ghcr.io",
-      "hub.docker.com",
-      "urlhaus.abuse.ch",
-      "www.cisa.gov",
-      "www.spamhaus.org"
-    ],
-    "actions": [
-      "send_gmail"
-    ],
-    "triggers": [
-      "daily_digest",
-      "help_requested",
-      "plans_requested",
-      "remediation_approved",
-      "source_unhealthy",
-      "triage_queue_ready"
-    ]
+    "integrations": []
+  },
+  "pipeline": {
+    "install": "node pb-fetch.mjs && npm --prefix frontend install --ignore-scripts --no-audit --no-fund",
+    "build": "node pb-build.mjs",
+    "start": "node pb-serve.mjs",
+    "health": "/api/_a2app"
   }
 }
