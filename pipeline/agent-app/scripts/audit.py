@@ -21,8 +21,8 @@ if "manifest.json" not in names:
     fails.append("manifest.json is not at the ZIP root")
 else:
     m = json.loads(z.read("manifest.json"))
-    if m.get("livingUIVersion") != 2:
-        fails.append(f"livingUIVersion is {m.get('livingUIVersion')!r}, must be 2")
+    if m.get("agentAppVersion") != 2:
+        fails.append(f"agentAppVersion is {m.get('agentAppVersion')!r}, must be 2")
     for k in ("id", "name", "port", "authMode", "pipeline"):
         if k not in m:
             fails.append(f"manifest.json is missing {k}")

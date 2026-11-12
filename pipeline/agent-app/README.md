@@ -1,11 +1,11 @@
-# `pipeline/living-ui/` — Autonomous Living UI creation pipeline (V2)
+# `pipeline/agent-app/` — Autonomous Agent App creation pipeline (V2)
 
-This folder owns the process of turning a short, human-written requirement into a finished, reviewed **Living UI V2** app — with the human involved at exactly two points: **fill in and paste [NEW_APP_PROMPT.md](NEW_APP_PROMPT.md)**, and **test the app at one review gate**. One app at a time — there's no queue.
+This folder owns the process of turning a short, human-written requirement into a finished, reviewed **Agent App V2** app — with the human involved at exactly two points: **fill in and paste [NEW_APP_PROMPT.md](NEW_APP_PROMPT.md)**, and **test the app at one review gate**. One app at a time — there's no queue.
 
 The work is split across **two runners**:
 
 - The **research runner** — **CraftBot** (the agent app, a cheaper model). It starts the request, researches the product category with parallel subagents, writes the requirements spec (`SPEC.md`), captures UX references from state-of-the-art products, writes the layout spec (`DESIGN_SPEC.md`), and then hands off by launching the creation runner. It reads **only** [RESEARCH_PIPELINE.md](RESEARCH_PIPELINE.md), which is fully self-contained.
-- The **creation runner** — a **Claude Code session**. It validates the handoff bundle, scaffolds a V2 project with `lui create`, builds it per [living-ui-v2/docs/agent-guide.md](../../../../living-ui-v2/docs/agent-guide.md), self-QAs against hard gates, iterates on human feedback, and packages the importable ZIP the human receives.
+- The **creation runner** — a **Claude Code session**. It validates the handoff bundle, scaffolds a V2 project with `lui create`, builds it per [agent-app-v2/docs/agent-guide.md](../../../../agent-app-v2/docs/agent-guide.md), self-QAs against hard gates, iterates on human feedback, and packages the importable ZIP the human receives.
 
 The handoff is automatic: the research runner's last stage launches `claude -p --model claude-sonnet-5` headless with the Creation kickoff prompt (§5). The whole path from kickoff to `AWAITING_HUMAN_REVIEW` runs unattended.
 
@@ -21,7 +21,7 @@ The handoff is automatic: the research runner's last stage launches `claude -p -
 | [CREATION_PIPELINE.md](CREATION_PIPELINE.md) | The creation SOP (stages C1–C8): claim handed-off run → validate bundle → scaffold → build → QA → review → package | Creation runner, mode CREATE |
 | [QA_GATES.md](QA_GATES.md) | The automated gate list G1–G7 (G7 = package the importable ZIP), fix–retest impact matrix, QA report template | Creation runner, from stage C5 and improvement stage I5 |
 | [IMPROVEMENT_PIPELINE.md](IMPROVEMENT_PIPELINE.md) | Human-feedback iteration loop (stages I1–I6) | Creation runner, mode IMPROVE, or when a review reply lists issues |
-| [living-ui-v2/docs/agent-guide.md](../../../../living-ui-v2/docs/agent-guide.md) | The V2 build workflow: ownership, build loop, migrations, operations, kit usage. **Not part of this pipeline's docs — it is the ground truth the pipeline drives.** | Creation runner, from stage C3 |
+| [agent-app-v2/docs/agent-guide.md](../../../../agent-app-v2/docs/agent-guide.md) | The V2 build workflow: ownership, build loop, migrations, operations, kit usage. **Not part of this pipeline's docs — it is the ground truth the pipeline drives.** | Creation runner, from stage C3 |
 
 `PIPELINE_OVERVIEW.drawio` is the visual companion (page 1 = whole pipeline, page 2 = QA loop). It documents; the markdown governs.
 `scripts/package.py` and `scripts/audit.py` are the two mechanical gate scripts G7 runs (§7 of QA_GATES).
@@ -33,12 +33,12 @@ The handoff is automatic: the research runner's last stage launches `claude -p -
 1. **Read [LESSONS.md](LESSONS.md) before doing anything else, every run.** Lessons are corrections paid for by past failures; skipping them re-buys the same failures. (Research-runner equivalent: RESEARCH_PIPELINE §2 Standing corrections, which C8 keeps in sync.)
 2. **The run's `ITERATION_LOG.md` is the only state store.** Its last logged status line is the run's current status — there is no separate request/queue file to keep in sync. A run whose log doesn't match reality is a process bug — stop and fix it before continuing.
 3. **One request in flight, ever. Resume before you start something new — within the states your pipeline owns.** The research runner owns everything up to entry into `HANDOFF`; the creation runner owns exit from `HANDOFF` → `DONE` (state table in §3.1 has the Owner column). Neither runner ever advances a run sitting in the other pipeline's states. Before doing anything else, scan `runs/` for a folder whose ITERATION_LOG hasn't reached a terminal status (`DONE`/`FAILED`) — if one exists, resume it (see §8) instead of starting new work.
-4. **Never edit the V2 platform.** `living-ui-v2/` (kit, blueprint, tools, `spec/`, `docs/agent-guide.md`), the `skills/living-ui-*` skills, and `GLOBAL_LIVING_UI.md` are read-only ground truth. If a run reveals they should change, record a `PROPOSAL:` line in LESSONS.md and continue. The pipeline improves itself through LESSONS.md, not by mutating its ground truth. (One sanctioned exception: `npm install --no-save playwright` inside `living-ui-v2/` — it writes only to the gitignored `node_modules/`, see §1.)
-5. **Ownership inside the app is enforced by a hash gate, not by good intentions.** You edit only `frontend/src/app/`, `pb/pb_migrations/`, `pb/pb_hooks/ops.pb.js` (+ new `*.pb.js`), `operations.json` (non-`system` entries), `LIVING_UI.md`, and `reference/`. Everything else — `frontend/src/kit/`, `main.tsx`, `config.gen.ts`, `app.css`, `index.html`, `vite.config.ts`, `tsconfig.json`, `pb/pb_hooks/_system.pb.js`, `_craftbot_bridge.js`, `manifest.json` — is hashed at scaffold time and **fails `lui validate` if touched**. Need different behavior from a kit component? Wrap it in `app/`.
+4. **Never edit the V2 platform.** `agent-app-v2/` (kit, blueprint, tools, `spec/`, `docs/agent-guide.md`), the `skills/agent-app-*` skills, and `GLOBAL_AGENT_APP.md` are read-only ground truth. If a run reveals they should change, record a `PROPOSAL:` line in LESSONS.md and continue. The pipeline improves itself through LESSONS.md, not by mutating its ground truth. (One sanctioned exception: `npm install --no-save playwright` inside `agent-app-v2/` — it writes only to the gitignored `node_modules/`, see §1.)
+5. **Ownership inside the app is enforced by a hash gate, not by good intentions.** You edit only `frontend/src/app/`, `pb/pb_migrations/`, `pb/pb_hooks/ops.pb.js` (+ new `*.pb.js`), `operations.json` (non-`system` entries), `AGENT_APP.md`, and `reference/`. Everything else — `frontend/src/kit/`, `main.tsx`, `config.gen.ts`, `app.css`, `index.html`, `vite.config.ts`, `tsconfig.json`, `pb/pb_hooks/_system.pb.js`, `_craftbot_bridge.js`, `manifest.json` — is hashed at scaffold time and **fails `lui validate` if touched**. Need different behavior from a kit component? Wrap it in `app/`.
 6. **Human contact happens only at the review gate (C6/I6) and BLOCKED escalations.** Everywhere the guide says "ask the user", the pipeline means: consult `SPEC.md` (§9 first) / `DESIGN_SPEC.md`; if silent, apply a Safe Assumption (RESEARCH_PIPELINE §5.6) and log it in the assumptions register and ITERATION_LOG.
-7. **Visual identity is CraftBot's, always.** Reference products inform *structure and behavior* (layout, navigation, interactions). Colors, fonts, spacing, and radii come exclusively from the kit's design tokens (`var(--lui-*)`) plus the palette and enabled rules in [GLOBAL_LIVING_UI.md](../../../GLOBAL_LIVING_UI.md). Never hardcode a color — theming is host-owned and must keep working when the host switches style packs or dark mode. (GLOBAL_LIVING_UI.md still names some V1 mechanisms — react-toastify, `global.css`. Take its *palette and enabled rules* as binding; the kit owns the *mechanism*: `toast` from `../kit/index.ts`, Tailwind utilities, `var(--lui-*)` tokens.)
+7. **Visual identity is CraftBot's, always.** Reference products inform *structure and behavior* (layout, navigation, interactions). Colors, fonts, spacing, and radii come exclusively from the kit's design tokens (`var(--lui-*)`) plus the palette and enabled rules in [GLOBAL_AGENT_APP.md](../../../GLOBAL_AGENT_APP.md). Never hardcode a color — theming is host-owned and must keep working when the host switches style packs or dark mode. (GLOBAL_AGENT_APP.md still names some V1 mechanisms — react-toastify, `global.css`. Take its *palette and enabled rules* as binding; the kit owns the *mechanism*: `toast` from `../kit/index.ts`, Tailwind utilities, `var(--lui-*)` tokens.)
 8. **Never weaken a gate to pass it.** No deleting failing checks, no lowering thresholds, no skipping viewports — and no re-characterizing a red result as passing or non-blocking without quoting the command output that proves it. Fix the app, or go BLOCKED with the failure documented.
-9. **All run artifacts live under `runs/<run_id>/`, including the app itself.** Nothing in the repo root, nothing in system temp dirs, nothing in `living-ui-v2/examples/`. A fresh session must be able to find everything a dead session left behind.
+9. **All run artifacts live under `runs/<run_id>/`, including the app itself.** Nothing in the repo root, nothing in system temp dirs, nothing in `agent-app-v2/examples/`. A fresh session must be able to find everything a dead session left behind.
 10. **The human only ever receives an importable ZIP.** They test by importing it into CraftBot — so QA gate **G7 (package + audit)** must pass before *every* review handoff (C6 and each I6 round), not just at the end. This rule's V1 ancestor existed because a run once handed over a folder with `node_modules/` that the import choked on; the shape changed, the failure mode didn't.
 11. **Respect the token budget (§9).**
 12. **Every logged timestamp comes from an actual clock check, and every file-writing script uses an absolute output path.** Don't type a plausible-looking `ITERATION_LOG` timestamp from memory — run the actual clock check immediately before writing the line, every time; a run has shipped log entries dated *after* the real current time this way. Don't rely on the shell's current working directory for a script's output path either — it persists across tool calls within a session, so an unrelated earlier `cd` can silently redirect a later relative-path write into the wrong folder (this has misplaced reference screenshots twice, for two different root causes). Always pass absolute paths to anything that writes a file.
@@ -47,7 +47,7 @@ The handoff is automatic: the research runner's last stage launches `claude -p -
 
 ## 1. The platform, in one screen
 
-Everything the pipeline builds is a **Living UI V2** project. Internalize this before writing or reviewing anything — the whole V1 vocabulary (FastAPI, SQLAlchemy, two ports, `_template/`, placeholders) is gone.
+Everything the pipeline builds is a **Agent App V2** project. Internalize this before writing or reviewing anything — the whole V1 vocabulary (FastAPI, SQLAlchemy, two ports, `_template/`, placeholders) is gone.
 
 - **One process.** PocketBase serves the API, the database, auth, realtime, custom verbs, *and* the built frontend from `pb/pb_public`. There is no separate backend/frontend port in production. `lui dev` additionally runs Vite on `port + 1`, for HMR during development only.
 - **Schema** = JavaScript migrations in `pb/pb_migrations/`, one new file per change, never edit an applied one. Collection **rules** are the security boundary and must match `manifest.json`'s `authMode` (`''` open for `none`; `@request.auth.id != ""`, or owner-scoped `owner = @request.auth.id` against a `relation` to `users`, for `multi-user`). Relation fields need the **target collection's id**: `app.findCollectionByNameOrId('words').id`, never its name.
@@ -63,33 +63,33 @@ Resolve these once at run start and use them everywhere:
 | Name | Value |
 |---|---|
 | `CRAFTBOT_ROOT` | the CraftBot repo (`d:\tempCraftBot\CraftBot` on this machine) |
-| `LUI_ROOT` | `<CRAFTBOT_ROOT>/living-ui-v2` — the V2 workspace (kit, blueprint, tools, docs) |
-| `LUI` | `node <CRAFTBOT_ROOT>/living-ui-v2/tools/src/cli.ts` — the CLI, invoked **from `CRAFTBOT_ROOT`** |
-| `RUN` | `agent_file_system/workspace/pipeline/living-ui/runs/<run_id>` |
+| `LUI_ROOT` | `<CRAFTBOT_ROOT>/agent-app-v2` — the V2 workspace (kit, blueprint, tools, docs) |
+| `LUI` | `node <CRAFTBOT_ROOT>/agent-app-v2/tools/src/cli.ts` — the CLI, invoked **from `CRAFTBOT_ROOT`** |
+| `RUN` | `agent_file_system/workspace/pipeline/agent-app/runs/<run_id>` |
 | `APP` | `<RUN>/app` — the project being built |
 
-> Run every `lui` command with the working directory at `CRAFTBOT_ROOT` and pass repo-relative paths. Shell tools keep their working directory between calls — a stray `cd` into the app folder makes `node living-ui-v2/tools/src/cli.ts` resolve against the wrong root and fail with `Cannot find module`.
+> Run every `lui` command with the working directory at `CRAFTBOT_ROOT` and pass repo-relative paths. Shell tools keep their working directory between calls — a stray `cd` into the app folder makes `node agent-app-v2/tools/src/cli.ts` resolve against the wrong root and fail with `Cannot find module`.
 
 **Machine prerequisites** (human-owned; verified working on this machine):
 
 ```sh
 node --version                 # must be >= 24 (V2 tooling runs TypeScript directly)
-node living-ui-v2/tools/src/cli.ts help
-node living-ui-v2/tools/src/cli.ts pb path      # downloads+caches the pinned PocketBase on first use
+node agent-app-v2/tools/src/cli.ts help
+node agent-app-v2/tools/src/cli.ts pb path      # downloads+caches the pinned PocketBase on first use
 where claude                                     # standalone Claude Code CLI, for the R8 headless handoff
 ```
 
-**Playwright** — `lui verify` and `lui probe` `import('playwright')` from the V2 workspace. If it isn't installed there they exit **2 with `{"status":"skipped"}`**, which is *not* a pass. One-time fix (writes only to the gitignored `living-ui-v2/node_modules/`, leaves `package.json` untouched):
+**Playwright** — `lui verify` and `lui probe` `import('playwright')` from the V2 workspace. If it isn't installed there they exit **2 with `{"status":"skipped"}`**, which is *not* a pass. One-time fix (writes only to the gitignored `agent-app-v2/node_modules/`, leaves `package.json` untouched):
 
 ```sh
-cd living-ui-v2 && npm install --no-save --no-audit --no-fund playwright && cd ..
+cd agent-app-v2 && npm install --no-save --no-audit --no-fund playwright && cd ..
 ```
 
 Browser binaries live in `%LOCALAPPDATA%\ms-playwright` and are already cached on this machine; if they aren't, `npx playwright install chromium`.
 
 If the `claude` CLI is missing the research runner can't hand off — RESEARCH_PIPELINE stage R1 gates on it so a broken handoff fails at minute 1, not at hour 6. The VS Code extension's bundled binary does **not** count: it isn't on PATH and its path breaks on every extension update.
 
-**Authoritative copy:** this folder (`<CRAFTBOT_ROOT>/agent_file_system/workspace/pipeline/living-ui/`) is the **sole authoritative** pipeline tree. `living-ui-marketplace/` — including its stale `pipeline/living-ui/` copy — is legacy V1 and out of scope; never read pipeline docs from there.
+**Authoritative copy:** this folder (`<CRAFTBOT_ROOT>/agent_file_system/workspace/pipeline/agent-app/`) is the **sole authoritative** pipeline tree. `agent-app-marketplace/` — including its stale `pipeline/agent-app/` copy — is legacy V1 and out of scope; never read pipeline docs from there.
 
 ---
 
@@ -150,7 +150,7 @@ Every state above is a value that gets **logged in `ITERATION_LOG.md`**, not wri
 
 ## 4. Run artifacts
 
-Each run gets `pipeline/living-ui/runs/<run_id>/` (git-ignored — the durable record is the deliverable ZIP plus LESSONS.md):
+Each run gets `pipeline/agent-app/runs/<run_id>/` (git-ignored — the durable record is the deliverable ZIP plus LESSONS.md):
 
 ```
 runs/<slug>-<YYYYMMDD>/
@@ -179,7 +179,7 @@ runs/<slug>-<YYYYMMDD>/
 **Timestamp is `YYYY-MM-DD HH:MM` — date-only lines are non-compliant.** The human isn't watching the CLI's own output live, so the log's time-of-day is the only way to tell a run is progressing versus stalled. (One run logged 8 of its 10 lines date-only — undetectable from the log alone whether BUILDING took 10 minutes or 2 hours.) Mechanical check, run before C6 and again before final DONE — must return 0:
 
 ```
-run_shell: { "command": "(Get-Content 'agent_file_system/workspace/pipeline/living-ui/runs/<run_id>/ITERATION_LOG.md' | Select-String -Pattern '^\d{4}-\d{2}-\d{2} \|').Count", "shell": "powershell", "cwd": "d:\\tempCraftBot\\CraftBot" }
+run_shell: { "command": "(Get-Content 'agent_file_system/workspace/pipeline/agent-app/runs/<run_id>/ITERATION_LOG.md' | Select-String -Pattern '^\d{4}-\d{2}-\d{2} \|').Count", "shell": "powershell", "cwd": "d:\\tempCraftBot\\CraftBot" }
 ```
 
 Any non-zero count → you can't fix past entries, but log the current line correctly and don't let it recur.
@@ -201,8 +201,8 @@ The prompt that **starts** a run lives entirely in [NEW_APP_PROMPT.md](NEW_APP_P
 **Creation (auto-launched by the research stage's handoff step with `--model claude-sonnet-5`; paste the same words into a Claude Code session if a run is stuck in `HANDOFF`):** if pasting manually, set that session to Sonnet 5 first (`/model sonnet`) — a manually-pasted prompt has no `--model` flag to pin it.
 
 ```
-You are the Living UI CREATION pipeline runner.
-Read agent_file_system/workspace/pipeline/living-ui/README.md and
+You are the Agent App CREATION pipeline runner.
+Read agent_file_system/workspace/pipeline/agent-app/README.md and
 CREATION_PIPELINE.md in the CraftBot repo and follow them exactly.
 Mode: CREATE — resume any in-flight creation run first; otherwise find the run
 under runs/ whose ITERATION_LOG last status is HANDOFF, validate the handoff
@@ -213,8 +213,8 @@ HANDOFF, report that and stop.
 **Feedback / approval (IMPROVE, paste into a Claude Code session):**
 
 ```
-You are the Living UI CREATION pipeline runner.
-Read agent_file_system/workspace/pipeline/living-ui/README.md in the CraftBot
+You are the Agent App CREATION pipeline runner.
+Read agent_file_system/workspace/pipeline/agent-app/README.md in the CraftBot
 repo and follow it exactly.
 Mode: IMPROVE <slug>
 My feedback on the current build:
@@ -291,9 +291,9 @@ The kickoff prompt sets the mode on its `Mode:` line.
 - [ ] This README and [LESSONS.md](LESSONS.md) read in full this session.
 - [ ] Model is Sonnet 5 (`--model claude-sonnet-5` if launched via `claude -p`; `/model sonnet` if this is a manually-pasted fallback session). The creation pipeline's judgment calls — spec repair, adversarial QA, BLOCKED escalations — assume a strong model.
 - [ ] `CRAFTBOT_ROOT` / `LUI_ROOT` resolved; working directory is `CRAFTBOT_ROOT`.
-- [ ] `node --version` ≥ 24; `node living-ui-v2/tools/src/cli.ts help` prints the command list.
-- [ ] `node living-ui-v2/tools/src/cli.ts pb path` prints a real path (first call may download PocketBase).
-- [ ] Playwright resolvable from `living-ui-v2/` (§2) — otherwise G3/G5 can only skip, which is not a pass.
+- [ ] `node --version` ≥ 24; `node agent-app-v2/tools/src/cli.ts help` prints the command list.
+- [ ] `node agent-app-v2/tools/src/cli.ts pb path` prints a real path (first call may download PocketBase).
+- [ ] Playwright resolvable from `agent-app-v2/` (§2) — otherwise G3/G5 can only skip, which is not a pass.
 - [ ] Mode determined from the kickoff prompt.
 - [ ] Scan of `runs/*/ITERATION_LOG.md` done (§8) over **creation-owned states only** before claiming the handed-off run.
 - [ ] On claim: ITERATION_LOG `CLAIMED (creation)` line written (status flips at C2, not C1).
@@ -314,7 +314,7 @@ The kickoff prompt sets the mode on its `Mode:` line.
 
 **Mid-run requirement changes** — if the human sends new/changed requirements while a run is in flight (in chat — there's no request file to edit): treat it as feedback, log it, and fold it in at the next natural boundary (before C4 → into SPEC and `reference/requirements.md`; after C4 → as an improvement-round issue).
 
-**Guide/pipeline contradiction** — if these docs and [agent-guide.md](../../../../living-ui-v2/docs/agent-guide.md) genuinely conflict: the guide wins for build mechanics, this pipeline wins for process/state; record the conflict as a `PROPOSAL:` in LESSONS.md.
+**Guide/pipeline contradiction** — if these docs and [agent-guide.md](../../../../agent-app-v2/docs/agent-guide.md) genuinely conflict: the guide wins for build mechanics, this pipeline wins for process/state; record the conflict as a `PROPOSAL:` in LESSONS.md.
 
 **A research run that claims completion isn't necessarily one.** A run (`pokedex-web-app-20260803`) once declared "FULLY COMPLETED, ALL GATES PASSED" in a self-authored summary file while `ITERATION_LOG.md` held exactly one line and none of RESEARCH_PIPELINE.md's required `SPEC.md`/`DESIGN_SPEC.md`/lane files existed. Before trusting a "research complete" message: check `ITERATION_LOG.md` actually reached `HANDOFF`, and check the files that exist match RESEARCH_PIPELINE.md's named set (§0.2 of that doc) — not a plausible-sounding but different set of documents. If either check fails, the handoff didn't happen regardless of what the message says; treat it like any stuck `HANDOFF` (§5) and re-kick or resume manually.
 
