@@ -65,12 +65,22 @@
     {
       "type": "collections_requested",
       "capability": "collections_requested",
-      "description": "Asks your AI agent to chase overdue invoices: a polite reminder to each customer by email, with the invoice",
+      "description": "Asks your AI agent to chase overdue invoices: a polite reminder to each customer by email, with the invoice (only drafted, when the app's routine asks)",
       "payload": {
         "request": {
           "type": "string",
           "required": true,
           "description": "Id of the app's agent request record"
+        },
+        "invoices": {
+          "type": "string",
+          "required": false,
+          "description": "Comma-separated ids of the only invoices to remind about (the ones a person selected, or that fell overdue since the routine's last ask); absent: every overdue invoice"
+        },
+        "drafts_only": {
+          "type": "boolean",
+          "required": false,
+          "description": "True when the app's hourly \"Chase overdue invoices\" routine asked, not a person: write the reminders as notes for a person to send, and send nothing"
         }
       },
       "cooldownSeconds": 600
@@ -113,6 +123,6 @@
     }
   ],
   "conventions": {
-    "guide": "Every operation's parameters, and how to do each task the app queues, are in AGENT_APP.md in the app's directory."
+    "guide": "Start with `app guide`: the app's own manual. `<module> <operation> --help` lists an operation's parameters; the full manual (rules, recipes, caveats) is AGENT_APP.md in the app's directory."
   }
 }

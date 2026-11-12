@@ -155,25 +155,61 @@ async function pbGet(collection: string, id: string, query = ''): Promise<PbReco
   } catch { return null }
 }
 
+// Why the last pbCreate/pbPatch was refused, in words the screens can show, so
+// a failed save answers an error (and a toast) instead of passing silently.
+let lastWriteError = ''
+
+const FIELD_LABELS: Record<string, string> = {
+  sender_name: 'From name',
+  sender_email: 'From email',
+  reply_to: 'Reply-to',
+  organization_name: 'Organization name',
+  organization_address: 'Mailing address',
+}
+
+async function writeError(res: Response): Promise<string> {
+  try {
+    const body = (await res.json()) as {
+      message?: string
+      data?: Record<string, { code?: string; message?: string }>
+    }
+    const first = Object.entries(body.data ?? {})[0]
+    if (first) {
+      const [field, err] = first
+      if (err.code === 'validation_json_size_limit') {
+        return 'This email is too large to save. Uploaded images are stored inside it: use smaller images or image URLs.'
+      }
+      return `${FIELD_LABELS[field] ?? field}: ${err.message ?? 'invalid value'}`
+    }
+    return body.message || `${res.status} ${res.statusText}`
+  } catch { return `${res.status} ${res.statusText}` }
+}
+
 async function pbCreate(collection: string, data: Dict): Promise<PbRecord | null> {
+  lastWriteError = ''
   try {
     const res = await originalFetch(`/api/collections/${collection}/records`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     })
-    return res.ok ? ((await res.json()) as PbRecord) : null
+    if (res.ok) return (await res.json()) as PbRecord
+    lastWriteError = await writeError(res)
+    return null
   } catch { return null }
 }
 
 async function pbPatch(collection: string, id: string, data: Dict): Promise<PbRecord | null> {
+  lastWriteError = ''
   try {
     const res = await originalFetch(`/api/collections/${collection}/records/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     })
-    return res.ok ? ((await res.json()) as PbRecord) : null
+    if (res.ok) return (await res.json()) as PbRecord
+    lastWriteError = await writeError(res)
+    return null
   } catch { return null }
 }
 
@@ -590,7 +626,7 @@ async function handleTemplateCreate(init?: RequestInit): Promise<Response> {
     blocks: Array.isArray(body.blocks) ? body.blocks : [],
     body: JSON.stringify(sidecar),
   })
-  if (!created) return json({ detail: 'failed to create template' }, 500)
+  if (!created) return json({ detail: lastWriteError || 'failed to create template' }, 500)
   return json(toTemplate(created))
 }
 
@@ -612,7 +648,8 @@ async function handleTemplateUpdate(id: string, init?: RequestInit): Promise<Res
   if (body.subject !== undefined) patch.subject = str(body.subject)
   if (body.blocks !== undefined) patch.blocks = Array.isArray(body.blocks) ? body.blocks : []
   const updated = await pbPatch('templates', id, patch)
-  return json(toTemplate(updated ?? rec))
+  if (!updated) return json({ detail: lastWriteError || 'Template could not be saved' }, 400)
+  return json(toTemplate(updated))
 }
 
 async function handleTemplateDelete(id: string): Promise<Response> {
@@ -652,7 +689,11 @@ async function handleCampaignCreate(init?: RequestInit): Promise<Response> {
       }
       // bump usageCount
       const bumped = buildTemplateSidecar(tplSidecar, { usageCount: (tplSidecar ? num(tplSidecar.usageCount) : 0) + 1 })
-      await pbPatch('templates', templateId, { body: JSON.stringify(bumped) })
+      const tplPatch: Dict = { body: JSON.stringify(bumped) }
+      // A template still in its plain-text form (the seeded one) has its text in
+      // `body`; the sidecar replaces that, so keep the text as its block.
+      if (!tplSidecar && blocksOf(tpl).length === 0) tplPatch.blocks = effectiveBlocks(tpl, tplSidecar)
+      await pbPatch('templates', templateId, tplPatch)
     }
   }
 
@@ -677,7 +718,7 @@ async function handleCampaignCreate(init?: RequestInit): Promise<Response> {
     delivered_count: 0,
     deliver: false,
   })
-  if (!created) return json({ detail: 'failed to create campaign' }, 500)
+  if (!created) return json({ detail: lastWriteError || 'failed to create campaign' }, 500)
   return json(toCampaignDetail(created))
 }
 
@@ -701,7 +742,8 @@ async function handleCampaignUpdate(id: string, init?: RequestInit): Promise<Res
     if (s === 'sent' || s === 'draft') patch.status = s
   }
   const updated = await pbPatch('campaigns', id, patch)
-  return json(toCampaignDetail(updated ?? rec))
+  if (!updated) return json({ detail: lastWriteError || 'Campaign could not be saved' }, 400)
+  return json(toCampaignDetail(updated))
 }
 
 async function handleCampaignDelete(id: string): Promise<Response> {
@@ -812,15 +854,16 @@ async function handleCampaignPreview(id: string): Promise<Response> {
     email: esc(sample ? str(sample.email) : 'preview@example.com'),
     unsubscribeUrl: '#preview-unsubscribe',
   }
-  const identity = (await pbList('settings', 'perPage=1'))[0]
+  // The Settings footer (organization name and mailing address).
+  const identity = (await pbList('settings', 'perPage=1&sort=updated'))[0]
   const rendered = renderEmail({
     subject: subject || name,
     preheader,
     blocks,
     context,
     design,
-    organizationName: '',
-    organizationAddress: '',
+    organizationName: str(identity?.organization_name),
+    organizationAddress: str(identity?.organization_address),
   })
   return json({ status: 'ok', subject: subject || name, preheader, html: rendered.html, text: rendered.text })
 }
@@ -834,11 +877,11 @@ function stubEmail(prompt: string, tone: string): Dict {
   const short = (base || 'your latest update').slice(0, 60)
   return {
     subject: `${short.slice(0, 60)} — a quick note`,
-    preheader: 'Configure the CraftBot LLM provider to get AI-generated copy.',
+    preheader: 'Connect an AI agent to this app to get AI-written copy.',
     blocks: [
       { type: 'heading', text: short.slice(0, 80), level: 1 },
       { type: 'text', text: `Hi {firstName}, here's a draft about ${short.slice(0, 120)}.` },
-      { type: 'text', text: `This is a stub draft. Connect a Claude, OpenAI, or other LLM provider in CraftBot's settings to get real AI generation in a ${tone.toLowerCase()} tone.` },
+      { type: 'text', text: `This is a starter draft. Connect an AI agent to this app (CraftBot, or any agent harness running the app's bridge) to get real AI drafts in a ${tone.toLowerCase()} tone.` },
       { type: 'button', label: 'Read more', url: 'https://example.com' },
       { type: 'text', text: 'Thanks for reading.\n— The team' },
     ],
@@ -877,21 +920,8 @@ async function handleGenerate(init?: RequestInit): Promise<Response> {
 // Sender identity / integrations / settings
 // ===========================================================================
 
-// In-memory overlay for identity fields the V2 `settings` collection has no
-// column for, so the Settings form round-trips within a session.
-let identityOverlay: Dict = {}
-let subscribeKey = ''
-
-function randomKey(n = 20): string {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
-  let out = ''
-  for (let i = 0; i < n; i++) out += chars.charAt(Math.floor(Math.random() * chars.length))
-  return out
-}
-
 async function getSettingsRecord(): Promise<PbRecord | null> {
-  // `settings` declares only sender_name, sender_email and `updated`
-  // (1700000000_init_newsletter.js) — it has NO `created` field, so
+  // `settings` has no `created` field (1700000000_init_newsletter.js), so
   // sort=created made PocketBase answer 400 on every first load. It is a
   // singleton read with perPage=1, so sort by the field that exists.
   const rows = await pbList('settings', 'perPage=1&sort=updated')
@@ -900,16 +930,13 @@ async function getSettingsRecord(): Promise<PbRecord | null> {
 }
 
 function toIdentity(rec: PbRecord | null): Dict {
-  if (!subscribeKey) subscribeKey = randomKey(20)
   return {
     id: rec ? str(rec.id) : '1',
     fromName: str(rec?.sender_name),
     fromEmail: str(rec?.sender_email),
-    replyTo: str(identityOverlay.replyTo),
-    organizationName: str(identityOverlay.organizationName),
-    organizationAddress: str(identityOverlay.organizationAddress),
-    trackingBaseUrl: str(identityOverlay.trackingBaseUrl),
-    subscribeKey,
+    replyTo: str(rec?.reply_to),
+    organizationName: str(rec?.organization_name),
+    organizationAddress: str(rec?.organization_address),
     updatedAt: rec ? (toIso(rec.updated) ?? null) : null,
   }
 }
@@ -921,29 +948,24 @@ async function handleSenderIdentityGet(): Promise<Response> {
 async function handleSenderIdentityUpdate(init?: RequestInit): Promise<Response> {
   const body = readBody(init)
   const rec = await getSettingsRecord()
+  if (!rec) return json({ detail: lastWriteError || 'Settings could not be saved' }, 400)
   const patch: Dict = {}
   if (body.from_name !== undefined) patch.sender_name = str(body.from_name).trim()
   if (body.from_email !== undefined) patch.sender_email = str(body.from_email).trim()
-  // Non-persisted fields kept in the session overlay.
-  if (body.reply_to !== undefined) identityOverlay.replyTo = str(body.reply_to).trim()
-  if (body.organization_name !== undefined) identityOverlay.organizationName = str(body.organization_name).trim()
-  if (body.organization_address !== undefined) identityOverlay.organizationAddress = str(body.organization_address).trim()
-  if (body.tracking_base_url !== undefined) identityOverlay.trackingBaseUrl = str(body.tracking_base_url).trim().replace(/\/+$/, '')
-  const updated = (rec && Object.keys(patch).length > 0) ? await pbPatch('settings', str(rec.id), patch) : rec
-  return json(toIdentity(updated ?? rec))
-}
-
-async function handleRotateSubscribeKey(): Promise<Response> {
-  subscribeKey = randomKey(20)
-  return json(toIdentity(await getSettingsRecord()))
+  if (body.reply_to !== undefined) patch.reply_to = str(body.reply_to).trim()
+  if (body.organization_name !== undefined) patch.organization_name = str(body.organization_name).trim()
+  if (body.organization_address !== undefined) patch.organization_address = str(body.organization_address).trim()
+  const updated = Object.keys(patch).length > 0 ? await pbPatch('settings', str(rec.id), patch) : rec
+  if (!updated) return json({ detail: lastWriteError || 'Settings could not be saved' }, 400)
+  return json(toIdentity(updated))
 }
 
 async function handleIntegrations(): Promise<Response> {
-  // The browser can't see CRAFTBOT_BRIDGE_URL/TOKEN itself, but the
-  // PocketBase hook runs server-side and can check them directly.
+  // The browser can't see which host's language model is connected, but the
+  // PocketBase hook runs server-side and can check it directly.
   const { ok, body } = await opGet('/api/ops/integrations/status')
   const llmConnected = ok && !!(body.llm as Dict | undefined)?.connected
-  return json({ llm: { connected: llmConnected }, gmail: { bridge: false, connected: false } })
+  return json({ llm: { connected: llmConnected } })
 }
 
 // ===========================================================================
@@ -1314,7 +1336,6 @@ async function route(url: URL, init?: RequestInit): Promise<Response> {
   // ----- Sender identity / integrations ------------------------------------
   if (path === '/api/sender-identity' && method === 'GET') return handleSenderIdentityGet()
   if (path === '/api/sender-identity' && method === 'PUT') return handleSenderIdentityUpdate(init)
-  if (path === '/api/sender-identity/rotate-subscribe-key' && method === 'POST') return handleRotateSubscribeKey()
   if (path === '/api/integrations' && method === 'GET') return handleIntegrations()
 
   // ----- Dashboard / analytics ---------------------------------------------

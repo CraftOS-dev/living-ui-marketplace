@@ -2,20 +2,21 @@
 
 For a developer or small team whose apps run on cloud instances in a VPC.
 
-NetSentry never asks for cloud keys. Its monitor on each instance uses **that instance's own
+NetSentry never asks for cloud keys. Its monitor on the instance uses **that instance's own
 role** and only reads (docs/PERMISSIONS.md).
 
 ## Set up
 
-1. Run NetSentry on an instance in the VPC (or anywhere the instances reach over https).
+1. Run NetSentry on the instance it should look after: it looks after the one server it runs on,
+   so run it on each instance you want watched.
 2. Create an IAM role for EC2 with the AWS-managed **SecurityAudit** policy and attach it to the
-   instances you want watched.
-3. **Network → Put a monitor on your servers → On AWS**: allow that role. Then on each instance
-   (or in its user data):
-   `curl -fsSL https://<netsentry>/api/netsentry/sensor/install.sh | sudo NETSENTRY_KEYLESS=aws sh`
-   The instance proves its role to AWS; NetSentry asks AWS who it is. No token, no key.
-4. Say who should reach each app (the website: anyone on the internet; the database: only this
-   machine), as in the other guides.
+   instance.
+3. **Setup** (*Let NetSentry look after this server*) → **Install the monitor on this server** →
+   **Show me the command**, and run it on the instance:
+   `curl -fsSL <netsentry>/api/netsentry/sensor/install.sh | sudo NETSENTRY_JOIN=… NETSENTRY_MANAGE=yes sh`
+   The monitor finds out it is on AWS and reads with the instance's role. No cloud key.
+4. **Who should reach your apps → Answer for each app** (the website: *anyone on the internet*;
+   the database: *only this server*), as in the other guides.
 
 ## What NetSentry checks there
 
@@ -32,9 +33,10 @@ role** and only reads (docs/PERMISSIONS.md).
 ## Letting NetSentry close a port itself (optional)
 
 Add `ec2:RevokeSecurityGroupIngress` and `ec2:AuthorizeSecurityGroupIngress` to the role and
-switch fixing on at that instance (`NETSENTRY_EXECUTOR=on`). *Fix it for me* on an open port
-then removes exactly that rule after you approve the plan, puts it back if anything fails, and
-checks at AWS that it's gone.
+allow changes at that instance (Setup's command does, with `NETSENTRY_MANAGE=yes`; if they are
+off, Settings → Monitor → **Allow changes** shows the command). **Fix it** on an open port
+(Home → Needs you) then removes exactly that rule after an admin confirms the plan, puts it back
+if anything fails, and checks at AWS that it's gone.
 
 ## Status
 

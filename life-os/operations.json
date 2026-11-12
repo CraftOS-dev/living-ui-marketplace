@@ -555,6 +555,7 @@
       "params": {
         "area": {
           "type": "enum",
+          "required": true,
           "values": [
             "health",
             "money",

@@ -27,6 +27,7 @@ import type {
   Subscriber,
   TagCount,
 } from '../../types'
+import { campaignAudience } from '../../audience'
 import { CampaignCanvas } from './CampaignCanvas'
 import { EditorSidebar } from './EditorSidebar'
 import { AIPanel } from './AIPanel'
@@ -39,7 +40,6 @@ interface CampaignEditorProps {
   tags: TagCount[]
   subscribers: Subscriber[]
   llmConnected: boolean
-  gmailConnected: boolean
   onClose: () => void
 }
 
@@ -49,7 +49,6 @@ export function CampaignEditor({
   tags,
   subscribers,
   llmConnected,
-  gmailConnected,
   onClose,
 }: CampaignEditorProps) {
   const [campaign, setCampaign] = useState<Campaign | null>(null)
@@ -158,16 +157,11 @@ export function CampaignEditor({
 
   async function handleSendNow() {
     if (!campaign) return
-    if (!gmailConnected) {
-      if (
-        !window.confirm(
-          'Gmail is not connected via CraftBot — sending will fail. Continue anyway?',
-        )
-      )
-        return
-    } else if (
+    const count = campaignAudience(campaign, subscribers).length
+    if (
       !window.confirm(
-        `Send "${campaign.name}" to ${campaign.totalRecipients || 'all'} subscribers now?`,
+        `Record the send of "${campaign.name}" to ${count.toLocaleString()} ${count === 1 ? 'subscriber' : 'subscribers'} now? ` +
+          'The campaign is marked sent; no email is delivered by this app.',
       )
     ) {
       return
@@ -485,13 +479,14 @@ function AudienceTab({
   const unsubscribed = subscribers.filter((s) => s.status === 'unsubscribed').length
   const bounced = subscribers.filter((s) => s.status === 'bounced').length
 
-  const recipients = useMemo(() => {
-    if (campaign.targetAll) return active
-    if (campaign.targetTags.length === 0) return []
-    return active.filter((s) =>
-      (s.tags || []).some((t) => campaign.targetTags.includes(t)),
-    )
-  }, [active, campaign.targetAll, campaign.targetTags])
+  const recipients = useMemo(
+    () =>
+      campaignAudience(
+        { targetAll: campaign.targetAll, targetTags: campaign.targetTags },
+        subscribers,
+      ),
+    [subscribers, campaign.targetAll, campaign.targetTags],
+  )
 
   const sample = recipients.slice(0, 6)
 
@@ -526,8 +521,8 @@ function AudienceTab({
           </span>
           <span style={{ fontSize: 14, color: 'var(--text-secondary)' }}>
             {recipients.length === 1
-              ? 'subscriber will receive this campaign'
-              : 'subscribers will receive this campaign'}
+              ? "subscriber in this campaign's audience"
+              : "subscribers in this campaign's audience"}
           </span>
         </div>
         <div
@@ -650,7 +645,7 @@ function AudienceTab({
         <Alert variant="warning" title="No recipients">
           {campaign.targetTags.length === 0
             ? 'Pick at least one tag, or switch to "Everyone subscribed".'
-            : "No active subscribers match these tags. Nothing will send."}
+            : 'No active subscribers match these tags, so a send would record no one.'}
         </Alert>
       )}
 
@@ -966,7 +961,7 @@ function ScheduleModal({
         type="datetime-local"
         value={when}
         onChange={(e) => setWhen(e.target.value)}
-        hint="The scheduler checks every 20 seconds. Tracking links use your Settings tracking URL."
+        hint="The scheduler checks every minute and records the send when the time comes. No email is delivered by this app."
       />
     </Modal>
   )

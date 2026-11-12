@@ -120,7 +120,7 @@ function reviewReminder(app) {
     kind: 'digest',
     severity: 'low',
     title: `Time to review who has access: ${due.map((d) => d.name).slice(0, 5).join(', ')}${due.length > 5 ? '…' : ''}`,
-    text: 'Check that everyone with an account — especially administrators — still needs it, then press "Reviewed" on each app in NetSentry.',
+    text: 'Check that everyone with an account — especially administrators — still needs it, then press "I’ve reviewed who has access" on each app in NetSentry (the app → Access & safety).',
     lines: due.map((d) => `${d.name}: ${d.last ? `last reviewed ${d.last.slice(0, 10)}` : 'never reviewed'}`),
   });
 }

@@ -39,9 +39,10 @@ export function AIPanel({ controller, llmConnected, onApply }: AIPanelProps) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
       {!llmConnected && (
-        <Alert variant="info" title="LLM not connected">
-          Set an API key in CraftBot to get real AI generation. You'll still get a
-          well-formed starter draft so you can keep working.
+        <Alert variant="info" title="No language model connected">
+          Connect an AI agent to this app (CraftBot, or any agent harness running the
+          app's bridge) to get AI drafts. Until then you'll get a starter draft so you
+          can keep working.
         </Alert>
       )}
       <Textarea

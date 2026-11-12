@@ -120,7 +120,7 @@ const TEMPLATES = {
     render: (o) => ({
       services: { vaultwarden: base(o, { image: `vaultwarden/server:${o.tags['vaultwarden/server']}`, environment: { SIGNUPS_ALLOWED: 'true', TZ: o.tz }, volumes: ['./data:/data'], ports: ports(o.bind, [[o.port, 80]]) }) },
       dirs: [{ path: 'data', owner: '' }], primary: 'vaultwarden', setup: '/#/register',
-      notes: ['Create your account, then switch sign-ups off (NetSentry reminds you until you do).', 'Browsers only allow the web vault over https or on this server itself: use it through Tailscale or Cloudflare Tunnel (the app → Use it from away, safely).'],
+      notes: ['Create your account, then switch sign-ups off (NetSentry reminds you until you do).', 'Browsers only allow the web vault over https or on this server itself: use it through Tailscale or Cloudflare Tunnel (the app → Access & safety → Use it from away, safely).'],
     }),
   },
   nextcloud: {

@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import { marked } from 'marked'
+import DOMPurify from 'dompurify'
 
 interface PreviewPanelProps {
   content: string
@@ -9,7 +10,10 @@ interface PreviewPanelProps {
 export function PreviewPanel({ content, filePath }: PreviewPanelProps) {
   const html = useMemo(() => {
     if (!content) return ''
-    return marked.parse(content, { breaks: true, gfm: true }) as string
+    // A file may hold raw HTML (typed, uploaded or written by an agent): the
+    // sanitiser drops scripts, event handlers and javascript: links before it
+    // reaches the page, and keeps the markdown's own HTML.
+    return DOMPurify.sanitize(marked.parse(content, { breaks: true, gfm: true }) as string)
   }, [content])
 
   if (!filePath) {

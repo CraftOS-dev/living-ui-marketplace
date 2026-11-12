@@ -68,11 +68,12 @@ export function useModules(): ModulesState {
   return { modules, activeKeys, suggestedKeys, loading };
 }
 
-/** Monday of the week containing `d`, as YYYY-MM-DD. */
+/** Monday of the week containing `d`, as YYYY-MM-DD. Weeks run Monday to
+ *  Sunday in UTC calendar days, the same days as todayStr(). */
 export function weekStart(d: Date): string {
-  const copy = new Date(d);
-  const day = (copy.getDay() + 6) % 7; // Monday = 0
-  copy.setDate(copy.getDate() - day);
+  const copy = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+  const day = (copy.getUTCDay() + 6) % 7; // Monday = 0
+  copy.setUTCDate(copy.getUTCDate() - day);
   return copy.toISOString().slice(0, 10);
 }
 

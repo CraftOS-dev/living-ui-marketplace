@@ -1,6 +1,7 @@
 import type { AppState, BrainstormSession, BrainstormNode, NodeCreateInput, ExploreResult, ExploreOptions, SessionSummary } from './types'
 import { ApiService } from './services/ApiService'
 import { stateCache } from './services/StatePersistence'
+import { EXPLORE_STEP_EVENT } from './services/apiAdapter'
 
 const BACKEND_URL = (window as any).__CRAFTBOT_BACKEND_URL__ || ''
 
@@ -194,10 +195,13 @@ export class AppController {
     }
   }
 
-  async exploreSession(opts: ExploreOptions): Promise<ExploreResult> {
+  /** `onStep` hears each finished step (1, 2, …) while the run goes on. */
+  async exploreSession(opts: ExploreOptions, onStep?: (done: number) => void): Promise<ExploreResult> {
     const { activeSessionId } = this.state
     if (!activeSessionId) throw new Error('No active session')
     this.patch({ agentRunning: true })
+    const stepped = (e: Event) => onStep?.(Number((e as CustomEvent<{ done: number }>).detail.done))
+    window.addEventListener(EXPLORE_STEP_EVENT, stepped)
     try {
       const result = await api<ExploreResult>(
         '/api/sessions/' + activeSessionId + '/explore',
@@ -218,6 +222,7 @@ export class AppController {
       }
       return result
     } finally {
+      window.removeEventListener(EXPLORE_STEP_EVENT, stepped)
       this.patch({ agentRunning: false })
     }
   }

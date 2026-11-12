@@ -16,8 +16,8 @@
  * block uses any more goes when the note is next saved, ten minutes after it
  * was added (so one being placed is never lost).
  *
- * A note your AI agent writes is agent_proposed until a person keeps or
- * edits it.
+ * A note your AI agent writes is agent_proposed until a person keeps it
+ * (notes.keep); pinning or editing it does not keep it.
  */
 
 const BLOCKS = ['paragraph', 'heading', 'bullet', 'numbered', 'todo', 'quote', 'node', 'cite', 'divider', 'image', 'table'];
@@ -243,7 +243,6 @@ function update(ctx, p) {
     n.set('text', cb.text);
   }
   if (util.has(p, 'pinned')) n.set('pinned', util.bool(p, 'pinned', false));
-  if (!ctx.isAgent) n.set('status', 'researcher_confirmed');
   app.save(n);
   require(`${__hooks}/lib_search.js`).indexNote(app, n);
   if (util.has(p, 'blocks')) prune(app, n.id, util.jsonOf(n, 'blocks') || []);

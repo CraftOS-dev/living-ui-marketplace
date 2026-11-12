@@ -53,7 +53,7 @@ export const FIX_STATUS: Record<string, string> = {
 };
 
 export const RISK_WORDS: Record<string, { label: string; help: string; tone: Tone }> = {
-  auto: { label: 'Low risk', help: 'Safe and reversible — can be approved automatically if you allow it in Settings.', tone: 'good' },
+  auto: { label: 'Low risk', help: 'Safe and reversible — still confirmed by a person before anything runs.', tone: 'good' },
   approve: { label: 'Medium risk', help: 'Could disrupt something — an admin approves the exact plan first.', tone: 'warn' },
   high: { label: 'High impact', help: 'Downtime or data at stake — needs approval and a backup before anything runs.', tone: 'bad' },
   guided: { label: 'Done by you', help: 'A person does this one — NetSentry shows the steps, you follow them and say when you are done.', tone: 'info' },

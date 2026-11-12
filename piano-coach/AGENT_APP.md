@@ -175,7 +175,7 @@ Review the person's practice session in Piano Coach. 1) `a2app <app> app app.gui
 
 ### Notes
 
-42 operations in `operations.json` (`a2app <app>`):
+24 operations in `operations.json` (`a2app <app>`):
 `app.guide|state|context|ui`; `settings.get|update`;
 `songs.list|get|check|add|update|open|remove|restore|reset`;
 `runs.save|list`; `sessions.list|get|end|review`; `review.pack`;

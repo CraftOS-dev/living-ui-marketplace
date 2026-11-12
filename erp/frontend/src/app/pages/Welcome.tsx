@@ -8,6 +8,7 @@ import type { LucideIcon } from 'lucide-react';
 import { ArrowLeft, ArrowRight, Briefcase, Check, Factory, KeyRound, LayoutGrid, Lock, Mail, Store } from 'lucide-react';
 import { cn } from '../../kit/index.ts';
 import { errMessage, op } from '../lib/api.ts';
+import { CURRENCIES, currencyName } from '../lib/format.ts';
 import { signedIn } from '../lib/session.ts';
 import type { Me } from '../lib/types.ts';
 import { Mark } from '../components/Shell.tsx';
@@ -95,7 +96,7 @@ const BUSINESS: { key: string; label: string; sub: string; icon: LucideIcon }[] 
   { key: 'services', label: 'Services', sub: 'Projects, time and invoices', icon: Briefcase },
   { key: 'trading', label: 'Trading', sub: 'Buy, stock and sell goods', icon: Store },
   { key: 'manufacturing', label: 'Manufacturing', sub: 'Make goods from parts', icon: Factory },
-  { key: 'other', label: 'Something else', sub: 'Everything switched on', icon: LayoutGrid },
+  { key: 'other', label: 'Something else', sub: 'Sales, stock and projects', icon: LayoutGrid },
 ];
 
 const MODULE_LABEL: Record<string, string> = {
@@ -123,6 +124,7 @@ export function SetupScreen(): React.JSX.Element {
   const [step, setStep] = useState(0);
   const [company, setCompany] = useState('');
   const [country, setCountry] = useState('');
+  const [currency, setCurrency] = useState('USD');
   const [business, setBusiness] = useState('services');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -141,8 +143,11 @@ export function SetupScreen(): React.JSX.Element {
   }, []);
 
   const c = useMemo(() => presets?.countries.find((x) => x.code === country) ?? null, [presets, country]);
+  // "Another country" has no preset currency: the person picks the base currency.
+  const askCurrency = c !== null && c.currency === '';
+  const cur = askCurrency ? currency : (c?.currency ?? '');
   const mods = presets?.business_types.find((b) => b.key === business)?.modules ?? {};
-  const okCompany = company.trim() !== '' && country !== '';
+  const okCompany = company.trim() !== '' && country !== '' && cur !== '';
   const okYou = name.trim() !== '' && /^\S+@\S+\.\S+$/.test(email.trim()) && password.length >= 8;
 
   const finish = async (): Promise<void> => {
@@ -151,7 +156,7 @@ export function SetupScreen(): React.JSX.Element {
     try {
       const r = await op<{ token: string; me: Me }>(
         'setup.complete',
-        { company_name: company.trim(), country, business_type: business, owner_name: name.trim(), owner_email: email.trim(), password, owner_is_employee: isEmployee },
+        { company_name: company.trim(), country, currency: cur, business_type: business, owner_name: name.trim(), owner_email: email.trim(), password, owner_is_employee: isEmployee },
         { quiet: true },
       );
       signedIn(r.token, r.me);
@@ -198,7 +203,8 @@ export function SetupScreen(): React.JSX.Element {
             <Field label="Company name">
               <input value={company} onChange={(e) => setCompany(e.target.value)} autoFocus placeholder="Acme Trading" className={softInput} aria-label="Company name" />
             </Field>
-            <PillSelect label="Country" soft value={country} onChange={setCountry} options={(presets?.countries ?? []).map((x) => ({ value: x.code, label: `${x.name} (${x.currency})` }))} />
+            <PillSelect label="Country" soft value={country} onChange={setCountry} options={(presets?.countries ?? []).map((x) => ({ value: x.code, label: x.currency !== '' ? `${x.name} (${x.currency})` : x.name }))} />
+            {askCurrency && <PillSelect label="Currency" soft value={currency} onChange={setCurrency} options={CURRENCIES.map((x) => ({ value: x, label: `${x} ${currencyName(x)}` }))} />}
             <div className="flex flex-col gap-2">
               <span className="px-1 text-[13px] font-semibold text-[var(--erp-ink-2)]">What the business does</span>
               <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="What the business does">
@@ -270,7 +276,7 @@ export function SetupScreen(): React.JSX.Element {
             <ul className="flex flex-col gap-2">
               <li className="flex justify-between gap-3 rounded-[18px] bg-[var(--erp-row)] px-4 py-3 text-[13px]">
                 <span className="text-[var(--erp-muted)]">Currency</span>
-                <span className="font-bold">{c?.currency ?? ''}</span>
+                <span className="font-bold">{cur}</span>
               </li>
               <li className="flex justify-between gap-3 rounded-[18px] bg-[var(--erp-row)] px-4 py-3 text-[13px]">
                 <span className="text-[var(--erp-muted)]">Financial year starts</span>

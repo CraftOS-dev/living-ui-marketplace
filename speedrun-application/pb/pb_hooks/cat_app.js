@@ -50,7 +50,8 @@ module.exports = [
     method: 'POST',
     fn: 'lib_pipeline.reset',
     effect: 'write',
-    desc: 'Reset the application to a clean preparing state (clears answers, chat messages including queued messages and replies, activity, the review and the gather and fill state). Requires confirm=true.',
-    params: { confirm: B('Must be true to execute the reset') },
+    destructive: true,
+    desc: 'Reset the application to a clean preparing state (clears answers, chat messages including queued messages and replies, activity, the review and the gather and fill state). Needs approval and confirm=true.',
+    params: {},
   },
 ];

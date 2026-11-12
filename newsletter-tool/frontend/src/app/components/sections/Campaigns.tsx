@@ -65,7 +65,7 @@ export function Campaigns({ controller, campaigns, onEdit, initialOpenId }: Camp
         <div>
           <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700 }}>Campaigns</h1>
           <p style={{ margin: '4px 0 0', fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)' }}>
-            Write, schedule, and send newsletters to your subscribers.
+            Write and schedule newsletters, and record each send to your subscribers.
           </p>
         </div>
         <Button
@@ -187,15 +187,6 @@ function CampaignCard({
   onDelete: () => void | Promise<void>
   onCancel: () => void | Promise<void>
 }) {
-  const openRate =
-    campaign.sentCount > 0
-      ? `${((campaign.opensUnique / campaign.sentCount) * 100).toFixed(1)}%`
-      : '—'
-  const clickRate =
-    campaign.sentCount > 0
-      ? `${((campaign.clicksUnique / campaign.sentCount) * 100).toFixed(1)}%`
-      : '—'
-
   const isScheduled = campaign.status === 'scheduled' && !!campaign.scheduledAt
 
   return (
@@ -278,8 +269,6 @@ function CampaignCard({
       {/* Stats row */}
       <div style={{ display: 'flex', gap: 'var(--space-2)', marginTop: 'var(--space-3)' }}>
         <Mini label="Recipients" value={campaign.totalRecipients.toLocaleString()} />
-        <Mini label="Opens" value={openRate} />
-        <Mini label="Clicks" value={clickRate} />
       </div>
 
       {/* Error pill — single line, truncated */}

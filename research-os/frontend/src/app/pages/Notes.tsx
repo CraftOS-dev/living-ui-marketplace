@@ -33,6 +33,7 @@ export function NotesWorkspace({ project, noteId, startNew = false }: { project:
     return () => clearTimeout(t);
   }, [q]);
   const list = useLive((signal) => op<{ notes: Note[] }>('notes.list', { project: project || undefined, kind: kind || undefined, q: debounced || undefined, limit: 300 }, { quiet: true, signal }).then((r) => r.notes), ['notes'], [project, kind, debounced], 200);
+  // Wide, the first note opens beside the list; on a phone the list shows until a note is tapped.
   const selected = noteId !== '' ? noteId : (list.data?.[0]?.id ?? '');
   const open = (id: string): void => replaceQuery({ note: id, new: undefined });
   const create = async (): Promise<void> => {
@@ -46,7 +47,7 @@ export function NotesWorkspace({ project, noteId, startNew = false }: { project:
   }, [startNew]);
   return (
     <div className="flex min-h-0 flex-1 @container">
-      <aside className={cn('flex w-full shrink-0 flex-col border-r border-[var(--ro-line)] bg-[var(--ro-card)] @min-[760px]:w-72', selected !== '' && 'hidden @min-[760px]:flex')}>
+      <aside className={cn('flex w-full shrink-0 flex-col border-r border-[var(--ro-line)] bg-[var(--ro-card)] @min-[760px]:w-72', noteId !== '' && 'hidden @min-[760px]:flex')}>
         <div className="flex items-center gap-2 border-b border-[var(--ro-hair)] px-3 py-2.5">
           <NotebookPen size={14} className="text-[var(--ro-muted)]" />
           <span className="flex-1 text-[13px] font-bold">{project !== '' ? 'Project notes' : 'Notes'}</span>
@@ -74,7 +75,7 @@ export function NotesWorkspace({ project, noteId, startNew = false }: { project:
           <ul className="flex flex-col gap-px">
             {(list.data ?? []).map((n) => (
               <li key={n.id}>
-                <button type="button" onClick={() => open(n.id)} className={cn('flex w-full flex-col gap-0.5 rounded-[var(--ro-r)] px-2.5 py-2 text-left', n.id === selected ? 'bg-[var(--ro-row-hover)]' : 'hover:bg-[var(--ro-row)]')}>
+                <button type="button" onClick={() => open(n.id)} className={cn('flex w-full flex-col gap-0.5 rounded-[var(--ro-r)] px-2.5 py-2 text-left', n.id === noteId ? 'bg-[var(--ro-row-hover)]' : n.id === selected ? 'hover:bg-[var(--ro-row)] @min-[760px]:bg-[var(--ro-row-hover)]' : 'hover:bg-[var(--ro-row)]')}>
                   <span className="flex items-center gap-1.5">
                     {n.kind === 'literature' ? <BookOpenText size={12} className="shrink-0 text-[var(--ro-muted)]" /> : n.kind === 'project' ? <FolderKanban size={12} className="shrink-0 text-[var(--ro-muted)]" /> : <FileText size={12} className="shrink-0 text-[var(--ro-muted)]" />}
                     <span className="min-w-0 flex-1 truncate text-[13px] font-semibold">{n.title || 'Untitled note'}</span>
@@ -93,7 +94,7 @@ export function NotesWorkspace({ project, noteId, startNew = false }: { project:
         </div>
         {(list.data ?? []).length > 0 && <div className="border-t border-[var(--ro-hair)] px-3 py-1.5 text-[12px] text-[var(--ro-muted)]">{plural(list.data?.length ?? 0, 'note')}</div>}
       </aside>
-      <section className={cn('min-w-0 flex-1 flex-col bg-[var(--ro-card)]', selected === '' ? 'hidden @min-[760px]:flex' : 'flex')}>
+      <section className={cn('min-w-0 flex-1 flex-col bg-[var(--ro-card)]', noteId === '' ? 'hidden @min-[760px]:flex' : 'flex')}>
         {selected === '' ? (
           <div className="flex flex-1 items-center justify-center">
             <Empty icon={NotebookPen} title="No note open" action={<Button icon={Plus} onClick={() => void create()}>New note</Button>} />

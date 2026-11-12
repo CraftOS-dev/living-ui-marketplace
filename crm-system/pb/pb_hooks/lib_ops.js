@@ -350,7 +350,8 @@ function addToList(app, listRef, ids) {
 
 /**
  * Bulk actions on many records: tag, untag, add_to_list, remove_from_list,
- * set (field + value), delete, research. One logged change.
+ * set (field + value), move (deals, to a stage), delete, research. One
+ * logged change.
  */
 function bulk(app, e, object, p) {
   const u = U();
@@ -358,8 +359,10 @@ function bulk(app, e, object, p) {
   const setup = require(`${__hooks}/lib_setup.js`);
   const who = u.actor(e);
   const meta = require(`${__hooks}/lib_review.js`).metaOf(p);
-  const action = u.oneOf(p, 'action', ['tag', 'untag', 'add_to_list', 'remove_from_list', 'set', 'delete', 'research'], '');
-  if (action === '') throw u.fail(400, 'action is one of: tag, untag, add_to_list, remove_from_list, set, delete, research');
+  const action = u.oneOf(p, 'action', ['tag', 'untag', 'add_to_list', 'remove_from_list', 'set', 'move', 'delete', 'research'], '');
+  if (action === '') throw u.fail(400, 'action is one of: tag, untag, add_to_list, remove_from_list, set, move, delete, research');
+  if (action === 'move' && object !== 'deals') throw u.fail(400, 'Move is for deals');
+  if (action === 'move' && u.str(p, 'stage', '') === '') throw u.fail(400, 'stage is required (a stage id or name)');
   const ids = (u.list(p, 'ids', true) || []).map((x) => String(x).trim()).filter((x) => x !== '');
   if (ids.length === 0) throw u.fail(400, 'ids is required');
   if (ids.length > 2000) throw u.fail(400, 'At most 2,000 at a time');
@@ -383,6 +386,7 @@ function bulk(app, e, object, p) {
   const tag = u.str(p, 'tag', '');
   const listRef = u.str(p, 'list', '');
   let proposed = 0;
+  let stageName = '';
   const done = run(app, who, object + '.bulk', (t) => {
     let n = 0;
     if (action === 'add_to_list') n = addToList(t, listRef, targets.map((r) => r.id)).added;
@@ -408,13 +412,21 @@ function bulk(app, e, object, p) {
         const res = recs.update(t, who, object, r, vals, meta);
         if (res.changes.length > 0) n++;
         if (res.proposal) proposed++;
+      } else if (action === 'move') {
+        // The same move as dragging a card (the policy may make it a proposal).
+        const from = r.getString('stage');
+        const res = require(`${__hooks}/lib_deals.js`).move(t, who, r, u.str(p, 'stage', ''), { meta: meta });
+        if (res.proposal) proposed++;
+        else if (r.getString('stage') !== from) n++;
+        const st = u.byId(t, 'stages', r.getString('stage'));
+        if (st && !res.proposal) stageName = st.getString('name');
       } else if (action === 'delete') {
         recs.softDelete(t, object, r);
         n++;
       }
     }
-    const label = { tag: 'Tagged', untag: 'Untagged', add_to_list: 'Added to the list', remove_from_list: 'Removed from the list', set: 'Changed', delete: 'Moved to the trash' }[action];
-    return { summary: n > 0 ? label + ' ' + n + ' ' + (n === 1 ? ONE[object] : object) + (action === 'tag' || action === 'untag' ? ' (' + tag + ')' : '') : '', type: object, result: n };
+    const label = { tag: 'Tagged', untag: 'Untagged', add_to_list: 'Added to the list', remove_from_list: 'Removed from the list', set: 'Changed', move: 'Moved', delete: 'Moved to the trash' }[action];
+    return { summary: n > 0 ? label + ' ' + n + ' ' + (n === 1 ? ONE[object] : object) + (action === 'tag' || action === 'untag' ? ' (' + tag + ')' : '') + (action === 'move' ? ' to ' + stageName : '') : '', type: object, result: n };
   });
   return { changed: done, proposed: proposed };
 }

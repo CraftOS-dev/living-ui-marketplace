@@ -1,19 +1,146 @@
 {
-  "opsVersion": 1,
   "operations": [
     {
-      "name": "health",
-      "description": "Liveness check (PocketBase built-in).",
-      "system": true,
-      "params": {},
-      "executor": { "type": "http", "method": "GET", "path": "/api/health" }
+      "name": "pdfs.list",
+      "description": "START HERE. Uploaded PDFs, newest first (the sidebar): id, file name, page count, size and upload date.",
+      "destructive": false,
+      "readOnly": true,
+      "module": "pdfs",
+      "params": {}
     },
     {
-      "name": "ops.list",
-      "description": "Return this operations manifest.",
-      "system": true,
-      "params": {},
-      "executor": { "type": "http", "method": "GET", "path": "/api/_ops" }
+      "name": "pdfs.get",
+      "description": "One PDF as the open document shows it: details, its split history (type, summary, file count, date) and where its source file is (path and…",
+      "destructive": false,
+      "readOnly": true,
+      "module": "pdfs",
+      "params": {
+        "pdf": {
+          "type": "string",
+          "required": true,
+          "format": "ref:pdfs",
+          "description": "PDF id, or its exact file name"
+        }
+      }
+    },
+    {
+      "name": "pdfs.upload",
+      "description": "Upload a PDF from this computer, like dropping it on the app: an absolute path to a .pdf file (starts with %PDF, max 100 MB).",
+      "destructive": false,
+      "module": "pdfs",
+      "params": {
+        "path": {
+          "type": "string",
+          "required": true,
+          "description": "Absolute path of the .pdf file"
+        },
+        "page_count": {
+          "type": "number",
+          "description": "Number of pages; needed only when the app answers that it cannot count them (compressed page list). Checked against the file whenever the file is readable."
+        }
+      }
+    },
+    {
+      "name": "pdfs.delete",
+      "description": "Delete a PDF, its stored file and its whole split history.",
+      "destructive": true,
+      "module": "pdfs",
+      "params": {
+        "pdf": {
+          "type": "string",
+          "required": true,
+          "format": "ref:pdfs",
+          "description": "PDF id, or its exact file name"
+        }
+      }
+    },
+    {
+      "name": "splits.preview",
+      "description": "Check a split without doing it: the same rules as the split controls, and the files it would make (file names and page ranges).",
+      "destructive": false,
+      "readOnly": true,
+      "module": "splits",
+      "params": {
+        "pdf": {
+          "type": "string",
+          "required": true,
+          "format": "ref:pdfs",
+          "description": "PDF id, or its exact file name"
+        },
+        "split_type": {
+          "type": "enum",
+          "values": [
+            "pages",
+            "ranges",
+            "every_n"
+          ],
+          "required": true,
+          "description": "pages = one file per selected page; ranges = one file per range; every_n = a file every n pages"
+        },
+        "pages": {
+          "type": "string",
+          "description": "For pages: a JSON list [1, 3, 5], ranges to select like 1-3, 8, or all"
+        },
+        "ranges": {
+          "type": "string",
+          "description": "For ranges: like 1-5, 8, 11-15 (a single page is its own range)"
+        },
+        "n": {
+          "type": "number",
+          "description": "For every_n: pages per file, 1 to the page count (default 2)"
+        }
+      }
+    },
+    {
+      "name": "splits.create",
+      "description": "Split a PDF (the Split PDF button): by selected pages, custom ranges or every n pages.",
+      "destructive": false,
+      "module": "splits",
+      "params": {
+        "pdf": {
+          "type": "string",
+          "required": true,
+          "format": "ref:pdfs",
+          "description": "PDF id, or its exact file name"
+        },
+        "split_type": {
+          "type": "enum",
+          "values": [
+            "pages",
+            "ranges",
+            "every_n"
+          ],
+          "required": true,
+          "description": "pages = one file per selected page; ranges = one file per range; every_n = a file every n pages"
+        },
+        "pages": {
+          "type": "string",
+          "description": "For pages: a JSON list [1, 3, 5], ranges to select like 1-3, 8, or all"
+        },
+        "ranges": {
+          "type": "string",
+          "description": "For ranges: like 1-5, 8, 11-15 (a single page is its own range)"
+        },
+        "n": {
+          "type": "number",
+          "description": "For every_n: pages per file, 1 to the page count (default 2)"
+        }
+      }
+    },
+    {
+      "name": "splits.get",
+      "description": "One split from the history and what its downloads give: files[i] is what Part i+1 downloads (file name, first and last page), the ZIP's…",
+      "destructive": false,
+      "readOnly": true,
+      "module": "splits",
+      "params": {
+        "split": {
+          "type": "string",
+          "required": true,
+          "format": "ref:split_jobs",
+          "description": "Split id (from pdfs.get history or splits.create)"
+        }
+      }
     }
   ]
 }

@@ -5,7 +5,7 @@
  * Ask AI, undo and redo, then the view edge to edge. On phones a bottom bar
  * with the new button in the middle.
  */
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import { ArrowDownToLine, BookOpen, ChartColumn, CircleCheckBig, FileInput, FileOutput, History, Inbox, LayoutDashboard, Lock, Menu as MenuIcon, Plus, Redo2, Scale, Search, Settings, Sparkles, Undo2 } from 'lucide-react';
@@ -127,6 +127,15 @@ function NewButton({ className, size = 36 }: { className?: string | undefined; s
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLButtonElement | null>(null);
   const items = useNewMenu();
+  // E (the Expense hint), N (new expense) and I (import) open a dialog (App.tsx, the inbox): close the menu behind it.
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent): void => {
+      if ((e.key === 'e' || e.key === 'n' || e.key === 'i') && !e.ctrlKey && !e.metaKey && !e.altKey) setOpen(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [open]);
   return (
     <>
       <button

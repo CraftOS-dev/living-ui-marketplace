@@ -248,7 +248,7 @@ Explain every fired alert waiting for you in this Trading View app. 1) `a2app <a
 
 ### Notes
 
-77 operations in `operations.json` (generated with the route cross-check).
+75 operations in `operations.json` (generated with the route cross-check).
 Groups: `app.guide|context`; `settings.*`;
 `market.search|quotes|bars|info|news|events|health|live`;
 `indicators.catalogue`; `chart.indicators|levels|explain`;

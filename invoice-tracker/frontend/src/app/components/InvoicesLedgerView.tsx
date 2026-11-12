@@ -1,7 +1,9 @@
 import React from 'react'
 import type { InvoiceReceipt } from '../types'
-import { ALL_CATEGORIES } from '../types'
+import { ALL_CATEGORIES, getCurrencySymbol } from '../types'
+import { splitByCurrency } from '../services/reports'
 import { Card, Button, Badge, Input } from './ui'
+import { OtherCurrenciesNote } from './OtherCurrenciesNote'
 import {
   Paperclip,
   Download,
@@ -25,6 +27,7 @@ interface Props {
   onOpenAddModal: () => void
   onUpdateInvoice?: (id: string | number, data: Partial<InvoiceReceipt>) => Promise<void>
   currencySymbol?: string
+  currencyCode?: string
 }
 
 const DEFAULT_CATEGORIES = ALL_CATEGORIES
@@ -33,16 +36,17 @@ export const InvoicesLedgerView: React.FC<Props> = ({
   invoices,
   searchQuery,
   selectedCategory,
-  selectedPaymentType: _selectedPaymentType,
+  selectedPaymentType = 'all',
   allCategories,
   onSearchChange,
   onCategoryChange,
-  onPaymentTypeChange: _onPaymentTypeChange,
+  onPaymentTypeChange,
   onSelectInvoice,
   onDeleteInvoice,
   onOpenAddModal,
   onUpdateInvoice,
   currencySymbol = '$',
+  currencyCode = 'USD',
 }) => {
   const [activeUploadId, setActiveUploadId] = React.useState<string | number | null>(null)
   const rowFileInputRef = React.useRef<HTMLInputElement>(null)
@@ -72,6 +76,7 @@ export const InvoicesLedgerView: React.FC<Props> = ({
     return invoices.filter((i) => {
       const matchesCategory = selectedCategory === 'all' || i.category === selectedCategory
       if (!matchesCategory) return false
+      if (selectedPaymentType !== 'all' && i.paymentType !== selectedPaymentType) return false
       if (!q) return true
 
       const vendor = (i.vendor || '').toLowerCase()
@@ -90,11 +95,12 @@ export const InvoicesLedgerView: React.FC<Props> = ({
         currency.includes(q)
       )
     })
-  }, [invoices, searchQuery, selectedCategory])
+  }, [invoices, searchQuery, selectedCategory, selectedPaymentType])
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize))
   const paginated = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize)
-  const totalAmount = filtered.reduce((sum, i) => sum + i.amount, 0)
+  const totals = splitByCurrency(filtered, currencyCode)
+  const totalAmount = totals.total
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)', width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}>
@@ -167,6 +173,27 @@ export const InvoicesLedgerView: React.FC<Props> = ({
               </option>
             ))}
           </select>
+
+          {/* Payment Type Filter */}
+          <select
+            value={selectedPaymentType}
+            onChange={(e) => {
+              onPaymentTypeChange?.(e.target.value)
+              setCurrentPage(1)
+            }}
+            style={{
+              padding: '8px 12px',
+              backgroundColor: 'var(--bg-secondary)',
+              color: 'var(--text-primary)',
+              border: '1px solid var(--border-primary)',
+              borderRadius: 'var(--radius-md)',
+              fontSize: '0.84rem',
+            }}
+          >
+            <option value="all">All Payment Types</option>
+            <option value="one_time">One-Time Bills</option>
+            <option value="subscription">Subscription Payments</option>
+          </select>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
@@ -175,6 +202,7 @@ export const InvoicesLedgerView: React.FC<Props> = ({
           </div>
         </div>
       </div>
+      <OtherCurrenciesNote others={totals.others} currencyCode={currencyCode} style={{ marginTop: 'calc(-1 * var(--space-2))', textAlign: 'right' }} />
 
       {/* Invoices Table */}
       <Card padding="none">
@@ -324,7 +352,7 @@ export const InvoicesLedgerView: React.FC<Props> = ({
                       {/* Amount */}
                       <td style={{ padding: '12px 16px', textAlign: 'right' }}>
                         <span style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '0.95rem' }}>
-                          {currencySymbol}{inv.amount.toFixed(2)}
+                          {getCurrencySymbol(inv.currency)}{inv.amount.toFixed(2)}
                         </span>
                       </td>
 
@@ -422,14 +450,12 @@ export const InvoicesLedgerView: React.FC<Props> = ({
         onChange={(e) => {
           const file = e.target.files?.[0]
           if (!file || activeUploadId === null || !onUpdateInvoice) return
-          const reader = new FileReader()
-          reader.onload = async () => {
-            const base64 = reader.result as string
+          const attach = async () => {
             try {
+              // The PDF itself is stored on the invoice
               await onUpdateInvoice(activeUploadId, {
-                hasPdfAttachment: true,
+                pdfUpload: file,
                 pdfFilename: file.name,
-                pdfDataBase64: base64,
                 pdfTextPreview: `Attached PDF: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`
               })
             } catch (err) {
@@ -439,7 +465,7 @@ export const InvoicesLedgerView: React.FC<Props> = ({
               if (rowFileInputRef.current) rowFileInputRef.current.value = ''
             }
           }
-          reader.readAsDataURL(file)
+          attach()
         }}
       />
     </div>

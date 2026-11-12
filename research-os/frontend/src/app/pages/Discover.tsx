@@ -398,13 +398,19 @@ interface MapData {
   top_cited: MapNode[];
   top_citing: MapNode[];
   without_openalex: string[];
-  unreachable: boolean;
+  /** Seed papers whose OpenAlex lookup did not answer (empty when it answered). */
+  unreachable: string[];
 }
 
 function MapTab(): React.JSX.Element {
   const { projects, collections } = useApp();
   const active = projects.filter((p) => p.state === 'active');
-  const [scope, setScope] = useState<string>(active[0] ? 'p:' + active[0].id : collections[0] ? 'c:' + collections[0].id : '');
+  const scopes = [...active.map((p) => ({ value: 'p:' + p.id, label: 'Project: ' + p.name })), ...collections.map((c) => ({ value: 'c:' + c.id, label: 'Collection: ' + c.name }))];
+  // The person's pick, else the first project or collection: the one the
+  // dropdown shows. The lists load after the page opens, so a direct load or a
+  // reload maps the first project as soon as it arrives.
+  const [picked, setScope] = useState('');
+  const scope = scopes.some((s) => s.value === picked) ? picked : (scopes[0]?.value ?? '');
   const [citing, setCiting] = useState(true);
   const [sel, setSel] = useState<MapNode | null>(null);
   const params = scope.startsWith('p:') ? { project: scope.slice(2) } : scope.startsWith('c:') ? { collection: scope.slice(2) } : null;
@@ -413,7 +419,7 @@ function MapTab(): React.JSX.Element {
     (signal) =>
       params !== null
         ? op<MapData>('citations.map', { ...params, citing }, { quiet: true, signal }).catch((err: unknown) => {
-            if (err instanceof OpError && err.code === 'no_seeds') return { seeds: [], nodes: [], edges: [], top_cited: [], top_citing: [], without_openalex: [], unreachable: false } as MapData;
+            if (err instanceof OpError && err.code === 'no_seeds') return { seeds: [], nodes: [], edges: [], top_cited: [], top_citing: [], without_openalex: [], unreachable: [] } as MapData;
             throw err;
           })
         : Promise.resolve(null),
@@ -436,7 +442,7 @@ function MapTab(): React.JSX.Element {
       <div className="flex flex-wrap items-center gap-2">
         <Network size={14} className="text-[var(--ro-muted)]" />
         <span className="text-[13px] font-semibold">Around</span>
-        <Select ariaLabel="Seed papers" className="w-64" value={scope} onChange={setScope} options={[...active.map((p) => ({ value: 'p:' + p.id, label: 'Project: ' + p.name })), ...collections.map((c) => ({ value: 'c:' + c.id, label: 'Collection: ' + c.name }))]} />
+        <Select ariaLabel="Seed papers" className="w-64" value={scope} onChange={setScope} options={scopes} />
         <label className="flex items-center gap-2 text-[12px] font-semibold">
           <Toggle checked={citing} onChange={setCiting} label="Include papers citing them" /> Papers citing them
         </label>
@@ -458,7 +464,7 @@ function MapTab(): React.JSX.Element {
         </div>
       ) : (
         <>
-          {data.data.unreachable && <Badge tone="warn">OpenAlex did not answer for some papers; the map may be partial</Badge>}
+          {data.data.unreachable.length > 0 && <Badge tone="warn">OpenAlex did not answer for some papers; the map may be partial</Badge>}
           {data.data.without_openalex.length > 0 && <p className="text-[12px] text-[var(--ro-muted)]">{plural(data.data.without_openalex.length, 'paper')} could not be found in OpenAlex.</p>}
           <div className="grid grid-cols-1 gap-3 @min-[1100px]:grid-cols-[minmax(0,1fr)_320px]">
             <Scatter d={data.data} sel={sel} onSel={setSel} />

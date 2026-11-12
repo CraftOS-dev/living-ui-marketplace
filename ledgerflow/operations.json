@@ -1001,7 +1001,7 @@
     },
     {
       "name": "transactions.create",
-      "description": "Record an entry.",
+      "description": "Record an entry. A person's posts; the AI agent's is proposed, and posts with status posted only when the posting policy allows it.",
       "destructive": false,
       "module": "transactions",
       "params": {
@@ -1082,7 +1082,7 @@
             "posted",
             "proposed"
           ],
-          "description": "posted or proposed"
+          "description": "posted or proposed (the AI agent's posts only when the posting policy allows it; not_posted_because says why not)"
         },
         "reason": {
           "type": "string",
@@ -1582,7 +1582,7 @@
     },
     {
       "name": "inbox.accept",
-      "description": "Book a bank line: its suggestion, or what you give…",
+      "description": "Book a bank line. The AI agent's books only if the posting policy allows (not_posted_because says why).",
       "destructive": false,
       "module": "inbox",
       "params": {
@@ -1645,7 +1645,7 @@
     },
     {
       "name": "inbox.accept_many",
-      "description": "Book several lines: each with its own suggestion, or all…",
+      "description": "Book several lines; the AI agent's only as the posting policy allows (not_posted).",
       "destructive": false,
       "module": "inbox",
       "params": {

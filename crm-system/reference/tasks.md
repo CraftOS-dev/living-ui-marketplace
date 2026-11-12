@@ -28,7 +28,7 @@ Every task cites what it implements. These features already exist in the publish
 - [x] T-23 (F-PAGE-13, F-PAGE-14): merged ids resolve to the survivor (aliases), and restore from the page (`people.restore`, `companies.restore`, `deals.restore`).
 - [x] T-24 (F-DEAL-1, F-DEAL-2, F-DEAL-3): Deals with the pipeline sidebar and totals, board columns per open stage, and cards with value, close, days in stage against the target, next-activity dot, people, rotting edge and the AI mark (`views/Deals.tsx`).
 - [x] T-25 (F-DEAL-4): drag between stages and positions, and Won and Lost drop zones with the lost-reason dialog.
-- [x] T-26 (F-DEAL-5, F-DEAL-6): the deals table with totals and presets, search (/) and the filter bar.
+- [x] T-26 (F-DEAL-5, F-DEAL-6): the deals table with totals and presets, search (/), the filter bar, and the bulk bar (move to a stage, tag, trash; `deals.bulk`).
 - [x] T-27 (F-CAP-1, F-CAP-2, F-CAP-3, F-CAP-4, F-CAP-10): New person, company and deal dialogs, the "Already in your CRM" panel from the 409 candidates, role suggestions per pipeline kind, and opening the new record (`components/dialogs.tsx`).
 - [x] T-28 (F-CAP-5, F-CAP-6): Log an interaction: kind, direction, people, deal, time, subject and summary. `interactions.log` updates strength, keep-in-touch and rotting, and meeting review queues notes of at least 40 characters (`lib_interactions.js`).
 - [x] T-29 (F-CAP-7, F-CAP-8): New task with quick due dates and kinds, and the email composer with draft, send (queued for the agent) and "Open in my mail app instead".

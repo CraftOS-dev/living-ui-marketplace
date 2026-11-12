@@ -279,7 +279,7 @@ function Sidebar({ object, q, total }: { object: O; q: Record<string, string>; t
             </>
           }
         >
-          <input autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder={object === 'people' ? 'Investors, Community, Advisors ...' : 'Targets, Partners ...'} className={input} />
+          <input autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder={object === 'people' ? 'Investors, Community, Advisors ...' : 'Targets, Partners ...'} aria-label="List name" className={input} />
         </Modal>
       )}
     </aside>
@@ -426,7 +426,7 @@ function ListView({ object, q }: { object: O; q: Record<string, string> }): Reac
           </h2>
           <div className="relative">
             <Search size={13} className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-[var(--cr-muted)]" />
-            <input ref={searchRef} value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search" className={cn(input, 'h-7 w-44 pl-7')} />
+            <input ref={searchRef} value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search" aria-label={'Search ' + object} className={cn(input, 'h-7 w-44 pl-7')} />
           </div>
           <FilterBar fields={filterFields(app, object)} filters={filters} match={match} home={app.home} onChange={setFilters} onMatch={setMatch} />
           <span className="flex-1" />
@@ -564,7 +564,7 @@ function ListView({ object, q }: { object: O; q: Record<string, string> }): Reac
             </>
           }
         >
-          <input autoFocus value={viewName} onChange={(e) => setViewName(e.target.value)} placeholder="Warm intros in London" className={input} />
+          <input autoFocus value={viewName} onChange={(e) => setViewName(e.target.value)} placeholder="Warm intros in London" aria-label="View name" className={input} />
         </Modal>
       )}
       {tagOpen && (
@@ -589,7 +589,7 @@ function ListView({ object, q }: { object: O; q: Record<string, string> }): Reac
             </>
           }
         >
-          <input autoFocus value={tag} onChange={(e) => setTag(e.target.value)} placeholder="vip, investor, warm" className={input} />
+          <input autoFocus value={tag} onChange={(e) => setTag(e.target.value)} placeholder="vip, investor, warm" aria-label="Tag" className={input} />
         </Modal>
       )}
     </div>

@@ -46,7 +46,7 @@ const taskFields = {
 module.exports = [
   /* ---------------------------------------------------------- the areas */
   { name: 'life.overview', method: 'GET', fn: 'lib_life.overview', effect: 'read', desc: 'Every area (on and off) with its pulse from its own data, and the goals across them.', params: {} },
-  { name: 'life.area', method: 'GET', fn: 'lib_life.area', effect: 'read', desc: "One area's page: its pulse, goals, habits, open cards and projects.", params: { area: AREA() } },
+  { name: 'life.area', method: 'GET', fn: 'lib_life.area', effect: 'read', desc: "One area's page: its pulse, goals, habits, open cards and projects.", params: { area: S('Area of life', { required: true, enum: KINDS }) } },
   { name: 'areas.set', method: 'POST', fn: 'lib_life.set', effect: 'shape', agent: 'propose', preview: 'lib_life.preview', desc: 'Switch an area of life on or off. From your AI agent it waits as a proposal.', params: { area: AREA(), enabled: B('On or off') } },
   { name: 'areas.reorder', method: 'POST', fn: 'lib_life.reorder', effect: 'shape', agent: 'propose', preview: 'lib_life.preview', desc: 'Put the areas in a new order. From your AI agent it waits as a proposal.', params: { areas: S('JSON list of area kinds', { required: true }) } },
 

@@ -44,7 +44,7 @@ onRecordCreateRequest((e) => {
   if (existing > 0 && !superuser) {
     const settings = repo.first(e.app, 'settings', 'id != ""');
     if (!settings || !settings.getBool('signup_open')) {
-      throw new ForbiddenError('Sign-up is closed. Ask a NetSentry admin to open sign-up in Workspace → Settings.');
+      throw new ForbiddenError('Sign-up is closed. Ask a NetSentry admin to open sign-up in Settings → General & fixes.');
     }
   }
   e.record.set('role', existing === 0 ? 'admin' : 'viewer');
@@ -69,7 +69,7 @@ onRecordAfterCreateSuccess((e) => {
 onRecordUpdateRequest((e) => {
   const before = e.record.original().getString('role');
   if (e.record.getString('role') !== before) {
-    throw new BadRequestError('Roles are changed by an admin in Workspace → Members.');
+    throw new BadRequestError('Roles are changed by an admin in Settings → Team.');
   }
   return e.next();
 }, 'users');

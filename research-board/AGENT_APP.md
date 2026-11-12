@@ -149,7 +149,7 @@ Review every board waiting in this Research Board app. 1) `a2app <app> app app.g
 
 ### Notes
 
-45 operations in `operations.json`. Groups: `app.guide`; `settings.*`;
+43 operations in `operations.json`. Groups: `app.guide`; `settings.*`;
 `summary.home`; `boards.list|get|create|update|delete|duplicate|export`;
 `cards.list|get|preview|add|update|move|delete|restore|duplicate|transfer|tag`;
 `tags.list|rename|delete`; `links.add|update|delete|decide`;

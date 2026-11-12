@@ -105,6 +105,6 @@
     }
   ],
   "conventions": {
-    "guide": "Every operation's parameters, and how to do each task the app queues, are in AGENT_APP.md in the app's directory."
+    "guide": "`<module> <operation> --help` lists an operation's parameters; the full manual (rules, recipes, caveats) is AGENT_APP.md in the app's directory."
   }
 }

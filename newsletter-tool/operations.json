@@ -1,50 +1,570 @@
 {
-  "opsVersion": 1,
   "operations": [
     {
-      "name": "health",
-      "description": "Liveness check (PocketBase built-in).",
-      "system": true,
-      "params": {},
-      "executor": { "type": "http", "method": "GET", "path": "/api/health" }
+      "name": "app.guide",
+      "description": "How the app works and the email block format: block types and fields, design keys, placeholders, campaign statuses, and what sending does.",
+      "destructive": false,
+      "readOnly": true,
+      "module": "app",
+      "params": {}
     },
     {
-      "name": "ops.list",
-      "description": "Return this operations manifest.",
-      "system": true,
-      "params": {},
-      "executor": { "type": "http", "method": "GET", "path": "/api/_ops" }
+      "name": "dashboard.get",
+      "description": "The Dashboard: audience counts, 30-day subscriber growth, scheduled and draft campaigns, recent sends and quick-start templates.",
+      "destructive": false,
+      "readOnly": true,
+      "module": "dashboard",
+      "params": {}
     },
     {
-      "name": "campaigns.send",
-      "description": "Snapshot the subscribed audience onto a draft campaign and mark it sent. With deliver=true it also emails each recipient via the CraftBot Gmail integration and records per-recipient outcomes.",
-      "destructive": true,
+      "name": "subscribers.list",
+      "description": "Subscribers, newest first, with the Subscribers screen's filters, the tag counts and the total number matching.",
+      "destructive": false,
+      "readOnly": true,
+      "module": "subscribers",
       "params": {
-        "campaign_id": { "type": "string", "required": true, "description": "The draft campaign record id." },
-        "deliver": { "type": "boolean", "required": false, "description": "true = really send via Gmail; false/omitted = record the audience only." }
-      },
-      "executor": { "type": "http", "method": "POST", "path": "/api/ops/campaigns/send" }
+        "status": {
+          "type": "enum",
+          "values": [
+            "subscribed",
+            "unsubscribed",
+            "bounced"
+          ],
+          "description": "Only this status."
+        },
+        "tag": {
+          "type": "string",
+          "description": "Only subscribers with exactly this tag."
+        },
+        "search": {
+          "type": "string",
+          "description": "Text contained in the email or the name (case-insensitive)."
+        },
+        "limit": {
+          "type": "number",
+          "description": "Page size (default 500, the screen's page)."
+        },
+        "offset": {
+          "type": "number",
+          "description": "Rows to skip (default 0)."
+        }
+      }
     },
     {
-      "name": "ai.draft",
-      "description": "Draft a newsletter (subject + body) from a topic via the CraftBot LLM bridge (503 outside CraftBot).",
+      "name": "subscribers.add",
+      "description": "Add a subscriber as the Add form does; an email already on the list is updated instead (name set if given, tags merged).",
+      "destructive": false,
+      "module": "subscribers",
       "params": {
-        "topic": { "type": "string", "required": true, "description": "What the newsletter should be about." },
-        "tone": { "type": "string", "required": false, "description": "Optional tone, e.g. 'playful'." }
-      },
-      "executor": { "type": "http", "method": "POST", "path": "/api/ops/ai/draft" }
+        "email": {
+          "type": "string",
+          "required": true,
+          "description": "Email address (stored in lower case)."
+        },
+        "first_name": {
+          "type": "string",
+          "description": "First name."
+        },
+        "last_name": {
+          "type": "string",
+          "description": "Last name."
+        },
+        "tags": {
+          "type": "string",
+          "description": "Comma-separated tags, e.g. 'vip, beta'."
+        }
+      }
     },
     {
-      "name": "integrations.status",
-      "description": "Whether the CraftBot LLM bridge is configured (used to show an honest AI-writer connected/disconnected state).",
-      "params": {},
-      "executor": { "type": "http", "method": "GET", "path": "/api/ops/integrations/status" }
+      "name": "subscribers.import",
+      "description": "Import pasted CSV as Import CSV does: one 'email, first name, last name' per line; existing emails are updated, new ones subscribed.",
+      "destructive": false,
+      "module": "subscribers",
+      "params": {
+        "csv": {
+          "type": "string",
+          "required": true,
+          "description": "CSV text, one subscriber per line; names optional; lines starting with # are skipped."
+        },
+        "tags": {
+          "type": "string",
+          "description": "Comma-separated tags added to every imported subscriber."
+        }
+      }
     },
     {
       "name": "subscribers.export",
       "description": "Export the subscribed audience as CSV text (email, name, tags).",
-      "params": {},
-      "executor": { "type": "http", "method": "GET", "path": "/api/ops/subscribers/export" }
+      "destructive": false,
+      "readOnly": true,
+      "module": "subscribers",
+      "params": {}
+    },
+    {
+      "name": "templates.list",
+      "description": "Templates as the Templates screen shows them (most used first), without their blocks, with the total.",
+      "destructive": false,
+      "readOnly": true,
+      "module": "templates",
+      "params": {
+        "limit": {
+          "type": "number",
+          "description": "Page size (default 200, the screen's page)."
+        },
+        "offset": {
+          "type": "number",
+          "description": "Rows to skip (default 0)."
+        }
+      }
+    },
+    {
+      "name": "templates.get",
+      "description": "One template with its subject, preheader, blocks and design.",
+      "destructive": false,
+      "readOnly": true,
+      "module": "templates",
+      "params": {
+        "template_id": {
+          "type": "string",
+          "required": true,
+          "description": "Template id."
+        },
+        "include_data_urls": {
+          "type": "boolean",
+          "description": "Show uploaded images in full instead of shortened."
+        }
+      }
+    },
+    {
+      "name": "templates.create",
+      "description": "Create a template as New blank template does (a 'Hello!' heading and one paragraph unless blocks are given).",
+      "destructive": false,
+      "module": "templates",
+      "params": {
+        "name": {
+          "type": "string",
+          "required": true,
+          "description": "Template name."
+        },
+        "subject": {
+          "type": "string",
+          "description": "Subject line."
+        },
+        "preheader": {
+          "type": "string",
+          "description": "Preview text shown after the subject."
+        },
+        "blocks": {
+          "type": "json",
+          "description": "Array of blocks (see app.guide)."
+        },
+        "design": {
+          "type": "json",
+          "description": "Design object (see app.guide)."
+        }
+      }
+    },
+    {
+      "name": "templates.update",
+      "description": "Change a template's name, subject, preheader, blocks (whole array) or design (merged), as the template editor saves it.",
+      "destructive": false,
+      "module": "templates",
+      "params": {
+        "template_id": {
+          "type": "string",
+          "required": true,
+          "description": "Template id."
+        },
+        "name": {
+          "type": "string",
+          "description": "New name."
+        },
+        "subject": {
+          "type": "string",
+          "description": "New subject line."
+        },
+        "preheader": {
+          "type": "string",
+          "description": "New preview text."
+        },
+        "blocks": {
+          "type": "json",
+          "description": "Replacement array of blocks; to change one block use blocks.edit."
+        },
+        "design": {
+          "type": "json",
+          "description": "Design keys to change, merged into the current design."
+        }
+      }
+    },
+    {
+      "name": "templates.duplicate",
+      "description": "Copy a template as '{name} (copy)' with the same subject, preheader, blocks and design.",
+      "destructive": false,
+      "module": "templates",
+      "params": {
+        "template_id": {
+          "type": "string",
+          "required": true,
+          "description": "Template id."
+        }
+      }
+    },
+    {
+      "name": "templates.delete",
+      "description": "Delete a template; campaigns started from it keep their content.",
+      "destructive": true,
+      "module": "templates",
+      "params": {
+        "template_id": {
+          "type": "string",
+          "required": true,
+          "description": "Template id."
+        }
+      }
+    },
+    {
+      "name": "campaigns.list",
+      "description": "Campaigns as the Campaigns screen shows them (last edited first; scheduled ones by send time), with the total.",
+      "destructive": false,
+      "readOnly": true,
+      "module": "campaigns",
+      "params": {
+        "status": {
+          "type": "enum",
+          "values": [
+            "draft",
+            "scheduled",
+            "sending",
+            "sent",
+            "failed",
+            "cancelled"
+          ],
+          "description": "Only this status (the screen's filter chips)."
+        },
+        "limit": {
+          "type": "number",
+          "description": "Page size (default 200, the screen's page)."
+        },
+        "offset": {
+          "type": "number",
+          "description": "Rows to skip (default 0)."
+        }
+      }
+    },
+    {
+      "name": "campaigns.get",
+      "description": "One campaign: content, design, audience (who a send records) and whether it is editable.",
+      "destructive": false,
+      "readOnly": true,
+      "module": "campaigns",
+      "params": {
+        "campaign_id": {
+          "type": "string",
+          "required": true,
+          "description": "Campaign id."
+        },
+        "include_data_urls": {
+          "type": "boolean",
+          "description": "Show uploaded images in full instead of shortened."
+        }
+      }
+    },
+    {
+      "name": "campaigns.preview",
+      "description": "The email as the Review tab renders it, personalised for the first subscribed contact.",
+      "destructive": false,
+      "readOnly": true,
+      "module": "campaigns",
+      "params": {
+        "campaign_id": {
+          "type": "string",
+          "required": true,
+          "description": "Campaign id."
+        },
+        "format": {
+          "type": "enum",
+          "values": [
+            "text",
+            "html",
+            "both"
+          ],
+          "description": "Plain text (default), HTML, or both."
+        }
+      }
+    },
+    {
+      "name": "campaigns.create",
+      "description": "Create a draft campaign, blank or from a template (copies its content and counts one use).",
+      "destructive": false,
+      "module": "campaigns",
+      "params": {
+        "name": {
+          "type": "string",
+          "description": "Campaign name (default 'New campaign', or '{template name} — campaign')."
+        },
+        "template_id": {
+          "type": "string",
+          "description": "Template to start from."
+        }
+      }
+    },
+    {
+      "name": "campaigns.update",
+      "description": "Edit a campaign that is not sent, as the editor saves it: any of its fields, its blocks or its design.",
+      "destructive": false,
+      "module": "campaigns",
+      "params": {
+        "campaign_id": {
+          "type": "string",
+          "required": true,
+          "description": "Campaign id."
+        },
+        "name": {
+          "type": "string",
+          "description": "Campaign name (only you see it)."
+        },
+        "subject": {
+          "type": "string",
+          "description": "Subject line."
+        },
+        "preheader": {
+          "type": "string",
+          "description": "Preview text shown after the subject."
+        },
+        "from_name": {
+          "type": "string",
+          "description": "From name for this campaign (empty uses Settings)."
+        },
+        "from_email": {
+          "type": "string",
+          "description": "From email for this campaign (empty uses Settings)."
+        },
+        "reply_to": {
+          "type": "string",
+          "description": "Reply-to address."
+        },
+        "target_all": {
+          "type": "boolean",
+          "description": "true = everyone subscribed; false = by tag."
+        },
+        "target_tags": {
+          "type": "string",
+          "description": "Comma-separated tags used when target_all is false."
+        },
+        "blocks": {
+          "type": "json",
+          "description": "Replacement array of blocks; to change one block use blocks.edit."
+        },
+        "design": {
+          "type": "json",
+          "description": "Design keys to change, merged into the current design."
+        }
+      }
+    },
+    {
+      "name": "campaigns.duplicate",
+      "description": "Copy a campaign (any status) as a new draft '{name} (copy)'.",
+      "destructive": false,
+      "module": "campaigns",
+      "params": {
+        "campaign_id": {
+          "type": "string",
+          "required": true,
+          "description": "Campaign id."
+        }
+      }
+    },
+    {
+      "name": "campaigns.delete",
+      "description": "Delete a campaign of any status, with its recorded recipients.",
+      "destructive": true,
+      "module": "campaigns",
+      "params": {
+        "campaign_id": {
+          "type": "string",
+          "required": true,
+          "description": "Campaign id."
+        }
+      }
+    },
+    {
+      "name": "campaigns.schedule",
+      "description": "Schedule a campaign for a future time; the app then records the send exactly as Send now does.",
+      "destructive": false,
+      "module": "campaigns",
+      "params": {
+        "campaign_id": {
+          "type": "string",
+          "required": true,
+          "description": "Campaign id."
+        },
+        "scheduled_at": {
+          "type": "datetime",
+          "required": true,
+          "description": "Future date and time, ISO 8601 ending in Z or an offset, e.g. 2026-12-01T09:00:00Z."
+        }
+      }
+    },
+    {
+      "name": "campaigns.cancel",
+      "description": "Cancel a scheduled send; the campaign stays as a cancelled draft and can be scheduled again.",
+      "destructive": true,
+      "module": "campaigns",
+      "params": {
+        "campaign_id": {
+          "type": "string",
+          "required": true,
+          "description": "Campaign id (must be scheduled)."
+        }
+      }
+    },
+    {
+      "name": "campaigns.send-now",
+      "description": "Send now as the app's Send does: records the campaign's audience (everyone subscribed, or by its tags) and marks it sent; no email is delivered.",
+      "destructive": true,
+      "module": "campaigns",
+      "params": {
+        "campaign_id": {
+          "type": "string",
+          "required": true,
+          "description": "Campaign id (not already sent)."
+        }
+      }
+    },
+    {
+      "name": "campaigns.ai-write",
+      "description": "AI-write a campaign as the editor's AI writer does, replacing its subject, preheader and blocks.",
+      "destructive": false,
+      "module": "campaigns",
+      "params": {
+        "campaign_id": {
+          "type": "string",
+          "required": true,
+          "description": "Campaign id (not sent)."
+        },
+        "prompt": {
+          "type": "string",
+          "required": true,
+          "description": "What the email is about."
+        },
+        "tone": {
+          "type": "enum",
+          "values": [
+            "friendly",
+            "professional",
+            "playful",
+            "concise",
+            "warm",
+            "persuasive"
+          ],
+          "description": "Tone (default friendly)."
+        },
+        "audience": {
+          "type": "string",
+          "description": "Who it is for, e.g. 'early customers'."
+        }
+      }
+    },
+    {
+      "name": "blocks.edit",
+      "description": "Add (append), change, move or remove one block in a campaign or template, as the editor canvas does.",
+      "destructive": false,
+      "module": "blocks",
+      "params": {
+        "campaign_id": {
+          "type": "string",
+          "description": "Campaign to edit (or give template_id)."
+        },
+        "template_id": {
+          "type": "string",
+          "description": "Template to edit (or give campaign_id)."
+        },
+        "action": {
+          "type": "enum",
+          "values": [
+            "add",
+            "update",
+            "move",
+            "remove"
+          ],
+          "required": true,
+          "description": "What to do."
+        },
+        "index": {
+          "type": "number",
+          "description": "Block position from 0 (update, move, remove)."
+        },
+        "to": {
+          "type": "number",
+          "description": "New position from 0 (move)."
+        },
+        "block": {
+          "type": "json",
+          "description": "add: a block with a type (missing fields get the editor's defaults); update: the fields to change."
+        }
+      }
+    },
+    {
+      "name": "settings.get",
+      "description": "Sender name and email, reply-to, the footer organization and address, and the integration state the Settings screen shows.",
+      "destructive": false,
+      "readOnly": true,
+      "module": "settings",
+      "params": {}
+    },
+    {
+      "name": "settings.update",
+      "description": "Change the sender name and email, reply-to, or footer organization and address, as Save on the Settings screen does.",
+      "destructive": false,
+      "module": "settings",
+      "params": {
+        "from_name": {
+          "type": "string",
+          "description": "Sender name."
+        },
+        "from_email": {
+          "type": "string",
+          "description": "Sender email address."
+        },
+        "reply_to": {
+          "type": "string",
+          "description": "Reply-to email address."
+        },
+        "organization_name": {
+          "type": "string",
+          "description": "Organization name shown in the email footer."
+        },
+        "organization_address": {
+          "type": "string",
+          "description": "Mailing address shown in the email footer."
+        }
+      }
+    },
+    {
+      "name": "ai.draft",
+      "description": "Draft a newsletter (subject + body) from a topic via the host's language model (503 when none is connected).",
+      "destructive": false,
+      "module": "ai",
+      "params": {
+        "topic": {
+          "type": "string",
+          "required": true,
+          "description": "What the newsletter should be about."
+        },
+        "tone": {
+          "type": "string",
+          "description": "Optional tone, e.g. 'playful'."
+        }
+      }
+    },
+    {
+      "name": "integrations.status",
+      "description": "Whether the CraftBot LLM bridge is configured (used to show an honest AI-writer connected/disconnected state).",
+      "destructive": false,
+      "readOnly": true,
+      "module": "integrations",
+      "params": {}
     }
   ]
 }

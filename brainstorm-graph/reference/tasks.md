@@ -1,0 +1,80 @@
+# Tasks: Brainstorm Graph
+
+Every task cites what it implements. These features already exist in the published app `brainstorm-graph` 1.0.0, so the build tasks are recorded as done. The agent operations (T-24 to T-26) were added on 2026-11-11 for the move to the Agent App Framework. They mirror what the screens already do.
+
+## Build
+- [x] T-1 (F-FRM-1, F-FRM-2, F-FRM-9): the app frame.
+  - A 220 px sessions sidebar, collapsible from the toolbar's list button.
+  - A 48 px toolbar above the view area.
+  - Below 768 px the sidebar stacks above the main area, with its list capped at 160 px (`MainView.tsx`, `SessionSidebar.tsx`).
+- [x] T-2 (F-FRM-3, F-FRM-4): the toolbar shows the open session's title and node count, the AI Explore button, and the Graph/Tree/Summary toggle. The Graph view stays mounted while hidden, so its pan and zoom survive.
+- [x] T-3 (F-FRM-5, F-FRM-6, F-FRM-8): "Loading…" until the controller has the session list, the error banner (`Alert`), and react-toastify toasts for every action's outcome.
+- [x] T-4 (F-FRM-7): `styles/theme-bridge.css` maps the app's design-system variables onto the kit's `--agent-app-*` tokens, set from the host by the kit's theme bridge. The brutalist theme flattens every corner, and the three type colours and the error red stay fixed.
+- [x] T-5 (F-SES-1, F-SES-2, F-SES-5): the session list, most recently changed first (`sort=-updated`), with title and topic on each row, the open session marked, and "No sessions yet. Create one to start."
+- [x] T-6 (F-SES-3, F-SES-4): the "New Brainstorm Session" dialog (title and topic, both required, Enter submits). It creates the session and then its root idea at (1500, 400) holding the topic, and opens the session (`apiAdapter.ts` `handleSessionCreate`).
+- [x] T-7 (F-SES-6): inline rename with check and cross, where Enter saves, Escape cancels, and an empty name changes nothing.
+- [x] T-8 (F-SES-7): the delete icon asks "Delete session?" (`MainView.tsx`, the same dialog pattern as Delete node), then deletes the session. Its nodes go by the `session` relation's cascade, and the most recently changed remaining session opens.
+- [x] T-9 (F-SES-8): the schema migration (`1700000000_init_brainstorm.js`: `sessions`, and `nodes` with its self-relation `parent`, both relations cascading) and the seed of "Welcome brainstorm" (`1700000001_seed_brainstorm.js`).
+- [x] T-10 (F-GRA-1, F-GRA-9): the 3000 × 3000 canvas with its dot grid. Curved lines run from each parent's measured bottom edge to the child, and the empty state reads "Create a session to start brainstorming" (`GraphView.tsx`).
+- [x] T-11 (F-GRA-2, F-GRA-3): navigating the canvas.
+  - Pan by dragging the background.
+  - Zoom with the wheel around the pointer (×1.1) or with the buttons around the centre (×1.2), clamped to 25–200 % with the percentage shown.
+  - Reset & fit, and centring on each opened session.
+- [x] T-12 (F-GRA-4, F-GRA-6, F-GRA-7): node cards (`NodeCard.tsx`).
+  - A type badge in the type's colour, the person or robot creator icon, and a spinner while an AI button works on the card.
+  - Text clamped to four lines.
+  - A press that moves under 4 px opens the detail.
+  - Actions on hover: Expand, Answer on questions, add a child, delete.
+- [x] T-13 (F-GRA-5): dragging a card moves its lines live, and the release stores `x`/`y` (`AppController.updateNodePosition`, optimistic).
+- [x] T-14 (F-GRA-8, F-NOD-5): card placement (`apiAdapter.ts` `resolveNodes`, `childPositions`, `handleNodeCreate`).
+  - Unplaced roots take slots at (1500 + 280·k, 400).
+  - Children go 220 below their parent, siblings 280 apart.
+  - A slot moves down by 220 while it collides, up to 8 times.
+  - A new child is placed after its siblings and stored.
+- [x] T-15 (F-TRE-1, F-TRE-2, F-TRE-3, F-TRE-4): the Tree view (`TreeView.tsx`).
+  - An outline indented 18 px per level, with a type dot, the text on one line, and a robot icon on AI-made nodes.
+  - Chevrons collapse branches, and a click opens the detail.
+  - Hover actions as on cards, and an empty state.
+- [x] T-16 (F-NOD-1, F-NOD-2, F-NOD-3): the node types question, answer and idea. They are stored as `question`, `insight` and `idea`, and `task` reads as idea (`toPbKind`/`toV1Type`). The node detail dialog shows type, creator, depth and full text; its "Edit node" mode has Type and Content, with Save disabled while empty and Ctrl/⌘+Enter to save.
+- [x] T-17 (F-NOD-4): the "Add node" dialog: type defaults to Question, content is required, and Ctrl/⌘+Enter adds.
+- [x] T-18 (F-NOD-6): "Delete node?" with "This will delete the node and all its descendants." The subtree goes by the `parent` relation's cascade.
+- [x] T-19 (F-AI-1, F-AI-5, F-AI-7): Expand.
+  - `POST /api/ops/nodes/suggest` asks the model for 3 follow-ups and saves them as children.
+  - The adapter then sets each new child to `question` and stores its computed position.
+  - The node's spinner shows, and its Expand/Answer and the AI Explore button are disabled.
+  - The new cards are stored with `created_by: agent`, so they read "Created by AI" after a reload too.
+- [x] T-20 (F-AI-2): Answer on question nodes. `POST /api/ops/nodes/answer` saves a 2–3 sentence answer as an `insight` child, and the adapter stores its computed position. A non-question is refused.
+- [x] T-21 (F-AI-3, F-AI-4): AI Explore.
+  - The launch dialog has strategy, effort and start node.
+  - The adapter runs `effort` steps over a frontier (the start node, or every branch tip), breadth-first or depth-first. Each step calls `POST /api/ops/sessions/explore` once, which saves up to 4 ideas under that branch with a broad or deep prompt.
+  - The adapter stores their positions after each step.
+  - The "AI Explore running" dialog shows the step under way, then the result toast. The adapter announces each finished step (`EXPLORE_STEP_EVENT`), which `AppController.exploreSession` hands to the dialog.
+- [x] T-22 (F-AI-6): model calls go through `_craftbot_bridge.callLLM`, answered by CraftBot or the framework bridge. An empty answer makes every AI route answer 503 "AI is unavailable (app not running inside CraftBot)", which the View shows as an error toast, with nothing written.
+- [x] T-23 (F-SUM-1, F-SUM-2, F-SUM-3, F-SUM-4): the Summary view (`SummaryView.tsx`).
+  - The counts strip, and the AI summary from `sessions.summarize`, which loads automatically and has Refresh.
+  - "Explored Nodes" sorted by depth, then creation.
+  - The empty state, which asks nothing of the model.
+- [x] T-24 (F-AGT-1, F-AGT-2, F-AGT-3): the agent operations `sessions.get`, `sessions.create`, `nodes.add` and `nodes.edit` (`pb/pb_hooks/agent_ops.pb.js`, `lib_agent.js`).
+  - They port the adapter's placement and type mapping, so they write the same records and positions as the dialogs.
+  - `sessions.outline` is kept.
+  - Renaming or deleting a session and moving a card stay plain record writes, as in the View.
+  - All ten operations are served to agents by the generated `a2app_routes.pb.js`.
+- [x] T-25 (F-AGT-4, F-AGT-6, F-AGT-7): `nodes.expand`, `nodes.ai-answer` and `sessions.ai-explore`.
+  - The prompts are copied from `ops.pb.js`.
+  - The new nodes are saved, typed and placed in one transaction, as the buttons leave them.
+  - Without a model they answer 503 with the app's message, using the host's model through the compatibility bridge.
+  - The View's own AI routes are not declared to agents.
+- [x] T-26 (F-AGT-5): `nodes.delete` is declared destructive, so the adapter asks for the person's approval. It reports the node and every descendant removed with it.
+- [x] T-27 (C-8, C-10, F-SES-7, F-AI-3, F-AI-4, F-AI-7, F-AGT-3, F-AGT-4): the defect fixes of 2026-11-11 (requirements ## Changes).
+  - Migration `1700000002_nodes_created_by.js` adds `created_by`. The View's AI routes and every agent operation that creates nodes store `agent`, the dialogs store `user`, and `apiAdapter.ts` and `sessions.get` read it back.
+  - AI Explore's choices drive the run in `apiAdapter.ts` and in `sessions.ai-explore` (`strategy`, `effort`, `start_node_id`), with the step prompt in `ops.pb.js` copied to `lib_agent.js`.
+  - The "Delete session?" confirmation.
+  - Checked live through the screens (Playwright: badges after reload, explore runs with each choice against a stub model, delete cancel and confirm) and through the agent operations.
+
+## Verification
+- [x] The framework-files check (`validateFrameworkFiles` of the Agent App CLI) reports no problems for manifest.json, operations.json, AGENT_APP.md, reference/requirements.md and reference/tasks.md.
+- [x] The ## Operations Design section in reference/requirements.md lists exactly the 10 operations of operations.json, each under its declared module.
+- [x] A scenario run both through the View's data layer (`apiAdapter.ts`) and through the agent operations, on a fresh database each, stores identical rows and positions. It covers sessions, adds of every type, a drag, edits, Expand, Answer and AI Explore against a stub model, and subtree deletes. Both runs send the model identical prompts.
+- [ ] Agent App Framework gate (`agent-app <dir> validate`) passes, including the describe budget on a dev instance.
+- [ ] Every declared operation answers through `a2app` on a live instance.
+- [ ] The View renders identically to the published build (screenshot comparison).

@@ -1,19 +1,92 @@
 {
   "id": "resume-builder",
   "name": "Resume Maker",
-  "description": "Interactive split-view resume maker with 34 live template previews, custom fonts and colors, certifications, publications section, portfolio links, section management, multi-resume dashboard, score analysis, and PDF/Print export.",
-  "livingUIVersion": 2,
-  "createdAt": "2026-08-26T00:00:00.000Z",
+  "agentAppVersion": "0.1.0",
+  "adapterVersion": "0.2.0",
+  "appVersion": "1.0.0",
   "authMode": "none",
-  "port": 8090,
-  "pbVersion": "0.26.0",
-  "kitVersion": "0.5.0",
-  "craftbotVersion": "1.0.0",
-  "pipeline": {
-    "install": "npm install --ignore-scripts --prefix frontend",
-    "build": "npm run build --prefix frontend",
-    "start": "pocketbase serve --http=127.0.0.1:{{PORT}} --dir pb/pb_data --hooksDir pb/pb_hooks --migrationsDir pb/pb_migrations --publicDir pb/pb_public",
-    "health": "/api/health"
+  "modules": [
+    {
+      "name": "app",
+      "summary": "guide",
+      "entities": []
+    },
+    {
+      "name": "resumes",
+      "summary": "list, get, score, export, create, import, duplicate, rename…",
+      "entities": [
+        "resume_state"
+      ]
+    },
+    {
+      "name": "style",
+      "summary": "options, set-template, update",
+      "entities": []
+    },
+    {
+      "name": "layout",
+      "summary": "set-visibility, move",
+      "entities": []
+    },
+    {
+      "name": "personal",
+      "summary": "update, set-photo",
+      "entities": []
+    },
+    {
+      "name": "philosophy",
+      "summary": "update",
+      "entities": []
+    },
+    {
+      "name": "experience",
+      "summary": "add, update, remove",
+      "entities": []
+    },
+    {
+      "name": "education",
+      "summary": "add, update, remove",
+      "entities": []
+    },
+    {
+      "name": "skills",
+      "summary": "add, update, remove",
+      "entities": []
+    },
+    {
+      "name": "mytime",
+      "summary": "add, update, remove",
+      "entities": []
+    },
+    {
+      "name": "achievements",
+      "summary": "add, update, remove",
+      "entities": []
+    },
+    {
+      "name": "projects",
+      "summary": "add, update, remove",
+      "entities": []
+    },
+    {
+      "name": "certifications",
+      "summary": "add, update, remove",
+      "entities": []
+    },
+    {
+      "name": "publications",
+      "summary": "add, update, remove",
+      "entities": []
+    }
+  ],
+  "modificationLock": false,
+  "capabilities": {
+    "integrations": []
   },
-  "adapterVersion": "1.8.0"
+  "pipeline": {
+    "install": "node pb-fetch.mjs && npm --prefix frontend install --ignore-scripts --no-audit --no-fund",
+    "build": "node pb-build.mjs",
+    "start": "node pb-serve.mjs",
+    "health": "/api/_a2app"
+  }
 }

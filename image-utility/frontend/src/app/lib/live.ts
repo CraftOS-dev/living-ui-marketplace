@@ -11,7 +11,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { getPbClient } from '../../kit/index.ts';
 
-export const LIVE_COLLECTIONS = ['settings', 'images', 'edits', 'changes', 'proposals', 'exports', 'presets', 'batches', 'assets', 'requests'] as const;
+// agent_requests: the trigger queue, so a request whose task was turned down shows it at once.
+export const LIVE_COLLECTIONS = ['settings', 'images', 'edits', 'changes', 'proposals', 'exports', 'presets', 'batches', 'assets', 'requests', 'agent_requests'] as const;
 export type LiveCollection = (typeof LIVE_COLLECTIONS)[number];
 
 export interface LiveEvent {

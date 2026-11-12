@@ -76,12 +76,12 @@
     {
       "name": "app.reset",
       "description": "Reset the application to a clean preparing state (clears answers, chat messages including queued messages and replies, activity, the…",
-      "destructive": false,
+      "destructive": true,
       "module": "app",
       "params": {
         "confirm": {
           "type": "boolean",
-          "description": "Must be true to execute the reset"
+          "description": "Your AI agent: true once a founder asked for this deletion. Without it nothing is deleted and the answer says what would be."
         }
       }
     },

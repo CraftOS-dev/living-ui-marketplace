@@ -3,7 +3,7 @@
  * Inbox op helpers: reading a statement from an upload, a stored file, a
  * local path (AI agent) or pasted text; turning params into a booking
  * decision; rules from params or from a booked line; the posting policy
- * gate for the AI agent's proposals.
+ * gate for the AI agent's proposals and accepts.
  */
 
 function fail(status, message) {
@@ -87,6 +87,39 @@ function lineLabel(line) {
 
 /** May the AI agent's proposal post now? (the person's posting policy) */
 function mayAutoPost(app, line, prop, who) {
+  return mayPost(app, { amount: line.getInt('amount'), currency: line.getString('currency'), date: line.getString('date'), confidence: prop.confidence }, who);
+}
+
+/**
+ * Book a line for inbox.accept / inbox.accept_many. The person's accept books it. The AI agent's is
+ * bound by the posting policy, as inbox.propose --post: the line's suggestion books only when the
+ * policy allows it (judged at the suggestion's confidence); a choice the agent gives itself has no
+ * confidence, so it is stored as the agent's proposal. A line left for the person leaves the agent's
+ * queue. Returns { txn, posted, not_posted_because }.
+ */
+function acceptLine(app, line, decision, who) {
+  const inbox = require(`${__hooks}/lib_inbox.js`);
+  const u = require(`${__hooks}/lib_util.js`);
+  const st = line.getString('status') || 'new';
+  const sug = u.json(line, 'suggestion', null);
+  // The person, or a line accept refuses (booked, excluded, nothing to book): accept decides.
+  if (who.actor !== 'agent' || (st !== 'new' && st !== 'proposed') || (!decision && !sug)) return { txn: inbox.accept(app, line, decision, who), posted: true, not_posted_because: '' };
+  const gate = mayAutoPost(app, line, { confidence: decision ? '' : sug.confidence }, who);
+  if (gate.ok) return { txn: inbox.accept(app, line, decision, who), posted: true, not_posted_because: '' };
+  if (decision) {
+    inbox.propose(app, line, { account: decision.account, splits: decision.splits, transfer_account: decision.transfer_account, match: decision.match, contact: decision.contact, tax_code: decision.tax_code, narration: decision.narration }, who);
+  } else if (line.getString('agent_state') === 'waiting' || line.getString('agent_state') === 'working') {
+    line.set('agent_state', 'done');
+    app.save(line);
+  }
+  return { txn: null, posted: false, not_posted_because: gate.reason };
+}
+
+/**
+ * The person's posting policy for anything the AI agent would post: a bank line it proposes, or an
+ * entry it records (transactions.create). x = { amount (minor units), currency, date, confidence }.
+ */
+function mayPost(app, x, who) {
   const setup = require(`${__hooks}/lib_setup.js`);
   const money = require(`${__hooks}/lib_money.js`);
   const ledger = require(`${__hooks}/lib_ledger.js`);
@@ -94,21 +127,21 @@ function mayAutoPost(app, line, prop, who) {
   const pol = setup.policy(s);
   if (who.actor !== 'agent') return { ok: true, reason: '' };
   if (!pol.agent_auto_post) return { ok: false, reason: 'The person reviews your proposals (auto-posting is off in their policy)' };
-  if (prop.confidence !== 'high') return { ok: false, reason: 'Only high-confidence proposals post on their own' };
+  if (x.confidence !== 'high') return { ok: false, reason: 'Only high-confidence proposals post on their own' };
   const ceiling = String(pol.ceiling || '').trim();
   if (ceiling !== '') {
     const home = ledger.home(app);
     const limit = money.parse(ceiling, home, 'ceiling');
-    let amt = Math.abs(line.getInt('amount'));
-    if (line.getString('currency') !== home) {
-      const rate = ledger.rateFor(app, line.getString('currency'), line.getString('date'));
+    let amt = Math.abs(x.amount);
+    if (x.currency !== home) {
+      const rate = ledger.rateFor(app, x.currency, x.date);
       if (!rate) return { ok: false, reason: 'No exchange rate to compare with the posting limit' };
-      amt = Math.abs(money.toHome(amt, line.getString('currency'), home, rate));
+      amt = Math.abs(money.toHome(amt, x.currency, home, rate));
     }
     if (amt > limit) return { ok: false, reason: 'Above the ' + money.format(limit, home) + ' limit the person set for you' };
   }
   const al = s.getString('agent_lock_date');
-  if (al && line.getString('date') <= al) return { ok: false, reason: 'Dated on or before your lock date ' + al };
+  if (al && x.date <= al) return { ok: false, reason: 'Dated on or before your lock date ' + al };
   return { ok: true, reason: '' };
 }
 
@@ -181,4 +214,4 @@ function ruleFromLine(app, line, d, who) {
   return saveRule(app, null, p, who);
 }
 
-module.exports = { content: content, decision: decision, lineLabel: lineLabel, mayAutoPost: mayAutoPost, saveRule: saveRule, ruleFromLine: ruleFromLine };
+module.exports = { content: content, decision: decision, lineLabel: lineLabel, acceptLine: acceptLine, mayAutoPost: mayAutoPost, mayPost: mayPost, saveRule: saveRule, ruleFromLine: ruleFromLine };

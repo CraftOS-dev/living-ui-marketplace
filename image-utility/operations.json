@@ -1741,6 +1741,11 @@
           "type": "string",
           "format": "json",
           "description": "JSON {x,y,w,h}: the part of the image meant"
+        },
+        "request": {
+          "type": "string",
+          "format": "ref:requests",
+          "description": "Send this request again (one the AI agent never got); nothing else is needed"
         }
       }
     },
@@ -1783,7 +1788,7 @@
           "type": "string",
           "required": true,
           "format": "ref:requests",
-          "description": "Request id"
+          "description": "Request id, or the queue id its task carries"
         }
       }
     },
@@ -1797,7 +1802,7 @@
           "type": "string",
           "required": true,
           "format": "ref:requests",
-          "description": "Request id"
+          "description": "Request id, or the queue id its task carries"
         },
         "status": {
           "type": "enum",

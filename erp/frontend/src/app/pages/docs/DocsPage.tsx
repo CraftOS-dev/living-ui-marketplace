@@ -222,6 +222,8 @@ export function DocsPage({ query, type }: PageProps & { type: DocType }): React.
   const selRows = rows.filter((r) => selected.has(r.id));
   const selParties = [...new Set(selRows.map((r) => r.party.id))];
   const selOverdue = selRows.filter((r) => r.status === 'overdue').length;
+  // Reminders cover exactly the selected invoices that still have something to pay.
+  const selOwing = selRows.filter((r) => r.state === 'posted' && r.balance > 0).map((r) => r.id);
 
   const dueHead = money_ ? 'Due' : type === 'quote' ? 'Valid until' : type === 'sales_order' || type === 'purchase_order' ? 'Expected' : '';
   const dueCell = (r: DocRow): React.ReactNode => {
@@ -375,7 +377,7 @@ export function DocsPage({ query, type }: PageProps & { type: DocType }): React.
       )}
 
       <SelectionBar count={selected.size} onClear={() => setSelected(new Set())}>
-        {type === 'invoice' && can(me, 'sales', 'edit') && selOverdue > 0 && <AskAgent kind="collections_requested" label="Ask your AI agent to send reminders" variant="accent" size="sm" />}
+        {type === 'invoice' && can(me, 'sales', 'edit') && selOverdue > 0 && <AskAgent kind="collections_requested" params={{ invoices: JSON.stringify(selOwing) }} label="Ask your AI agent to send reminders" variant="accent" size="sm" />}
         {canPay(me, side) && selParties.length === 1 && (
           <PillButton
             variant={type === 'invoice' && selOverdue > 0 ? 'soft' : 'accent'}

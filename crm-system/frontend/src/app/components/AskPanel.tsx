@@ -92,6 +92,7 @@ export function AskPanel({ onClose }: { onClose: () => void }): React.JSX.Elemen
           }}
           rows={2}
           placeholder="Ask about your people and deals, or give it a job. It sees what you have open."
+          aria-label="Ask your AI agent"
           className={cn(area, 'resize-none pr-9')}
         />
         <button type="button" aria-label="Send" disabled={busy || q.trim() === ''} onClick={() => void send(q)} className="absolute bottom-4 right-4 flex size-6 items-center justify-center rounded-[5px] bg-[var(--cr-accent)] text-[var(--cr-on-accent)] disabled:opacity-40">

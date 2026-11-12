@@ -20,7 +20,6 @@ interface SidebarProps {
   collapsed: boolean
   onToggle: () => void
   llmConnected: boolean
-  gmailConnected: boolean
 }
 
 interface NavItem {
@@ -45,7 +44,6 @@ export function Sidebar({
   collapsed,
   onToggle,
   llmConnected,
-  gmailConnected,
 }: SidebarProps) {
   if (isMobile) return <MobileBottomBar active={active} onChange={onChange} />
   return (
@@ -55,7 +53,6 @@ export function Sidebar({
       collapsed={collapsed}
       onToggle={onToggle}
       llmConnected={llmConnected}
-      gmailConnected={gmailConnected}
     />
   )
 }
@@ -66,14 +63,12 @@ function DesktopSidebar({
   collapsed,
   onToggle,
   llmConnected,
-  gmailConnected,
 }: {
   active: Section
   onChange: (s: Section) => void
   collapsed: boolean
   onToggle: () => void
   llmConnected: boolean
-  gmailConnected: boolean
 }) {
   const width = collapsed ? 64 : 232
   return (
@@ -190,7 +185,6 @@ function DesktopSidebar({
         }}
       >
         <StatusRow label="AI generator" connected={llmConnected} icon={FiZap} />
-        <StatusRow label="Gmail send" connected={gmailConnected} icon={FiMail} />
       </div>
     </aside>
   )

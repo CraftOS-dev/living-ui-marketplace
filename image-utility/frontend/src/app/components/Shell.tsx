@@ -51,7 +51,8 @@ function useBadges(): Partial<Record<Page, number>> {
   if (status === null) return {};
   return {
     home: status.proposals,
-    requests: status.open_requests,
+    // What needs you, as the Requests page's "Needs you" lists it.
+    requests: status.requests_need_you,
     batches: status.batches_running,
   };
 }

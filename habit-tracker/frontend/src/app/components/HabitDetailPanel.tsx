@@ -56,10 +56,10 @@ export function HabitDetailPanel({ habit, controller, onClose, onEdit }: HabitDe
         setNoteDraft(today?.note || '')
         setValueDraft(String(today?.value ?? 0))
       })
-      .catch(() => {
+      .catch((err: any) => {
         if (mounted) {
           setLoadingMap(false)
-          toast.error('Failed to load habit detail')
+          toast.error(err?.message || 'Failed to load habit detail')
         }
       })
     return () => {

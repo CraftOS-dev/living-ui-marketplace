@@ -469,7 +469,7 @@ A card: Inbox (no day) → Today or Coming up (a day) or Later (someday or more 
 | suggestions.list | suggestions | — | — | status: enum, target_kind: enum, target_id: string, limit: number | readOnly |
 | suggestions.create | suggestions | — | — | target_kind: enum, target_id: string, field: string, value: string, why: string, items: string | — |
 | life.overview | life | — | — | — | readOnly |
-| life.area | life | — | — | area: enum | readOnly |
+| life.area | life | — | — | area: enum! | readOnly |
 | areas.set | areas | — | — | area: enum, enabled: boolean, why: string | — |
 | areas.reorder | areas | — | — | areas: string!, why: string | — |
 | goals.list | goals | — | — | area: enum, state: enum | readOnly |

@@ -149,7 +149,7 @@ Categorize the uncategorized expenses in this Expenses tracker app. 1) `a2app <a
 
 ### Notes
 
-40 operations in `operations.json` (`a2app <app>`). Groups:
+38 operations in `operations.json` (`a2app <app>`). Groups:
 `app.guide`; `settings.*`; `summary.month`, `summary.trend`;
 `expenses.list|get|add|add-many|update|delete|delete-many|set-category|attach-receipt|remove-receipt`;
 `categories.list|add|update|delete`;

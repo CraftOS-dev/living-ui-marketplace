@@ -67,7 +67,7 @@ function detail(s: Source, st: CheckState, monitor: Sensor | null): string {
   if (st === 'unavailable') return help?.enable ?? s.last_error.replace(/^Not available( here)?:?\s*/, '');
   if (st === 'broken' || st === 'trouble') return `${s.last_error || 'The last runs failed'} — NetSentry retries automatically.`;
   if (st === 'waiting') return s.sensor ? 'Waiting for the monitor’s first report.' : 'Runs for the first time shortly.';
-  if (st === 'off') return 'Turned off in Settings → Checks.';
+  if (st === 'off') return 'Turned off in Settings → More settings → Checks.';
   const when = s.last_run ? (s.sensor ? `last report ${relTime(s.last_run)}` : `checked ${relTime(s.last_run)}`) : '';
   return [help?.what, when].filter(Boolean).join(' · ');
 }

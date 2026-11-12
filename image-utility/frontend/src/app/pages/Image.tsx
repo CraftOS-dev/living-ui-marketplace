@@ -191,7 +191,7 @@ function LogoChooser({ onPick, onClose }: { onPick: (asset: string, w: number, h
 
 export function ImagePage({ id }: { id: string }): React.JSX.Element {
   const { status } = useApp();
-  const live = useLive(() => api.image(id, true), ['images', 'edits', 'proposals', 'exports', 'requests'], [id], 120);
+  const live = useLive(() => api.image(id, true), ['images', 'edits', 'proposals', 'exports', 'requests', 'agent_requests'], [id], 120);
   const d = live.data;
   const assets = useLive(() => api.assets(), ['assets'], []);
   const stage = useRef<StageHandle | null>(null);
@@ -1271,7 +1271,7 @@ export function ImagePage({ id }: { id: string }): React.JSX.Element {
               <span className="inline-flex items-center gap-1">
                 <Sparkles size={12} aria-hidden className="text-[var(--iu-accent-text)]" />
                 Agent
-                {d.requests.some((r) => r.status === 'sent' || r.status === 'working') && <span aria-hidden className="iu-pulse size-1.5 rounded-full bg-[var(--iu-accent)]" />}
+                {d.requests.some((r) => r.asked && (r.status === 'sent' || r.status === 'working')) && <span aria-hidden className="iu-pulse size-1.5 rounded-full bg-[var(--iu-accent)]" />}
               </span>
             ),
           },

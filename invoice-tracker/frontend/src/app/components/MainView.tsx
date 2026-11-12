@@ -70,6 +70,9 @@ export const MainView: React.FC<MainViewProps> = ({ appController }) => {
     )
   }
 
+  // The currency the totals use: the shown workspace's (the newest one's under All Workspaces)
+  const shownCurrency = (state.groups.find((g) => g.id === state.activeGroupId) || state.groups[0])?.currency || 'USD'
+
   return (
     <div
       style={{
@@ -141,7 +144,7 @@ export const MainView: React.FC<MainViewProps> = ({ appController }) => {
                   />
                   <select
                     value={state.activeGroupId || ''}
-                    onChange={(e) => appController.setActiveGroup(Number(e.target.value) || null)}
+                    onChange={(e) => appController.setActiveGroup(e.target.value || null)}
                     style={{
                       background: 'transparent',
                       border: 'none',
@@ -333,6 +336,7 @@ export const MainView: React.FC<MainViewProps> = ({ appController }) => {
                   onSimulateQuick={(preset) => appController.simulateIncomingBill(preset)}
                   livePulseActive={state.livePulseActive}
                   currencySymbol={currencySymbol}
+                  currencyCode={activeCurrency}
                 />
               )}
 
@@ -345,6 +349,7 @@ export const MainView: React.FC<MainViewProps> = ({ appController }) => {
                   onNavigateTab={(tab) => appController.setCurrentTab(tab)}
                   activeGroupName={state.activeGroupName}
                   currencySymbol={currencySymbol}
+                  currencyCode={activeCurrency}
                 />
               )}
 
@@ -356,6 +361,7 @@ export const MainView: React.FC<MainViewProps> = ({ appController }) => {
                   onOpenAddModal={() => appController.setAddSubscriptionModalOpen(true)}
                   activeGroupName={state.activeGroupName}
                   currencySymbol={currencySymbol}
+                  currencyCode={activeCurrency}
                 />
               )}
 
@@ -372,7 +378,9 @@ export const MainView: React.FC<MainViewProps> = ({ appController }) => {
                   onSelectInvoice={(inv) => appController.setSelectedInvoice(inv)}
                   onDeleteInvoice={(id) => appController.deleteInvoice(id)}
                   onOpenAddModal={() => appController.setAddInvoiceModalOpen(true)}
+                  onUpdateInvoice={(id, data) => appController.updateInvoice(id, data)}
                   currencySymbol={currencySymbol}
+                  currencyCode={activeCurrency}
                 />
               )}
 
@@ -384,6 +392,7 @@ export const MainView: React.FC<MainViewProps> = ({ appController }) => {
                   onNavigateTab={(tab) => appController.setCurrentTab(tab)}
                   activeAccountId={state.activeGroupId}
                   currencySymbol={currencySymbol}
+                  currencyCode={activeCurrency}
                 />
               )}
 
@@ -414,6 +423,7 @@ export const MainView: React.FC<MainViewProps> = ({ appController }) => {
         isOpen={state.isAddInvoiceModalOpen}
         onClose={() => appController.setAddInvoiceModalOpen(false)}
         onAdd={(data) => appController.createManualInvoice(data)}
+        defaultCurrency={shownCurrency}
       />
 
       <AddSubscriptionModal
@@ -421,6 +431,7 @@ export const MainView: React.FC<MainViewProps> = ({ appController }) => {
         onClose={() => appController.setAddSubscriptionModalOpen(false)}
         activeGroupId={state.activeGroupId}
         activeGroupName={state.activeGroupName}
+        defaultCurrency={shownCurrency}
         onCreateSubscription={(data) => appController.createManualSubscription(data)}
       />
 
@@ -429,6 +440,7 @@ export const MainView: React.FC<MainViewProps> = ({ appController }) => {
         onClose={() => appController.setAddIngestionModalOpen(false)}
         activeGroupId={state.activeGroupId}
         activeGroupName={state.activeGroupName}
+        defaultCurrency={shownCurrency}
         onCreateEvent={(data) => appController.createManualIngestionEvent(data)}
       />
 

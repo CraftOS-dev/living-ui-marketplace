@@ -162,7 +162,7 @@ Work the cards waiting for you on this Kanban Board. 1) `a2app <app> app app.gui
 
 ### Notes
 
-63 operations in `operations.json` (`a2app <app>`):
+38 operations in `operations.json` (`a2app <app>`):
 `app.guide|state|status|context|ui`; `settings.get|update`;
 `boards.list|get|templates|create|update|delete`;
 `columns.add|update|move|remove`; `labels.save|remove`;

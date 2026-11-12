@@ -92,16 +92,17 @@ function viewBackstop(e, op) {
  */
 function legacyAuth(e) {
   var path = pathOf(e);
-  if (path.indexOf("/api/ops/") !== 0 || !isMutation(methodOf(e))) return null;
+  if (path.indexOf("/api/ops/") !== 0 || !isMutation(methodOf(e))) return false;
   var caller = adapter().callerOf(e);
-  if (caller.view || caller.agent || caller.authenticated) return null;
-  return e.json(401, {
+  if (caller.view || caller.agent || caller.authenticated) return false;
+  e.json(401, {
     a2app: true,
     ok: false,
     code: "agent_token_required",
     message: "This call requires an agent credential.",
     how: "Read the app's .agent-token file (mode 0600) in the project directory and send it as X-A2App-Token.",
   });
+  return true;
 }
 
 function readManifest() {
@@ -115,8 +116,8 @@ function readManifest() {
 /** On a multi-user app every operation needs a principal (an agent credential
  *  acts as the app's operator, so it has one). */
 function multiUserOps(e) {
-  if (pathOf(e).indexOf("/api/ops/") !== 0) return null;
-  if (String(readManifest().authMode || "none") !== "multi-user") return null;
+  if (pathOf(e).indexOf("/api/ops/") !== 0) return false;
+  if (String(readManifest().authMode || "none") !== "multi-user") return false;
   var authed = false;
   try {
     authed = !!e.auth;
@@ -131,19 +132,31 @@ function multiUserOps(e) {
       authed = false;
     }
   }
-  if (authed) return null;
-  return e.json(401, {
+  if (!authed) {
+    // A valid agent credential is a principal: the adapter acts for it as the
+    // app's operator before any handler runs. Checked here too because the order
+    // PocketBase runs the two front-face middlewares in is not guaranteed.
+    try {
+      authed = adapter().callerOf(e).agent === true;
+    } catch (_e) {
+      authed = false;
+    }
+  }
+  if (authed) return false;
+  e.json(401, {
     ok: false,
     error: "authentication required",
     hint: "This app is multi-user; operations require a signed-in principal.",
   });
+  return true;
 }
 
 /** The front-face compatibility chain, in 1.9.0's order. */
 function middleware(e) {
   spaHeaders(e);
-  var refused = multiUserOps(e) || legacyAuth(e);
-  if (refused) return refused;
+  // Each check returns true once it has written its refusal: stop there (e.json
+  // returns nothing in the JSVM, so the reply itself cannot be the signal).
+  if (multiUserOps(e) || legacyAuth(e)) return;
   // The 1.9.0 write guard for the app's own View (it calls e.next() itself
   // when the write is acceptable).
   if (isViewRecordWrite(e)) return require(`${__hooks}/_compat_lib.js`).guardRequest(e);

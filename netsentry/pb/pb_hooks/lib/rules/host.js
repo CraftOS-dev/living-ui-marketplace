@@ -134,7 +134,7 @@ const HOST004 = {
     'a misconfiguration, or a backdoor.',
   remediation:
     '1. Identify the process (shown in the evidence) and who installed it.\n' +
-    '2. If expected, use “Mark current as expected” on the server’s “What we see” tab.\n3. If not, stop it and investigate the server.',
+    '2. If expected, use “Mark current as expected” on the server’s “Network & firewall” tab.\n3. If not, stop it and investigate the server.',
   references: [],
   evaluate(input) {
     const base = input.baseline('listeners');

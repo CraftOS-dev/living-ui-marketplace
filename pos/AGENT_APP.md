@@ -325,7 +325,7 @@ A register in this POS app was just closed. Write the user a short brief on the 
 
 ### Notes
 
-101 operations in `operations.json` (`a2app <app>`). Groups:
+99 operations in `operations.json` (`a2app <app>`). Groups:
 `app.guide|status`; `setup.regions|complete`;
 `auth.me|login|logout|first-pin|change-pin|approve`;
 `staff.list|add|update|set-pin|reset-pin`; `settings.get|update`;
@@ -424,6 +424,6 @@ See `reference/requirements.md` (binding). Feature checklist:
 - [x] Reports: today, yesterday, the last 7 or 30 days, this month or chosen dates, by register; collected, net sales, orders, average, refunds, discounts, tax, service charge, each against the previous period; the headline on the dark card; collected by hour or day; top products and categories; payment methods as a ring; taxes; staff; CSV export
 - [x] Activity: the audit trail grouped (money, exceptions, changes, your AI agent), filters, search
 - [x] Cash and shifts: open with a float counted by denomination, cash in, out and drops with reasons (approval for cashiers), blind close as a full screen of two steps (count the drawer, check and close), the Z report frozen at close (printable), X report while open, history
-- [x] Settings (sections as pill tabs): business and receipts (logo, header, footer, width 80 or 58 mm, tax and company numbers, barcode, after-sale printing), taxes and money (price mode, rounding, cash rounding, tax classes with dine-in rate and receipt mark), selling (order types, service charge, cashier discount limit, kitchen, order numbers, prices on tiles, idle lock, day cutoff), payment methods, registers, staff (roles, PIN resets, training mode), your AI agent
+- [x] Settings (sections as pill tabs): business and receipts (logo, header, footer, width 80 or 58 mm, tax and company numbers, barcode, after-sale printing), taxes and money (price mode, rounding, cash rounding, tax classes with dine-in rate and receipt mark), selling (order types, service charge, cashier discount limit, kitchen, order numbers, prices on tiles, idle lock, day cutoff), payment methods, registers (add, rename, archive), staff (roles, PIN resets, training mode), your AI agent
 - [x] Training mode per person: practice sales numbered TR..., never in reports, stock or cash
 - [x] Every UI action has a CLI operation; the agent cannot take payments, refund, void, open or close a register, move cash, see PINs or change owner settings

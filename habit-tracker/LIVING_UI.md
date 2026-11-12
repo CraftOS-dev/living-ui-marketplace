@@ -27,15 +27,15 @@ frontend/src/app/      the app itself — this is what you change
 
 ## Data Model
 
-PocketBase collections, created by `pb/pb_migrations/1700000000_init_habits.js`:
+PocketBase collections, created by `pb/pb_migrations/1700000000_init_habits.js` (`1700000002` widens `icon` to 40 characters, `1700000003` adds `kind`):
 
 | Collection | Purpose | Fields |
 |---|---|---|
 | `categories` | Grouping for habits | `name`, `color`, `order`, `created`, `updated` |
-| `habits` | One tracked habit | `name`, `description`, `type` (`binary`\|`quantity`), `target`, `unit`, `color`, `icon`, `order`, `archived`, `category` (relation → categories), `created`, `updated` |
+| `habits` | One tracked habit | `name`, `description`, `type` (`binary`\|`quantity`), `kind` (`binary`\|`count`\|`duration`\|`negative`), `target`, `unit`, `color`, `icon`, `order`, `archived`, `category` (relation → categories), `created`, `updated` |
 | `entries` | One day's record for a habit | `habit` (relation → habits, cascade), `day` (text, `YYYY-MM-DD`), `value`, `note`, `created`, `updated` |
 
-Two habit types exist in the schema: `binary` (did it / didn't) and `quantity` (a number against `target`, labelled with `unit`). Durations are modelled as a `quantity` habit whose `unit` is minutes; there is no separate duration or avoidance type.
+`type` is the completion rule: `binary` (did it / didn't) or `quantity` (a number against `target`, labelled with `unit`). `kind` is the habit form's exact type: count and duration habits are `quantity`, binary and avoid (`negative`) habits are `binary`. A habit without a `kind` reads as count or binary.
 
 `day` is a text field, not a date — entries are keyed by calendar day (`YYYY-MM-DD`) so a check-in is timezone-stable. Streaks and heatmap cells are computed on the frontend from the `entries` for a habit.
 

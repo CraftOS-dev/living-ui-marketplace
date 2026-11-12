@@ -170,9 +170,11 @@ routerAdd('POST', '/api/ops/inbox/accept', (e) =>
     const decision = io.decision(app, p);
     return require(`${__hooks}/lib_activity.js`).run(app, who, 'inbox.accept', (t) => {
       const line = inbox.mustLine(t, u.req(p, 'line'));
-      const txn = inbox.accept(t, line, decision, who);
+      // The AI agent's accept is bound by the posting policy (io.acceptLine).
+      const r = io.acceptLine(t, line, decision, who);
+      const txn = r.txn;
       if (u.bool(p, 'make_rule', false)) io.ruleFromLine(t, line, decision || {}, who);
-      return { summary: 'Booked ' + io.lineLabel(line) + (txn ? ' as ' + require(`${__hooks}/lib_txns.js`).describe(t, txn) : ''), type: 'line', id: line.id, result: { line: inbox.serializeLine(t.findRecordById('statement_lines', line.id)), transaction: txn ? txn.id : '' } };
+      return { summary: (r.posted ? 'Booked ' + io.lineLabel(line) + (txn ? ' as ' + require(`${__hooks}/lib_txns.js`).describe(t, txn) : '') : 'Proposed a category for ' + io.lineLabel(line)), type: 'line', id: line.id, result: { line: inbox.serializeLine(t.findRecordById('statement_lines', line.id)), transaction: txn ? txn.id : '', posted: r.posted, not_posted_because: r.not_posted_because } };
     });
   }),
 );
@@ -189,6 +191,7 @@ routerAdd('POST', '/api/ops/inbox/accept_many', (e) =>
     return require(`${__hooks}/lib_activity.js`).run(app, who, 'inbox.accept_many', (t) => {
       let n = 0;
       const skipped = [];
+      const held = [];
       for (const id of ids) {
         const line = inbox.mustLine(t, id);
         const sug = u.json(line, 'suggestion', null);
@@ -196,10 +199,12 @@ routerAdd('POST', '/api/ops/inbox/accept_many', (e) =>
           skipped.push({ line: id, reason: 'No suggestion; choose a category' });
           continue;
         }
-        inbox.accept(t, line, decision, who);
-        n++;
+        // The AI agent's lines book only when the posting policy allows it; the rest stay proposed.
+        const r = io.acceptLine(t, line, decision, who);
+        if (r.posted) n++;
+        else held.push({ line: id, reason: r.not_posted_because });
       }
-      return { summary: 'Booked ' + n + ' bank line' + (n === 1 ? '' : 's'), type: 'line', id: '', result: { booked: n, skipped: skipped } };
+      return { summary: 'Booked ' + n + ' bank line' + (n === 1 ? '' : 's') + (held.length ? ', proposed ' + held.length + ' for review' : ''), type: 'line', id: '', result: { booked: n, skipped: skipped, not_posted: held } };
     });
   }),
 );

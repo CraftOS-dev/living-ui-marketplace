@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react'
 import {
   FiDownload,
   FiSearch,
-  FiTag,
   FiTrash2,
   FiUpload,
   FiUserPlus,
@@ -435,23 +434,6 @@ function SubscriberDrawer({
             { value: 'bounced', label: 'Bounced' },
           ]}
         />
-        <div
-          style={{
-            padding: 'var(--space-3)',
-            background: 'var(--bg-tertiary)',
-            borderRadius: 'var(--radius-md)',
-            fontSize: 'var(--font-size-xs)',
-            color: 'var(--text-secondary)',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-            <FiTag size={12} />
-            <span style={{ textTransform: 'uppercase', letterSpacing: 0.5 }}>Unsubscribe link</span>
-          </div>
-          <code style={{ fontSize: 11, wordBreak: 'break-all' }}>
-            /api/unsubscribe/{subscriber.unsubscribeToken}
-          </code>
-        </div>
       </div>
     </Drawer>
   )
