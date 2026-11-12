@@ -90,8 +90,8 @@ person's policy allowing it.
   can be reverted as a whole. Ask AI (title bar) sends a question with what
   is on screen.
 - **Keyboard**: Ctrl K palette (go to, create, find entries, documents,
-  contacts, accounts or an amount), Ctrl Z / Ctrl Y undo and redo, N new
-  expense, I import, the inbox keys above.
+  contacts, accounts or an amount), Ctrl Z / Ctrl Y undo and redo, E (and N
+  outside the inbox) new expense, I import, the inbox keys above.
 
 The look follows CAD Workshop: a 52px icon rail (new button, badges), a
 title bar with status chips, then the view edge to edge; flat panels split
@@ -229,7 +229,7 @@ Call an operation with `a2app <app> <module> <operation> --param value` (`<app>`
 
 - `transactions.list` *(read-only)* — Entries newest first with their postings (amounts in minor units). Filter by dates, account, contact, words or an amount, status, kind, who added them, AI run, method; dupes=true keeps likely duplicates. Params: `from` (string), `to` (string), `account` (string), `contact` (string), `q` (string), `status` (posted|proposed|voided|all), `kind` (string), `added_by` (user|agent|rule|import|recurring|system), `run` (string), `method` (manual|rule|match|memory|agent|transfer|recurring|document), `dupes` (boolean), `limit` (number), `offset` (number).
 - `transactions.get` *(read-only)* — One entry with its postings (account names), files, statement lines, document, payments, reversal and history. Params: `txn` (string, required).
-- `transactions.create` — Record an entry. Simple: kind expense (from + category), income (to + category) or transfer (from + to, amount_to across currencies) with amount and optional tax_code. Journal: postings. The AI agent's entries are proposed until the person approves them. Params: `kind` (expense|income|transfer|journal), `date` (string), `amount` (string), `from` (string), `to` (string), `category` (string), `tax_code` (string), `inclusive` (boolean), `amount_to` (string), `postings` (string), `narration` (string), `contact` (string), `reference` (string), `tags` (string), `memo` (string), `status` (posted|proposed), `reason` (string), `confidence` (high|medium|low), `file` (string).
+- `transactions.create` — Record an entry. Simple: kind expense (from + category), income (to + category) or transfer (from + to, amount_to across currencies) with amount and optional tax_code. Journal: postings. The AI agent's entries are proposed until the person approves them; with `status` posted one posts only when the posting policy allows it (agent_auto_post on, `confidence` high, its total within the ceiling), otherwise it stays proposed and `not_posted_because` says why. Params: `kind` (expense|income|transfer|journal), `date` (string), `amount` (string), `from` (string), `to` (string), `category` (string), `tax_code` (string), `inclusive` (boolean), `amount_to` (string), `postings` (string), `narration` (string), `contact` (string), `reference` (string), `tags` (string), `memo` (string), `status` (posted|proposed), `reason` (string), `confidence` (high|medium|low), `file` (string).
 - `transactions.update` — Change an entry: date, description, contact, reference, tags, or its lines (simple fields or postings). Reconciled lines keep their account, amount and date. Params: `txn` (string, required), `date` (string), `narration` (string), `contact` (string), `reference` (string), `tags` (string), `kind` (expense|income|transfer|journal), `amount` (string), `from` (string), `to` (string), `category` (string), `tax_code` (string), `postings` (string).
 - `transactions.void` *(destructive)* — Void an entry: kept for the record, out of every balance. Its bank lines go back to the inbox. Params: `txn` (string, required), `reason` (string).
 - `transactions.approve` — Post proposed entries (the AI agent's, recurring ones). The person only. Params: `txn` (string), `txns` (string).
@@ -249,8 +249,8 @@ Call an operation with `a2app <app> <module> <operation> --param value` (`<app>`
 - `inbox.add_lines` — Add statement lines directly (e.g. read from a PDF statement): money in positive, money out negative. Duplicates are skipped. Params: `account` (string, required), `lines` (string, required), `file_name` (string), `file` (string).
 - `inbox.imports` *(read-only)* — Statement imports, newest first: file, period, lines new and duplicate, closing balance. Params: `account` (string), `limit` (number).
 - `inbox.undo_import` *(destructive)* — Take an import back out: entries it booked are voided and its lines removed. Params: `import` (string, required).
-- `inbox.accept` — Book a bank line: its suggestion, or what you give (account, splits, transfer_account, or match {"type":"posting|document|line","id":".."}). make_rule also creates a rule for the payee. Params: `line` (string, required), `account` (string), `splits` (string), `transfer_account` (string), `match` (string), `contact` (string), `tax_code` (string), `narration` (string), `memo` (string), `tags` (string), `amount_other` (string), `make_rule` (boolean).
-- `inbox.accept_many` — Book several lines: each with its own suggestion, or all with the account given. Params: `lines` (string, required), `account` (string), `tax_code` (string), `contact` (string).
+- `inbox.accept` — Book a bank line: its suggestion, or what you give (account, splits, transfer_account, or match {"type":"posting|document|line","id":".."}). make_rule also creates a rule for the payee. The AI agent's accept books only when the posting policy allows it (agent_auto_post on, the line's suggestion at high confidence, within the ceiling, after the agent lock date); otherwise a choice you give is stored as your proposal (medium confidence; use `inbox.propose --confidence high --post true` to state yours), the line waits for the person, and `posted` false with `not_posted_because` says why. Params: `line` (string, required), `account` (string), `splits` (string), `transfer_account` (string), `match` (string), `contact` (string), `tax_code` (string), `narration` (string), `memo` (string), `tags` (string), `amount_other` (string), `make_rule` (boolean).
+- `inbox.accept_many` — Book several lines: each with its own suggestion, or all with the account given. The AI agent's lines follow the posting policy as in `inbox.accept`; the ones it holds are listed in `not_posted` with the reason. Params: `lines` (string, required), `account` (string), `tax_code` (string), `contact` (string).
 - `inbox.propose` — AI agent: propose how to book a line, with a reason the person reads and a confidence. Posts only with post=true when the person's policy allows it. Never overrides the person's or a rule's choice. Params: `line` (string, required), `account` (string), `splits` (string), `transfer_account` (string), `match` (string), `contact` (string), `tax_code` (string), `narration` (string), `reason` (string, required), `confidence` (high|medium|low), `post` (boolean).
 - `inbox.queue` — AI agent: take the lines waiting for you (up to limit) with similar earlier lines, the accounts and the house rules. Params: `limit` (number).
 - `inbox.exclude` — Exclude lines from the books (duplicates, pending items), or restore them. Params: `line` (string), `lines` (string), `reason` (string), `restore` (boolean).
@@ -424,7 +424,7 @@ Prepare the month the person asked about for close in this Ledgerflow app. 1) `a
 
 ### Notes
 
-141 operations in `operations.json` (generated from the routes; every UI
+139 operations in `operations.json` (generated from the routes; every UI
 action is an op). Groups: app, setup, settings, policy, locks, accounts,
 contacts, tax, transactions, ledger, inbox, rules, profiles, files, docs,
 reconcile, reports, budgets, close, fx, recurring, asks, activity, export.

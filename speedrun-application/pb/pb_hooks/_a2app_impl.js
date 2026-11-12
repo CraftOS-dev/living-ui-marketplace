@@ -1302,6 +1302,30 @@ function codeForStatus(status) {
 }
 
 /**
+ * A handler written for the app's own GET route reads its input from the query
+ * string, but through POST /api/ops/<name> the call's parameters arrive in the
+ * body. Copy each scalar argument into the request's (cached) query map where
+ * the query does not already carry it, so a query-reading handler sees the
+ * same input it would have been sent directly. Handlers that read the body, or
+ * merge both, are unaffected.
+ */
+function mirrorArgsToQuery(e, args) {
+  if (!args || typeof args !== "object") return;
+  try {
+    var info = e.requestInfo();
+    if (!info || !info.query) return;
+    for (var k in args) {
+      if (!Object.prototype.hasOwnProperty.call(args, k)) continue;
+      var v = args[k];
+      if (v === null || v === undefined || typeof v === "object") continue;
+      var have = info.query[k];
+      if (have === undefined || have === null || have === "") info.query[k] = String(v);
+    }
+  } catch (_e) {
+    /* best effort: the handler still has the body */
+  }
+}
+/**
  * Run a declared operation's work and answer with the protocol envelope.
  *
  *   routerAdd("POST", "/api/ops/<name>", (e) =>
@@ -1353,6 +1377,8 @@ function op(e, name, fn) {
       };
     })(writers[w]);
   }
+
+  mirrorArgsToQuery(e, state.args);
 
   var returned;
   try {

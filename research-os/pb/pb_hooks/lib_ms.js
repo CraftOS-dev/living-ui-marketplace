@@ -269,7 +269,7 @@ function create(ctx, p) {
   app.save(m);
   // A first section to write in.
   const outline = util.str(p, 'outline', 'empty');
-  const heads = outline === 'imrad' ? ['Introduction', 'Methods', 'Results', 'Discussion'] : outline === 'review' ? ['Introduction', 'Background', 'Themes', 'Gaps and directions', 'Conclusion'] : [];
+  const heads = outline === 'imrad' ? ['Introduction', 'Methods', 'Results', 'Discussion'] : outline === 'review' ? ['Introduction', 'Methods', 'Findings', 'Conclusion'] : [];
   let sort = 1;
   for (const h of heads) {
     const b = util.newRecord(app, 'ms_blocks');

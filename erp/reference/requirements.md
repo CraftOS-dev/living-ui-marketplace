@@ -94,7 +94,7 @@ Phone, tablet and desktop widths down to 320 px are in scope, with touch and poi
   - Item photos up to 10 MB (JPEG, PNG, WebP or GIF).
   - Employee photos and the company logo up to 5 MB.
   - Claim receipts up to 15 MB.
-  - Attachments and Inbox files up to 25 MB each in storage; the screens advise 20 MB.
+  - Attachments and Inbox files up to 25 MB each, as the screens say.
   - CSV import files up to 20 MB.
 - C-16: The first open seeds the settings row, the ten built-in roles and six payment terms: Due on receipt, Net 7, Net 14, Net 30, Net 60, End of next month. There is no sample data. Setup then creates:
   - the chart of accounts template and the base currency;
@@ -104,7 +104,7 @@ Phone, tablet and desktop widths down to 320 px are in scope, with touch and poi
   - the item categories General and Services;
   - the leave types Annual leave (the preset's days), Sick leave (14) and Unpaid leave;
   - the owner's account with the Owner role, and with "I work here too" their employee record.
-- C-17: Country presets: Malaysia, Singapore, United Kingdom, United States, Canada, Australia, New Zealand, Japan, India, Indonesia, Thailand, Philippines, Vietnam, China, Hong Kong, United Arab Emirates, Saudi Arabia, Germany, France, Netherlands and Ireland, plus "Another country" with no currency and no taxes. Each preset carries a currency, the fiscal year's first month, the yearly days of annual leave and the starting taxes.
+- C-17: Country presets: Malaysia, Singapore, United Kingdom, United States, Canada, Australia, New Zealand, Japan, India, Indonesia, Thailand, Philippines, Vietnam, China, Hong Kong, United Arab Emirates, Saudi Arabia, Germany, France, Netherlands and Ireland, plus "Another country" with no taxes and no preset currency (the user chooses the base currency). Each preset carries a currency, the fiscal year's first month, the yearly days of annual leave and the starting taxes.
 - C-18: Time and leave:
   - A person logs at most 24 hours a day, on active projects.
   - Leave counts the company's working days (Monday to Friday by default) minus public holidays; a half day counts 0.5.
@@ -122,12 +122,12 @@ Phone, tablet and desktop widths down to 320 px are in scope, with touch and poi
 
 ### Module: Sign-in and setup (setup, auth)
 - F-ACC-1: WHEN the app has no members THE SYSTEM SHALL show the first-run setup in three numbered steps: Company, You, Ready.
-- F-ACC-2: In the Company step, the user enters the company name and chooses a country from the presets ("<name> (<currency>)").
+- F-ACC-2: In the Company step, the user enters the company name and chooses a country from the presets ("<name> (<currency>)"). With "Another country" they also choose the base currency (USD to start), which the company keeps.
 - F-ACC-3: The user picks what the business does, which sets the modules that start switched on:
   - Services ("Projects, time and invoices")
   - Trading ("Buy, stock and sell goods")
   - Manufacturing ("Make goods from parts")
-  - Something else
+  - Something else ("Sales, stock and projects")
 - F-ACC-4: In the You step, the user creates the owner's account (name, email, a password of at least 8 characters). With "I work here too" (on by default), they are also added to the team directory.
 - F-ACC-5: The Ready step shows the currency, the month the financial year starts, the taxes and the modules switched on. "Set up the company" creates the company's starting records (C-16) and signs the owner in.
 - F-ACC-6: The user can sign in with email and password on the "Welcome back" screen ("Sign in to <company>.").
@@ -214,7 +214,7 @@ Phone, tablet and desktop widths down to 320 px are in scope, with touch and poi
   - Invoices and bills: what is owed with an aging bar, what is overdue, and what was paid this month.
   - Orders: "To deliver" or "To receive", and "To invoice" or "To bill".
   - Quotes: "Waiting on customers", "Expired" and "Win rate".
-- F-DOC-4: The user can select invoices to "Ask your AI agent to send reminders" (when any selected one is overdue) or to "Record payment" (when they share one party). Bills offer "Record payment". When invoices are overdue, the list header also offers "Chase them".
+- F-DOC-4: The user can select invoices to "Ask your AI agent to send reminders" (when any selected one is overdue; the reminders cover exactly the selected invoices that still have something to pay) or to "Record payment" (when they share one party). Bills offer "Record payment". When invoices are overdue, the list header also offers "Chase them".
 - F-DOC-5: The user can create a document on a full screen of three numbered steps. Each step unlocks once the one before it is filled.
   1. "Who is it for" / "Who is it from": a party search, six recent tiles, and quick create ('New customer "<name>"').
   2. "What": the line editor.
@@ -373,7 +373,7 @@ Phone, tablet and desktop widths down to 320 px are in scope, with touch and poi
   - The checks: drafts posted or deleted, bank statements reconciled, goods received billed, approved expense claims posted, payroll posted, depreciation posted, the books balance, and your AI agent's proposals decided.
   - Closing sets the soft lock, and an administrator can reopen the month.
   - "Ask your AI agent to review" hands the checklist to the agent.
-- F-ACT-8: The user can register fixed assets with straight-line depreciation. Depreciation posts for every active asset through a month, once per month and never twice.
+- F-ACT-8: The user can register fixed assets with straight-line depreciation. Depreciation posts for every active asset through a month, once per month and never twice. Finished months also post on their own early in the next month (the hourly job, as "The app").
   - An asset can be disposed of, with a gain or loss.
   - An asset with no depreciation posted can be deleted.
 - F-ACT-9: The user can set budgets per income and expense account and month for a fiscal year, or spread one yearly amount evenly over 12 months. They see spending and income against the plan.
@@ -470,7 +470,7 @@ Phone, tablet and desktop widths down to 320 px are in scope, with touch and poi
 - F-SET-6: An administrator can set each series' prefix and next number. They also set the default accounts, and what new documents start with: the warehouse, bank account, sales tax, purchase tax and payment terms.
 - F-SET-7: An administrator can set your AI agent's autonomy:
   - "May post on its own": the kinds in C-11, with "Only up to this amount each".
-  - "Routine work it may start": "Chase overdue invoices" and "Reorder low stock".
+  - "Routine work it may start": "Chase overdue invoices" and "Reorder low stock". When on, the hourly job asks your AI agent to draft reminders (sending nothing) for invoices that fell overdue since its last ask, and to draft purchase orders when items run low that no draft order holds yet.
 - F-SET-8: The user can import CSV data with every row previewed before anything is written. Kinds: customers and suppliers, items, chart of accounts, employees, opening account balances, open invoices and bills, and opening stock. An import of customers, suppliers, items, accounts or employees can be undone while nothing uses its records.
 - F-SET-9: The user can export CSV of what their role may see: customers and suppliers, items, stock on hand and value, documents, document lines, payments, chart of accounts, journal lines, and the trial balance. Timesheets and employees export through the operation.
 - F-SET-10: Administrators and accountants can read the audit trail: who did what and when, filtered by kind of record, actor (people, your AI agent, the app), person, dates and search.
@@ -490,7 +490,7 @@ Phone, tablet and desktop widths down to 320 px are in scope, with touch and poi
 - F-AGT-7: The agent can take a `bank_lines_waiting` task and reconcile one account's unmatched lines. It matches certain lines with `bank.match` and proposes the rest (`bank.create-payment`, `bank.create-entry`, `bank.transfer`).
 - F-AGT-8: The agent can take a `question_asked` task and answer one question with read operations only, within the asker's rights (`asks.working`, `asks.answer` or `asks.fail`).
 - F-AGT-9: The agent can take a `reorder_review` task and draft purchase orders with `reorder.create-orders`: one draft per supplier, safe to repeat, never confirmed or sent.
-- F-AGT-10: The agent can take a `collections_requested` task and send each customer with overdue invoices one polite reminder through the user's connected email account, noting it on each invoice. With no email account connected, it writes the reminders as notes instead.
+- F-AGT-10: The agent can take a `collections_requested` task and send each customer with overdue invoices one polite reminder through the user's connected email account, noting it on each invoice. With no email account connected, it writes the reminders as notes instead. The task's `invoices` limits it to those invoices, and `drafts_only` (the hourly routine asked) means notes only, nothing sent.
 - F-AGT-11: The agent can take a `doc_send_requested` task and email one document's text (`docs.text`) to the party. It then calls `docs.mark-sent` and adds a note, and it never guesses an address.
 - F-AGT-12: The agent can take a `close_review_requested` task and work through a month's checklist (`close.status`). It proposes what is missing and never closes the month.
 - F-AGT-13: The agent can mark the fields it filled (`marks.set`) and drop files into the Inbox (`inbox.add --path`). It reads local files only from the app's uploads.
@@ -512,7 +512,7 @@ Phone, tablet and desktop widths down to 320 px are in scope, with touch and poi
   | `doc_send_requested` | 10 s |
   | `close_review_requested` | 60 s |
 
-  The app fires at most 30 tasks an hour. Waiting Inbox files are asked about again by the `erp_inbox` job every minute while an ask is outstanding.
+  The app fires at most 30 tasks an hour. Waiting Inbox files are asked about again by the `erp_inbox` job every minute while an ask is outstanding. The `erp_hourly` job asks for `collections_requested` and `reorder_review` when the routine switches are on (F-SET-7).
 - N-5: Rate limits per client address, per minute:
 
   | Path | Limit |
@@ -1103,7 +1103,7 @@ Sidebar order: Home, Needs you · Sales, Purchasing, Inventory, Manufacturing, B
   - **Data:** CSV exports prefix cells starting with `= + - @` with an apostrophe. A local `--path` is agent-only and limited to the app's uploads. Exchange-rate calls send only currency codes.
   - **Credentials:** runtime credentials (`.agent-token`, `.principal`, `.superuser`) are git-ignored and never shipped.
 - **Q17 Observability:**
-  - **App logs:** hook errors log prefixed lines: `[erp] <op> failed:` for 5xx operation errors, and `[erp] inbox ask failed:`, `[erp] hourly jobs failed:`, `[erp] live update failed:`, `[erp] asking about new statement lines failed:` for jobs and triggers.
+  - **App logs:** hook errors log prefixed lines: `[erp] <op> failed:` for 5xx operation errors, and `[erp] inbox ask failed:`, `[erp] hourly jobs failed:`, `[erp] hourly job <job> failed:`, `[erp] live update failed:`, `[erp] asking about new statement lines failed:` for jobs and triggers.
   - **Toolkit logs:** the toolkit adds `[handler-error] …`. The kit's console relay writes browser errors to `logs/frontend_console.log`, capped at 2 MB.
   - **Structured record:** the `audit` collection holds actor, member, kind, record, summary and data for every write.
   - **Health:** `/api/_a2app`, the adapter's identity document. Request logs keep warnings and errors for 14 days.

@@ -110,6 +110,7 @@ export function Picker({
             autoFocus
             value={q}
             placeholder={create !== undefined ? 'Search or type a new name' : 'Search'}
+            aria-label={'Search: ' + label}
             onChange={(e) => setQ(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === 'ArrowDown') {
@@ -477,6 +478,7 @@ export function TagsInput({ value, onChange, placeholder = 'Add a tag' }: { valu
         }}
         onBlur={add}
         placeholder={value.length === 0 ? placeholder : ''}
+        aria-label={placeholder}
         className="min-w-[80px] flex-1 bg-transparent text-[12.5px] outline-none"
       />
     </div>

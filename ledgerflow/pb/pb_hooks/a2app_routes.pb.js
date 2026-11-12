@@ -426,7 +426,8 @@ routerAdd("POST", "/api/ops/transactions.create", (e) => require(`${__hooks}/_a2
     return require(`${__hooks}/lib_activity.js`).run(app, who, 'transactions.create', (t) => {
       const r = require(`${__hooks}/lib_ledger.js`).create(t, spec, who);
       if (u.has(p, 'file')) require(`${__hooks}/lib_files.js`).link(t, require(`${__hooks}/lib_files.js`).mustGet(t, u.str(p, 'file', '')), 'transaction', r.txn.id);
-      return { summary: (r.txn.getString('status') === 'proposed' ? 'Proposed' : 'Recorded') + ' ' + lib.describe(t, r.txn), type: 'transaction', id: r.txn.id, result: { transaction: lib.detail(t, r.txn.id) } };
+      const g = lib.agentPost(t, r.txn, spec, who);
+      return { summary: (g.txn.getString('status') === 'proposed' ? 'Proposed' : 'Recorded') + ' ' + lib.describe(t, g.txn), type: 'transaction', id: g.txn.id, result: { transaction: lib.detail(t, g.txn.id), not_posted_because: g.not_posted_because } };
     });
   }))(ev)));
 
@@ -693,9 +694,11 @@ routerAdd("POST", "/api/ops/inbox.accept", (e) => require(`${__hooks}/_a2app_imp
     const decision = io.decision(app, p);
     return require(`${__hooks}/lib_activity.js`).run(app, who, 'inbox.accept', (t) => {
       const line = inbox.mustLine(t, u.req(p, 'line'));
-      const txn = inbox.accept(t, line, decision, who);
+      // The AI agent's accept is bound by the posting policy (io.acceptLine).
+      const r = io.acceptLine(t, line, decision, who);
+      const txn = r.txn;
       if (u.bool(p, 'make_rule', false)) io.ruleFromLine(t, line, decision || {}, who);
-      return { summary: 'Booked ' + io.lineLabel(line) + (txn ? ' as ' + require(`${__hooks}/lib_txns.js`).describe(t, txn) : ''), type: 'line', id: line.id, result: { line: inbox.serializeLine(t.findRecordById('statement_lines', line.id)), transaction: txn ? txn.id : '' } };
+      return { summary: (r.posted ? 'Booked ' + io.lineLabel(line) + (txn ? ' as ' + require(`${__hooks}/lib_txns.js`).describe(t, txn) : '') : 'Proposed a category for ' + io.lineLabel(line)), type: 'line', id: line.id, result: { line: inbox.serializeLine(t.findRecordById('statement_lines', line.id)), transaction: txn ? txn.id : '', posted: r.posted, not_posted_because: r.not_posted_because } };
     });
   }))(ev)));
 
@@ -712,6 +715,7 @@ routerAdd("POST", "/api/ops/inbox.accept_many", (e) => require(`${__hooks}/_a2ap
     return require(`${__hooks}/lib_activity.js`).run(app, who, 'inbox.accept_many', (t) => {
       let n = 0;
       const skipped = [];
+      const held = [];
       for (const id of ids) {
         const line = inbox.mustLine(t, id);
         const sug = u.json(line, 'suggestion', null);
@@ -719,10 +723,12 @@ routerAdd("POST", "/api/ops/inbox.accept_many", (e) => require(`${__hooks}/_a2ap
           skipped.push({ line: id, reason: 'No suggestion; choose a category' });
           continue;
         }
-        inbox.accept(t, line, decision, who);
-        n++;
+        // The AI agent's lines book only when the posting policy allows it; the rest stay proposed.
+        const r = io.acceptLine(t, line, decision, who);
+        if (r.posted) n++;
+        else held.push({ line: id, reason: r.not_posted_because });
       }
-      return { summary: 'Booked ' + n + ' bank line' + (n === 1 ? '' : 's'), type: 'line', id: '', result: { booked: n, skipped: skipped } };
+      return { summary: 'Booked ' + n + ' bank line' + (n === 1 ? '' : 's') + (held.length ? ', proposed ' + held.length + ' for review' : ''), type: 'line', id: '', result: { booked: n, skipped: skipped, not_posted: held } };
     });
   }))(ev)));
 

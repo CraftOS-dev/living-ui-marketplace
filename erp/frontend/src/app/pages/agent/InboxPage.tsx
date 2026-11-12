@@ -130,7 +130,7 @@ export function InboxPage({ query }: PageProps): React.JSX.Element {
               {uploading ? <span className="size-6 animate-spin rounded-full border-2 border-current border-t-transparent" /> : <Upload size={26} strokeWidth={1.8} aria-hidden />}
             </span>
             <span className="text-[15px] font-bold">{drag ? 'Let go to send them' : 'Drop files here, or choose them'}</span>
-            <span className="max-w-md text-[13px] leading-5 text-[var(--erp-muted)]">PDFs, photos of receipts, and bank statements as CSV, up to 20 MB each</span>
+            <span className="max-w-md text-[13px] leading-5 text-[var(--erp-muted)]">PDFs, photos of receipts, and bank statements as CSV, up to 25 MB each</span>
           </button>
           <div className="mt-5 grid grid-cols-1 gap-4 @min-[640px]:grid-cols-[auto_minmax(0,1fr)] @min-[640px]:items-end">
             <div className="flex min-w-0 flex-col gap-2">

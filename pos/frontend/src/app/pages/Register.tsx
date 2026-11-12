@@ -549,7 +549,17 @@ export function RegisterPage({ query }: { query: URLSearchParams }): React.JSX.E
         />
       )}
 
-      {dialog === 'tickets' && <TicketsDialog current={cart.ticketRef} onClose={() => setDialog(null)} onOpen={(t) => void openTicket(t)} />}
+      {dialog === 'tickets' && (
+        <TicketsDialog
+          current={cart.ticketRef}
+          onClose={() => setDialog(null)}
+          onOpen={(t) => void openTicket(t)}
+          onChanged={(t) => {
+            // The ticket open here was released or voided: the sale goes with it.
+            if (t.ref === cart.ticketRef) cartStore.clear(defaultType);
+          }}
+        />
+      )}
       {dialog === 'park' && (
         <TextDialog
           title="Save as a ticket"

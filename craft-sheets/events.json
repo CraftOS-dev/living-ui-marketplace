@@ -1,0 +1,6 @@
+{
+  "events": [],
+  "conventions": {
+    "guide": "Start with `app guide`: the app's own manual. `<module> <operation> --help` lists an operation's parameters; the full manual (rules, recipes, caveats) is AGENT_APP.md in the app's directory."
+  }
+}

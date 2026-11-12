@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Modal, Button, Input } from './ui'
 import { Sparkles, Zap } from 'lucide-react'
 import { CURRENCY_OPTIONS } from '../types'
@@ -8,6 +8,8 @@ interface Props {
   onClose: () => void
   activeGroupId?: string | number | null
   activeGroupName?: string
+  /** The shown workspace's currency (the one its totals use): the form opens on it. */
+  defaultCurrency: string
   onCreateEvent: (data: {
     event_type: string
     title: string
@@ -55,16 +57,22 @@ export const AddIngestionModal: React.FC<Props> = ({
   onClose,
   activeGroupId,
   activeGroupName,
+  defaultCurrency,
   onCreateEvent,
 }) => {
   const [eventType, setEventType] = useState('invoice_detected')
   const [title, setTitle] = useState('')
   const [vendor, setVendor] = useState('')
   const [amount, setAmount] = useState('')
-  const [currency, setCurrency] = useState('USD')
+  const [currency, setCurrency] = useState(defaultCurrency)
   const [description, setDescription] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // Each time the form opens it starts on the workspace's currency
+  useEffect(() => {
+    if (isOpen) setCurrency(defaultCurrency)
+  }, [isOpen, defaultCurrency])
 
   const handleApplyPreset = (p: typeof EVENT_PRESETS[0]) => {
     setEventType(p.type)
@@ -263,7 +271,7 @@ export const AddIngestionModal: React.FC<Props> = ({
           <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 'var(--space-3)' }}>
             <div>
               <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>
-                Amount ($ USD, optional)
+                Amount (optional)
               </label>
               <Input
                 type="number"

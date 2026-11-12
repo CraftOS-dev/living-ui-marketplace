@@ -1,5 +1,5 @@
 /**
- * Workspace → Alerts: where people get told, independent of any agent.
+ * Settings → Alerts: where people get told, independent of any agent.
  * Destination URLs are write-only secrets: the UI only ever sees a hint.
  */
 import { NamedSwitch } from '../components/NamedSwitch.tsx';

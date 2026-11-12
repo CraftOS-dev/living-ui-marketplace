@@ -81,6 +81,7 @@ routerAdd('POST', '/api/ops/nodes/suggest', (e) => {
     record.set('parent', nodeId);
     record.set('content', idea);
     record.set('kind', 'idea');
+    record.set('created_by', 'agent');
     e.app.save(record);
     created.push(idea);
   }
@@ -115,15 +116,20 @@ routerAdd('POST', '/api/ops/nodes/answer', (e) => {
   record.set('parent', nodeId);
   record.set('content', answer.trim());
   record.set('kind', 'insight');
+  record.set('created_by', 'agent');
   e.app.save(record);
   return e.json(200, { answer: answer.trim() });
 });
 
-// sessions.explore — AI grows the whole session: proposes new top-level
-// branches from the topic and the ideas already present (LLM bridge).
+// sessions.explore — one AI Explore step (LLM bridge). With node_id the AI
+// grows that branch: side-by-side angles for strategy 'bfs' (breadth-first),
+// narrower ideas that drill into it for 'dfs' (depth-first). Without node_id
+// it proposes new top-level branches from the topic and the ideas already
+// present. The View calls it once per step of the chosen effort.
 routerAdd('POST', '/api/ops/sessions/explore', (e) => {
   const bridge = require(`${__hooks}/_craftbot_bridge.js`);
-  const sessionId = String((e.requestInfo().body || {}).session_id || '');
+  const body = e.requestInfo().body || {};
+  const sessionId = String(body.session_id || '');
   if (sessionId === '') return e.json(400, { error: 'session_id is required' });
   let session;
   try {
@@ -131,13 +137,34 @@ routerAdd('POST', '/api/ops/sessions/explore', (e) => {
   } catch (_) {
     return e.json(404, { error: 'session not found: ' + sessionId });
   }
+  const nodeId = String(body.node_id || '');
+  let branch = null;
+  if (nodeId !== '') {
+    try {
+      branch = e.app.findRecordById('nodes', nodeId);
+    } catch (_) {
+      branch = null;
+    }
+    if (!branch || branch.getString('session') !== sessionId) {
+      return e.json(404, { error: 'node not found: ' + nodeId });
+    }
+  }
+  const strategy = body.strategy === 'dfs' ? 'dfs' : 'bfs';
   const records = e.app.findRecordsByFilter('nodes', `session = "${sessionId}"`, 'created', 0, 0);
   const roots = records.filter((r) => !r.get('parent'));
   const existing = records.map((r) => '- ' + r.get('content')).join('\n');
+  let ask = 'Propose 4 NEW angles not already covered.';
+  if (branch && strategy === 'dfs') {
+    ask = 'Branch to explore: ' + branch.get('content') +
+      '\n\nGo deep: propose 4 NEW ideas that drill further into this branch, more specific than it and not already covered.';
+  } else if (branch) {
+    ask = 'Branch to explore: ' + branch.get('content') +
+      '\n\nGo broad: propose 4 NEW angles on this branch, side by side and not already covered.';
+  }
   const raw = bridge.callLLM(
     'Brainstorm topic: ' + session.get('topic') +
       '\nExisting ideas:\n' + existing +
-      '\n\nPropose 4 NEW angles not already covered. One per line, no numbering, max 12 words each.',
+      '\n\n' + ask + ' One per line, no numbering, max 12 words each.',
     'You are a lateral-thinking brainstorming partner.',
   );
   if (!raw) {
@@ -149,7 +176,7 @@ routerAdd('POST', '/api/ops/sessions/explore', (e) => {
     .filter((line) => line !== '')
     .slice(0, 4);
   const collection = e.app.findCollectionByNameOrId('nodes');
-  const parentId = roots[0] ? roots[0].id : '';
+  const parentId = branch ? branch.id : roots[0] ? roots[0].id : '';
   const created = [];
   for (const idea of ideas) {
     const record = new Record(collection);
@@ -157,6 +184,7 @@ routerAdd('POST', '/api/ops/sessions/explore', (e) => {
     if (parentId !== '') record.set('parent', parentId);
     record.set('content', idea);
     record.set('kind', 'idea');
+    record.set('created_by', 'agent');
     e.app.save(record);
     created.push(idea);
   }

@@ -161,6 +161,7 @@ function map(ctx, p) {
         }
       } catch (err) {
         if (!(err && err.code === 'unreachable')) throw err;
+        if (unreachable.indexOf(s.work.id) < 0) unreachable.push(s.work.id);
       }
     }
   }

@@ -4,6 +4,7 @@
       "name": "app.guide",
       "description": "Conventions (items, locations, quantities, costs, statuses), the locations and categories, and ready-to-run recipes for deliveries…",
       "destructive": false,
+      "readOnly": true,
       "module": "app",
       "params": {}
     },

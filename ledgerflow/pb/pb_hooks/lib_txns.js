@@ -40,6 +40,9 @@ function specFrom(app, p, who, existing) {
     if (who.actor === 'agent') {
       spec.reason = u.text(p, 'reason', '').slice(0, 1000);
       spec.confidence = u.oneOf(p, 'confidence', ['high', 'medium', 'low'], '');
+      // The AI agent's entry is a proposal; status posted only asks to post (agentPost: the posting policy).
+      spec.wants_post = spec.status === 'posted';
+      spec.status = 'proposed';
     }
   }
   const useKind = kind || (existing ? existing.getString('kind') : 'journal');
@@ -103,6 +106,21 @@ function describe(app, txn) {
   let total = 0;
   for (const p of ledger.postingsOf(app, txn.id)) if (p.getInt('home_amount') > 0) total += p.getInt('home_amount');
   return '"' + (txn.getString('narration') || txn.getString('kind')) + '" (' + money.format(total, ledger.home(app)) + ', ' + txn.getString('date') + ')';
+}
+
+/**
+ * The AI agent's new entry under the person's posting policy, as inbox.propose --post: it stays
+ * proposed unless the agent asked to post and the policy allows it (on, high confidence, the entry's
+ * total within the ceiling). Returns { txn, not_posted_because }.
+ */
+function agentPost(app, txn, spec, who) {
+  if (who.actor !== 'agent' || !spec.wants_post) return { txn: txn, not_posted_because: '' };
+  const ledger = require(`${__hooks}/lib_ledger.js`);
+  let total = 0;
+  for (const p of ledger.postingsOf(app, txn.id)) if (p.getInt('home_amount') > 0) total += p.getInt('home_amount');
+  const gate = require(`${__hooks}/lib_inbox_io.js`).mayPost(app, { amount: total, currency: ledger.home(app), date: txn.getString('date'), confidence: spec.confidence }, who);
+  if (!gate.ok) return { txn: txn, not_posted_because: gate.reason };
+  return { txn: ledger.post(app, txn.id, who), not_posted_because: '' };
 }
 
 function names(app, col) {
@@ -309,4 +327,4 @@ function detail(app, id) {
   return out;
 }
 
-module.exports = { specFrom: specFrom, describe: describe, list: list, detail: detail };
+module.exports = { specFrom: specFrom, describe: describe, agentPost: agentPost, list: list, detail: detail };

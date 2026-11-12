@@ -17,11 +17,11 @@ import type { IconType } from 'react-icons'
 import { Panel } from '../Panel'
 import { useAgentAware } from '../../agent/hooks'
 import { useViewport } from '../../hooks/useViewport'
+import { campaignAudience } from '../../audience'
 import type { AppController } from '../../AppController'
 import type {
   Campaign,
   DashboardData,
-  IntegrationsStatus,
   Subscriber,
   Template,
 } from '../../types'
@@ -32,7 +32,6 @@ interface DashboardProps {
   subscribers: Subscriber[]
   campaigns: Campaign[]
   templates: Template[]
-  integrations: IntegrationsStatus | null
   onEditCampaign: (id: number) => void
   onCreateFromTemplate: (templateId: number) => void
   onNewCampaign: () => void
@@ -65,7 +64,6 @@ export function Dashboard(props: DashboardProps) {
     subscribers,
     campaigns,
     templates,
-    integrations,
     onEditCampaign,
     onCreateFromTemplate,
     onNewCampaign,
@@ -120,11 +118,11 @@ export function Dashboard(props: DashboardProps) {
 
   const quickStart = useMemo(() => pickQuickStart(templates), [templates])
   const insight = useMemo(
-    () => computeInsight({ dashboard, scheduled, drafts, recentSends, integrations }),
-    [dashboard, scheduled, drafts, recentSends, integrations],
+    () => computeInsight({ dashboard, scheduled, drafts, subscribers }),
+    [dashboard, scheduled, drafts, subscribers],
   )
 
-  const headerBits = computeHeaderStats(dashboard, scheduled.length, recentSends)
+  const headerBits = computeHeaderStats(dashboard, scheduled.length)
 
   const gridTwoCol: React.CSSProperties = {
     display: 'grid',
@@ -140,6 +138,7 @@ export function Dashboard(props: DashboardProps) {
       <CampaignsPanel
         drafts={drafts}
         scheduled={scheduled}
+        subscribers={subscribers}
         onOpen={onEditCampaign}
         onNew={onNewCampaign}
       />
@@ -258,7 +257,6 @@ function greetingFor(now: Date): string {
 function computeHeaderStats(
   dashboard: DashboardData | null,
   scheduledCount: number,
-  recent: Campaign[],
 ): { label: string; value: string }[] {
   if (!dashboard) return []
   const ov = dashboard.overview
@@ -267,14 +265,6 @@ function computeHeaderStats(
     value: ov.subscribers.newLast30Days.toLocaleString(),
     label: 'new in 30d',
   })
-  if (recent.length > 0) {
-    const avg =
-      recent.slice(0, 5).reduce(
-        (acc, c) => acc + c.opensUnique / Math.max(1, c.sentCount),
-        0,
-      ) / Math.min(5, recent.length)
-    out.push({ value: `${(avg * 100).toFixed(0)}%`, label: 'avg open rate' })
-  }
   out.push({
     value: String(scheduledCount),
     label: scheduledCount === 1 ? 'send queued' : 'sends queued',
@@ -286,56 +276,23 @@ function computeInsight({
   dashboard,
   scheduled,
   drafts,
-  recentSends,
-  integrations,
+  subscribers,
 }: {
   dashboard: DashboardData | null
   scheduled: Campaign[]
   drafts: Campaign[]
-  recentSends: Campaign[]
-  integrations: IntegrationsStatus | null
+  subscribers: Subscriber[]
 }): { headline: string; support: string } {
   if (!dashboard) return { headline: 'Loading…', support: '' }
-
-  // Gmail not connected — supersedes everything except an imminent send.
-  if (integrations && !integrations.gmail.connected) {
-    const next = scheduled[0]
-    if (next && next.scheduledAt && new Date(next.scheduledAt).getTime() - Date.now() < DAY) {
-      return {
-        headline: `${next.name} is scheduled but Gmail isn't connected.`,
-        support: `Open Settings and link Gmail in CraftBot or the send will fail when its time comes.`,
-      }
-    }
-    return {
-      headline: 'Connect Gmail to start sending.',
-      support: `Link a Google Workspace account in CraftBot settings. Until then, drafts and schedules work but sends will fail.`,
-    }
-  }
 
   // Imminent scheduled
   const next = scheduled[0]
   if (next && next.scheduledAt && new Date(next.scheduledAt).getTime() - Date.now() < DAY) {
     const h = Math.max(1, Math.round((new Date(next.scheduledAt).getTime() - Date.now()) / 3_600_000))
+    const contacts = campaignAudience(next, subscribers).length
     return {
       headline: `${next.name} sends in ${h} ${h === 1 ? 'hour' : 'hours'}.`,
-      support: `Heading to ${next.totalRecipients.toLocaleString()} contacts. Make sure the draft looks the way you want.`,
-    }
-  }
-
-  // Above-average recent send
-  if (recentSends.length >= 2) {
-    const latest = recentSends[0]!
-    const latestRate = latest.opensUnique / Math.max(1, latest.sentCount)
-    const prior = recentSends.slice(1)
-    const trailing =
-      prior.reduce((a, c) => a + c.opensUnique / Math.max(1, c.sentCount), 0) /
-      prior.length
-    if (latestRate > trailing * 1.1) {
-      const lift = ((latestRate - trailing) * 100).toFixed(0)
-      return {
-        headline: `${latest.name} opened ${(latestRate * 100).toFixed(0)}% — your best recent send.`,
-        support: `That's ${lift}% above your trailing average. Whatever you did, do it again.`,
-      }
+      support: `Its send will record ${contacts.toLocaleString()} contacts. Make sure the draft looks the way you want.`,
     }
   }
 
@@ -379,11 +336,13 @@ type CampaignKind = 'draft' | 'scheduled'
 function CampaignsPanel({
   drafts,
   scheduled,
+  subscribers,
   onOpen,
   onNew,
 }: {
   drafts: Campaign[]
   scheduled: Campaign[]
+  subscribers: Subscriber[]
   onOpen: (id: number) => void
   onNew: () => void
 }) {
@@ -419,6 +378,7 @@ function CampaignsPanel({
               key={`${kind}-${c.id}`}
               campaign={c}
               kind={kind}
+              subscribers={subscribers}
               onClick={() => onOpen(c.id)}
             />
           ))}
@@ -431,15 +391,17 @@ function CampaignsPanel({
 function CampaignRow({
   campaign: c,
   kind,
+  subscribers,
   onClick,
 }: {
   campaign: Campaign
   kind: CampaignKind
+  subscribers: Subscriber[]
   onClick: () => void
 }) {
   const sub =
     kind === 'scheduled'
-      ? `${c.totalRecipients.toLocaleString()} contacts`
+      ? `${campaignAudience(c, subscribers).length.toLocaleString()} contacts`
       : c.subject || 'No subject yet'
   const meta =
     kind === 'scheduled' ? relFuture(c.scheduledAt!) : relPast(c.updatedAt)
@@ -627,33 +589,15 @@ function RecentSendsPanel({
   return (
     <Panel label="Recent sends">
       {recent.length === 0 ? (
-        <EmptyLine>No sends yet. Once you ship one, its stats show here.</EmptyLine>
+        <EmptyLine>No sends yet. Once you send one, it shows here.</EmptyLine>
       ) : (
         <List>
-          {recent.slice(0, 4).map((c) => {
-            const open = c.opensUnique / Math.max(1, c.sentCount)
-            const click = c.clicksUnique / Math.max(1, c.sentCount)
-            return (
-              <Row key={c.id} onClick={() => onOpen(c.id)}>
-                <RowMain title={c.name} sub={`${c.sentCount.toLocaleString()} sent`} />
-                <RowMeta>
-                  <span style={{ display: 'inline-flex', gap: 10 }}>
-                    <span>
-                      <strong style={{ color: 'var(--text-primary)' }}>{(open * 100).toFixed(0)}%</strong>{' '}
-                      <span style={{ color: 'var(--text-muted)' }}>opens</span>
-                    </span>
-                    <span>
-                      <strong style={{ color: 'var(--text-primary)' }}>{(click * 100).toFixed(0)}%</strong>{' '}
-                      <span style={{ color: 'var(--text-muted)' }}>clicks</span>
-                    </span>
-                  </span>
-                  <span style={{ display: 'block', marginTop: 2, fontSize: 11, color: 'var(--text-muted)' }}>
-                    {relPast(c.sentAt)}
-                  </span>
-                </RowMeta>
-              </Row>
-            )
-          })}
+          {recent.slice(0, 4).map((c) => (
+            <Row key={c.id} onClick={() => onOpen(c.id)}>
+              <RowMain title={c.name} sub={`${c.sentCount.toLocaleString()} sent`} />
+              <RowMeta>{relPast(c.sentAt)}</RowMeta>
+            </Row>
+          ))}
         </List>
       )}
     </Panel>
@@ -715,7 +659,8 @@ function GrowthChartPanel({
       new Date(c.scheduledAt).getTime() <= end.getTime(),
   )
   const maxAudience = Math.max(
-    ...[...pastSends, ...futureSends].map((c) => c.totalRecipients || c.sentCount || 0),
+    ...pastSends.map((c) => c.totalRecipients || c.sentCount || 0),
+    ...futureSends.map((c) => campaignAudience(c, subscribers).length),
     1,
   )
 
@@ -831,7 +776,7 @@ function GrowthChartPanel({
           return (
             <g key={`p-${c.id}`} style={{ cursor: 'pointer' }} onClick={() => onEditCampaign(c.id)}>
               <title>
-                {`${c.name} · sent ${new Date(t).toLocaleDateString()} · ${c.opensUnique || 0}/${c.sentCount || 0} opens`}
+                {`${c.name} · sent ${new Date(t).toLocaleDateString()} · ${c.sentCount || 0} recipients`}
               </title>
               <circle cx={xAt(t)} cy={yAt(closest.count) - r - 4} r={r} fill="var(--text-primary)" />
             </g>
@@ -841,12 +786,13 @@ function GrowthChartPanel({
         {/* future send dots */}
         {futureSends.map((c) => {
           const t = new Date(c.scheduledAt!).getTime()
-          const r = dotR(c.totalRecipients || 0)
+          const contacts = campaignAudience(c, subscribers).length
+          const r = dotR(contacts)
           const y = yAt(endCount) - r - 4
           return (
             <g key={`f-${c.id}`} style={{ cursor: 'pointer' }} onClick={() => onEditCampaign(c.id)}>
               <title>
-                {`${c.name} · scheduled ${new Date(t).toLocaleString()} · ${c.totalRecipients || 0} recipients`}
+                {`${c.name} · scheduled ${new Date(t).toLocaleString()} · ${contacts} recipients`}
               </title>
               <circle
                 cx={xAt(t)}

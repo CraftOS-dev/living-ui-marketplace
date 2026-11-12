@@ -40,7 +40,6 @@ export function AgentPanel({ d, region, picking, onPick, onClearRegion }: { d: I
       setBusy(false);
     }
   };
-  const open = d.requests.filter((r) => r.status === 'sent' || r.status === 'working');
   const policy = settings?.policy.agent_edits ?? 'propose';
   return (
     <div className="flex flex-col">
@@ -108,7 +107,7 @@ export function AgentPanel({ d, region, picking, onPick, onClearRegion }: { d: I
           ))}
         </div>
       </PropSection>
-      <PropSection title={open.length > 0 ? 'Working on' : 'Requests'}>
+      <PropSection title="Requests">
         {d.requests.length === 0 ? (
           <Empty icon={Inbox} title="No requests for this image" compact>
             What you ask lands here with its answer; proposals show in the Edits panel.

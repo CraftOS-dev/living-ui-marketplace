@@ -38,13 +38,13 @@
  * integer and back; the frontend only ever sees integers, and inbound ids
  * (URLs, bodies) are translated back to PocketBase strings.
  *
- * TYPE MAPPING (lossy — see notes at bottom of file)
- * --------------------------------------------------
+ * TYPE MAPPING
+ * ------------
  * V1 habit types are binary | count | duration | negative. The V2 `habits.type`
- * select only allows binary | quantity. Writes map count/duration → quantity
- * and binary/negative → binary; reads map quantity → count and binary → binary.
- * A session-scoped override remembers the exact V1 type a habit was created/
- * edited with, so the precise label survives until the next page load.
+ * select only allows binary | quantity (the completion rule). Writes map
+ * count/duration → quantity and binary/negative → binary, and store the exact
+ * V1 type in `habits.kind`. Reads return `kind` when it agrees with `type`;
+ * habits without one map quantity → count and binary → binary.
  */
 
 const SENTINEL = 'http://living-ui.local'
@@ -126,20 +126,30 @@ function relId(v: unknown): string {
 }
 
 // ---------------------------------------------------------------------------
-// Habit type mapping (V1 4-type ⇄ V2 2-type) + session override
+// Habit type mapping (V1 4-type ⇄ V2 2-type + stored kind)
 // ---------------------------------------------------------------------------
 
-const typeOverride = new Map<string, string>() // pbHabitId → exact V1 type
+const HABIT_KINDS = ['binary', 'count', 'duration', 'negative']
 
 function toPbType(v1Type: unknown): string {
   const t = String(v1Type ?? 'binary')
   return t === 'count' || t === 'duration' ? 'quantity' : 'binary'
 }
 
+// The exact V1 type, stored in `habits.kind`.
+function toKind(v1Type: unknown): string {
+  const t = String(v1Type ?? 'binary')
+  return HABIT_KINDS.includes(t) ? t : 'binary'
+}
+
+// The stored kind when it agrees with the stored type; otherwise (a habit saved
+// before `kind` existed, or a record write that changed only `type`) the type's
+// default label: quantity → count, binary → binary.
 function toV1Type(rec: PbRecord): string {
-  const override = typeOverride.get(String(rec.id ?? ''))
-  if (override) return override
-  return String(rec.type ?? 'binary') === 'quantity' ? 'count' : 'binary'
+  const kind = String(rec.kind ?? '')
+  const stored = habitNumeric(rec) ? 'quantity' : 'binary'
+  if (HABIT_KINDS.includes(kind) && toPbType(kind) === stored) return kind
+  return stored === 'quantity' ? 'count' : 'binary'
 }
 
 // ---------------------------------------------------------------------------
@@ -173,70 +183,134 @@ function round4(x: number): number {
 // PocketBase REST helpers (relative urls → PocketBase serving the page)
 // ---------------------------------------------------------------------------
 
-async function pbList(collection: string, query = ''): Promise<PbRecord[]> {
+// A read that failed: the router answers its status and message, so a backend
+// that is down (503) or refuses never passes for an empty list or "not found".
+class PbError extends Error {
+  status: number
+  constructor(failure: { status: number; message: string }) {
+    super(failure.message)
+    this.status = failure.status
+  }
+}
+
+const UNREACHABLE = 'Could not reach the backend.'
+
+// GET a PocketBase url; a refusal or no answer at all throws a PbError.
+async function pbRead(url: string): Promise<Response> {
+  let res: Response
   try {
-    const res = await originalFetch(`/api/collections/${collection}/records?${query}`)
-    if (!res.ok) return []
-    const body = (await res.json()) as { items?: PbRecord[] }
-    return Array.isArray(body.items) ? body.items : []
-  } catch { return [] }
+    res = await originalFetch(url)
+  } catch {
+    throw new PbError({ status: 503, message: UNREACHABLE })
+  }
+  if (!res.ok) throw new PbError(await pbFailure(res))
+  return res
+}
+
+async function pbList(collection: string, query = ''): Promise<PbRecord[]> {
+  const res = await pbRead(`/api/collections/${collection}/records?${query}`)
+  const body = (await res.json()) as { items?: PbRecord[] }
+  return Array.isArray(body.items) ? body.items : []
 }
 
 // Page through a collection so large date ranges (a year of entries × habits)
-// are never truncated by the 500-per-page cap.
+// are never truncated by the 500-per-page cap. A failed read throws (the router
+// answers it with an error status) instead of passing for an empty collection,
+// so the app's "Failed to load" alert and toasts can show.
 async function pbListAll(collection: string, extra = ''): Promise<PbRecord[]> {
   const out: PbRecord[] = []
   let page = 1
   for (;;) {
-    try {
-      const res = await originalFetch(
-        `/api/collections/${collection}/records?perPage=500&page=${page}${extra ? `&${extra}` : ''}`,
-      )
-      if (!res.ok) break
-      const body = (await res.json()) as { items?: PbRecord[]; totalPages?: number }
-      const items = Array.isArray(body.items) ? body.items : []
-      out.push(...items)
-      if (items.length === 0 || page >= (body.totalPages ?? 1)) break
-      page += 1
-    } catch { break }
+    const res = await pbRead(
+      `/api/collections/${collection}/records?perPage=500&page=${page}${extra ? `&${extra}` : ''}`,
+    )
+    const body = (await res.json()) as { items?: PbRecord[]; totalPages?: number }
+    const items = Array.isArray(body.items) ? body.items : []
+    out.push(...items)
+    if (items.length === 0 || page >= (body.totalPages ?? 1)) break
+    page += 1
   }
   return out
 }
 
+// One record, or null only when PocketBase answers 404; any other failure throws.
 async function pbGetOne(collection: string, id: string): Promise<PbRecord | null> {
   if (!id) return null
   try {
-    const res = await originalFetch(`/api/collections/${collection}/records/${encodeURIComponent(id)}`)
-    return res.ok ? ((await res.json()) as PbRecord) : null
-  } catch { return null }
+    const res = await pbRead(`/api/collections/${collection}/records/${encodeURIComponent(id)}`)
+    return (await res.json()) as PbRecord
+  } catch (err) {
+    if (err instanceof PbError && err.status === 404) return null
+    throw err
+  }
 }
 
-async function pbCreate(collection: string, data: Record<string, unknown>): Promise<PbRecord | null> {
+// A create that keeps PocketBase's answer, like pbPatchResult.
+async function pbCreateResult(
+  collection: string,
+  data: Record<string, unknown>,
+): Promise<{ rec: PbRecord } | { status: number; message: string }> {
+  let res: Response
   try {
-    const res = await originalFetch(`/api/collections/${collection}/records`, {
+    res = await originalFetch(`/api/collections/${collection}/records`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     })
-    return res.ok ? ((await res.json()) as PbRecord) : null
-  } catch { return null }
+  } catch {
+    return { status: 503, message: 'Could not reach the backend; the change was not saved.' }
+  }
+  if (res.ok) return { rec: (await res.json()) as PbRecord }
+  return pbFailure(res)
 }
 
-async function pbPatch(collection: string, id: string, data: Record<string, unknown>): Promise<PbRecord | null> {
+// A PATCH that keeps PocketBase's answer: the saved record, or the real status
+// with a message that says what happened (a missing record, the field a
+// validation rule refused, or no answer at all).
+async function pbPatchResult(
+  collection: string,
+  id: string,
+  data: Record<string, unknown>,
+): Promise<{ rec: PbRecord } | { status: number; message: string }> {
+  let res: Response
   try {
-    const res = await originalFetch(`/api/collections/${collection}/records/${encodeURIComponent(id)}`, {
+    res = await originalFetch(`/api/collections/${collection}/records/${encodeURIComponent(id)}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     })
-    return res.ok ? ((await res.json()) as PbRecord) : null
-  } catch { return null }
+  } catch {
+    return { status: 503, message: 'Could not reach the backend; the change was not saved.' }
+  }
+  if (res.ok) return { rec: (await res.json()) as PbRecord }
+  return pbFailure(res)
 }
 
-async function pbDelete(collection: string, id: string): Promise<void> {
+// A DELETE that keeps PocketBase's answer, like pbPatchResult.
+async function pbDeleteResult(
+  collection: string,
+  id: string,
+): Promise<{ ok: true } | { status: number; message: string }> {
+  let res: Response
   try {
-    await originalFetch(`/api/collections/${collection}/records/${encodeURIComponent(id)}`, { method: 'DELETE' })
-  } catch { /* ignore */ }
+    res = await originalFetch(`/api/collections/${collection}/records/${encodeURIComponent(id)}`, { method: 'DELETE' })
+  } catch {
+    return { status: 503, message: 'Could not reach the backend; nothing was deleted.' }
+  }
+  if (res.ok) return { ok: true }
+  return pbFailure(res)
+}
+
+// PocketBase's refusal: its status and what it said.
+async function pbFailure(res: Response): Promise<{ status: number; message: string }> {
+  let body: { message?: unknown; data?: Record<string, { message?: unknown }> } = {}
+  try { body = await res.json() } catch { /* not JSON */ }
+  // Validation errors name each refused field ("name: Cannot be blank.").
+  const fields = Object.entries(body.data ?? {})
+    .filter(([, v]) => v && typeof v === 'object' && v.message)
+    .map(([k, v]) => `${k}: ${String(v.message)}`)
+  const message = fields.length > 0 ? fields.join(' ') : String(body.message ?? '') || `Request failed (${res.status})`
+  return { status: res.status, message }
 }
 
 function filterQuery(expr: string, extra = ''): string {
@@ -455,13 +529,13 @@ async function handleCategoryCreate(init?: RequestInit): Promise<Response> {
   const name = String(body.name ?? '').trim()
   if (!name) return json({ detail: 'name required' }, 400)
   const count = (await pbListAll('categories', 'fields=id')).length
-  const created = await pbCreate('categories', {
+  const res = await pbCreateResult('categories', {
     name,
     color: String(body.color ?? '#737373'),
     order: count,
   })
-  if (!created) return json({ detail: 'failed to create category' }, 500)
-  return json(toCategory(created))
+  if (!('rec' in res)) return json({ detail: res.message }, res.status)
+  return json(toCategory(res.rec))
 }
 
 async function handleCategoryUpdate(id: string, init?: RequestInit): Promise<Response> {
@@ -470,15 +544,16 @@ async function handleCategoryUpdate(id: string, init?: RequestInit): Promise<Res
   if (body.name !== undefined) patch.name = body.name
   if (body.color !== undefined) patch.color = body.color
   if (body.order !== undefined) patch.order = Number(body.order)
-  const updated = await pbPatch('categories', id, patch)
-  if (!updated) return json({ detail: 'Category not found' }, 404)
-  return json(toCategory(updated))
+  const res = await pbPatchResult('categories', id, patch)
+  if (!('rec' in res)) return json({ detail: res.status === 404 ? 'Category not found' : res.message }, res.status)
+  return json(toCategory(res.rec))
 }
 
 async function handleCategoryDelete(id: string, synth: string): Promise<Response> {
   // PocketBase clears the (cascadeDelete:false) relation on referencing habits
   // automatically, matching V1's "set category_id NULL" behavior.
-  await pbDelete('categories', id)
+  const res = await pbDeleteResult('categories', id)
+  if (!('ok' in res)) return json({ detail: res.status === 404 ? 'Category not found' : res.message }, res.status)
   return json({ status: 'deleted', id: synth })
 }
 
@@ -530,6 +605,7 @@ async function handleHabitCreate(init?: RequestInit): Promise<Response> {
     name,
     description: body.description ?? '',
     type: toPbType(v1Type),
+    kind: toKind(v1Type),
     unit: body.unit ?? '',
     color: String(body.color ?? '#737373'),
     icon: String(body.icon ?? 'Circle'),
@@ -539,10 +615,9 @@ async function handleHabitCreate(init?: RequestInit): Promise<Response> {
   if (body.target != null && body.target !== '') data.target = Number(body.target)
   const catPb = body.category_id != null ? pbId(body.category_id) : ''
   if (catPb) data.category = catPb
-  const created = await pbCreate('habits', data)
-  if (!created) return json({ detail: 'failed to create habit' }, 500)
-  typeOverride.set(String(created.id), v1Type)
-  return json(toHabitBase(created))
+  const res = await pbCreateResult('habits', data)
+  if (!('rec' in res)) return json({ detail: res.message }, res.status)
+  return json(toHabitBase(res.rec))
 }
 
 async function handleHabitGet(id: string): Promise<Response> {
@@ -565,7 +640,10 @@ async function handleHabitUpdate(id: string, init?: RequestInit): Promise<Respon
   const patch: Record<string, unknown> = {}
   if (body.name !== undefined) patch.name = body.name
   if (body.description !== undefined) patch.description = body.description ?? ''
-  if (body.type !== undefined) patch.type = toPbType(body.type)
+  if (body.type !== undefined) {
+    patch.type = toPbType(body.type)
+    patch.kind = toKind(body.type)
+  }
   if (body.target !== undefined) patch.target = body.target == null || body.target === '' ? 0 : Number(body.target)
   if (body.unit !== undefined) patch.unit = body.unit ?? ''
   if (body.color !== undefined) patch.color = body.color
@@ -573,15 +651,14 @@ async function handleHabitUpdate(id: string, init?: RequestInit): Promise<Respon
   if (body.category_id !== undefined) patch.category = body.category_id == null ? '' : pbId(body.category_id)
   if (body.archived !== undefined) patch.archived = Boolean(body.archived)
   if (body.order !== undefined) patch.order = Number(body.order)
-  const updated = await pbPatch('habits', id, patch)
-  if (!updated) return json({ detail: 'Habit not found' }, 404)
-  if (body.type !== undefined) typeOverride.set(String(id), String(body.type))
-  return json(toHabitBase(updated))
+  const res = await pbPatchResult('habits', id, patch)
+  if (!('rec' in res)) return json({ detail: res.status === 404 ? 'Habit not found' : res.message }, res.status)
+  return json(toHabitBase(res.rec))
 }
 
 async function handleHabitDelete(id: string, synth: string): Promise<Response> {
-  await pbDelete('habits', id) // entries cascade-delete in PB
-  typeOverride.delete(String(id))
+  const res = await pbDeleteResult('habits', id) // entries cascade-delete in PB
+  if (!('ok' in res)) return json({ detail: res.status === 404 ? 'Habit not found' : res.message }, res.status)
   return json({ status: 'deleted', id: synth })
 }
 
@@ -591,7 +668,11 @@ async function handleHabitsReorder(init?: RequestInit): Promise<Response> {
   let index = 0
   for (const raw of ids) {
     const pid = pbId(raw)
-    if (pid) await pbPatch('habits', pid, { order: index })
+    if (pid) {
+      // A refused PATCH stops the reorder and says why; the controller re-reads the list.
+      const res = await pbPatchResult('habits', pid, { order: index })
+      if (!('rec' in res)) return json({ detail: res.status === 404 ? 'Habit not found' : res.message }, res.status)
+    }
     index += 1
   }
   return json({ status: 'reordered', count: ids.length })
@@ -616,30 +697,34 @@ async function handleEntryUpsert(id: string, init?: RequestInit): Promise<Respon
   const rec = await pbGetOne('habits', id)
   if (!rec) return json({ detail: 'Habit not found' }, 404)
   const existing = await pbList('entries', filterQuery(`habit = "${id}" && day = "${day}"`))
-  let saved: PbRecord | null
   if (existing.length === 0) {
-    saved = await pbCreate('entries', {
+    const res = await pbCreateResult('entries', {
       habit: id,
       day,
       value: body.value != null ? Number(body.value) : 0,
       note: body.note != null ? String(body.note) : '',
     })
-  } else {
-    const patch: Record<string, unknown> = {}
-    if (body.value != null) patch.value = Number(body.value)
-    if (body.note != null) patch.note = String(body.note)
-    saved = await pbPatch('entries', String(existing[0]!.id), patch)
-    if (!saved) saved = existing[0]!
+    if (!('rec' in res)) return json({ detail: res.message }, res.status)
+    return json(toEntry(res.rec, rec))
   }
-  if (!saved) return json({ detail: 'failed to save entry' }, 500)
-  return json(toEntry(saved, rec))
+  const patch: Record<string, unknown> = {}
+  if (body.value != null) patch.value = Number(body.value)
+  if (body.note != null) patch.note = String(body.note)
+  const res = await pbPatchResult('entries', String(existing[0]!.id), patch)
+  if (!('rec' in res)) return json({ detail: res.status === 404 ? 'Entry not found' : res.message }, res.status)
+  return json(toEntry(res.rec, rec))
 }
 
 async function handleEntryDelete(id: string, query: URLSearchParams): Promise<Response> {
   const day = (query.get('date') ?? '').trim() || todayIso()
   const existing = await pbList('entries', filterQuery(`habit = "${id}" && day = "${day}"`))
   if (existing.length === 0) return json({ status: 'not_found', date: day })
-  await pbDelete('entries', String(existing[0]!.id))
+  const res = await pbDeleteResult('entries', String(existing[0]!.id))
+  // Already gone (a 404) is the same answer as no entry; any other refusal says why.
+  if (!('ok' in res)) {
+    if (res.status === 404) return json({ status: 'not_found', date: day })
+    return json({ detail: res.message }, res.status)
+  }
   return json({ status: 'deleted', date: day })
 }
 
@@ -730,8 +815,16 @@ async function handleClearEntries(id: string): Promise<Response> {
     if (res.ok) return json(await res.json())
   } catch { /* fall through to manual delete */ }
   const rows = await pbListAll('entries', filterQuery(`habit = "${id}"`))
-  for (const r of rows) await pbDelete('entries', String(r.id))
-  return json({ cleared: rows.length })
+  let cleared = 0
+  for (const r of rows) {
+    const res = await pbDeleteResult('entries', String(r.id))
+    // An entry already gone (404) is cleared; any other refusal stops and says how far it got.
+    if (!('ok' in res) && res.status !== 404) {
+      return json({ detail: `${res.message} (${cleared} of ${rows.length} entries cleared)`, cleared }, res.status)
+    }
+    cleared += 1
+  }
+  return json({ cleared })
 }
 
 // ---------------------------------------------------------------------------
@@ -743,8 +836,15 @@ async function route(url: URL, init?: RequestInit): Promise<Response> {
   const path = url.pathname
   const query = url.searchParams
 
-  // Health
-  if (path === '/health') return json({ status: 'ok' })
+  // Health: whether PocketBase, the real backend, answers (the app shows
+  // "Backend unavailable" when it does not).
+  if (path === '/health') {
+    try {
+      const res = await originalFetch('/api/health')
+      if (res.ok) return json({ status: 'ok' })
+    } catch { /* unreachable */ }
+    return json({ status: 'unavailable' }, 503)
+  }
 
   // Generic app state / actions (agent instrumentation — kept benign)
   if (path === '/api/state') {
@@ -868,8 +968,12 @@ export function installApiAdapter(): void {
         const url = new URL(urlStr)
         return await route(url, effInit)
       } catch (err) {
+        // A failed PocketBase read: answer its status (503 when the backend
+        // does not answer) so the caller's error path (alert, toast) runs,
+        // never an empty success.
         console.error('[apiAdapter] handler error:', err)
-        return json({}, 200)
+        const status = err instanceof PbError ? err.status : 502
+        return json({ detail: err instanceof Error ? err.message : 'request failed' }, status)
       }
     }
     return originalFetch(input as RequestInfo, init)

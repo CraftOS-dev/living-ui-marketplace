@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import {
   Calendar,
   TrendingUp,
@@ -8,9 +8,10 @@ import {
   ChevronRight,
 } from 'lucide-react'
 import { Card, Button, Badge } from './ui'
-import { ApiService } from '../services/ApiService.ts'
-import type { InvoiceReceipt, Subscription, YearlyHistoryData, YearlySummaryItem } from '../types.ts'
-import { ALL_CATEGORIES } from '../types.ts'
+import type { InvoiceReceipt, Subscription } from '../types.ts'
+import { ALL_CATEGORIES, getCurrencySymbol } from '../types.ts'
+import { buildYearly } from '../services/reports.ts'
+import { OtherCurrenciesNote } from './OtherCurrenciesNote'
 
 interface YearlyHistoryViewProps {
   invoices: InvoiceReceipt[]
@@ -19,183 +20,36 @@ interface YearlyHistoryViewProps {
   onNavigateTab?: (tab: any) => void
   activeAccountId?: string | number | null
   currencySymbol?: string
+  currencyCode?: string
 }
 
-const YEAR_COLORS: Record<number, string> = {
-  2026: '#3b82f6',
-  2025: '#10b981',
-  2024: '#8b5cf6',
-  2023: '#f59e0b',
-}
+// One color per tracked year, newest first
+const YEAR_PALETTE = ['#3b82f6', '#10b981', '#8b5cf6', '#f59e0b']
 
 export const YearlyHistoryView: React.FC<YearlyHistoryViewProps> = ({
   invoices,
   subscriptions = [],
   onSelectInvoice,
   onNavigateTab: _onNavigateTab,
-  activeAccountId,
+  activeAccountId: _activeAccountId,
   currencySymbol = '$',
+  currencyCode = 'USD',
 }) => {
-  const [historyData, setHistoryData] = useState<YearlyHistoryData | null>(null)
   const [selectedYear, setSelectedYear] = useState<number | 'all'>('all')
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
   const [searchQuery, setSearchQuery] = useState('')
   const [currentPage, setCurrentPage] = useState<number>(1)
   const pageSize = 10
 
-  useEffect(() => {
-    let isMounted = true
-    const fetchHistory = async () => {
-      try {
-        const data = await ApiService.getYearlyHistory(activeAccountId)
-        if (isMounted) setHistoryData(data)
-      } catch (err) {
-        console.error('Failed to load yearly history:', err)
-      }
-    }
-
-    fetchHistory()
-    return () => {
-      isMounted = false
-    }
-  }, [activeAccountId])
-
-  // Combine actual invoices and active recurring subscriptions across tracked years
-  const allYearlyInvoices = React.useMemo<InvoiceReceipt[]>(() => {
-    const list: InvoiceReceipt[] = [...invoices]
-    const activeSubs = (subscriptions || []).filter((s) => (s.status || 'active').toLowerCase() === 'active')
-
-    const currentYear = 2026
-    const currentMonth = 8 // August
-
-    const years = [2026, 2025, 2024, 2023]
-    years.forEach((yr) => {
-      activeSubs.forEach((sub, sIdx) => {
-        let subStartYear = 2026
-        let subStartMonth = 8
-        if (sub.createdAt) {
-          try {
-            const subDate = new Date(sub.createdAt)
-            if (!isNaN(subDate.getTime())) {
-              subStartYear = subDate.getFullYear()
-              subStartMonth = subDate.getMonth() + 1
-            }
-          } catch {
-            // default
-          }
-        }
-
-        if (yr < subStartYear) {
-          return // Subscription did not exist in this prior year!
-        }
-
-        const hasExisting = list.some((inv) => {
-          const invYear = inv.invoiceDate ? new Date(inv.invoiceDate).getFullYear() : 2026
-          return (
-            invYear === yr &&
-            ((inv.subscriptionId && inv.subscriptionId === sub.id) ||
-             ((inv.vendor || '').toLowerCase() === (sub.vendor || sub.name || '').toLowerCase() && inv.paymentType === 'subscription'))
-          )
-        })
-
-        if (!hasExisting) {
-          // Calculate strictly what was spent up till now (no future projections)
-          let elapsedMonths = 1
-          if (yr === currentYear) {
-            const startM = subStartYear === currentYear ? subStartMonth : 1
-            elapsedMonths = Math.max(1, currentMonth - startM + 1)
-          } else if (yr < currentYear) {
-            const startM = subStartYear === yr ? subStartMonth : 1
-            elapsedMonths = Math.max(1, 12 - startM + 1)
-          }
-
-          let spentUpToNow = sub.amount * elapsedMonths
-          const freq = (sub.billingFrequency || 'monthly').toLowerCase()
-          if (freq === 'yearly') spentUpToNow = sub.amount
-          else if (freq === 'weekly') spentUpToNow = sub.amount * 4.33 * elapsedMonths
-          else if (freq === 'quarterly') spentUpToNow = sub.amount * Math.max(1, Math.ceil(elapsedMonths / 3))
-
-          list.push({
-            id: 200000 + yr * 1000 + sIdx,
-            vendor: sub.vendor || sub.name,
-            amount: Math.round(spentUpToNow * 100) / 100,
-            currency: sub.currency || 'USD',
-            paymentType: 'subscription',
-            billingFrequency: sub.billingFrequency || 'monthly',
-            category: sub.category || 'Software & SaaS',
-            purpose: sub.purpose || `${sub.name} (${sub.billingFrequency || 'monthly'} subscription — YTD spent)`,
-            invoiceNumber: `SUB-${sub.id}-${yr}`,
-            invoiceDate: `${yr}-${String(subStartMonth).padStart(2, '0')}-01T00:00:00.000Z`,
-            subscriptionId: sub.id,
-            hasPdfAttachment: false,
-            lineItems: [],
-            confidenceScore: 1.0,
-            isVerified: true,
-            createdAt: sub.createdAt || `${yr}-01-15T00:00:00.000Z`,
-            updatedAt: sub.updatedAt || `${yr}-01-15T00:00:00.000Z`,
-          })
-        }
-      })
-    })
-
-    return list
-  }, [invoices, subscriptions])
-
-  const computedFromInvoices = React.useMemo<YearlySummaryItem[]>(() => {
-    const years = [2026, 2025, 2024, 2023]
-    return years.map((y) => {
-      const yearInvs = allYearlyInvoices.filter((inv) => {
-        if (!inv.invoiceDate) return y === 2026
-        const d = new Date(inv.invoiceDate)
-        return d.getFullYear() === y
-      })
-      const total = yearInvs.reduce((sum, inv) => sum + (Number(inv.amount) || 0), 0)
-      const vMap: Record<string, number> = {}
-      const cMap: Record<string, number> = {}
-      const qMap = { Q1: 0, Q2: 0, Q3: 0, Q4: 0 }
-      const monthsMap: Record<string, number> = {
-        Jan: 0, Feb: 0, Mar: 0, Apr: 0, May: 0, Jun: 0,
-        Jul: 0, Aug: 0, Sep: 0, Oct: 0, Nov: 0, Dec: 0
-      }
-
-      yearInvs.forEach((inv) => {
-        const v = inv.vendor || 'Other'
-        vMap[v] = (vMap[v] || 0) + inv.amount
-        const c = inv.category || 'Other'
-        cMap[c] = (cMap[c] || 0) + inv.amount
-        if (inv.invoiceDate) {
-          const d = new Date(inv.invoiceDate)
-          const m = d.getMonth()
-          const mNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-          const mKey = mNames[m] || 'Aug'
-          monthsMap[mKey] = (monthsMap[mKey] || 0) + inv.amount
-          if (m < 3) qMap.Q1 += inv.amount
-          else if (m < 6) qMap.Q2 += inv.amount
-          else if (m < 9) qMap.Q3 += inv.amount
-          else qMap.Q4 += inv.amount
-        }
-      })
-
-      const topV = Object.entries(vMap).sort((a, b) => b[1] - a[1])[0]?.[0] || 'None'
-
-      return {
-        year: y,
-        totalSpend: Math.round(total * 100) / 100,
-        invoiceCount: yearInvs.length,
-        averageMonthly: Math.round((total / 12) * 100) / 100,
-        topVendor: topV,
-        yoyGrowthPct: 0.0,
-        quarterlySpend: qMap,
-        categoryBreakdown: cMap,
-        vendorBreakdown: vMap,
-        monthlyTotals: Object.entries(monthsMap).map(([m, t]) => ({ month: m, total: t }))
-      }
-    })
-  }, [allYearlyInvoices])
-
-  const activeSummaries = (historyData?.yearlySummaries && historyData.yearlySummaries.length > 0)
-    ? historyData.yearlySummaries
-    : computedFromInvoices
+  // This year and the three before it: the statements (invoices plus year-to-date
+  // subscription estimates) and the year cards added up from those same rows
+  const yearly = React.useMemo(
+    () => buildYearly(invoices, subscriptions, currencyCode),
+    [invoices, subscriptions, currencyCode]
+  )
+  const allYearlyInvoices = yearly.statements
+  const activeSummaries = yearly.summaries
+  const yearColor = (year: number) => YEAR_PALETTE[yearly.years.indexOf(year)] || 'var(--color-primary)'
 
   const grandTotal = activeSummaries.reduce((sum, s) => sum + s.totalSpend, 0)
   const totalInvoicesCount = activeSummaries.reduce((sum, s) => sum + s.invoiceCount, 0)
@@ -243,7 +97,7 @@ export const YearlyHistoryView: React.FC<YearlyHistoryViewProps> = ({
         currency.includes(q)
       )
     })
-  }, [invoices, selectedYear, selectedCategory, searchQuery])
+  }, [allYearlyInvoices, selectedYear, selectedCategory, searchQuery])
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)', width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}>
@@ -315,7 +169,7 @@ export const YearlyHistoryView: React.FC<YearlyHistoryViewProps> = ({
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <div>
               <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>
-                {activeSummaries[0]?.year || 2026} Year-to-Date
+                {activeSummaries[0]?.year} Year-to-Date
               </div>
               <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#3b82f6', marginTop: '4px', fontVariantNumeric: 'tabular-nums' }}>
                 {currencySymbol}{(activeSummaries[0]?.totalSpend || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -345,7 +199,7 @@ export const YearlyHistoryView: React.FC<YearlyHistoryViewProps> = ({
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <div>
               <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>
-                {activeSummaries[1]?.year || 2025} Full-Year Spend
+                {activeSummaries[1]?.year} Full-Year Spend
               </div>
               <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#10b981', marginTop: '4px', fontVariantNumeric: 'tabular-nums' }}>
                 {currencySymbol}{(activeSummaries[1]?.totalSpend || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -402,6 +256,8 @@ export const YearlyHistoryView: React.FC<YearlyHistoryViewProps> = ({
         </Card>
       </div>
 
+      <OtherCurrenciesNote others={yearly.others} currencyCode={currencyCode} style={{ marginTop: 'calc(-1 * var(--space-2))' }} />
+
       {/* Interactive Year Selector Tabs */}
       <div
         style={{
@@ -440,7 +296,7 @@ export const YearlyHistoryView: React.FC<YearlyHistoryViewProps> = ({
               padding: '8px 16px',
               borderRadius: 'var(--radius-sm)',
               border: 'none',
-              backgroundColor: selectedYear === summary.year ? YEAR_COLORS[summary.year] || 'var(--color-primary)' : 'transparent',
+              backgroundColor: selectedYear === summary.year ? yearColor(summary.year) : 'transparent',
               color: selectedYear === summary.year ? '#ffffff' : 'var(--text-secondary)',
               fontWeight: 700,
               fontSize: '0.85rem',
@@ -485,7 +341,7 @@ export const YearlyHistoryView: React.FC<YearlyHistoryViewProps> = ({
           {activeSummaries.map((summary) => {
             const barHeightPct = (summary.totalSpend / maxYearSpend) * 100
             const isSelected = selectedYear === summary.year || selectedYear === 'all'
-            const barColor = YEAR_COLORS[summary.year] || '#3b82f6'
+            const barColor = yearColor(summary.year)
 
             return (
               <div
@@ -711,7 +567,7 @@ export const YearlyHistoryView: React.FC<YearlyHistoryViewProps> = ({
                     <Badge variant="default" size="sm">{inv.category}</Badge>
                   </td>
                   <td style={{ padding: '10px', textAlign: 'right', fontWeight: 700, color: 'var(--text-primary)', fontVariantNumeric: 'tabular-nums' }}>
-                    {currencySymbol}{inv.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    {getCurrencySymbol(inv.currency)}{inv.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </td>
                   <td style={{ padding: '10px', textAlign: 'center' }}>
                     <ChevronRight size={16} style={{ color: 'var(--text-muted)' }} />

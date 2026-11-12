@@ -90,7 +90,7 @@ export function IssuePage({ findingId, technical, steps = false }: { findingId: 
     if (findingId === null) return;
     setBusy(true);
     try {
-      // Guided: the steps to follow. Anything else: the agent is asked and prepares changes to confirm (N-B43).
+      // Guided: the steps to follow. NetSentry's own fix: its exact changes, ready to approve. Anything else: the agent is asked and prepares changes to confirm (N-B43).
       const r = await runOp<{ remediation_id?: string; message: string }>('remediations.request-plan', { finding_id: findingId, playbook_id: playbookId });
       toast.success(r.message);
       if (r.remediation_id) setFixOpen(r.remediation_id);
@@ -272,7 +272,7 @@ export function IssuePage({ findingId, technical, steps = false }: { findingId: 
                         <p className="text-[12px] text-[var(--agent-app-muted)]">
                           {fix.playbooks.every((pb) => pb.builtin)
                             ? 'NetSentry shows exactly what will change → an admin confirms it → the monitor on this server applies it → NetSentry checks it worked.'
-                            : 'The agent writes an exact plan → an admin approves it → the agent applies it → NetSentry checks it worked.'}
+                            : 'The agent writes an exact plan → an admin approves it → the monitor on this server applies it → NetSentry checks it worked.'}
                         </p>
                         {fix.playbooks.map((pb) => {
                           const risk = RISK_WORDS[pb.risk];
@@ -291,7 +291,7 @@ export function IssuePage({ findingId, technical, steps = false }: { findingId: 
                               {can('analyst') && (
                                 <div>
                                   <Button size="sm" loading={busy} onClick={() => void requestFix(pb.id)}>
-                                    {pb.risk === 'guided' ? 'Guide me through it' : 'Ask the agent to fix it'}
+                                    {pb.builtin ? 'Let NetSentry prepare the fix' : pb.risk === 'guided' ? 'Guide me through it' : 'Ask the agent to fix it'}
                                   </Button>
                                 </div>
                               )}

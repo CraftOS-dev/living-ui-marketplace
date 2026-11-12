@@ -110,6 +110,8 @@ export interface InvoiceReceipt {
   pdfFilename?: string
   pdfTextPreview?: string
   pdfDataBase64?: string
+  pdfUpload?: File // a PDF to store on the invoice (pdf_file) when it is saved
+  estimated?: boolean // a report's estimated subscription row, not a stored invoice
   lineItems: LineItem[]
   notes?: string
   subscriptionId?: string | number | null
@@ -219,9 +221,3 @@ export interface YearlySummaryItem {
   }[]
 }
 
-export interface YearlyHistoryData {
-  allYears: number[]
-  yearlySummaries: YearlySummaryItem[]
-  grandTotalAllYears: number
-  totalInvoicesAllYears: number
-}

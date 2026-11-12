@@ -1,65 +1,1143 @@
 {
-  "opsVersion": 1,
   "operations": [
     {
-      "name": "health",
-      "description": "Liveness check (PocketBase built-in).",
-      "system": true,
-      "params": {},
-      "executor": { "type": "http", "method": "GET", "path": "/api/health" }
-    },
-    {
-      "name": "ops.list",
-      "description": "Return this operations manifest.",
-      "system": true,
-      "params": {},
-      "executor": { "type": "http", "method": "GET", "path": "/api/_ops" }
+      "name": "app.guide",
+      "description": "How to drive Resume Maker: resume and item ids, leftover save copies, reload to see changes, sample content, every section's fields…",
+      "destructive": false,
+      "readOnly": true,
+      "module": "app",
+      "params": {}
     },
     {
       "name": "resumes.list",
-      "description": "List all saved resume records.",
-      "params": {},
-      "executor": {
-        "type": "crud",
-        "collection": "resume_state",
-        "action": "list"
-      }
+      "description": "Resumes (resume_state records) as the app's dropdown shows them, newest first.",
+      "destructive": false,
+      "readOnly": true,
+      "module": "resumes",
+      "params": {}
     },
     {
       "name": "resumes.get",
-      "description": "Get a specific resume by ID.",
+      "description": "One resume exactly as the editor shows it (missing parts filled the way the app fills them), with item ids; or one section.",
+      "destructive": false,
+      "readOnly": true,
+      "module": "resumes",
       "params": {
-        "id": { "type": "string", "description": "Resume record ID" }
-      },
-      "executor": {
-        "type": "crud",
-        "collection": "resume_state",
-        "action": "get"
+        "resume": {
+          "type": "string",
+          "required": true,
+          "description": "Resume id: the record id from resumes.list"
+        },
+        "section": {
+          "type": "enum",
+          "values": [
+            "personal",
+            "experience",
+            "education",
+            "skills",
+            "mytime",
+            "achievements",
+            "philosophy",
+            "projects",
+            "certifications",
+            "publications",
+            "style",
+            "layout"
+          ],
+          "description": "Only this part"
+        }
+      }
+    },
+    {
+      "name": "resumes.score",
+      "description": "The app's resume score: 0-100, five 20-point groups and the same improvement tips.",
+      "destructive": false,
+      "readOnly": true,
+      "module": "resumes",
+      "params": {
+        "resume": {
+          "type": "string",
+          "required": true,
+          "description": "Resume id: the record id from resumes.list"
+        }
+      }
+    },
+    {
+      "name": "resumes.export",
+      "description": "The file the app's Export menu downloads: json backup, word (.doc) or latex (.tex), as filename + content.",
+      "destructive": false,
+      "readOnly": true,
+      "module": "resumes",
+      "params": {
+        "resume": {
+          "type": "string",
+          "required": true,
+          "description": "Resume id: the record id from resumes.list"
+        },
+        "format": {
+          "type": "enum",
+          "values": [
+            "json",
+            "word",
+            "latex"
+          ],
+          "required": true,
+          "description": "File type"
+        }
       }
     },
     {
       "name": "resumes.create",
-      "description": "Create a new resume record.",
+      "description": "New resume like the New button: filled with a random sample person.",
+      "destructive": false,
+      "module": "resumes",
       "params": {
-        "title": { "type": "string", "description": "Resume title" },
-        "data": { "type": "object", "description": "Complete resume JSON data" }
-      },
-      "executor": {
-        "type": "crud",
-        "collection": "resume_state",
-        "action": "create"
+        "title": {
+          "type": "string",
+          "description": "Name of the new resume (default 'Resume #N', as the New dialog suggests)"
+        }
+      }
+    },
+    {
+      "name": "resumes.import",
+      "description": "New resume from a JSON backup, like Import.",
+      "destructive": false,
+      "module": "resumes",
+      "params": {
+        "json": {
+          "type": "string",
+          "description": "The JSON backup text (one of json or path)"
+        },
+        "path": {
+          "type": "string",
+          "description": "Absolute path of a .json backup file (one of json or path)"
+        }
       }
     },
     {
       "name": "resumes.duplicate",
-      "description": "Duplicate an existing resume by ID.",
+      "description": "Copy a resume like the Duplicate button; the copy's title gets ' Duplicate' appended.",
+      "destructive": false,
+      "module": "resumes",
       "params": {
-        "id": { "type": "string", "description": "Resume record ID to clone" }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/resumes/duplicate"
+        "resume": {
+          "type": "string",
+          "required": true,
+          "description": "Resume id: the record id from resumes.list"
+        }
+      }
+    },
+    {
+      "name": "resumes.rename",
+      "description": "Rename a resume.",
+      "destructive": false,
+      "module": "resumes",
+      "params": {
+        "resume": {
+          "type": "string",
+          "required": true,
+          "description": "Resume id: the record id from resumes.list"
+        },
+        "title": {
+          "type": "string",
+          "required": true,
+          "description": "New name, one line, not empty"
+        }
+      }
+    },
+    {
+      "name": "resumes.delete",
+      "description": "Delete a resume (the app asks for confirmation).",
+      "destructive": true,
+      "module": "resumes",
+      "params": {
+        "resume": {
+          "type": "string",
+          "required": true,
+          "description": "Resume id: the record id from resumes.list"
+        }
+      }
+    },
+    {
+      "name": "style.options",
+      "description": "The template list (label, group, default font, sections it omits), the 8 accent swatches, fonts, sizes, line spacings and photo shapes.",
+      "destructive": false,
+      "readOnly": true,
+      "module": "style",
+      "params": {}
+    },
+    {
+      "name": "style.set-template",
+      "description": "Switch template.",
+      "destructive": false,
+      "module": "style",
+      "params": {
+        "resume": {
+          "type": "string",
+          "required": true,
+          "description": "Resume id: the record id from resumes.list"
+        },
+        "template": {
+          "type": "enum",
+          "values": [
+            "executive_classic",
+            "executive_one",
+            "high_performer",
+            "enhancv_modern_v2",
+            "enhancv_modern",
+            "enhancv_classic",
+            "ivy_league_v3",
+            "imprint",
+            "ivy_league_v2",
+            "ivy_league",
+            "pure",
+            "double_column_banking",
+            "collegiate",
+            "crest",
+            "crest_projects",
+            "executive_serif",
+            "single_column_v2",
+            "boxed_manager",
+            "compact_two_col",
+            "enhancv_compact",
+            "enhancv_contemporary",
+            "data_timeline",
+            "enhancv_minimal",
+            "single_column",
+            "timeline_tech",
+            "creative_banner",
+            "enhancv_creative",
+            "double_column",
+            "elegant",
+            "elegant_v2",
+            "polished",
+            "enhancv_stylish",
+            "systems_tech",
+            "timeline"
+          ],
+          "required": true,
+          "description": "Template id (style.options)"
+        }
+      }
+    },
+    {
+      "name": "style.update",
+      "description": "Change accent colour, font, size, line spacing and/or avatar shape.",
+      "destructive": false,
+      "module": "style",
+      "params": {
+        "resume": {
+          "type": "string",
+          "required": true,
+          "description": "Resume id: the record id from resumes.list"
+        },
+        "accentColor": {
+          "type": "enum",
+          "values": [
+            "#f97316",
+            "#0f172a",
+            "#0c2340",
+            "#004d40",
+            "#1d4ed8",
+            "#10b981",
+            "#8b5cf6",
+            "#d97706"
+          ],
+          "description": "Accent swatch"
+        },
+        "fontFamily": {
+          "type": "enum",
+          "values": [
+            "Default",
+            "Outfit",
+            "Inter",
+            "Playfair Display",
+            "Space Mono",
+            "Plus Jakarta Sans"
+          ],
+          "description": "Font; 'Default' = the template's font"
+        },
+        "fontSize": {
+          "type": "enum",
+          "values": [
+            "small",
+            "medium",
+            "large"
+          ],
+          "description": "Scale"
+        },
+        "lineSpacing": {
+          "type": "enum",
+          "values": [
+            "compact",
+            "normal",
+            "spacious"
+          ],
+          "description": "Line spacing"
+        },
+        "photoShape": {
+          "type": "enum",
+          "values": [
+            "round",
+            "square",
+            "hidden"
+          ],
+          "description": "Avatar shape; hidden hides the photo"
+        }
+      }
+    },
+    {
+      "name": "layout.set-visibility",
+      "description": "Show or hide a section (the Layout tab's eye button).",
+      "destructive": false,
+      "module": "layout",
+      "params": {
+        "resume": {
+          "type": "string",
+          "required": true,
+          "description": "Resume id: the record id from resumes.list"
+        },
+        "section": {
+          "type": "enum",
+          "values": [
+            "summary",
+            "experience",
+            "education",
+            "skills",
+            "myTime",
+            "mostProudOf",
+            "philosophy",
+            "projects",
+            "certifications",
+            "publications"
+          ],
+          "required": true,
+          "description": "Section"
+        },
+        "visible": {
+          "type": "boolean",
+          "required": true,
+          "description": "Show (true) or hide (false)"
+        }
+      }
+    },
+    {
+      "name": "layout.move",
+      "description": "Move a section one step up or down in the Layout tab order.",
+      "destructive": false,
+      "module": "layout",
+      "params": {
+        "resume": {
+          "type": "string",
+          "required": true,
+          "description": "Resume id: the record id from resumes.list"
+        },
+        "section": {
+          "type": "enum",
+          "values": [
+            "summary",
+            "experience",
+            "education",
+            "skills",
+            "myTime",
+            "mostProudOf",
+            "philosophy",
+            "projects",
+            "certifications",
+            "publications"
+          ],
+          "required": true,
+          "description": "Section"
+        },
+        "direction": {
+          "type": "enum",
+          "values": [
+            "up",
+            "down"
+          ],
+          "required": true,
+          "description": "One step"
+        }
+      }
+    },
+    {
+      "name": "personal.update",
+      "description": "Change name, headline, contact details, links, photo URL and/or summary.",
+      "destructive": false,
+      "module": "personal",
+      "params": {
+        "resume": {
+          "type": "string",
+          "required": true,
+          "description": "Resume id: the record id from resumes.list"
+        },
+        "fullName": {
+          "type": "string",
+          "description": "Full name, one line"
+        },
+        "jobTitle": {
+          "type": "string",
+          "description": "Job title / headline, one line"
+        },
+        "email": {
+          "type": "string",
+          "description": "Email, one line"
+        },
+        "phone": {
+          "type": "string",
+          "description": "Phone, one line"
+        },
+        "location": {
+          "type": "string",
+          "description": "Location, one line"
+        },
+        "linkedin": {
+          "type": "string",
+          "description": "LinkedIn URL, one line"
+        },
+        "github": {
+          "type": "string",
+          "description": "GitHub URL, one line"
+        },
+        "website": {
+          "type": "string",
+          "description": "Portfolio website, one line"
+        },
+        "photoUrl": {
+          "type": "string",
+          "description": "Photo image URL; '' removes the photo"
+        },
+        "summary": {
+          "type": "string",
+          "description": "Professional summary, multi-line"
+        }
+      }
+    },
+    {
+      "name": "personal.set-photo",
+      "description": "Upload a profile photo from a file, like 'Upload Image File' (stored in the resume as the app stores uploads).",
+      "destructive": false,
+      "module": "personal",
+      "params": {
+        "resume": {
+          "type": "string",
+          "required": true,
+          "description": "Resume id: the record id from resumes.list"
+        },
+        "path": {
+          "type": "string",
+          "required": true,
+          "description": "Absolute path of an image file (png, jpg, gif, webp, svg, bmp, avif; under 700 KB)"
+        }
+      }
+    },
+    {
+      "name": "philosophy.update",
+      "description": "Change the work-philosophy quote and/or its author.",
+      "destructive": false,
+      "module": "philosophy",
+      "params": {
+        "resume": {
+          "type": "string",
+          "required": true,
+          "description": "Resume id: the record id from resumes.list"
+        },
+        "quote": {
+          "type": "string",
+          "description": "Quote / philosophy statement, multi-line"
+        },
+        "author": {
+          "type": "string",
+          "description": "Author, one line; empty shows the person's name"
+        }
+      }
+    },
+    {
+      "name": "experience.add",
+      "description": "Add a work experience position like Add Position (goes first); fields not given keep the app's placeholder values.",
+      "destructive": false,
+      "module": "experience",
+      "params": {
+        "resume": {
+          "type": "string",
+          "required": true,
+          "description": "Resume id: the record id from resumes.list"
+        },
+        "position": {
+          "type": "string",
+          "description": "Position / title, one line (new: 'Role / Title')"
+        },
+        "company": {
+          "type": "string",
+          "description": "Company name, one line (new: 'New Company')"
+        },
+        "startDate": {
+          "type": "string",
+          "description": "Start date as shown, e.g. 'Jan 2021' (new: '2023')"
+        },
+        "endDate": {
+          "type": "string",
+          "description": "End date as shown; only when isCurrent is false (new: 'Present')"
+        },
+        "isCurrent": {
+          "type": "boolean",
+          "description": "Current role; true sets endDate 'Present', false clears it (new: true)"
+        },
+        "description": {
+          "type": "string",
+          "description": "Bullets, multi-line: lines starting with '• ' (new: a placeholder bullet)"
+        }
+      }
+    },
+    {
+      "name": "experience.update",
+      "description": "Change fields of one work experience position.",
+      "destructive": false,
+      "module": "experience",
+      "params": {
+        "resume": {
+          "type": "string",
+          "required": true,
+          "description": "Resume id: the record id from resumes.list"
+        },
+        "item": {
+          "type": "string",
+          "required": true,
+          "description": "Item id, from resumes.get or the add result"
+        },
+        "position": {
+          "type": "string",
+          "description": "Position / title, one line (new: 'Role / Title')"
+        },
+        "company": {
+          "type": "string",
+          "description": "Company name, one line (new: 'New Company')"
+        },
+        "startDate": {
+          "type": "string",
+          "description": "Start date as shown, e.g. 'Jan 2021' (new: '2023')"
+        },
+        "endDate": {
+          "type": "string",
+          "description": "End date as shown; only when isCurrent is false (new: 'Present')"
+        },
+        "isCurrent": {
+          "type": "boolean",
+          "description": "Current role; true sets endDate 'Present', false clears it (new: true)"
+        },
+        "description": {
+          "type": "string",
+          "description": "Bullets, multi-line: lines starting with '• ' (new: a placeholder bullet)"
+        }
+      }
+    },
+    {
+      "name": "experience.remove",
+      "description": "Remove one work experience position (one click in the app, no confirmation); the result holds the removed item.",
+      "destructive": false,
+      "module": "experience",
+      "params": {
+        "resume": {
+          "type": "string",
+          "required": true,
+          "description": "Resume id: the record id from resumes.list"
+        },
+        "item": {
+          "type": "string",
+          "required": true,
+          "description": "Item id, from resumes.get or the add result"
+        }
+      }
+    },
+    {
+      "name": "education.add",
+      "description": "Add a degree like Add Degree (goes first); fields not given keep the app's placeholder values.",
+      "destructive": false,
+      "module": "education",
+      "params": {
+        "resume": {
+          "type": "string",
+          "required": true,
+          "description": "Resume id: the record id from resumes.list"
+        },
+        "degree": {
+          "type": "string",
+          "description": "Degree / qualification, one line (new: 'B.S. Degree')"
+        },
+        "institution": {
+          "type": "string",
+          "description": "Institution / school, one line (new: 'University Name')"
+        },
+        "startDate": {
+          "type": "string",
+          "description": "Start year (new: '2018')"
+        },
+        "endDate": {
+          "type": "string",
+          "description": "End year (new: '2022')"
+        },
+        "gpa": {
+          "type": "string",
+          "description": "GPA / honors, one line"
+        }
+      }
+    },
+    {
+      "name": "education.update",
+      "description": "Change fields of one degree.",
+      "destructive": false,
+      "module": "education",
+      "params": {
+        "resume": {
+          "type": "string",
+          "required": true,
+          "description": "Resume id: the record id from resumes.list"
+        },
+        "item": {
+          "type": "string",
+          "required": true,
+          "description": "Item id, from resumes.get or the add result"
+        },
+        "degree": {
+          "type": "string",
+          "description": "Degree / qualification, one line (new: 'B.S. Degree')"
+        },
+        "institution": {
+          "type": "string",
+          "description": "Institution / school, one line (new: 'University Name')"
+        },
+        "startDate": {
+          "type": "string",
+          "description": "Start year (new: '2018')"
+        },
+        "endDate": {
+          "type": "string",
+          "description": "End year (new: '2022')"
+        },
+        "gpa": {
+          "type": "string",
+          "description": "GPA / honors, one line"
+        }
+      }
+    },
+    {
+      "name": "education.remove",
+      "description": "Remove one degree (one click in the app, no confirmation); the result holds the removed item.",
+      "destructive": false,
+      "module": "education",
+      "params": {
+        "resume": {
+          "type": "string",
+          "required": true,
+          "description": "Resume id: the record id from resumes.list"
+        },
+        "item": {
+          "type": "string",
+          "required": true,
+          "description": "Item id, from resumes.get or the add result"
+        }
+      }
+    },
+    {
+      "name": "skills.add",
+      "description": "Add a skill like the quick-add form (goes last); fields not given keep the app's placeholder values.",
+      "destructive": false,
+      "module": "skills",
+      "params": {
+        "resume": {
+          "type": "string",
+          "required": true,
+          "description": "Resume id: the record id from resumes.list"
+        },
+        "name": {
+          "type": "string",
+          "description": "Skill name, one line (required when adding)"
+        },
+        "category": {
+          "type": "string",
+          "description": "Category, free text; the add form offers Programming Languages, Technical Skills, Programs & Tools, Interpersonal Skills (new: 'Programming Languages')"
+        },
+        "proficiency": {
+          "type": "enum",
+          "values": [
+            "Beginner",
+            "Intermediate",
+            "Advanced",
+            "Expert"
+          ],
+          "description": "Level (new: 'Advanced')"
+        }
+      }
+    },
+    {
+      "name": "skills.update",
+      "description": "Change fields of one skill.",
+      "destructive": false,
+      "module": "skills",
+      "params": {
+        "resume": {
+          "type": "string",
+          "required": true,
+          "description": "Resume id: the record id from resumes.list"
+        },
+        "item": {
+          "type": "string",
+          "required": true,
+          "description": "Item id, from resumes.get or the add result"
+        },
+        "name": {
+          "type": "string",
+          "description": "Skill name, one line (required when adding)"
+        },
+        "category": {
+          "type": "string",
+          "description": "Category, free text; the add form offers Programming Languages, Technical Skills, Programs & Tools, Interpersonal Skills (new: 'Programming Languages')"
+        },
+        "proficiency": {
+          "type": "enum",
+          "values": [
+            "Beginner",
+            "Intermediate",
+            "Advanced",
+            "Expert"
+          ],
+          "description": "Level (new: 'Advanced')"
+        }
+      }
+    },
+    {
+      "name": "skills.remove",
+      "description": "Remove one skill (one click in the app, no confirmation); the result holds the removed item.",
+      "destructive": false,
+      "module": "skills",
+      "params": {
+        "resume": {
+          "type": "string",
+          "required": true,
+          "description": "Resume id: the record id from resumes.list"
+        },
+        "item": {
+          "type": "string",
+          "required": true,
+          "description": "Item id, from resumes.get or the add result"
+        }
+      }
+    },
+    {
+      "name": "mytime.add",
+      "description": "Add a My Time row like Add Focus (goes last); fields not given keep the app's placeholder values.",
+      "destructive": false,
+      "module": "mytime",
+      "params": {
+        "resume": {
+          "type": "string",
+          "required": true,
+          "description": "Resume id: the record id from resumes.list"
+        },
+        "label": {
+          "type": "string",
+          "description": "Activity, one line (new: 'New Activity Focus')"
+        },
+        "percentage": {
+          "type": "number",
+          "description": "Share of time, 0-100 (new: 15); the app recommends rows totalling 100"
+        },
+        "color": {
+          "type": "string",
+          "description": "Bar colour #rrggbb (new: next colour of the app palette)"
+        }
+      }
+    },
+    {
+      "name": "mytime.update",
+      "description": "Change fields of one My Time row.",
+      "destructive": false,
+      "module": "mytime",
+      "params": {
+        "resume": {
+          "type": "string",
+          "required": true,
+          "description": "Resume id: the record id from resumes.list"
+        },
+        "item": {
+          "type": "string",
+          "required": true,
+          "description": "Item id, from resumes.get or the add result"
+        },
+        "label": {
+          "type": "string",
+          "description": "Activity, one line (new: 'New Activity Focus')"
+        },
+        "percentage": {
+          "type": "number",
+          "description": "Share of time, 0-100 (new: 15); the app recommends rows totalling 100"
+        },
+        "color": {
+          "type": "string",
+          "description": "Bar colour #rrggbb (new: next colour of the app palette)"
+        }
+      }
+    },
+    {
+      "name": "mytime.remove",
+      "description": "Remove one My Time row (one click in the app, no confirmation); the result holds the removed item.",
+      "destructive": false,
+      "module": "mytime",
+      "params": {
+        "resume": {
+          "type": "string",
+          "required": true,
+          "description": "Resume id: the record id from resumes.list"
+        },
+        "item": {
+          "type": "string",
+          "required": true,
+          "description": "Item id, from resumes.get or the add result"
+        }
+      }
+    },
+    {
+      "name": "achievements.add",
+      "description": "Add a achievement badge like Add Highlight (goes last); fields not given keep the app's placeholder values.",
+      "destructive": false,
+      "module": "achievements",
+      "params": {
+        "resume": {
+          "type": "string",
+          "required": true,
+          "description": "Resume id: the record id from resumes.list"
+        },
+        "title": {
+          "type": "string",
+          "description": "Headline, one line (new: 'Key Achievement')"
+        },
+        "description": {
+          "type": "string",
+          "description": "Description and impact, one line (new: a placeholder)"
+        },
+        "icon": {
+          "type": "enum",
+          "values": [
+            "trophy",
+            "rocket",
+            "target",
+            "star",
+            "award",
+            "zap",
+            "heart",
+            "flame"
+          ],
+          "description": "Badge icon (new: 'trophy')"
+        }
+      }
+    },
+    {
+      "name": "achievements.update",
+      "description": "Change fields of one achievement badge.",
+      "destructive": false,
+      "module": "achievements",
+      "params": {
+        "resume": {
+          "type": "string",
+          "required": true,
+          "description": "Resume id: the record id from resumes.list"
+        },
+        "item": {
+          "type": "string",
+          "required": true,
+          "description": "Item id, from resumes.get or the add result"
+        },
+        "title": {
+          "type": "string",
+          "description": "Headline, one line (new: 'Key Achievement')"
+        },
+        "description": {
+          "type": "string",
+          "description": "Description and impact, one line (new: a placeholder)"
+        },
+        "icon": {
+          "type": "enum",
+          "values": [
+            "trophy",
+            "rocket",
+            "target",
+            "star",
+            "award",
+            "zap",
+            "heart",
+            "flame"
+          ],
+          "description": "Badge icon (new: 'trophy')"
+        }
+      }
+    },
+    {
+      "name": "achievements.remove",
+      "description": "Remove one achievement badge (one click in the app, no confirmation); the result holds the removed item.",
+      "destructive": false,
+      "module": "achievements",
+      "params": {
+        "resume": {
+          "type": "string",
+          "required": true,
+          "description": "Resume id: the record id from resumes.list"
+        },
+        "item": {
+          "type": "string",
+          "required": true,
+          "description": "Item id, from resumes.get or the add result"
+        }
+      }
+    },
+    {
+      "name": "projects.add",
+      "description": "Add a project like Add Project (goes last); fields not given keep the app's placeholder values.",
+      "destructive": false,
+      "module": "projects",
+      "params": {
+        "resume": {
+          "type": "string",
+          "required": true,
+          "description": "Resume id: the record id from resumes.list"
+        },
+        "title": {
+          "type": "string",
+          "description": "Project title, one line (new: 'Project Title')"
+        },
+        "technologies": {
+          "type": "string",
+          "description": "Technologies used, one line (new: 'React, TypeScript')"
+        },
+        "link": {
+          "type": "string",
+          "description": "Project link / URL, one line"
+        },
+        "description": {
+          "type": "string",
+          "description": "Description, multi-line (new: a placeholder)"
+        }
+      }
+    },
+    {
+      "name": "projects.update",
+      "description": "Change fields of one project.",
+      "destructive": false,
+      "module": "projects",
+      "params": {
+        "resume": {
+          "type": "string",
+          "required": true,
+          "description": "Resume id: the record id from resumes.list"
+        },
+        "item": {
+          "type": "string",
+          "required": true,
+          "description": "Item id, from resumes.get or the add result"
+        },
+        "title": {
+          "type": "string",
+          "description": "Project title, one line (new: 'Project Title')"
+        },
+        "technologies": {
+          "type": "string",
+          "description": "Technologies used, one line (new: 'React, TypeScript')"
+        },
+        "link": {
+          "type": "string",
+          "description": "Project link / URL, one line"
+        },
+        "description": {
+          "type": "string",
+          "description": "Description, multi-line (new: a placeholder)"
+        }
+      }
+    },
+    {
+      "name": "projects.remove",
+      "description": "Remove one project (one click in the app, no confirmation); the result holds the removed item.",
+      "destructive": false,
+      "module": "projects",
+      "params": {
+        "resume": {
+          "type": "string",
+          "required": true,
+          "description": "Resume id: the record id from resumes.list"
+        },
+        "item": {
+          "type": "string",
+          "required": true,
+          "description": "Item id, from resumes.get or the add result"
+        }
+      }
+    },
+    {
+      "name": "certifications.add",
+      "description": "Add a certification like Add Cert (goes last); fields not given keep the app's placeholder values.",
+      "destructive": false,
+      "module": "certifications",
+      "params": {
+        "resume": {
+          "type": "string",
+          "required": true,
+          "description": "Resume id: the record id from resumes.list"
+        },
+        "name": {
+          "type": "string",
+          "description": "Certification name, one line (new: 'Certification Name')"
+        },
+        "issuer": {
+          "type": "string",
+          "description": "Issuer, one line (new: 'Issuing Organization')"
+        },
+        "issueDate": {
+          "type": "string",
+          "description": "Issue date or year (new: '2023')"
+        },
+        "url": {
+          "type": "string",
+          "description": "Credential URL or ID, one line"
+        }
+      }
+    },
+    {
+      "name": "certifications.update",
+      "description": "Change fields of one certification.",
+      "destructive": false,
+      "module": "certifications",
+      "params": {
+        "resume": {
+          "type": "string",
+          "required": true,
+          "description": "Resume id: the record id from resumes.list"
+        },
+        "item": {
+          "type": "string",
+          "required": true,
+          "description": "Item id, from resumes.get or the add result"
+        },
+        "name": {
+          "type": "string",
+          "description": "Certification name, one line (new: 'Certification Name')"
+        },
+        "issuer": {
+          "type": "string",
+          "description": "Issuer, one line (new: 'Issuing Organization')"
+        },
+        "issueDate": {
+          "type": "string",
+          "description": "Issue date or year (new: '2023')"
+        },
+        "url": {
+          "type": "string",
+          "description": "Credential URL or ID, one line"
+        }
+      }
+    },
+    {
+      "name": "certifications.remove",
+      "description": "Remove one certification (one click in the app, no confirmation); the result holds the removed item.",
+      "destructive": false,
+      "module": "certifications",
+      "params": {
+        "resume": {
+          "type": "string",
+          "required": true,
+          "description": "Resume id: the record id from resumes.list"
+        },
+        "item": {
+          "type": "string",
+          "required": true,
+          "description": "Item id, from resumes.get or the add result"
+        }
+      }
+    },
+    {
+      "name": "publications.add",
+      "description": "Add a publication like Add Paper (goes last); fields not given keep the app's placeholder values.",
+      "destructive": false,
+      "module": "publications",
+      "params": {
+        "resume": {
+          "type": "string",
+          "required": true,
+          "description": "Resume id: the record id from resumes.list"
+        },
+        "title": {
+          "type": "string",
+          "description": "Title, one line (new: 'Publication Title')"
+        },
+        "publisher": {
+          "type": "string",
+          "description": "Publisher / journal / conference (new: 'Publisher / Journal')"
+        },
+        "date": {
+          "type": "string",
+          "description": "Date or year (new: '2024')"
+        },
+        "url": {
+          "type": "string",
+          "description": "Article / paper URL, one line"
+        },
+        "description": {
+          "type": "string",
+          "description": "Description / abstract, multi-line (new: a placeholder)"
+        }
+      }
+    },
+    {
+      "name": "publications.update",
+      "description": "Change fields of one publication.",
+      "destructive": false,
+      "module": "publications",
+      "params": {
+        "resume": {
+          "type": "string",
+          "required": true,
+          "description": "Resume id: the record id from resumes.list"
+        },
+        "item": {
+          "type": "string",
+          "required": true,
+          "description": "Item id, from resumes.get or the add result"
+        },
+        "title": {
+          "type": "string",
+          "description": "Title, one line (new: 'Publication Title')"
+        },
+        "publisher": {
+          "type": "string",
+          "description": "Publisher / journal / conference (new: 'Publisher / Journal')"
+        },
+        "date": {
+          "type": "string",
+          "description": "Date or year (new: '2024')"
+        },
+        "url": {
+          "type": "string",
+          "description": "Article / paper URL, one line"
+        },
+        "description": {
+          "type": "string",
+          "description": "Description / abstract, multi-line (new: a placeholder)"
+        }
+      }
+    },
+    {
+      "name": "publications.remove",
+      "description": "Remove one publication (one click in the app, no confirmation); the result holds the removed item.",
+      "destructive": false,
+      "module": "publications",
+      "params": {
+        "resume": {
+          "type": "string",
+          "required": true,
+          "description": "Resume id: the record id from resumes.list"
+        },
+        "item": {
+          "type": "string",
+          "required": true,
+          "description": "Item id, from resumes.get or the add result"
+        }
       }
     }
   ]

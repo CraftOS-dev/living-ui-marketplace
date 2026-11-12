@@ -283,7 +283,7 @@ Answer one question about the business from this Advance POS app's data. 1) `a2a
 
 ### Notes
 
-75 operations in `operations.json` (`a2app <app>`):
+73 operations in `operations.json` (`a2app <app>`):
 `app.guide|status`; `setup.status|complete`; `auth.unlock|session`;
 `settings.get|update`; `permissions.update`; `registers.list|save|focus`;
 `display.get`; `staff.list|save|clock`; `timeclock.list|save`;
@@ -371,7 +371,7 @@ Build and verification tasks live in `reference/tasks.md`.
 
 See `reference/requirements.md` (binding). Feature checklist:
 
-- [x] First run: store, currency (minor digits from the currency), tax rate, prices with or without tax, the owner and their PIN; opens signed in
+- [x] First run: store, the first register's name, currency (minor digits from the currency), tax rate, prices with or without tax, the owner and their PIN; opens signed in
 - [x] Lock screen: store, clock, PIN pad (keyboard too), clock in or out by PIN without signing in, this device's register; wrong PINs rate limited (8 a minute)
 - [x] Sessions: a signed session per person and register (16 h); locks when idle (setting) and optionally after every sale; the open sale stays on the server
 - [x] Sell: square tiles with the picture or initials in the product's or category's color, the name centered under the tile (a long name rolls), the price under the name (a setting), variant count, low and out marks; favorites, all, categories, keypad (custom amounts, gift cards); search by name, SKU or barcode, Enter on a code adds it; wedge scanners work anywhere on the page

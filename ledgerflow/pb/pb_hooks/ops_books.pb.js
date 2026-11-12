@@ -270,7 +270,8 @@ routerAdd('POST', '/api/ops/transactions/create', (e) =>
     return require(`${__hooks}/lib_activity.js`).run(app, who, 'transactions.create', (t) => {
       const r = require(`${__hooks}/lib_ledger.js`).create(t, spec, who);
       if (u.has(p, 'file')) require(`${__hooks}/lib_files.js`).link(t, require(`${__hooks}/lib_files.js`).mustGet(t, u.str(p, 'file', '')), 'transaction', r.txn.id);
-      return { summary: (r.txn.getString('status') === 'proposed' ? 'Proposed' : 'Recorded') + ' ' + lib.describe(t, r.txn), type: 'transaction', id: r.txn.id, result: { transaction: lib.detail(t, r.txn.id) } };
+      const g = lib.agentPost(t, r.txn, spec, who);
+      return { summary: (g.txn.getString('status') === 'proposed' ? 'Proposed' : 'Recorded') + ' ' + lib.describe(t, g.txn), type: 'transaction', id: g.txn.id, result: { transaction: lib.detail(t, g.txn.id), not_posted_because: g.not_posted_because } };
     });
   }),
 );

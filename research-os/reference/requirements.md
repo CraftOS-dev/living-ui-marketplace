@@ -389,7 +389,7 @@ One researcher (a PhD student, postdoc, PI or independent scholar) in any field,
 - F-REPO-9: The user sees a folder's contents (name, size, changed, by) with its README drawn below.
 
 ### Module: Writing (ms, marks)
-- F-MS-1: The user can start a manuscript in a project with a title and an outline (Research article, Review or Blank), rename it, and delete it.
+- F-MS-1: The user can start a manuscript in a project with a title and an outline (Research article: Introduction, Methods, Results, Discussion; Review: Introduction, Methods, Findings, Conclusion; or Blank), rename it, and delete it.
 - F-MS-2: The user can write in blocks: text, three heading levels, bulleted and numbered lists, quotes, equations, figures, tables, abstract and LaTeX blocks. Blocks are added or changed with "/" or the block menu, and moved with Alt+Shift+Up and Down.
 - F-MS-3: The user can cite with "@" from the project's reading list and the library. One citation can group several papers and carry a page locator. WHEN a paper is not citable THE SYSTEM SHALL refuse to cite it.
 - F-MS-4: The user can write inline maths with "$", with a KaTeX preview. With "#" they can refer to sections, equations, figures and tables, numbered as LaTeX will number them, or by number only.
@@ -405,7 +405,7 @@ One researcher (a PhD student, postdoc, PI or independent scholar) in any field,
   - broken cross-references and figure problems;
   - style-folder notes.
 
-  The user can mark the manuscript ready only when nothing blocks, and any later edit puts it back to draft.
+  The user can mark the manuscript ready only when nothing blocks, and any later edit puts it back to draft. A retracted source blocks until the user confirms citing it knowingly ("Mark it ready anyway, knowing that?").
 - F-MS-11: The user sees an AI-use disclosure computed from what was typed, pasted, or kept from the agent, by section. It comes with a statement, where to put it for the venue, and Copy.
 - F-MS-12: The user can set LaTeX options: the venue (Any venue, Elsevier, Nature Portfolio, Science, ACL, ICLR, NeurIPS, IEEE), authors with affiliation and email, a style folder from the repository, and their own preamble.
 - F-MS-13: The user can build the PDF with LaTeX on their computer (Build, or Ctrl+S) and follow its phases. They read the PDF in its pane, see errors and warnings placed on their blocks, read the engine's log, and download the PDF.
@@ -436,7 +436,7 @@ One researcher (a PhD student, postdoc, PI or independent scholar) in any field,
 - F-DSC-4: The user can ask for a deep search. The agent runs more searches and files candidates, each with a relevance reason. Nothing enters the library without the person.
 - F-DSC-5: The user can keep a search and set a daily or weekly alert. Saved searches show their sources, new candidates and last run, and can be run again or deleted (papers added from them stay).
 - F-DSC-6: WHEN a saved search's alert is due THE SYSTEM SHALL run it. When new candidates arrive, it asks the agent to assess them.
-- F-DSC-7: The user can draw a citation map around a project's reading list or a collection:
+- F-DSC-7: The user can draw a citation map around a project's reading list or a collection. Until they pick one, the map is drawn around the first active project, else the first collection: the one the "Around" list shows, also when the map is opened directly or reloaded.
   - papers placed by year and citations, sized by their links to the seeds;
   - papers already in the library marked;
   - references, and optionally the papers citing them;
@@ -452,7 +452,7 @@ One researcher (a PhD student, postdoc, PI or independent scholar) in any field,
   - add and delete rows and columns;
   - align columns;
   - turn the header row on or off.
-- F-NOTE-6: The user can pin, delete and keep notes. A note the agent wrote is marked as such until a person keeps it.
+- F-NOTE-6: The user can pin, delete and keep notes. A note the agent wrote is marked as such until a person keeps it; pinning or editing it does not keep it.
 - F-NOTE-7: The user can start a paper's literature note from the paper. Each paper has one.
 
 ### Module: Your AI agent (agent, asks, proposals)
@@ -802,7 +802,7 @@ Rail order: mark, "+", then Home, Library, Projects, Discover, Notes · Your AI 
     - "No snapshots yet";
     - "Nothing stands in the way" ("Every cited paper resolved, confirmed and not retracted");
     - "No reviews yet".
-  - Confirm: 'Go back to "<label>"? The current text is saved as a snapshot first.'
+  - Confirm: 'Go back to "<label>"? The current text is saved as a snapshot first.', and "Cites a retracted paper" ("This manuscript cites a retracted paper. Mark it ready anyway, knowing that?") when a retracted source is all that blocks Mark ready.
   - Toasts: "Snapshot saved", "Marked ready", "Copied", "Building the PDF: download it from the PDF pane when it is ready", and the asks to the agent.
   - PDF states: "Not built yet", "The build failed", the build phases, "N errors" or "No errors".
   - Narrow:
@@ -832,7 +832,7 @@ Rail order: mark, "+", then Home, Library, Projects, Discover, Notes · Your AI 
   - Empty: "No notes yet" with "New note", "No notes match", "No note open".
   - Confirm: 'Delete "<title>"?' (Delete note).
   - Save status: "Saving", "Edited", "Saved".
-  - Narrow: from 760 px the 288 px list sits beside the note; below that one pane shows at a time.
+  - Narrow: from 760 px the 288 px list sits beside the note (the first note opens until one is chosen); below that one pane shows at a time: the list until a note is tapped, then that note with "All notes" back to the list.
 - **Screen — Your AI agent:** primary object: what waits for the person. Primary action: Confirm or Reject (C, R), or Approve.
   - Empty: "All caught up" ("What your AI agent proposes waits here for you."), "No proposals waiting", "Nothing asked yet", "No questions yet", "Nothing yet".
   - Toasts: "<n> items confirmed", "<n> items rejected", "Approved and done", "Rejected".
@@ -916,7 +916,7 @@ Rail order: mark, "+", then Home, Library, Projects, Discover, Notes · Your AI 
     - Repository: arrows, F2, Delete, Ctrl+S.
     - Manuscript: @, $, #, /, Alt+Shift+Up/Down, Ctrl+S.
     - Notes: /, Tab, Enter, Shift+Enter.
-  - Inputs are constrained: identifiers parsed by syntax, the agent toggle disabled in confidential projects, "Addressed" disabled until a change is linked, Mark ready disabled while anything blocks, the demo confirm disabled until the phrase and the box match.
+  - Inputs are constrained: identifiers parsed by syntax, the agent toggle disabled in confidential projects, "Addressed" disabled until a change is linked, Mark ready disabled while anything blocks (a retracted source asks to be cited knowingly instead), the demo confirm disabled until the phrase and the box match.
 - **Q5 State & feedback:**
   - Each screen's states are listed in ## UI Design.
   - Loading shows skeletons where the layout is known (Home, Library, lists, runs) and spinners elsewhere (the reader, the workspace, the map, boards, Settings).

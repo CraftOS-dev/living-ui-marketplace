@@ -96,7 +96,7 @@ function DealRows({ deals, home }: { deals: Deal[]; home: string }): React.JSX.E
       </thead>
       <tbody>
         {deals.map((d) => (
-          <tr key={d.id} data-click="true" onClick={() => go('deals', { id: d.id })}>
+          <tr key={d.id} data-click="true" tabIndex={0} onClick={() => go('deals', { id: d.id })} onKeyDown={(e) => e.key === 'Enter' && go('deals', { id: d.id })}>
             <td className="truncate font-semibold" title={d.name}>
               {d.name}
             </td>
@@ -457,7 +457,7 @@ function ActivityView({ r }: { r: ActivityReport }): React.JSX.Element {
         </thead>
         <tbody>
           {r.top_people.map((p) => (
-            <tr key={p.id} data-click="true" onClick={() => go('people', { id: p.id })}>
+            <tr key={p.id} data-click="true" tabIndex={0} onClick={() => go('people', { id: p.id })} onKeyDown={(e) => e.key === 'Enter' && go('people', { id: p.id })}>
               <td>
                 <span className="inline-flex items-center gap-2 font-semibold">
                   <Avatar name={p.name} size={20} /> {p.name}
@@ -614,7 +614,7 @@ export function ReportsView({ q }: { q: Record<string, string> }): React.JSX.Ele
           <div key={g} className="mb-1">
             <p className="px-3 pb-0.5 pt-2 text-[10.5px] font-bold uppercase tracking-[0.05em] text-[var(--cr-muted)]">{g}</p>
             {LIST.filter((x) => x.group === g).map((x) => (
-              <button key={x.id} type="button" onClick={() => setQuery({ r: x.id }, true)} className={cn('relative flex h-7 w-full items-center gap-2 px-3 text-left text-[12.5px] transition-colors', x.id === id ? 'bg-[var(--cr-row-hover)] font-semibold' : 'hover:bg-[var(--cr-row)]')}>
+              <button key={x.id} type="button" onClick={() => setQuery({ r: x.id }, true)} aria-current={x.id === id ? 'true' : undefined} className={cn('relative flex h-7 w-full items-center gap-2 px-3 text-left text-[12.5px] transition-colors', x.id === id ? 'bg-[var(--cr-row-hover)] font-semibold' : 'hover:bg-[var(--cr-row)]')}>
                 {x.id === id && <span aria-hidden className="absolute bottom-1 left-0 top-1 w-0.5 rounded-r bg-[var(--cr-accent)]" />}
                 <x.icon size={14} strokeWidth={2} className={cn('shrink-0', x.id === id ? 'text-[var(--cr-ink)]' : 'text-[var(--cr-muted)]')} />
                 {x.label}

@@ -169,6 +169,7 @@ export const api = {
   createRequest: (p: { kind: 'edit' | 'describe'; image?: string | undefined; images?: string[] | undefined; title?: string | undefined; body?: string | undefined; region?: Region | null | undefined }): Promise<{ ok: boolean; request: RequestRec; asked: boolean; message: string }> =>
     post('requests/create', p),
   requests: (p: Query = {}): Promise<{ requests: RequestRec[] }> => get('requests/list', p),
+  resendRequest: (request: string): Promise<{ ok: boolean; request: RequestRec; asked: boolean; message: string }> => post('requests/create', { request }),
 
   /* logos */
   assets: (): Promise<{ assets: Asset[] }> => get('assets/list'),

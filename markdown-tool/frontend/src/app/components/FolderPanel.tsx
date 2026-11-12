@@ -6,7 +6,8 @@ import {
 } from 'lucide-react'
 import type { FileItem } from '../types'
 import type { AppController } from '../AppController'
-import { UploadConflictError } from '../AppController'
+import { UploadConflictError, failureMessage } from '../AppController'
+import { isMarkdownName, nameProblem, pathProblem } from '../services/paths'
 import { Modal, Input, Button } from './ui'
 
 interface FileNode {
@@ -19,13 +20,61 @@ interface FileNode {
 interface FolderPanelProps {
   controller: AppController
   activeFilePath: string | null
+  /** Folders to open when the panel mounts (the session's expanded_dirs). */
+  initialExpanded: string[]
+  /** Called with the open folders whenever they change. */
+  onExpandedChange: (dirs: string[]) => void
   onOpenFile: (path: string) => void
   onRefresh: () => void
   onFileDeleted: (path: string) => void
   onFileRenamed: (oldPath: string, newPath: string) => void
 }
 
-export function FolderPanel({ controller, activeFilePath, onOpenFile, onRefresh, onFileDeleted, onFileRenamed }: FolderPanelProps) {
+function setNodeState(
+  nodes: FileNode[],
+  path: string,
+  update: Partial<Pick<FileNode, 'expanded' | 'children'>>,
+): FileNode[] {
+  return nodes.map(n => {
+    if (n.item.path === path) return { ...n, ...update }
+    if (n.children) return { ...n, children: setNodeState(n.children, path, update) }
+    return n
+  })
+}
+
+function findNode(nodes: FileNode[], path: string): FileNode | null {
+  for (const n of nodes) {
+    if (n.item.path === path) return n
+    if (n.expanded && n.children) {
+      const found = findNode(n.children, path)
+      if (found) return found
+    }
+  }
+  return null
+}
+
+/** The open folders a person can see (inside open folders), top-down. */
+function expandedPaths(nodes: FileNode[]): string[] {
+  const out: string[] = []
+  for (const n of nodes) {
+    if (n.item.is_dir && n.expanded) {
+      out.push(n.item.path)
+      if (n.children) out.push(...expandedPaths(n.children))
+    }
+  }
+  return out
+}
+
+/** One toast line for the files an upload left out, with the reason for each. */
+function notUploadedMessage(skipped: { path: string; reason: string }[]): string {
+  const shown = skipped.slice(0, 3).map(s => `${s.path} (${s.reason})`).join('; ')
+  const more = skipped.length > 3 ? `; and ${skipped.length - 3} more` : ''
+  return `Not uploaded: ${shown}${more}`
+}
+
+export function FolderPanel({
+  controller, activeFilePath, initialExpanded, onExpandedChange, onOpenFile, onRefresh, onFileDeleted, onFileRenamed,
+}: FolderPanelProps) {
   const [nodes, setNodes] = useState<FileNode[] | null>(null)
   const [loading, setLoading] = useState(false)
   const [loadingPaths, setLoadingPaths] = useState<Set<string>>(new Set())
@@ -46,11 +95,25 @@ export function FolderPanel({ controller, activeFilePath, onOpenFile, onRefresh,
   } | null>(null)
   const [uploading, setUploading] = useState(false)
 
-  const loadRoot = useCallback(async () => {
+  // The folders to re-open on mount, read once: later changes come from this panel.
+  const restoreExpanded = useRef(initialExpanded)
+
+  // `reopen` lists folders to open again after loading (parents first); a
+  // folder that is gone, or whose folder is not open, is skipped.
+  const loadRoot = useCallback(async (reopen: string[] = []) => {
     setLoading(true)
     try {
       const items = await controller.listDirectory('')
-      setNodes(items.map(item => ({ item })))
+      let tree: FileNode[] = items.map(item => ({ item }))
+      const byDepth = [...reopen].sort((a, b) => a.split('/').length - b.split('/').length)
+      for (const dir of byDepth) {
+        if (!findNode(tree, dir)?.item.is_dir) continue
+        try {
+          const children = await controller.listDirectory(dir)
+          tree = setNodeState(tree, dir, { expanded: true, children: children.map(item => ({ item })) })
+        } catch { /* left closed */ }
+      }
+      setNodes(tree)
     } catch {
       toast.error('Failed to load workspace')
     } finally {
@@ -59,8 +122,13 @@ export function FolderPanel({ controller, activeFilePath, onOpenFile, onRefresh,
   }, [controller])
 
   useEffect(() => {
-    loadRoot()
+    loadRoot(restoreExpanded.current)
   }, [loadRoot])
+
+  // Tell the editor which folders are open, so the session keeps them.
+  useEffect(() => {
+    if (nodes) onExpandedChange(expandedPaths(nodes))
+  }, [nodes])
 
   function isExpanded(nodes: FileNode[] | null, path: string): boolean {
     if (!nodes) return false
@@ -69,18 +137,6 @@ export function FolderPanel({ controller, activeFilePath, onOpenFile, onRefresh,
       if (n.children) { const r = isExpanded(n.children, path); if (r) return r }
     }
     return false
-  }
-
-  function setNodeState(
-    nodes: FileNode[],
-    path: string,
-    update: Partial<Pick<FileNode, 'expanded' | 'children'>>,
-  ): FileNode[] {
-    return nodes.map(n => {
-      if (n.item.path === path) return { ...n, ...update }
-      if (n.children) return { ...n, children: setNodeState(n.children, path, update) }
-      return n
-    })
   }
 
   async function toggleDir(path: string) {
@@ -111,7 +167,13 @@ export function FolderPanel({ controller, activeFilePath, onOpenFile, onRefresh,
     if (!newItemName.trim()) return
     const parentPath = newItemModal?.parentPath || ''
     const fullPath = parentPath ? `${parentPath}/${newItemName.trim()}` : newItemName.trim()
-    const finalPath = type === 'file' && !fullPath.endsWith('.md') ? `${fullPath}.md` : fullPath
+    const problem = pathProblem(fullPath)
+    if (problem) {
+      toast.error(problem)
+      return
+    }
+    // .md is added unless the name already ends in .md or .markdown, in any case.
+    const finalPath = type === 'file' && !isMarkdownName(fullPath) ? `${fullPath}.md` : fullPath
     try {
       await controller.createItem(finalPath, type)
       toast.success(`Created ${type === 'file' ? 'file' : 'folder'}: ${newItemName.trim()}`)
@@ -120,12 +182,18 @@ export function FolderPanel({ controller, activeFilePath, onOpenFile, onRefresh,
       await loadRoot()
       onRefresh()
     } catch (e: any) {
-      toast.error(e?.message?.includes('409') ? 'Already exists' : `Failed to create ${type}`)
+      toast.error(e?.message?.includes('409') ? 'Already exists' : failureMessage(`Failed to create ${type}`, e))
     }
   }
 
   async function handleRename() {
     if (!renameModal || !renameName.trim()) return
+    // A rename keeps the item in its folder: the name is one segment.
+    const problem = nameProblem(renameName.trim())
+    if (problem) {
+      toast.error(problem)
+      return
+    }
     const dir = renameModal.path.includes('/') ? renameModal.path.split('/').slice(0, -1).join('/') : ''
     const newPath = dir ? `${dir}/${renameName.trim()}` : renameName.trim()
     try {
@@ -137,7 +205,7 @@ export function FolderPanel({ controller, activeFilePath, onOpenFile, onRefresh,
       await loadRoot()
       onRefresh()
     } catch (e: any) {
-      toast.error(e?.message?.includes('409') ? 'Name already taken' : 'Failed to rename')
+      toast.error(e?.message?.includes('409') ? 'Name already taken' : failureMessage('Failed to rename', e))
     }
   }
 
@@ -151,8 +219,8 @@ export function FolderPanel({ controller, activeFilePath, onOpenFile, onRefresh,
       onFileDeleted(path)
       await loadRoot()
       onRefresh()
-    } catch {
-      toast.error('Failed to delete')
+    } catch (e) {
+      toast.error(failureMessage('Failed to delete', e))
     }
   }
 
@@ -161,7 +229,10 @@ export function FolderPanel({ controller, activeFilePath, onOpenFile, onRefresh,
     setUploading(true)
     try {
       const result = await controller.uploadFiles(items, overwrite)
-      toast.success(`Uploaded ${result.written.length} file${result.written.length === 1 ? '' : 's'}`)
+      if (result.written.length > 0 || result.skipped.length === 0) {
+        toast.success(`Uploaded ${result.written.length} file${result.written.length === 1 ? '' : 's'}`)
+      }
+      if (result.skipped.length > 0) toast.error(notUploadedMessage(result.skipped))
       setUploadConflict(null)
       await loadRoot()
       onRefresh()
@@ -169,7 +240,7 @@ export function FolderPanel({ controller, activeFilePath, onOpenFile, onRefresh,
       if (e instanceof UploadConflictError) {
         setUploadConflict({ items, conflicts: e.conflicts })
       } else {
-        toast.error('Failed to upload')
+        toast.error(failureMessage('Failed to upload', e))
       }
     } finally {
       setUploading(false)
@@ -216,7 +287,7 @@ export function FolderPanel({ controller, activeFilePath, onOpenFile, onRefresh,
       await loadRoot()
       onRefresh()
     } catch (err: any) {
-      toast.error(err?.message?.includes('409') ? 'A file with that name already exists in this folder' : 'Failed to move file')
+      toast.error(err?.message?.includes('409') ? 'A file with that name already exists in this folder' : failureMessage('Failed to move file', err))
     }
   }
 

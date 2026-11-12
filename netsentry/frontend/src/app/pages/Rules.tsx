@@ -104,7 +104,7 @@ export function Rules({ embedded }: { embedded?: boolean }): React.JSX.Element {
 
       <Section title="Expected open ports" meta={String(baselines.records.length)} className="mt-6" flush>
         {baselines.records.length === 0 ? (
-          <EmptyState title="Nothing recorded yet" message="Expected open ports are recorded after an address is first checked. Update them from the item’s “What we see” tab." />
+          <EmptyState title="Nothing recorded yet" message="Expected open ports are recorded after an address is first checked. Update them from Server → Network & firewall." />
         ) : (
           <div className="overflow-x-auto">
             <Table<Baseline>

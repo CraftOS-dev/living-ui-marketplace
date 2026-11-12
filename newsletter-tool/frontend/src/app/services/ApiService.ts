@@ -292,19 +292,12 @@ export const ApiService = {
         reply_to: data.replyTo,
         organization_name: data.organizationName,
         organization_address: data.organizationAddress,
-        tracking_base_url: data.trackingBaseUrl,
       }),
     })
   },
 
   getIntegrationsStatus(): Promise<IntegrationsStatus> {
     return json<IntegrationsStatus>('/api/integrations')
-  },
-
-  rotateSubscribeKey(): Promise<SenderIdentity> {
-    return json<SenderIdentity>('/api/sender-identity/rotate-subscribe-key', {
-      method: 'POST',
-    })
   },
 
   // ----- Dashboard / analytics ----------------------------------------------

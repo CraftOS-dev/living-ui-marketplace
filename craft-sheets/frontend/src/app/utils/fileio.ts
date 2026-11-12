@@ -110,13 +110,33 @@ function worksheetToSheetInput(ws: XLSX.WorkSheet, name: string): SheetInput {
 }
 
 /**
+ * SheetJS reads a text file without a UTF-8 byte-order mark one byte per
+ * character (Latin-1), which garbles accented and CJK text. So bytes that are
+ * valid UTF-8 are decoded as UTF-8 first; a file with a BOM, or one that is not
+ * UTF-8 (Excel files, other encodings), is read from its bytes as before.
+ */
+function readWorkbook(buffer: ArrayBuffer): XLSX.WorkBook {
+  const bytes = new Uint8Array(buffer)
+  const hasBom = bytes[0] === 0xef && bytes[1] === 0xbb && bytes[2] === 0xbf
+  let text: string | null = null
+  if (!hasBom) {
+    try {
+      text = new TextDecoder('utf-8', { fatal: true }).decode(bytes)
+    } catch {
+      text = null
+    }
+  }
+  return text != null ? XLSX.read(text, { type: 'string' }) : XLSX.read(buffer, { type: 'array' })
+}
+
+/**
  * Parse a CSV/XLSX File into one SheetInput per worksheet in the workbook.
  * CSV files always parse as a single-sheet workbook via SheetJS, so this
  * naturally degrades to a 1-element array for CSV — no separate code path.
  */
 export async function importWorkbook(file: File): Promise<SheetInput[]> {
   const buffer = await file.arrayBuffer()
-  const wb = XLSX.read(buffer, { type: 'array' })
+  const wb = readWorkbook(buffer)
   const baseName = file.name.replace(/\.[^.]+$/, '') || 'Imported'
   const multiple = wb.SheetNames.length > 1
 

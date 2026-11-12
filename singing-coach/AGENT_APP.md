@@ -216,7 +216,7 @@ Review the person's singing session in Singing Coach. 1) `a2app <app> app app.gu
 
 ### Notes
 
-53 operations in `operations.json` (`a2app <app>`):
+33 operations in `operations.json` (`a2app <app>`):
 `ops.list`; `app.guide|state|context|ui`; `settings.get|update`;
 `voice.get|test`; `health.get|checkin`;
 `songs.list|get|check|add|update|words|shift-words|set-words|open|transpose|backing|remove|restore|reset`;
@@ -348,7 +348,7 @@ See `reference/requirements.md` (binding). Feature checklist:
 
 - [x] Microphone: McLeod pitch in an AudioWorklet (main-thread fallback), clarity hysteresis, median smoothing, octave guard; device picker, live meter, room noise check; how you listen (wired, Bluetooth, speakers; speakers make the guide give the start note only); timing test (sing "ta" with eight clicks); "Open in its own tab" when the frame blocks the microphone
 - [x] Range test (lowest and highest held a second within ±50 cents), comfortable range, voice family and clef, passaggi (typical for the closest range until glides show where this voice turns), range history
-- [x] Practice: Voice Dial (song, hold, free, breath and blind modes), pitch lane or sheet music with words, bar strip by stage, Listen / Echo / Sing / Solo, verses, key shift (best fit for the voice), tempo, loop, guide (formant voice on "oo" or "ah", piano, start note, off), accompaniment (a written piano part as written, else from the chord symbols), drone, metronome, count-in, strictness, feedback fading (full, fade, after), latency compensation, "Stop: it hurts"
+- [x] Practice: Voice Dial (song, hold, free, breath and blind modes), pitch lane or sheet music with words, bar strip by stage, Listen / Echo (the voiced time of every try, counted once) / Sing / Solo, verses, key shift (best fit for the voice), tempo, loop (every pass saved as its own take with its own time), guide (formant voice on "oo" or "ah", piano, start note, off), accompaniment (a written piano part as written, else from the chord symbols), drone, metronome, count-in, strictness, feedback fading (full, fade, after), latency compensation, "End session", "Stop: it hurts"
 - [x] Results per take: on / close / off, in tune share, cents bias and spread, onsets, steadiness, vibrato rate and extent, scoops and falls, drift, Solo offset, per phrase and per bar; a self-estimate before the score; dispute a note
 - [x] Progress: section stages per key with spaced reviews; steady after three clean takes at full tempo in a day with one Solo; mastered on a clean cold Solo a later day; reviews 2 … 64 days
 - [x] Today: the plan (rules or coach; two sittings when long), week dial, streak, level, KPIs (pitch, in tune, hold, range, load, voice check), 30-day voiced minutes and pitch, voice map, songs in progress, 12-week calendar, coach panel, health banner

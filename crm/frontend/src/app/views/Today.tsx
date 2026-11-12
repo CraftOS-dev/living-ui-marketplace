@@ -101,7 +101,7 @@ function QuickAdd(): React.JSX.Element {
   return (
     <div className="flex items-center gap-2 border-b border-[var(--cr-line)] px-4 py-2">
       <Plus size={15} className="text-[var(--cr-muted)]" />
-      <input ref={ref} value={title} onChange={(e) => setTitle(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && add()} placeholder="Add a task for today (N)" className="h-8 min-w-0 flex-1 bg-transparent text-[13px] outline-none placeholder:text-[var(--cr-muted)]" />
+      <input ref={ref} value={title} onChange={(e) => setTitle(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && add()} placeholder="Add a task for today (N)" aria-label="Add a task for today" className="h-8 min-w-0 flex-1 bg-transparent text-[13px] outline-none placeholder:text-[var(--cr-muted)]" />
       <input type="date" value={due} onChange={(e) => setDue(e.target.value)} className={cn(input, 'num h-7 w-[132px]')} aria-label="Due" />
       <Btn size="sm" variant="primary" onClick={add} disabled={title.trim() === ''}>
         Add

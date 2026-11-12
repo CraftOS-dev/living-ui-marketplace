@@ -28,7 +28,14 @@
  * REST CRUD. The editor session (open tabs, panel layout) is a single
  * `sessions` record. Generic app state is kept in-memory (V1 stored it in
  * SQLite but nothing in the UI depends on it persisting).
+ *
+ * A change that writes several records (a folder rename or delete, an upload,
+ * folders created on demand) is a sequence of REST calls. It stops at the
+ * first call that fails, undoes the calls already made (UndoLog) and answers
+ * the error, so the UI never reports a change that did not happen.
  */
+
+import { isMarkdownName, parentProblem, pathProblem } from './paths'
 
 const SENTINEL = 'http://living-ui.local'
 
@@ -98,30 +105,53 @@ function nameOf(path: string): string {
   return parts[parts.length - 1] ?? path
 }
 
-function isMarkdownName(name: string): boolean {
-  return name.toLowerCase().endsWith('.md')
-}
-
 // ---------------------------------------------------------------------------
 // PocketBase REST helpers (relative urls → PocketBase serving the page)
 // ---------------------------------------------------------------------------
 
+/** A PocketBase call that failed: its HTTP status (0 when unreachable) and why. */
+class PbError extends Error {
+  status: number
+  constructor(status: number, message: string) {
+    super(message)
+    this.name = 'PbError'
+    this.status = status
+  }
+}
+
+/** PocketBase's error body → one sentence, field errors included ("path: Value must be unique."). */
+async function pbError(res: Response): Promise<PbError> {
+  let message = res.statusText || `HTTP ${res.status}`
+  try {
+    const body = (await res.json()) as { message?: unknown; data?: Record<string, { message?: unknown }> }
+    if (body && typeof body.message === 'string' && body.message) message = body.message
+    const fields = Object.entries(asObject(body?.data))
+      .map(([field, err]) => `${field}: ${String(asObject(err).message ?? 'invalid')}`)
+    if (fields.length > 0) message = fields.join('; ')
+  } catch {
+    /* no JSON body */
+  }
+  return new PbError(res.status, message)
+}
+
+async function pbFetch(url: string, init?: RequestInit): Promise<Response> {
+  try {
+    return await originalFetch(url, init)
+  } catch {
+    throw new PbError(0, 'The app could not be reached')
+  }
+}
+
 async function pbListAll(collection: string, query = ''): Promise<PbRecord[]> {
   const all: PbRecord[] = []
   let page = 1
-  // Paginate until we've pulled every record (workspaces are small).
+  // Paginate until we've pulled every record (workspaces are small). A failed
+  // page fails the whole listing: a partial list would hide existing paths.
   for (;;) {
     const sep = query ? '&' : ''
-    let body: { items?: PbRecord[]; totalPages?: number } = {}
-    try {
-      const res = await originalFetch(
-        `/api/collections/${collection}/records?perPage=500&page=${page}${sep}${query}`,
-      )
-      if (!res.ok) break
-      body = (await res.json()) as { items?: PbRecord[]; totalPages?: number }
-    } catch {
-      break
-    }
+    const res = await pbFetch(`/api/collections/${collection}/records?perPage=500&page=${page}${sep}${query}`)
+    if (!res.ok) throw await pbError(res)
+    const body = (await res.json()) as { items?: PbRecord[]; totalPages?: number }
     if (Array.isArray(body.items)) all.push(...body.items)
     const totalPages = Number(body.totalPages ?? 1)
     if (!Number.isFinite(totalPages) || page >= totalPages) break
@@ -130,42 +160,68 @@ async function pbListAll(collection: string, query = ''): Promise<PbRecord[]> {
   return all
 }
 
-async function pbCreate(collection: string, data: Record<string, unknown>): Promise<PbRecord | null> {
-  try {
-    const res = await originalFetch(`/api/collections/${collection}/records`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    })
-    return res.ok ? ((await res.json()) as PbRecord) : null
-  } catch {
-    return null
-  }
+async function pbCreate(collection: string, data: Record<string, unknown>): Promise<PbRecord> {
+  const res = await pbFetch(`/api/collections/${collection}/records`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  })
+  if (!res.ok) throw await pbError(res)
+  return (await res.json()) as PbRecord
 }
 
-async function pbUpdate(
-  collection: string,
-  id: string,
-  data: Record<string, unknown>,
-): Promise<PbRecord | null> {
-  try {
-    const res = await originalFetch(`/api/collections/${collection}/records/${enc(id)}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    })
-    return res.ok ? ((await res.json()) as PbRecord) : null
-  } catch {
-    return null
-  }
+async function pbUpdate(collection: string, id: string, data: Record<string, unknown>): Promise<PbRecord> {
+  const res = await pbFetch(`/api/collections/${collection}/records/${enc(id)}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  })
+  if (!res.ok) throw await pbError(res)
+  return (await res.json()) as PbRecord
 }
 
 async function pbDelete(collection: string, id: string): Promise<void> {
-  try {
-    await originalFetch(`/api/collections/${collection}/records/${enc(id)}`, { method: 'DELETE' })
-  } catch {
-    /* ignore */
+  const res = await pbFetch(`/api/collections/${collection}/records/${enc(id)}`, { method: 'DELETE' })
+  // Already gone is what a delete wants.
+  if (!res.ok && res.status !== 404) throw await pbError(res)
+}
+
+// ---------------------------------------------------------------------------
+// Multi-record changes: stop at the first failure and undo what was done
+// ---------------------------------------------------------------------------
+
+class UndoLog {
+  private steps: (() => Promise<unknown>)[] = []
+
+  /** Record how to reverse a step that has just succeeded. */
+  add(step: () => Promise<unknown>): void {
+    this.steps.push(step)
   }
+
+  /** Reverse the recorded steps, newest first. False when one of them failed too. */
+  async rollback(): Promise<boolean> {
+    let ok = true
+    for (const step of this.steps.reverse()) {
+      try {
+        await step()
+      } catch {
+        ok = false
+      }
+    }
+    this.steps = []
+    return ok
+  }
+}
+
+/** Answer a step that failed: undo the steps before it, then report what failed and why. */
+async function failed(undo: UndoLog, err: unknown, what: string): Promise<Response> {
+  const undone = await undo.rollback()
+  const reason = err instanceof Error ? err.message : String(err)
+  const status = err instanceof PbError && err.status >= 400 ? err.status : 500
+  const after = undone
+    ? 'Nothing was changed.'
+    : 'Part of the change could not be undone: reload to see the workspace as it is.'
+  return json({ detail: `${what} (${reason}). ${after}` }, status)
 }
 
 // ---------------------------------------------------------------------------
@@ -184,6 +240,18 @@ function findByPath(nodes: PbRecord[], path: string): PbRecord | undefined {
   return nodes.find((n) => nodePath(n) === path)
 }
 
+/**
+ * Why a new path cannot go where its folders are (one of them is a file), or
+ * null: ensureDirs would skip that file, and the explorer would never show
+ * the new node.
+ */
+function folderProblem(nodes: PbRecord[], path: string): string | null {
+  return parentProblem(path, (dir) => {
+    const rec = findByPath(nodes, dir)
+    return rec != null && !rec.is_dir
+  })
+}
+
 function toFileItem(rec: PbRecord): FileItem {
   const path = nodePath(rec)
   const isDir = Boolean(rec.is_dir)
@@ -198,8 +266,9 @@ function toFileItem(rec: PbRecord): FileItem {
 }
 
 // Create any missing ancestor DIRECTORY nodes for a given directory path.
-// e.g. ensureDirs("a/b") creates "a" and "a/b" as dir nodes if absent.
-async function ensureDirs(dirPath: string, nodes: PbRecord[]): Promise<void> {
+// e.g. ensureDirs("a/b") creates "a" and "a/b" as dir nodes if absent. Each
+// folder created is recorded in `undo`, so a later failure removes it again.
+async function ensureDirs(dirPath: string, nodes: PbRecord[], undo: UndoLog): Promise<void> {
   if (!dirPath) return
   const segments = dirPath.split('/').filter(Boolean)
   let prefix = ''
@@ -214,7 +283,8 @@ async function ensureDirs(dirPath: string, nodes: PbRecord[]): Promise<void> {
         content: '',
         modified: nowSeconds(),
       })
-      if (created) nodes.push(created)
+      undo.add(() => pbDelete('nodes', String(created.id)))
+      nodes.push(created)
     }
   }
 }
@@ -259,20 +329,12 @@ async function handleWriteFile(init?: RequestInit): Promise<Response> {
 
   const nodes = await allNodes()
   const existing = findByPath(nodes, path)
-  if (existing && !existing.is_dir) {
-    await pbUpdate('nodes', String(existing.id), { content, modified: nowSeconds() })
-  } else if (!existing) {
-    // V1 write creates parent dirs + the file when absent.
-    await ensureDirs(parentOf(path), nodes)
-    await pbCreate('nodes', {
-      path,
-      parent: parentOf(path),
-      name: nameOf(path),
-      is_dir: false,
-      content,
-      modified: nowSeconds(),
-    })
-  }
+  // Saving only updates a file that is there. A tab whose file was renamed or
+  // deleted elsewhere is told so (MainView offers to save it as a new file)
+  // rather than re-creating the file at its old path.
+  if (!existing) return json({ detail: 'File not found' }, 404)
+  if (existing.is_dir) return json({ detail: 'A folder has this path' }, 409)
+  await pbUpdate('nodes', String(existing.id), { content, modified: nowSeconds() })
   return json({ status: 'saved', path })
 }
 
@@ -280,20 +342,31 @@ async function handleCreateItem(init?: RequestInit): Promise<Response> {
   const body = readBody(init)
   const path = String(body.path ?? '')
   const type = body.type === 'directory' ? 'directory' : 'file'
+  // A new file is empty, except when MainView saves a tab as a new file.
+  const content = type === 'file' && typeof body.content === 'string' ? body.content : ''
   if (!path) return json({ detail: 'path required' }, 400)
+  const problem = pathProblem(path)
+  if (problem) return json({ detail: problem }, 400)
 
   const nodes = await allNodes()
   if (findByPath(nodes, path)) return json({ detail: 'Already exists' }, 409)
+  const blocked = folderProblem(nodes, path)
+  if (blocked) return json({ detail: blocked }, 400)
 
-  await ensureDirs(parentOf(path), nodes)
-  await pbCreate('nodes', {
-    path,
-    parent: parentOf(path),
-    name: nameOf(path),
-    is_dir: type === 'directory',
-    content: '',
-    modified: nowSeconds(),
-  })
+  const undo = new UndoLog()
+  try {
+    await ensureDirs(parentOf(path), nodes, undo)
+    await pbCreate('nodes', {
+      path,
+      parent: parentOf(path),
+      name: nameOf(path),
+      is_dir: type === 'directory',
+      content,
+      modified: nowSeconds(),
+    })
+  } catch (err) {
+    return failed(undo, err, `Could not create ${path}`)
+  }
   return json({ status: 'created', path, type })
 }
 
@@ -302,28 +375,43 @@ async function handleRenameItem(init?: RequestInit): Promise<Response> {
   const oldPath = String(body.old_path ?? '')
   const newPath = String(body.new_path ?? '')
   if (!oldPath || !newPath) return json({ detail: 'old_path and new_path required' }, 400)
+  const problem = pathProblem(newPath)
+  if (problem) return json({ detail: problem }, 400)
 
   const nodes = await allNodes()
   const src = findByPath(nodes, oldPath)
   if (!src) return json({ detail: 'Source not found' }, 404)
   if (findByPath(nodes, newPath)) return json({ detail: 'Destination already exists' }, 409)
+  // A folder moved inside itself would leave its whole subtree without a folder.
+  if (newPath.startsWith(`${oldPath}/`)) return json({ detail: 'A folder cannot be moved inside itself' }, 400)
+  const blocked = folderProblem(nodes, newPath)
+  if (blocked) return json({ detail: blocked }, 400)
 
-  await ensureDirs(parentOf(newPath), nodes)
+  const undo = new UndoLog()
+  let current = oldPath
+  try {
+    await ensureDirs(parentOf(newPath), nodes, undo)
 
-  // Move the node itself plus (for a directory) every descendant, rewriting the
-  // old path prefix to the new one. Mirrors src.rename(dst) on a subtree.
-  const prefix = `${oldPath}/`
-  const affected = nodes.filter(
-    (n) => nodePath(n) === oldPath || nodePath(n).startsWith(prefix),
-  )
-  for (const n of affected) {
-    const p = nodePath(n)
-    const nextPath = p === oldPath ? newPath : newPath + p.slice(oldPath.length)
-    await pbUpdate('nodes', String(n.id), {
-      path: nextPath,
-      parent: parentOf(nextPath),
-      name: nameOf(nextPath),
-    })
+    // Move the node itself plus (for a directory) every descendant, rewriting the
+    // old path prefix to the new one. Mirrors src.rename(dst) on a subtree.
+    const prefix = `${oldPath}/`
+    const affected = nodes.filter(
+      (n) => nodePath(n) === oldPath || nodePath(n).startsWith(prefix),
+    )
+    for (const n of affected) {
+      const p = nodePath(n)
+      current = p
+      const nextPath = p === oldPath ? newPath : newPath + p.slice(oldPath.length)
+      await pbUpdate('nodes', String(n.id), {
+        path: nextPath,
+        parent: parentOf(nextPath),
+        name: nameOf(nextPath),
+      })
+      const before = { path: p, parent: String(n.parent ?? ''), name: String(n.name ?? '') }
+      undo.add(() => pbUpdate('nodes', String(n.id), before))
+    }
+  } catch (err) {
+    return failed(undo, err, `Could not move ${current}`)
   }
   return json({ status: 'renamed', old_path: oldPath, new_path: newPath })
 }
@@ -336,8 +424,20 @@ async function handleDeleteItem(path: string): Promise<Response> {
 
   const prefix = `${path}/`
   const affected = nodes.filter((n) => nodePath(n) === path || nodePath(n).startsWith(prefix))
-  for (const n of affected) {
-    await pbDelete('nodes', String(n.id))
+  // Deepest first, so no node is ever left without its folder; an undo puts
+  // each deleted record back as it was (same id), folders first.
+  affected.sort((a, b) => nodePath(b).split('/').length - nodePath(a).split('/').length)
+  const undo = new UndoLog()
+  let current = path
+  try {
+    for (const n of affected) {
+      current = nodePath(n)
+      await pbDelete('nodes', String(n.id))
+      const { id, path: p, parent, name, is_dir, content, modified } = n
+      undo.add(() => pbCreate('nodes', { id, path: p, parent, name, is_dir, content, modified }))
+    }
+  } catch (err) {
+    return failed(undo, err, `Could not delete ${current}`)
   }
   return json({ status: 'deleted', path })
 }
@@ -358,16 +458,25 @@ async function handleUpload(init?: RequestInit): Promise<Response> {
     return json({ detail: 'files and relative_paths length mismatch' }, 400)
   }
 
-  // Resolve full workspace paths.
+  const nodes = await allNodes()
+
+  // Resolve full workspace paths. A file the workspace cannot hold (a path it
+  // does not allow, a folder already at its path, or a new path under a file)
+  // is not uploaded, and the answer says which and why.
   const resolved: { fullRel: string; file: File }[] = []
+  const skipped: { path: string; reason: string }[] = []
   for (let i = 0; i < files.length; i++) {
     const rel = (relPaths[i] ?? '').trim()
     if (!rel) return json({ detail: 'Empty relative path' }, 400)
     const fullRel = parentPath ? `${parentPath.replace(/\/+$/, '')}/${rel}` : rel
-    resolved.push({ fullRel, file: files[i] as File })
+    const problem = pathProblem(fullRel)
+    const existing = problem ? undefined : findByPath(nodes, fullRel)
+    const blocked = problem || existing ? null : folderProblem(nodes, fullRel)
+    if (problem) skipped.push({ path: fullRel, reason: problem })
+    else if (existing?.is_dir) skipped.push({ path: fullRel, reason: 'A folder has this path' })
+    else if (blocked) skipped.push({ path: fullRel, reason: blocked })
+    else resolved.push({ fullRel, file: files[i] as File })
   }
-
-  const nodes = await allNodes()
 
   if (!overwrite) {
     const conflicts = resolved
@@ -377,26 +486,36 @@ async function handleUpload(init?: RequestInit): Promise<Response> {
   }
 
   const written: string[] = []
-  for (const { fullRel, file } of resolved) {
-    const content = await file.text()
-    await ensureDirs(parentOf(fullRel), nodes)
-    const existing = findByPath(nodes, fullRel)
-    if (existing && !existing.is_dir) {
-      await pbUpdate('nodes', String(existing.id), { content, modified: nowSeconds() })
-    } else if (!existing) {
-      const created = await pbCreate('nodes', {
-        path: fullRel,
-        parent: parentOf(fullRel),
-        name: nameOf(fullRel),
-        is_dir: false,
-        content,
-        modified: nowSeconds(),
-      })
-      if (created) nodes.push(created)
+  const undo = new UndoLog()
+  let current = ''
+  try {
+    for (const { fullRel, file } of resolved) {
+      current = fullRel
+      const content = await file.text()
+      await ensureDirs(parentOf(fullRel), nodes, undo)
+      const existing = findByPath(nodes, fullRel)
+      if (existing) {
+        const before = { content: String(existing.content ?? ''), modified: Number(existing.modified ?? 0) }
+        await pbUpdate('nodes', String(existing.id), { content, modified: nowSeconds() })
+        undo.add(() => pbUpdate('nodes', String(existing.id), before))
+      } else {
+        const created = await pbCreate('nodes', {
+          path: fullRel,
+          parent: parentOf(fullRel),
+          name: nameOf(fullRel),
+          is_dir: false,
+          content,
+          modified: nowSeconds(),
+        })
+        undo.add(() => pbDelete('nodes', String(created.id)))
+        nodes.push(created)
+      }
+      written.push(fullRel)
     }
-    written.push(fullRel)
+  } catch (err) {
+    return failed(undo, err, `Could not upload ${current}`)
   }
-  return json({ status: 'uploaded', written })
+  return json({ status: 'uploaded', written, skipped })
 }
 
 // ---------------------------------------------------------------------------
@@ -424,8 +543,14 @@ async function resolveSessionRecord(): Promise<PbRecord | null> {
 
 function ensureSessionRecord(): Promise<PbRecord | null> {
   // Memoized + serialized so concurrent callers (React StrictMode, restore +
-  // debounced saves) never create duplicate session rows.
-  if (!sessionPromise) sessionPromise = resolveSessionRecord()
+  // debounced saves) never create duplicate session rows. A failure is not
+  // memoized, so the next call tries again.
+  if (!sessionPromise) {
+    sessionPromise = resolveSessionRecord().catch((err: unknown) => {
+      sessionPromise = null
+      throw err
+    })
+  }
   return sessionPromise
 }
 
@@ -443,14 +568,20 @@ function toSessionDict(rec: PbRecord): Record<string, unknown> {
 }
 
 async function handleGetSession(): Promise<Response> {
-  const rec = await ensureSessionRecord()
+  // The page must load even when the session cannot be read: defaults then.
+  const rec = await ensureSessionRecord().catch(() => null)
   if (!rec) return json(toSessionDict({ ...SESSION_DEFAULTS }))
   return json(toSessionDict(rec))
 }
 
 async function handlePutSession(init?: RequestInit): Promise<Response> {
   const patch = readBody(init)
-  const rec = await ensureSessionRecord()
+  let rec: PbRecord | null
+  try {
+    rec = await ensureSessionRecord()
+  } catch (err) {
+    return json({ detail: `The session could not be saved (${err instanceof Error ? err.message : String(err)})` }, 500)
+  }
   if (!rec) return json(toSessionDict({ ...SESSION_DEFAULTS }))
 
   const update: Record<string, unknown> = {}
@@ -462,12 +593,17 @@ async function handlePutSession(init?: RequestInit): Promise<Response> {
   if ('previewVisible' in patch) update.preview_visible = patch.previewVisible
   if ('expandedDirs' in patch) update.expanded_dirs = patch.expandedDirs
 
-  let next: PbRecord | null = rec
+  let next: PbRecord = rec
   if (Object.keys(update).length > 0) {
-    next = await pbUpdate('sessions', String(rec.id), update)
-    if (next) sessionPromise = Promise.resolve(next)
+    try {
+      next = await pbUpdate('sessions', String(rec.id), update)
+    } catch (err) {
+      const status = err instanceof PbError && err.status >= 400 ? err.status : 500
+      return json({ detail: `The session could not be saved (${err instanceof Error ? err.message : String(err)})` }, status)
+    }
+    sessionPromise = Promise.resolve(next)
   }
-  return json(toSessionDict(next ?? rec))
+  return json(toSessionDict(next))
 }
 
 // ---------------------------------------------------------------------------
@@ -591,8 +727,10 @@ export function installApiAdapter(): void {
         const url = new URL(urlStr)
         return await route(url, effInit)
       } catch (err) {
+        // Never throw, but never answer a failure as a success either.
         console.error('[apiAdapter] handler error:', err)
-        return json({}, 200)
+        const status = err instanceof PbError && err.status >= 400 ? err.status : 500
+        return json({ detail: err instanceof Error ? err.message : String(err) }, status)
       }
     }
     return originalFetch(input as RequestInfo, init)

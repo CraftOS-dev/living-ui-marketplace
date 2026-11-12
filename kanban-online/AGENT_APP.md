@@ -185,7 +185,7 @@ Work the cards waiting for you (CraftBot) on this team's Kanban Online. People o
 
 ### Notes
 
-70 operations in `operations.json`: the 63 of Kanban Board (settings,
+44 operations in `operations.json`: the 63 of Kanban Board (settings,
 boards, columns, labels, rules, cards, review, work, inbox, insights,
 activity) plus `me.get|update`, `people.list|update`,
 `agents.list|update|remove`.

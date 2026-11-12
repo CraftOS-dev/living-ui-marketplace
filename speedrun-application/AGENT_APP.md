@@ -72,7 +72,7 @@ Call an operation with `a2app <app> <module> <operation> --param value` (`<app>`
 - `app.guide` *(read-only)* — START HERE: how this a16z speedrun application app works, the rules for writing answers, and the step-by-step recipes for gathering, answering a founder and filling speedrun's form.
 - `app.status` *(read-only)* — Where the application stands: each pipeline step (with the screen it is on), the estimated odds, fix_next (what to fix in the application, most important first: blockers before warnings before tips, then by odds points), do_first (things to do before applying, outside the form), and the questions waiting for a founder.
 - `app.founder-todo` *(read-only)* — Everything waiting on the founders in one list: your open questions (on answers and on founders), answers to read and confirm, questions only founders answer, and the switches only founders turn on. Use it to tell the founders what is left for them.
-- `app.reset` — Reset the application to a clean preparing state (clears answers, chat messages including queued messages and replies, activity, the review and the gather and fill state). Requires confirm=true. Params: `confirm` (boolean).
+- `app.reset` *(destructive)* — Reset the application to a clean preparing state (clears answers, chat messages including queued messages and replies, activity, the review and the gather and fill state). Needs approval and confirm=true. Params: `confirm` (boolean).
 
 ### pipeline
 

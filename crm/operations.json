@@ -2190,6 +2190,7 @@
             "tag",
             "untag",
             "set",
+            "move",
             "delete"
           ],
           "required": true,
@@ -2211,6 +2212,10 @@
         "value": {
           "type": "string",
           "description": "The value (set)"
+        },
+        "stage": {
+          "type": "string",
+          "description": "The stage id or name (move; a stage change by the AI agent is a proposal unless automatic)"
         },
         "note": {
           "type": "string",

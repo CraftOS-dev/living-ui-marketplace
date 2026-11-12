@@ -139,10 +139,20 @@ export function addRow(sheet: Sheet): Sheet {
   return { ...sheet, numRows: sheet.numRows + 1 }
 }
 
+/**
+ * The name of a new column at `index`: its letter, or, if another column already has
+ * that letter (a rename or a delete moved names), the next letter none has, so names stay unique.
+ */
+function newColumnName(names: string[], index: number): string {
+  let n = index
+  while (names.includes(colLetter(n))) n++
+  return colLetter(n)
+}
+
 export function addColumn(sheet: Sheet): Sheet {
   const columns: Column[] = [
     ...sheet.columns,
-    { name: colLetter(sheet.columns.length), type: 'text', width: DEFAULT_COL_WIDTH },
+    { name: newColumnName(sheet.columns.map((c) => c.name), sheet.columns.length), type: 'text', width: DEFAULT_COL_WIDTH },
   ]
   return { ...sheet, columns }
 }
@@ -252,10 +262,19 @@ export function insertRow(sheet: Sheet, atIndex: number): Sheet {
   return { ...sheet, cells, rowHeights, numRows: sheet.numRows + 1 }
 }
 
-/** Insert a blank column at `atIndex` (0-based), shifting columns/cells at/after it right by one. */
+/**
+ * Insert a blank column at `atIndex` (0-based), shifting columns/cells at/after it right by one.
+ * Like every new column it is named by its letter. Shifted columns still named by their
+ * letter take their new letter (when no other column has it), so names stay unique; if
+ * another column already has the new column's letter, it takes the next letter none has.
+ */
 export function insertColumn(sheet: Sheet, atIndex: number): Sheet {
-  const columns: Column[] = [...sheet.columns]
-  columns.splice(atIndex, 0, { name: colLetter(columns.length), type: 'text', width: DEFAULT_COL_WIDTH })
+  const names = sheet.columns.map((c) => c.name)
+  for (let i = names.length - 1; i >= atIndex; i--) {
+    if (names[i] === colLetter(i) && !names.includes(colLetter(i + 1))) names[i] = colLetter(i + 1)
+  }
+  const columns: Column[] = sheet.columns.map((c, i) => (names[i] === c.name ? c : { ...c, name: names[i]! }))
+  columns.splice(atIndex, 0, { name: newColumnName(names, atIndex), type: 'text', width: DEFAULT_COL_WIDTH })
   const cells: Record<string, Cell> = {}
   for (const [ref, cell] of Object.entries(sheet.cells)) {
     const pos = parseRef(ref)
@@ -413,7 +432,7 @@ export function pasteRange(sheet: Sheet, startRef: string, values: string[][]): 
   if (neededCols > next.columns.length) {
     const newCols: Column[] = [...next.columns]
     while (newCols.length < neededCols) {
-      newCols.push({ name: colLetter(newCols.length), type: 'text', width: DEFAULT_COL_WIDTH })
+      newCols.push({ name: newColumnName(newCols.map((c) => c.name), newCols.length), type: 'text', width: DEFAULT_COL_WIDTH })
     }
     next = { ...next, columns: newCols }
   }
@@ -453,7 +472,7 @@ export function pasteRangeFull(
   if (neededCols > next.columns.length) {
     const newCols: Column[] = [...next.columns]
     while (newCols.length < neededCols)
-      newCols.push({ name: colLetter(newCols.length), type: 'text', width: DEFAULT_COL_WIDTH })
+      newCols.push({ name: newColumnName(newCols.map((c) => c.name), newCols.length), type: 'text', width: DEFAULT_COL_WIDTH })
     next = { ...next, columns: newCols }
   }
   const cloned: Record<string, Cell> = {}

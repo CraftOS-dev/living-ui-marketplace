@@ -1,5 +1,6 @@
 import { getPbClient, toast } from '../../kit/index.ts';
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
+import type PocketBase from 'pocketbase';
 import type { ResumeData, ResumeScore, SectionKey, SectionVisibility, ResumeStyle } from '../types/resume';
 import { INITIAL_RESUME, PRESETS } from '../data/presets';
 import { calculateResumeScore } from '../utils/scoreCalculator';
@@ -57,6 +58,17 @@ const ResumeContext = createContext<ResumeContextType | undefined>(undefined);
 
 const LOCAL_STORAGE_LIST_KEY = 'living_resume_maker_list_v2';
 const LOCAL_STORAGE_ACTIVE_KEY = 'living_resume_maker_active_v2';
+// The ids of the cached resumes whose changes PocketBase does not hold yet
+// (made while it could not be reached): the next load keeps and saves them.
+const LOCAL_STORAGE_UNSAVED_KEY = 'living_resume_maker_unsaved_v2';
+
+// A resume's id is its resume_state record id, from the moment it is made:
+// opening, saving, duplicating and deleting all address that one record.
+// New resumes get a PocketBase-shaped id (15 × a-z0-9) that the create keeps.
+const RECORD_ID = /^[a-z0-9]{15}$/;
+const ID_ALPHABET = 'abcdefghijklmnopqrstuvwxyz0123456789';
+const newResumeId = (): string =>
+  Array.from(crypto.getRandomValues(new Uint8Array(15)), (b) => ID_ALPHABET[b % ID_ALPHABET.length]).join('');
 
 export const ResumeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [resumes, setResumes] = useState<ResumeData[]>(() => {
@@ -87,8 +99,36 @@ export const ResumeProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         console.error('Failed to parse cached resumes list', e);
       }
     }
-    return [{ ...INITIAL_RESUME, id: 'resume-1', title: 'Software Engineer Resume' }];
+    return [{ ...INITIAL_RESUME, id: newResumeId(), title: 'Software Engineer Resume' }];
   });
+
+  // JSON of each resume as its record holds it (loaded or last saved): an
+  // unchanged resume is never written back. Until PocketBase answers, that is
+  // the cached copy of every resume the cache does not list as unsaved.
+  const [cachedSavedJson] = useState(() => {
+    let unsaved: unknown = [];
+    try {
+      unsaved = JSON.parse(localStorage.getItem(LOCAL_STORAGE_UNSAVED_KEY) || '[]');
+    } catch {
+      // No list: every cached resume is taken as saved.
+    }
+    const known: Record<string, string> = {};
+    for (const r of resumes) {
+      if (!(Array.isArray(unsaved) && unsaved.includes(r.id))) known[r.id] = JSON.stringify(r);
+    }
+    return known;
+  });
+  const savedJson = useRef<Record<string, string>>(cachedSavedJson);
+  const resumesRef = useRef(resumes);
+  resumesRef.current = resumes;
+  // PocketBase has answered the load (a resume cached under an old local id
+  // is given a record id only then, once the load has matched it by key).
+  const pbAnswered = useRef(false);
+  // PocketBase writes run one at a time, in order, so a save never races the
+  // create or the delete of the same record.
+  const writeQueue = useRef<Promise<void>>(Promise.resolve());
+  // Saving starts once the PocketBase list has replaced the browser cache.
+  const [pbLoaded, setPbLoaded] = useState(false);
 
   // Load from PocketBase on mount
   useEffect(() => {
@@ -98,8 +138,24 @@ export const ResumeProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         const records = await getPbClient().call((pb) =>
           pb.collection('resume_state').getFullList({ sort: '-created' })
         );
-        if (!active || !records || records.length === 0) return;
-        
+        if (!active) return;
+        pbAnswered.current = true;
+        // Resumes the person changed here while PocketBase was unreachable:
+        // they keep their cached copy over the database's and are saved below.
+        // A resume cached under its old local id (resume-<ms>) is the record keyed by it.
+        const keyed = new Map((records || []).map(rec => [String(rec['key']), rec.id]));
+        const unsaved = resumesRef.current
+          .filter(r => savedJson.current[r.id] !== JSON.stringify(r))
+          .map(r => (RECORD_ID.test(r.id) || !keyed.has(r.id) ? r : { ...r, id: keyed.get(r.id)! }));
+        savedJson.current = {};
+        const saveUnsaved = () => {
+          for (const r of unsaved) if (RECORD_ID.test(r.id)) saveResume(r);
+        };
+        if (!records || records.length === 0) {
+          saveUnsaved();
+          return;
+        }
+
         const loaded: ResumeData[] = [];
         for (const rec of records) {
           if (rec.data && typeof rec.data === 'object' && rec.data.personal) {
@@ -124,14 +180,27 @@ export const ResumeProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             });
           }
         }
+        for (const r of loaded) savedJson.current[r.id] = JSON.stringify(r);
         if (loaded.length > 0) {
-          setResumes(loaded);
-          if (!loaded.some(r => r.id === activeResumeId)) {
-            setActiveResumeId(loaded[0]!.id);
+          // The database's list, except the resumes changed here and not yet
+          // saved: those keep their cached copy, and new ones follow the list.
+          const mine = new Map(unsaved.map(r => [r.id, r]));
+          const next = [
+            ...loaded.map(r => mine.get(r.id) ?? r),
+            ...unsaved.filter(r => !loaded.some(l => l.id === r.id)),
+          ];
+          setResumes(next);
+          if (!next.some(r => r.id === activeResumeId)) {
+            // An id cached before resumes kept their record id (resume-<ms>) is that record's key.
+            const byKey = records.find(rec => rec['key'] === activeResumeId && next.some(r => r.id === rec.id));
+            setActiveResumeId(byKey ? byKey.id : next[0]!.id);
           }
         }
+        saveUnsaved();
       } catch {
         // Fallback to localStorage / initial data
+      } finally {
+        if (active) setPbLoaded(true);
       }
     };
     void fetchPbResumes();
@@ -151,39 +220,84 @@ export const ResumeProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   // Derive active resume
   const activeResume = resumes.find(r => r.id === activeResumeId) || resumes[0] || INITIAL_RESUME;
 
+  // The ids of the resumes whose changes PocketBase does not hold yet.
+  const storeUnsaved = (list: ResumeData[]) => {
+    const ids = list.filter(r => savedJson.current[r.id] !== JSON.stringify(r)).map(r => r.id);
+    localStorage.setItem(LOCAL_STORAGE_UNSAVED_KEY, JSON.stringify(ids));
+  };
+
   // Auto-save resumes list to localStorage
   useEffect(() => {
     localStorage.setItem(LOCAL_STORAGE_LIST_KEY, JSON.stringify(resumes));
+    storeUnsaved(resumes);
   }, [resumes]);
 
   useEffect(() => {
     localStorage.setItem(LOCAL_STORAGE_ACTIVE_KEY, activeResumeId);
   }, [activeResumeId]);
 
+  const queueWrite = (write: (pb: PocketBase) => Promise<void>) => {
+    writeQueue.current = writeQueue.current
+      .then(() => getPbClient().call(write, { silent: true }))
+      .catch(() => {});
+  };
+
+  // Save a resume whole into its own record (id = record id), creating the
+  // record the first time; a record removed elsewhere is stored again, and one
+  // changed while PocketBase could not be reached is updated.
+  const saveResume = (target: ResumeData) => {
+    const json = JSON.stringify(target);
+    if (savedJson.current[target.id] === json) return;
+    queueWrite(async (pb) => {
+      const records = pb.collection('resume_state');
+      const create = () => records.create({ id: target.id, key: target.id, data: target });
+      const update = () => records.update(target.id, { data: target });
+      if (target.id in savedJson.current) {
+        try {
+          await update();
+        } catch (err) {
+          if ((err as { status?: number }).status !== 404) throw err;
+          await create();
+        }
+      } else {
+        try {
+          await create();
+        } catch (err) {
+          if ((err as { status?: number }).status !== 400) throw err;
+          await update();
+        }
+      }
+      savedJson.current[target.id] = json;
+      storeUnsaved(resumesRef.current);
+    });
+  };
+
+  const removeResumeRecord = (id: string) => {
+    queueWrite(async (pb) => {
+      try {
+        await pb.collection('resume_state').delete(id);
+      } catch (err) {
+        if ((err as { status?: number }).status !== 404) throw err;
+      }
+      delete savedJson.current[id];
+    });
+  };
+
   // Sync active resume changes to PocketBase (debounced)
   useEffect(() => {
-    const timer = setTimeout(async () => {
-      if (!activeResume || !activeResume.id) return;
-      try {
-        await getPbClient().call(async (pb) => {
-          try {
-            // Update by key or id
-            const existing = await pb.collection('resume_state').getFirstListItem(`key = "${activeResume.id}"`);
-            await pb.collection('resume_state').update(existing.id, {
-              data: activeResume
-            });
-          } catch {
-            // Create if missing
-            await pb.collection('resume_state').create({
-              key: activeResume.id,
-              data: activeResume
-            });
-          }
-        }, { silent: true });
-      } catch {}
-    }, 600);
+    if (!pbLoaded || !activeResume || !activeResume.id) return;
+    if (!RECORD_ID.test(activeResume.id)) {
+      // Cached in the browser with an old local id and not in PocketBase: give it a record id first.
+      if (!pbAnswered.current) return;
+      const oldId = activeResume.id;
+      const id = newResumeId();
+      setResumes(prev => prev.map(r => (r.id === oldId ? { ...r, id } : r)));
+      setActiveResumeId(id);
+      return;
+    }
+    const timer = setTimeout(() => saveResume(activeResume), 600);
     return () => clearTimeout(timer);
-  }, [activeResume]);
+  }, [activeResume, pbLoaded]);
 
 
   const score = calculateResumeScore(activeResume);
@@ -197,7 +311,8 @@ export const ResumeProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   };
 
   const createResume = (customTitle?: string) => {
-    const newResume = generateRandomCandidate(customTitle);
+    const newResume = { ...generateRandomCandidate(customTitle), id: newResumeId() };
+    saveResume(newResume);
     setResumes(prev => [...prev, newResume]);
     setActiveResumeId(newResume.id);
   };
@@ -209,9 +324,11 @@ export const ResumeProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   };
 
   const deleteResume = (id: string) => {
+    removeResumeRecord(id);
     if (resumes.length <= 1) {
       // If deleting the last resume, replace with clean default instance
-      const defaultResume = { ...INITIAL_RESUME, id: `resume-${Date.now()}`, title: 'Software Engineer Resume' };
+      const defaultResume = { ...INITIAL_RESUME, id: newResumeId(), title: 'Software Engineer Resume' };
+      saveResume(defaultResume);
       setResumes([defaultResume]);
       setActiveResumeId(defaultResume.id);
       return;
@@ -238,7 +355,7 @@ export const ResumeProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
     const baseTitle = targetResume.title || targetResume.personal.fullName || 'Resume';
     const newTitle = `${baseTitle} Duplicate`;
-    const newId = `resume-${Date.now()}`;
+    const newId = newResumeId();
 
     const newResume: ResumeData = {
       ...JSON.parse(JSON.stringify(targetResume)),
@@ -247,6 +364,7 @@ export const ResumeProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       updatedAt: new Date().toISOString()
     };
 
+    saveResume(newResume);
     setResumes(prev => [...prev, newResume]);
     setActiveResumeId(newId);
   };
@@ -567,7 +685,7 @@ export const ResumeProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const loadPreset = (presetKey: string) => {
     const targetPreset = PRESETS[presetKey];
     if (targetPreset) {
-      updateActiveResume(prev => ({ ...prev, ...targetPreset.data, updatedAt: new Date().toISOString() }));
+      updateActiveResume(prev => ({ ...prev, ...targetPreset.data, id: prev.id, updatedAt: new Date().toISOString() }));
     }
   };
 
@@ -585,9 +703,9 @@ export const ResumeProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     try {
       const parsed = JSON.parse(jsonString);
       if (parsed && (parsed.personal || parsed.experiences || parsed.title)) {
-        const newId = `resume-${Date.now()}`;
+        const newId = newResumeId();
         const importedTitle = parsed.title || (parsed.personal?.fullName ? `${parsed.personal.fullName} Resume` : 'Imported Resume');
-        
+
         const newResume: ResumeData = {
           ...INITIAL_RESUME,
           ...parsed,
@@ -596,6 +714,7 @@ export const ResumeProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           updatedAt: new Date().toISOString()
         };
 
+        saveResume(newResume);
         setResumes(prev => [...prev, newResume]);
         setActiveResumeId(newId);
         return true;

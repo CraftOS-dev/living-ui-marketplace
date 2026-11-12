@@ -14,6 +14,13 @@
           "type": "string",
           "required": true,
           "description": "documents record id"
+        },
+        "lang": {
+          "type": "enum",
+          "values": [
+            "ja",
+            "en"
+          ]
         }
       },
       "cooldownSeconds": 10
@@ -40,6 +47,13 @@
         "subject_id": {
           "type": "string",
           "description": "Record id the uploader chose, if any"
+        },
+        "lang": {
+          "type": "enum",
+          "values": [
+            "ja",
+            "en"
+          ]
         }
       },
       "cooldownSeconds": 5
@@ -85,6 +99,13 @@
         "agreement_id": {
           "type": "string",
           "required": true
+        },
+        "lang": {
+          "type": "enum",
+          "values": [
+            "ja",
+            "en"
+          ]
         }
       },
       "cooldownSeconds": 10
@@ -143,6 +164,13 @@
         "marketplaces": {
           "type": "string",
           "description": "Comma-separated marketplace names"
+        },
+        "lang": {
+          "type": "enum",
+          "values": [
+            "ja",
+            "en"
+          ]
         }
       },
       "cooldownSeconds": 300
@@ -160,6 +188,13 @@
         "permission_id": {
           "type": "string",
           "required": true
+        },
+        "lang": {
+          "type": "enum",
+          "values": [
+            "ja",
+            "en"
+          ]
         }
       },
       "cooldownSeconds": 60
@@ -228,6 +263,6 @@
     }
   ],
   "conventions": {
-    "guide": "Every operation's parameters, and how to do each task the app queues, are in AGENT_APP.md in the app's directory."
+    "guide": "Start with `app guide`: the app's own manual. `<module> <operation> --help` lists an operation's parameters; the full manual (rules, recipes, caveats) is AGENT_APP.md in the app's directory."
   }
 }

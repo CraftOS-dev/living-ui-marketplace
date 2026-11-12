@@ -218,7 +218,7 @@ Review one part in this CAD Workshop app for manufacturing; do not change it. 1)
 
 ### Notes
 
-45 operations in `operations.json` (`a2app <app>`):
+43 operations in `operations.json` (`a2app <app>`):
 `app.guide|status`; `settings.get|update`; `jobs.run` (prune, requeue,
 engine_start, engine_test, engine_install); `parts.list|get|create|update|duplicate`;
 `params.set`; `features.schema|add|update|move|roll-to`; `edits.batch`;

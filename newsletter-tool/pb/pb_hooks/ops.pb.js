@@ -68,7 +68,7 @@ routerAdd('POST', '/api/ops/ai/draft', (e) => {
     'You write crisp, engaging email newsletters.',
   );
   if (!raw) {
-    return e.json(503, { error: 'AI is unavailable (app not running inside CraftBot)' });
+    return e.json(503, { error: 'AI is unavailable: no language model is connected (connect an AI agent to this app)' });
   }
   let subject = topic;
   let draft = raw.trim();
@@ -84,6 +84,7 @@ routerAdd('POST', '/api/ops/ai/draft', (e) => {
 // the frontend can show an honest "AI writer" connected/disconnected state
 // instead of guessing (the browser itself has no way to see these env vars).
 routerAdd('GET', '/api/ops/integrations/status', (e) => {
-  const configured = !!($os.getenv('CRAFTBOT_BRIDGE_URL') && $os.getenv('CRAFTBOT_BRIDGE_TOKEN'));
+  // Any host's model: CraftBot's bridge or a running framework bridge (_craftbot_bridge.llmAvailable).
+  const configured = require(`${__hooks}/_craftbot_bridge.js`).llmAvailable();
   return e.json(200, { llm: { connected: configured } });
 });

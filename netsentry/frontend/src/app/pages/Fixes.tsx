@@ -185,7 +185,7 @@ export function FixPage({ id, technical }: { id: string; technical: boolean }): 
             <AgentLine id={r.agent_request} status={r.status} />
             <MonitorLine rem={r} />
             {paused && !['done', 'cancelled', 'rejected'].includes(r.status) && (
-              <p className="mt-2 font-medium text-amber-700 dark:text-amber-400">Fixes are paused by an admin (Settings → Fix policy) — nothing will be applied.</p>
+              <p className="mt-2 font-medium text-amber-700 dark:text-amber-400">Fixes are paused by an admin (Settings → General & fixes) — nothing will be applied.</p>
             )}
             {r.failure_reason && <p className="mt-2 text-red-600 dark:text-red-400">{r.failure_reason}</p>}
           </div>
@@ -193,7 +193,7 @@ export function FixPage({ id, technical }: { id: string; technical: boolean }): 
           <div className="flex flex-wrap gap-2">
             {can('admin') && r.status === 'planned' && !guided && (
               <>
-                <Button size="sm" loading={busy === 'approve'} disabled={paused} onClick={() => void act('approve', 'remediations.approve', {}, 'Approved — the agent will execute exactly this plan.')}>
+                <Button size="sm" loading={busy === 'approve'} disabled={paused} onClick={() => void act('approve', 'remediations.approve', {}, 'Approved — the monitor on this server will apply exactly this plan.')}>
                   Approve this exact plan
                 </Button>
                 <Button size="sm" variant="secondary" onClick={() => { setNote(''); setDialog('reject'); }}>
@@ -326,7 +326,7 @@ export function Fixes({ embedded }: { embedded?: boolean }): React.JSX.Element {
       {!embedded && <PageHeader title="Fixes" meta={String(fixes.records.length)} />}
       {detailed && (
         <p className="mb-3 text-[13px] text-[var(--agent-app-muted)]">
-          Fixes the agent plans and applies for you. Nothing runs until an admin approves the exact plan, and a fix only counts once NetSentry sees the problem is gone.
+          Fixes NetSentry or the agent prepares for you, applied by the monitor on this server. Nothing runs until an admin approves the exact plan, and a fix only counts once NetSentry sees the problem is gone.
         </p>
       )}
       <div className="mb-4 w-full sm:w-60">
@@ -346,7 +346,7 @@ export function Fixes({ embedded }: { embedded?: boolean }): React.JSX.Element {
         <div className="flex justify-center py-10"><Spinner /></div>
       ) : fixes.records.length === 0 ? (
         <Section title="Fixes">
-          <EmptyState title="No fixes here" message="Open an issue and choose “Ask the agent for a plan” to start one." />
+          <EmptyState title="No fixes here" message="Open an issue and choose “Ask the agent to fix it” to start one." />
         </Section>
       ) : (
         <div className="flex flex-col gap-4">

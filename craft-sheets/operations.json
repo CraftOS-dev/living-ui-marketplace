@@ -1,19 +1,628 @@
 {
-  "opsVersion": 1,
   "operations": [
     {
-      "name": "health",
-      "description": "Liveness check (PocketBase built-in).",
-      "system": true,
-      "params": {},
-      "executor": { "type": "http", "method": "GET", "path": "/api/health" }
+      "name": "app.guide",
+      "description": "How sheets, cells, formulas and ranges work in this app, the supported functions and error codes, and what the person sees.",
+      "destructive": false,
+      "readOnly": true,
+      "module": "app",
+      "params": {}
     },
     {
-      "name": "ops.list",
-      "description": "Return this operations manifest.",
-      "system": true,
-      "params": {},
-      "executor": { "type": "http", "method": "GET", "path": "/api/_ops" }
+      "name": "sheets.list",
+      "description": "The sheet tabs in order, with their size and last change.",
+      "destructive": false,
+      "readOnly": true,
+      "module": "sheets",
+      "params": {}
+    },
+    {
+      "name": "sheets.get",
+      "description": "One sheet's structure: columns (name, type, width), rows, frozen panes, row heights, used range, counts.",
+      "destructive": false,
+      "readOnly": true,
+      "module": "sheets",
+      "params": {
+        "sheet": {
+          "type": "string",
+          "description": "Sheet id, or exact tab name (optional when the workbook has one sheet)"
+        }
+      }
+    },
+    {
+      "name": "sheets.create",
+      "description": "Add a sheet tab of 12 empty text columns × 30 rows, as New / + Sheet does.",
+      "destructive": false,
+      "module": "sheets",
+      "params": {
+        "name": {
+          "type": "string",
+          "description": "Tab name (default \"Sheet N\")"
+        }
+      }
+    },
+    {
+      "name": "sheets.rename",
+      "description": "Rename a sheet tab.",
+      "destructive": false,
+      "module": "sheets",
+      "params": {
+        "sheet": {
+          "type": "string",
+          "description": "Sheet id, or exact tab name (optional when the workbook has one sheet)"
+        },
+        "name": {
+          "type": "string",
+          "required": true,
+          "description": "New tab name (trimmed, not empty, max 255)"
+        },
+        "if_updated": {
+          "type": "string",
+          "description": "Refuse (409) if the sheet changed since this \"updated\" value from an earlier read"
+        }
+      }
+    },
+    {
+      "name": "sheets.delete",
+      "description": "Delete a sheet tab and all its cells.",
+      "destructive": true,
+      "module": "sheets",
+      "params": {
+        "sheet": {
+          "type": "string",
+          "description": "Sheet id, or exact tab name (optional when the workbook has one sheet)"
+        },
+        "if_updated": {
+          "type": "string",
+          "description": "Refuse (409) if the sheet changed since this \"updated\" value from an earlier read"
+        }
+      }
+    },
+    {
+      "name": "sheets.freeze",
+      "description": "Freeze or unfreeze the header row and/or the first column.",
+      "destructive": false,
+      "module": "sheets",
+      "params": {
+        "sheet": {
+          "type": "string",
+          "description": "Sheet id, or exact tab name (optional when the workbook has one sheet)"
+        },
+        "first_row": {
+          "type": "boolean",
+          "description": "Freeze the first row"
+        },
+        "first_column": {
+          "type": "boolean",
+          "description": "Freeze the first column"
+        },
+        "if_updated": {
+          "type": "string",
+          "description": "Refuse (409) if the sheet changed since this \"updated\" value from an earlier read"
+        }
+      }
+    },
+    {
+      "name": "sheets.import-csv",
+      "description": "Create a new sheet from CSV text, as Import does for a .csv file (at most 5,000 rows × 256 columns; the rest is cut).",
+      "destructive": false,
+      "module": "sheets",
+      "params": {
+        "csv": {
+          "type": "string",
+          "required": true,
+          "description": "The CSV file text (separator , ; tab or | is detected)"
+        },
+        "name": {
+          "type": "string",
+          "description": "Tab name (default \"Imported\")"
+        }
+      }
+    },
+    {
+      "name": "sheets.export-csv",
+      "description": "A sheet as CSV values (not formulas), as the CSV button writes it; the app's file also starts with a UTF-8 byte-order mark.",
+      "destructive": false,
+      "readOnly": true,
+      "module": "sheets",
+      "params": {
+        "sheet": {
+          "type": "string",
+          "description": "Sheet id, or exact tab name (optional when the workbook has one sheet)"
+        }
+      }
+    },
+    {
+      "name": "cells.read",
+      "description": "What the grid shows for a range: raw text, computed value or error, display text, format.",
+      "destructive": false,
+      "readOnly": true,
+      "module": "cells",
+      "params": {
+        "sheet": {
+          "type": "string",
+          "description": "Sheet id, or exact tab name (optional when the workbook has one sheet)"
+        },
+        "range": {
+          "type": "string",
+          "description": "Cells to read (default: every used cell); grid view needs one rectangle"
+        },
+        "view": {
+          "type": "enum",
+          "values": [
+            "cells",
+            "grid"
+          ],
+          "description": "cells = list of non-empty cells; grid = rows of display text"
+        },
+        "limit": {
+          "type": "number",
+          "description": "cells view: at most this many cells (default 500, max 5000)"
+        },
+        "offset": {
+          "type": "number",
+          "description": "cells view: skip this many cells"
+        }
+      }
+    },
+    {
+      "name": "cells.find",
+      "description": "Find cells whose raw text (formulas included) contains a string, as Find does.",
+      "destructive": false,
+      "readOnly": true,
+      "module": "cells",
+      "params": {
+        "sheet": {
+          "type": "string",
+          "description": "Sheet id, or exact tab name (optional when the workbook has one sheet)"
+        },
+        "query": {
+          "type": "string",
+          "required": true,
+          "description": "Text to find"
+        },
+        "match_case": {
+          "type": "boolean",
+          "description": "Match case (default false)"
+        }
+      }
+    },
+    {
+      "name": "cells.set",
+      "description": "Type values or formulas into cells, as in a cell or the formula bar; an empty value clears a cell (its formatting stays).",
+      "destructive": false,
+      "module": "cells",
+      "params": {
+        "sheet": {
+          "type": "string",
+          "description": "Sheet id, or exact tab name (optional when the workbook has one sheet)"
+        },
+        "ref": {
+          "type": "string",
+          "description": "One cell, e.g. B3 (with raw)"
+        },
+        "raw": {
+          "type": "string",
+          "description": "What to type into ref; text starting with = is a formula"
+        },
+        "cells": {
+          "type": "json",
+          "description": "Several cells at once: {\"B3\":\"42\",\"B4\":\"=B3*2\"}"
+        },
+        "if_updated": {
+          "type": "string",
+          "description": "Refuse (409) if the sheet changed since this \"updated\" value from an earlier read"
+        }
+      }
+    },
+    {
+      "name": "cells.paste",
+      "description": "Paste a block of values from a start cell, as pasting text does; the grid grows to fit and existing formatting stays.",
+      "destructive": false,
+      "module": "cells",
+      "params": {
+        "sheet": {
+          "type": "string",
+          "description": "Sheet id, or exact tab name (optional when the workbook has one sheet)"
+        },
+        "start": {
+          "type": "string",
+          "required": true,
+          "description": "Top-left cell, e.g. A2"
+        },
+        "text": {
+          "type": "string",
+          "required": true,
+          "description": "Rows separated by line breaks, cells by tabs"
+        },
+        "if_updated": {
+          "type": "string",
+          "description": "Refuse (409) if the sheet changed since this \"updated\" value from an earlier read"
+        }
+      }
+    },
+    {
+      "name": "cells.clear",
+      "description": "Clear the contents of cells and keep their formatting, as the Delete key does.",
+      "destructive": false,
+      "module": "cells",
+      "params": {
+        "sheet": {
+          "type": "string",
+          "description": "Sheet id, or exact tab name (optional when the workbook has one sheet)"
+        },
+        "range": {
+          "type": "string",
+          "required": true,
+          "description": "Cells to clear: a cell like B3, a range like A1:C5, or a comma list of them"
+        },
+        "if_updated": {
+          "type": "string",
+          "description": "Refuse (409) if the sheet changed since this \"updated\" value from an earlier read"
+        }
+      }
+    },
+    {
+      "name": "cells.format",
+      "description": "Set bold, italic, underline, alignment, fill colour or font colour on cells.",
+      "destructive": false,
+      "module": "cells",
+      "params": {
+        "sheet": {
+          "type": "string",
+          "description": "Sheet id, or exact tab name (optional when the workbook has one sheet)"
+        },
+        "range": {
+          "type": "string",
+          "required": true,
+          "description": "Cells to format: a cell like B3, a range like A1:C5, or a comma list of them"
+        },
+        "bold": {
+          "type": "boolean",
+          "description": "Bold on or off"
+        },
+        "italic": {
+          "type": "boolean",
+          "description": "Italic on or off"
+        },
+        "underline": {
+          "type": "boolean",
+          "description": "Underline on or off"
+        },
+        "align": {
+          "type": "enum",
+          "values": [
+            "left",
+            "center",
+            "right"
+          ],
+          "description": "Horizontal alignment"
+        },
+        "fill": {
+          "type": "string",
+          "description": "Fill colour #rrggbb, or none"
+        },
+        "font_color": {
+          "type": "string",
+          "description": "Font colour #rrggbb, or none"
+        },
+        "if_updated": {
+          "type": "string",
+          "description": "Refuse (409) if the sheet changed since this \"updated\" value from an earlier read"
+        }
+      }
+    },
+    {
+      "name": "cells.fill",
+      "description": "Drag-fill down or right like the fill handle: number steps continue, formula references shift, text repeats.",
+      "destructive": false,
+      "module": "cells",
+      "params": {
+        "sheet": {
+          "type": "string",
+          "description": "Sheet id, or exact tab name (optional when the workbook has one sheet)"
+        },
+        "source": {
+          "type": "string",
+          "required": true,
+          "description": "The cell or rectangle to extend, e.g. A2:A3"
+        },
+        "to": {
+          "type": "string",
+          "required": true,
+          "description": "The cell where the drag ends (below or right of source)"
+        },
+        "if_updated": {
+          "type": "string",
+          "description": "Refuse (409) if the sheet changed since this \"updated\" value from an earlier read"
+        }
+      }
+    },
+    {
+      "name": "cells.copy",
+      "description": "Copy cells (values, formulas as written, formatting) to another place or tab, like Ctrl+C then Ctrl+V; the grid grows to fit.",
+      "destructive": false,
+      "module": "cells",
+      "params": {
+        "sheet": {
+          "type": "string",
+          "description": "Sheet id, or exact tab name (optional when the workbook has one sheet)"
+        },
+        "from": {
+          "type": "string",
+          "required": true,
+          "description": "Rectangle to copy, e.g. A1:C4"
+        },
+        "to": {
+          "type": "string",
+          "required": true,
+          "description": "Top-left cell to paste at"
+        },
+        "to_sheet": {
+          "type": "string",
+          "description": "Paste into this sheet (id or exact name; default: the same sheet)"
+        },
+        "if_updated": {
+          "type": "string",
+          "description": "Refuse (409) if the sheet pasted into changed since this \"updated\" value"
+        }
+      }
+    },
+    {
+      "name": "cells.replace",
+      "description": "Replace text inside cells' raw content, as Find & Replace does: one cell (ref) or all matches.",
+      "destructive": false,
+      "module": "cells",
+      "params": {
+        "sheet": {
+          "type": "string",
+          "description": "Sheet id, or exact tab name (optional when the workbook has one sheet)"
+        },
+        "find": {
+          "type": "string",
+          "required": true,
+          "description": "Text to find"
+        },
+        "replace_with": {
+          "type": "string",
+          "description": "Replacement text (default empty)"
+        },
+        "match_case": {
+          "type": "boolean",
+          "description": "Match case (default false)"
+        },
+        "ref": {
+          "type": "string",
+          "description": "Only this cell (it must contain the text)"
+        },
+        "if_updated": {
+          "type": "string",
+          "description": "Refuse (409) if the sheet changed since this \"updated\" value from an earlier read"
+        }
+      }
+    },
+    {
+      "name": "rows.add",
+      "description": "Add empty rows at the bottom.",
+      "destructive": false,
+      "module": "rows",
+      "params": {
+        "sheet": {
+          "type": "string",
+          "description": "Sheet id, or exact tab name (optional when the workbook has one sheet)"
+        },
+        "count": {
+          "type": "number",
+          "description": "How many rows (default 1)"
+        },
+        "if_updated": {
+          "type": "string",
+          "description": "Refuse (409) if the sheet changed since this \"updated\" value from an earlier read"
+        }
+      }
+    },
+    {
+      "name": "rows.insert",
+      "description": "Insert empty rows above or below a row; cells, row heights and formula references shift.",
+      "destructive": false,
+      "module": "rows",
+      "params": {
+        "sheet": {
+          "type": "string",
+          "description": "Sheet id, or exact tab name (optional when the workbook has one sheet)"
+        },
+        "row": {
+          "type": "number",
+          "required": true,
+          "description": "Row number (1 = first row)"
+        },
+        "side": {
+          "type": "enum",
+          "values": [
+            "above",
+            "below"
+          ],
+          "required": true,
+          "description": "Where to insert"
+        },
+        "count": {
+          "type": "number",
+          "description": "How many rows (default 1)"
+        },
+        "if_updated": {
+          "type": "string",
+          "description": "Refuse (409) if the sheet changed since this \"updated\" value from an earlier read"
+        }
+      }
+    },
+    {
+      "name": "rows.delete",
+      "description": "Delete rows and their cells; formulas that pointed at them show #REF!.",
+      "destructive": true,
+      "module": "rows",
+      "params": {
+        "sheet": {
+          "type": "string",
+          "description": "Sheet id, or exact tab name (optional when the workbook has one sheet)"
+        },
+        "row": {
+          "type": "number",
+          "required": true,
+          "description": "First row number to delete (1 = first row)"
+        },
+        "count": {
+          "type": "number",
+          "description": "How many rows (default 1)"
+        },
+        "if_updated": {
+          "type": "string",
+          "description": "Refuse (409) if the sheet changed since this \"updated\" value from an earlier read"
+        }
+      }
+    },
+    {
+      "name": "rows.resize",
+      "description": "Set a row's height in pixels (at least 20).",
+      "destructive": false,
+      "module": "rows",
+      "params": {
+        "sheet": {
+          "type": "string",
+          "description": "Sheet id, or exact tab name (optional when the workbook has one sheet)"
+        },
+        "row": {
+          "type": "number",
+          "required": true,
+          "description": "Row number (1 = first row)"
+        },
+        "height": {
+          "type": "number",
+          "required": true,
+          "description": "Height in pixels"
+        },
+        "if_updated": {
+          "type": "string",
+          "description": "Refuse (409) if the sheet changed since this \"updated\" value from an earlier read"
+        }
+      }
+    },
+    {
+      "name": "columns.add",
+      "description": "Add empty text columns at the right.",
+      "destructive": false,
+      "module": "columns",
+      "params": {
+        "sheet": {
+          "type": "string",
+          "description": "Sheet id, or exact tab name (optional when the workbook has one sheet)"
+        },
+        "count": {
+          "type": "number",
+          "description": "How many columns (default 1)"
+        },
+        "if_updated": {
+          "type": "string",
+          "description": "Refuse (409) if the sheet changed since this \"updated\" value from an earlier read"
+        }
+      }
+    },
+    {
+      "name": "columns.insert",
+      "description": "Insert empty columns left or right of a column; cells and formula references shift.",
+      "destructive": false,
+      "module": "columns",
+      "params": {
+        "sheet": {
+          "type": "string",
+          "description": "Sheet id, or exact tab name (optional when the workbook has one sheet)"
+        },
+        "column": {
+          "type": "string",
+          "required": true,
+          "description": "Column letter, e.g. C"
+        },
+        "side": {
+          "type": "enum",
+          "values": [
+            "left",
+            "right"
+          ],
+          "required": true,
+          "description": "Where to insert"
+        },
+        "count": {
+          "type": "number",
+          "description": "How many columns (default 1)"
+        },
+        "if_updated": {
+          "type": "string",
+          "description": "Refuse (409) if the sheet changed since this \"updated\" value from an earlier read"
+        }
+      }
+    },
+    {
+      "name": "columns.delete",
+      "description": "Delete columns and their cells; formulas that pointed at them show #REF!.",
+      "destructive": true,
+      "module": "columns",
+      "params": {
+        "sheet": {
+          "type": "string",
+          "description": "Sheet id, or exact tab name (optional when the workbook has one sheet)"
+        },
+        "column": {
+          "type": "string",
+          "required": true,
+          "description": "First column letter to delete, e.g. C"
+        },
+        "count": {
+          "type": "number",
+          "description": "How many columns (default 1)"
+        },
+        "if_updated": {
+          "type": "string",
+          "description": "Refuse (409) if the sheet changed since this \"updated\" value from an earlier read"
+        }
+      }
+    },
+    {
+      "name": "columns.update",
+      "description": "Rename a column header, change its type (display only) or its width in pixels (at least 64).",
+      "destructive": false,
+      "module": "columns",
+      "params": {
+        "sheet": {
+          "type": "string",
+          "description": "Sheet id, or exact tab name (optional when the workbook has one sheet)"
+        },
+        "column": {
+          "type": "string",
+          "required": true,
+          "description": "Column letter, e.g. C"
+        },
+        "name": {
+          "type": "string",
+          "description": "New header name (trimmed, not empty)"
+        },
+        "type": {
+          "type": "enum",
+          "values": [
+            "text",
+            "number",
+            "date",
+            "currency"
+          ],
+          "description": "Column type"
+        },
+        "width": {
+          "type": "number",
+          "description": "Width in pixels"
+        },
+        "if_updated": {
+          "type": "string",
+          "description": "Refuse (409) if the sheet changed since this \"updated\" value from an earlier read"
+        }
+      }
     }
   ]
 }

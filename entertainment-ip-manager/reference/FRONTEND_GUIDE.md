@@ -101,7 +101,7 @@ streaming guidelines), and fan guidelines and permits. Principles from the appro
 - `components/deleteRecord.tsx`: every delete goes through `<DeleteButton collection id onDeleted />` (or `useDeleteRecord().ask`): it previews what the delete takes along via records/delete and hides itself for people who may not delete. Never call deleteRecord() directly. `note` adds advice only the caller knows ("mark the member as exited instead"); the dialog already warns for deadlines and events. Tables use `deleteCol<T>(collection, canDelete(can, collection))` as their last column; dialog footers use `<FooterDelete collection id onDeleted={onClose} />`. A new collection needs an entry in lib_records.js DELETABLE (and ADMIN_ONLY here when admin-only).
 - `components/confirm.tsx`: `useConfirm()` returns `[element, confirm]` with translated buttons. Never use the kit's useConfirm (English-only buttons).
 - `components/craftbot.tsx`: `handToCraftBot(trigger, params)` returns a request id (adds `lang`);
-  `<AgentStatus requestId=... />` follows it live. Triggers (see `triggers.json`):
+  `<AgentStatus requestId=... />` follows it live. Triggers (see `events.json`):
   `agreement_extraction_requested {document_id}`, `document_docketing_requested {document_id, subject_type?, subject_id?}`,
   `approval_review_requested {approval_id}`, `royalty_statement_requested {document_id, agreement_id}`,
   `takedown_drafts_requested {case_id, forum?}`, `marketplace_scan_requested {character_id? | franchise_id?, marketplaces?}`,

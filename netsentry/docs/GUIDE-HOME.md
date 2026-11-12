@@ -5,19 +5,26 @@ Assistant, a download box. NetSentry keeps it running and keeps it safe, in one 
 
 ## Set up (10 minutes)
 
-1. Install NetSentry from the CraftBot marketplace and open it.
-2. **Setup → Who is NetSentry for?** → *My home server*.
-3. **Put the monitor on the server.** The simplest setup runs CraftBot (and NetSentry) on the
-   server itself. Settings → Machine monitors shows the command for each kind of machine:
+1. Install NetSentry from the CraftBot marketplace and open it. NetSentry looks after the server
+   it runs on, so run CraftBot (and NetSentry) on the server itself. The first account you create
+   is the admin.
+2. **Setup** (*Let NetSentry look after this server*) opens by itself the first time; later, Home →
+   **Set it up**. Three steps.
+3. **Put the monitor on the server.** Setup → **Install the monitor on this server** → **Show me
+   the command** gives the command for this server (Settings → Monitor shows the same until the
+   monitor reports):
    - **Linux** (Ubuntu, Debian, Fedora…): one command in a terminal (`curl … | sudo sh`).
    - **Windows**: one command in an administrator PowerShell (`irm … | iex`).
    - **Unraid, Synology, TrueNAS**: the monitor as a container — the template in
-     `deploy/unraid/` or the compose file in `deploy/compose/`.
-   The installer asks one question: **may NetSentry make changes on this machine** when you
-   confirm them? Say yes to get the Start / Restart / Update / Back up buttons. You can change
-   your mind by running the installer again.
-4. **Your apps → Tell us who should reach them.** One question per app.
-5. Optional: **Settings → Alerts** so NetSentry can tell you when something needs you.
+     `deploy/unraid/` or the compose file in `deploy/compose/`, with the one-time key from that
+     command.
+   The installer has one question: **may NetSentry make changes on this server** when you
+   confirm them? The command answers yes (`NETSENTRY_MANAGE=yes`), which gives you the Start /
+   Restart / Update / Back up buttons; leave it out and NetSentry only watches. You can change
+   your mind later: Settings → Monitor shows the command (**Allow changes** / **Switch changes off**).
+4. **Who should reach your apps → Answer for each app.** One question per app.
+5. Optional: **Get told when something is wrong** (or **Settings → Alerts** later) so NetSentry
+   can tell you when something needs you.
 
 ## Every day
 
@@ -31,17 +38,19 @@ Open an app (Apps → the app):
 
 - **Start / Stop / Restart.** NetSentry shows exactly what will happen; you confirm; the monitor
   does it and checks it worked. Usually done in a few seconds.
-- **Logs** — its last lines, read from the machine when you open them. Passwords and keys are
-  hidden on the machine before anything is sent; NetSentry doesn't keep logs. Above them, what the
-  lines usually mean ("it ran out of memory", "another app uses its port").
-- **How it's running** — processor and memory over the last day, week or month.
+- **Logs** (its own tab) — its last lines, read from the machine when you open them. Passwords and
+  keys are hidden on the machine before anything is sent; NetSentry doesn't keep logs. Above them,
+  what the lines usually mean ("it ran out of memory", "another app uses its port").
+- **How it's running** (on its Overview) — processor and memory over the last hour, day, week or
+  month.
 
-Machines → your server shows the whole machine: processor, memory, temperature, how long it has
-been up, disks (and when one will be full), services that failed, security updates waiting.
+**Server** (in the menu) shows the whole server. Its Overview: processor, memory, temperature, how
+long it has been up, services that failed, security updates waiting. Its **Disk space** tab: each
+disk's free space; a disk that will soon be full shows up on Home as something to fix.
 
 ## Updates, safely
 
-An app's **Updates** part says when a newer version is out and how risky it is (fixes only, new
+An app's **Updates** tab says when a newer version is out and how risky it is (fixes only, new
 features, or a new major version). **Update now**:
 
 1. NetSentry copies the app's settings first,
@@ -56,21 +65,21 @@ Want it automatic? Set the app to **Update small ones in my maintenance window**
 (Settings → Updates, e.g. Sundays 03:00–05:00). Only fixes and small updates, one app at a time,
 never a new major version or a database upgrade.
 
-Operating-system security updates: Machines → your server → **Install security updates**. The
+Operating-system security updates: **Server** → Overview → **Install security updates**. The
 kernel, remote login, networking and Docker are never updated automatically — do those yourself
-with a restart planned (**Restart the machine…**).
+with a restart planned (when a restart is waiting, **Restart the server…** is there too).
 
 ## Backups
 
-An app's **Backups** part → **Back it up with NetSentry**: pick a folder on another disk or a NAS
+An app's **Backups** tab → **Back it up with NetSentry**: pick a folder on another disk or a NAS
 share. Every day NetSentry copies the app's settings and database there, keeps 7 daily, 4 weekly
 and 6 monthly copies, and once a month **tests that the newest one restores**. Each copy has
 **Restore…** (NetSentry keeps what is there now and puts it back if the app doesn't come back).
 
 Movie and music libraries are not copied — they need a disk of their own, not a copy a day.
 
-Already use a backup tool? Tell NetSentry about it instead: it gives you a private link your
-backup job opens when it finishes, and says when a backup is late.
+Already use a backup tool? Tell NetSentry about it instead (same tab → **Create backup link**): it
+gives you a private link your backup job opens when it finishes, and says when a backup is late.
 
 ## Adding an app
 
@@ -82,12 +91,13 @@ Then NetSentry shows its first-time setup link.
 
 ## Using an app from away, safely
 
-Opening a port on your router lets anyone on the internet find the app. An app's page →
-*Who can reach it* → **Use it from away, safely** explains the private ways (Tailscale,
-Cloudflare Tunnel with Access, your router's VPN).
+Opening a port on your router lets anyone on the internet find the app. An app's **Access &
+safety** tab → *Who can reach it* → **Use it from away, safely** explains the private ways
+(Tailscale, Cloudflare Tunnel with Access, your router's VPN).
 
 ## Asking the agent
 
-In CraftBot you can ask: "how's my server?", "why did Jellyfin stop?", "restart Sonarr",
-"update everything that's safe tonight". The agent reads what NetSentry knows and prepares
-changes; **you confirm each one** in NetSentry (it shows up on Home as "needs your OK").
+In CraftBot, or in **Ask the agent** on Home, you can ask: "how's my server?", "why did Jellyfin
+stop?", "restart Sonarr", "update everything that's safe tonight". The agent reads what NetSentry
+knows and prepares changes; **you confirm each one** in NetSentry (on Home: **Review** under its
+answer, and *waiting for you* in Recent activity).

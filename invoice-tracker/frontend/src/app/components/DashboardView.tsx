@@ -1,6 +1,9 @@
 import React, { useState } from 'react'
 import type { DashboardStats, InvoiceReceipt, Subscription, MonthlySpendBar, ActivityEvent } from '../types'
+import { getCurrencySymbol } from '../types'
+import { dashboardTotals, isActiveSubscription, spendSummaryBars } from '../services/reports'
 import { Card, Button } from './ui'
+import { OtherCurrenciesNote } from './OtherCurrenciesNote'
 import {
   DollarSign,
   Flame,
@@ -23,6 +26,7 @@ interface Props {
   onSimulateQuick?: (preset: string) => void
   livePulseActive?: boolean
   currencySymbol?: string
+  currencyCode?: string
 }
 
 function formatYAxisTick(val: number): string {
@@ -52,47 +56,19 @@ export const DashboardView: React.FC<Props> = ({
   onNavigateTab,
   livePulseActive,
   currencySymbol = '$',
+  currencyCode = 'USD',
 }) => {
   void onSelectInvoice
   const [hoveredMonth, setHoveredMonth] = useState<MonthlySpendBar | null>(null)
   const [isGraphExpanded, setIsGraphExpanded] = useState<boolean>(false)
   const [hoveredSeg, setHoveredSeg] = useState<{ month: string; service?: string; category?: string; amount: number; color: string; percentage: number } | null>(null)
 
-  // 1. Subscription burn calculated strictly from active subscriptions
-  const activeSubsList = subscriptions.filter((s) => (s.status || 'active').toLowerCase() === 'active')
-  const calculatedSubsMonthlyBurn = activeSubsList.reduce((sum, s) => {
-    const freq = (s.billingFrequency || 'monthly').toLowerCase()
-    if (freq === 'yearly') return sum + (s.amount / 12.0)
-    if (freq === 'weekly') return sum + (s.amount * 4.33)
-    if (freq === 'quarterly') return sum + (s.amount / 3.0)
-    return sum + s.amount
-  }, 0)
-
-  const effectiveMonthlyBurn = calculatedSubsMonthlyBurn > 0
-    ? calculatedSubsMonthlyBurn
-    : (stats?.monthlyRecurringBurn && stats.monthlyRecurringBurn > 0 ? stats.monthlyRecurringBurn : 0)
-
-  // 2. Multi-year total money spent from history (invoices + subscriptions spent up to now)
-  const calculatedInvoicesSum = invoices.reduce((sum, inv) => sum + (Number(inv.amount) || 0), 0)
-  const calculatedSubsSpentTotal = activeSubsList.reduce((sum, s) => {
-    const hasInv = invoices.some((inv) =>
-      (inv.subscriptionId && inv.subscriptionId === s.id) ||
-      ((inv.vendor || '').toLowerCase() === (s.vendor || s.name || '').toLowerCase() && inv.paymentType === 'subscription')
-    )
-    if (hasInv) return sum
-
-    let elapsedMonths = 1
-    const freq = (s.billingFrequency || 'monthly').toLowerCase()
-    if (freq === 'yearly') return sum + s.amount
-    if (freq === 'weekly') return sum + (s.amount * 4.33 * elapsedMonths)
-    if (freq === 'quarterly') return sum + s.amount
-    return sum + (s.amount * elapsedMonths)
-  }, 0)
-
-  const calculatedTotalSpent = calculatedInvoicesSum + calculatedSubsSpentTotal
-  const effectiveTotalSpent = (stats?.totalSpentAllTime !== undefined && stats.totalSpentAllTime !== null && stats.totalSpentAllTime >= calculatedTotalSpent)
-    ? stats.totalSpentAllTime
-    : calculatedTotalSpent
+  // 1-2. Monthly burn and total money spent (invoices + uncovered subscriptions once),
+  // added up in the workspace's currency only (services/reports.ts)
+  const activeSubsList = subscriptions.filter(isActiveSubscription)
+  const totals = dashboardTotals(invoices, subscriptions, currencyCode)
+  const effectiveMonthlyBurn = totals.monthlyBurn
+  const effectiveTotalSpent = totals.totalSpent
 
   const effectiveActiveSubsCount = activeSubsList.length > 0
     ? activeSubsList.length
@@ -147,17 +123,10 @@ export const DashboardView: React.FC<Props> = ({
     return DISTINCT_PALETTE[(Math.abs(hash) + index) % DISTINCT_PALETTE.length] || '#FF4F18'
   }
 
-  // 4. Extract Spend Summary monthly bars strictly from account data
+  // 4. Spend Summary: the six months up to the current one, each the Monthly Costs month by vendor
   const rawMonthlySpending: MonthlySpendBar[] = (stats?.monthlySpending && stats.monthlySpending.length > 0)
     ? stats.monthlySpending
-    : [
-        { month: 'March 2026', shortMonth: 'Mar', total: 0, segments: [] },
-        { month: 'April 2026', shortMonth: 'Apr', total: 0, segments: [] },
-        { month: 'May 2026', shortMonth: 'May', total: 0, segments: [] },
-        { month: 'June 2026', shortMonth: 'Jun', total: 0, segments: [] },
-        { month: 'July 2026', shortMonth: 'Jul', total: 0, segments: [] },
-        { month: 'August 2026', shortMonth: 'Aug', total: effectiveMonthlyBurn, segments: [] },
-      ]
+    : spendSummaryBars(invoices, subscriptions, currencyCode)
 
   // Assign colors to all services in segments
   const unifiedColorMap: Record<string, string> = { ...SERVICE_COLORS }
@@ -197,7 +166,7 @@ export const DashboardView: React.FC<Props> = ({
     }
   })
 
-  // 6. Current Month Bar is the latest month from Spend Summary (August 2026)
+  // 6. Current Month Bar is the latest month from Spend Summary (this month)
   const currentMonthBar = monthlyBarsWithComputedTotals[monthlyBarsWithComputedTotals.length - 1]
 
   // 7. ACTIVE INSPECTED MONTH (Taken strictly from Spend Summary)
@@ -408,6 +377,8 @@ export const DashboardView: React.FC<Props> = ({
         </Card>
       </div>
 
+      <OtherCurrenciesNote others={totals.others} currencyCode={currencyCode} style={{ marginTop: 'calc(-1 * var(--space-3))' }} />
+
       {/* ========================================================================= */}
       {/* SPEND SUMMARY & SPEND BY SERVICE & VENDOR                                 */}
       {/* ========================================================================= */}
@@ -456,7 +427,7 @@ export const DashboardView: React.FC<Props> = ({
 
               {/* Current MTD Balance Heading */}
               <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', fontStyle: 'italic', marginTop: '4px', marginBottom: '2px' }}>
-                Month-to-date for {currentMonthBar?.month || 'August 2026'}
+                Month-to-date for {currentMonthBar?.month}
               </div>
               <div style={{ fontSize: '2.3rem', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em', marginBottom: '24px' }}>
                 {currencySymbol}{((currentMonthBar?.computedTotal ?? currentMonthBar?.total) ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -1036,7 +1007,7 @@ export const DashboardView: React.FC<Props> = ({
                         </span>
                         {act.amount !== undefined && act.amount !== null && (
                           <span style={{ fontWeight: 700, fontSize: '0.80rem', color: 'var(--text-primary)', fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>
-                            {currencySymbol}{Number(act.amount).toFixed(2)}
+                            {getCurrencySymbol(act.currency)}{Number(act.amount).toFixed(2)}
                           </span>
                         )}
                       </div>

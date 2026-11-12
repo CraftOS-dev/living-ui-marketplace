@@ -4,6 +4,29 @@ import { stateCache } from './services/StatePersistence'
 
 const BACKEND_URL = (window as any).__CRAFTBOT_BACKEND_URL__ || 'http://localhost:{{BACKEND_PORT}}'
 
+/** A failed backend call: its HTTP status and the reason the backend gave (V1's `detail`), if any. */
+export class ApiError extends Error {
+  status: number
+  detail: string
+  constructor(method: string, path: string, resp: Response, detail: string) {
+    super(`${method} ${path} → ${resp.status}: ${resp.statusText}`)
+    this.name = 'ApiError'
+    this.status = resp.status
+    this.detail = detail
+  }
+}
+
+async function apiError(method: string, path: string, resp: Response): Promise<ApiError> {
+  const body = await resp.json().catch(() => null)
+  const detail = typeof body?.detail === 'string' ? body.detail : ''
+  return new ApiError(method, path, resp, detail)
+}
+
+/** A toast for a failed call: `what`, plus the backend's reason when it gave one. */
+export function failureMessage(what: string, err: unknown): string {
+  return err instanceof ApiError && err.detail ? `${what}: ${err.detail}` : what
+}
+
 export class UploadConflictError extends Error {
   conflicts: string[]
   constructor(conflicts: string[]) {
@@ -83,7 +106,7 @@ export class AppController {
 
   private async apiGet<T>(path: string): Promise<T> {
     const resp = await fetch(`${BACKEND_URL}${path}`, { headers: { 'Content-Type': 'application/json' } })
-    if (!resp.ok) throw new Error(`GET ${path} → ${resp.status}: ${resp.statusText}`)
+    if (!resp.ok) throw await apiError('GET', path, resp)
     return resp.json()
   }
 
@@ -93,7 +116,7 @@ export class AppController {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     })
-    if (!resp.ok) throw new Error(`POST ${path} → ${resp.status}: ${resp.statusText}`)
+    if (!resp.ok) throw await apiError('POST', path, resp)
     return resp.json()
   }
 
@@ -103,13 +126,13 @@ export class AppController {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     })
-    if (!resp.ok) throw new Error(`PUT ${path} → ${resp.status}: ${resp.statusText}`)
+    if (!resp.ok) throw await apiError('PUT', path, resp)
     return resp.json()
   }
 
   private async apiDelete<T>(path: string): Promise<T> {
     const resp = await fetch(`${BACKEND_URL}${path}`, { method: 'DELETE', headers: { 'Content-Type': 'application/json' } })
-    if (!resp.ok) throw new Error(`DELETE ${path} → ${resp.status}: ${resp.statusText}`)
+    if (!resp.ok) throw await apiError('DELETE', path, resp)
     return resp.json()
   }
 
@@ -129,8 +152,9 @@ export class AppController {
     await this.apiPut('/api/files/write', { path, content })
   }
 
-  async createItem(path: string, type: 'file' | 'directory'): Promise<void> {
-    await this.apiPost('/api/files/create', { path, type })
+  /** `content` gives a new file text (saving a tab as a new file); New File leaves it out. */
+  async createItem(path: string, type: 'file' | 'directory', content?: string): Promise<void> {
+    await this.apiPost('/api/files/create', content === undefined ? { path, type } : { path, type, content })
   }
 
   async renameItem(oldPath: string, newPath: string): Promise<void> {
@@ -145,7 +169,7 @@ export class AppController {
     items: { file: File; relativePath: string }[],
     overwrite: boolean,
     parentPath: string = '',
-  ): Promise<{ status: 'uploaded'; written: string[] }> {
+  ): Promise<{ status: 'uploaded'; written: string[]; skipped: { path: string; reason: string }[] }> {
     const formData = new FormData()
     for (const { file, relativePath } of items) {
       formData.append('files', file)
@@ -159,7 +183,7 @@ export class AppController {
       const body = await resp.json().catch(() => null)
       throw new UploadConflictError(body?.detail?.conflicts ?? [])
     }
-    if (!resp.ok) throw new Error(`POST /api/files/upload → ${resp.status}: ${resp.statusText}`)
+    if (!resp.ok) throw await apiError('POST', '/api/files/upload', resp)
     return resp.json()
   }
 

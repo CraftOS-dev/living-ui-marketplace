@@ -238,6 +238,17 @@ function depreciate(ctx, p) {
   return { posted: journals.length, journals: journals, total: rows.reduce((s, r) => s + r.amount, 0) };
 }
 
+/**
+ * The hourly job's depreciation (lib_jobs): every active asset through
+ * `month`, a finished month, posted by the app itself (the journal and the
+ * audit trail say "The app"). Months already posted are skipped, so it never
+ * posts twice, and a closed month posts on the first open date.
+ */
+function scheduled(app, month) {
+  const ctx = { e: null, app: app, op: 'jobs.depreciation', actor: 'system', isAgent: false, member: null, memberId: '', name: '', role: null, roleKey: '', levels: {}, admin: false, approvalLimit: 0, employeeId: '', approving: null };
+  return depreciate(ctx, { month: month });
+}
+
 function dispose(ctx, p) {
   const util = u();
   const app = ctx.app;
@@ -283,4 +294,4 @@ function remove(ctx, p) {
   return { deleted: true };
 }
 
-module.exports = { share: share, list: list, get: get, add: add, update: update, previewDepreciate: previewDepreciate, depreciate: depreciate, dispose: dispose, remove: remove };
+module.exports = { share: share, list: list, get: get, add: add, update: update, previewDepreciate: previewDepreciate, depreciate: depreciate, scheduled: scheduled, dispose: dispose, remove: remove };

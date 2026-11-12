@@ -1,7 +1,7 @@
 /**
- * Activity: every change to the books by the person, the AI agent, rules,
- * imports and schedules, newest first, each with what changed and undo or
- * redo. The AI agent's work is grouped into runs that can be reviewed and
+ * Activity: every change in the CRM by the person, the AI agent, imports
+ * and the system, newest first, each with what changed and undo or redo.
+ * The AI agent's work is grouped into runs that can be reviewed and
  * reverted as a whole.
  */
 import { useState } from 'react';
@@ -149,7 +149,7 @@ export function ActivityView({ q }: { q: Record<string, string> }): React.JSX.El
         {tab === 'all' ? (
           entries.length === 0 && !log.loading ? (
             <Empty icon={History} title="No changes yet">
-              Every change to the books shows here with a way to undo it.
+              Every change to your people, companies and deals shows here, with a way to undo it.
             </Empty>
           ) : (
             <ul>
@@ -167,7 +167,7 @@ export function ActivityView({ q }: { q: Record<string, string> }): React.JSX.El
           )
         ) : (runs.data?.runs ?? []).length === 0 ? (
           <Empty icon={Sparkles} title="Your AI agent has not changed anything yet">
-            When it categorizes lines, reads receipts or drafts documents, its work is grouped here by run.
+            When it researches people and companies, logs your emails and meetings or adds follow-ups, its work is grouped here by run.
           </Empty>
         ) : (
           <ul>

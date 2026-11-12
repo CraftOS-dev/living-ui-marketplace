@@ -948,6 +948,20 @@ function reorderList(ctx, p) {
 }
 
 /**
+ * Ids of the items at or below their reorder point that no draft purchase
+ * order of their supplier holds yet: what the hourly "Reorder low stock"
+ * routine asks your AI agent about (lib_jobs). Items without a supplier are
+ * left to people, as reorder.create-orders leaves them.
+ */
+function reorderDue(app) {
+  const util = u();
+  const rows = util.rows(app, 'SELECT * FROM (' + ITEM_SQL + " WHERE i.archived = FALSE AND i.kind = 'stock' AND i.min_qty > 0 AND i.supplier != '') x WHERE (x.on_hand + x.incoming - x.committed) <= x.min_qty", ITEM_SHAPE, {});
+  const drafted = {};
+  for (const l of util.rows(app, "SELECT dl.item AS item, d.party AS party FROM documents d JOIN document_lines dl ON dl.doc = d.id WHERE d.type = 'purchase_order' AND d.state = 'draft' AND dl.item != ''", { item: '', party: '' })) drafted[l.item + '|' + l.party] = true;
+  return rows.filter((r) => drafted[r.id + '|' + r.supplier] !== true).map((r) => r.id);
+}
+
+/**
  * Draft purchase orders from the suggestions: ONE draft per supplier (an
  * existing draft gets the lines), so it is safe to repeat.
  */
@@ -1018,5 +1032,6 @@ module.exports = {
   voidChange: voidChange,
   previewVoidChange: previewVoidChange,
   reorderList: reorderList,
+  reorderDue: reorderDue,
   reorderCreate: reorderCreate,
 };

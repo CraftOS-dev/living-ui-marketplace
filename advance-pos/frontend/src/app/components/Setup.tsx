@@ -1,7 +1,7 @@
 /**
- * First run: the store's name and currency, its sales tax, and the owner's
- * name and PIN. Everything else (products, staff, receipts, payments) is
- * set up later from the app, or by your AI agent.
+ * First run: the store's name and currency, its sales tax, its first
+ * register, and the owner's name and PIN. Everything else (products, staff,
+ * receipts, payments) is set up later from the app, or by your AI agent.
  */
 import { useMemo, useState } from 'react';
 import { Check, ReceiptText, ShieldCheck, Sparkles, Store } from 'lucide-react';
@@ -36,6 +36,7 @@ export function Setup(): React.JSX.Element {
   const [name, setName] = useState('');
   const [address, setAddress] = useState('');
   const [phone, setPhone] = useState('');
+  const [registerName, setRegisterName] = useState('Register 1');
   const [currency, setCurrency] = useState(guessCurrency);
   const [taxName, setTaxName] = useState('Sales tax');
   const [taxRate, setTaxRate] = useState('');
@@ -68,7 +69,7 @@ export function Setup(): React.JSX.Element {
         tax_rate: rate,
         owner_name: owner.trim(),
         owner_pin: pin,
-        register_name: 'Register 1',
+        register_name: registerName.trim() || 'Register 1',
       });
       signIn(u);
       reload();
@@ -122,6 +123,9 @@ export function Setup(): React.JSX.Element {
                 <textarea className={textareaCls} rows={2} value={address} onChange={(e) => setAddress(e.target.value)} maxLength={600} />
               </Field>
             </div>
+            <Field label="Register name" hint="This device sells as it; add more registers in Settings">
+              <input className={inputCls} value={registerName} onChange={(e) => setRegisterName(e.target.value)} maxLength={60} placeholder="Register 1" />
+            </Field>
           </section>
 
           <section className="grid gap-3 border-t border-[var(--ps-hair)] pt-4 sm:grid-cols-2">

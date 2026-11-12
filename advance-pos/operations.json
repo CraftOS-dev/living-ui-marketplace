@@ -2416,7 +2416,7 @@
         "request": {
           "type": "string",
           "required": true,
-          "description": "Request id"
+          "description": "Request id (the request's own id, or the `request` its task carries)"
         },
         "till": {
           "type": "string",
@@ -2433,7 +2433,7 @@
         "request": {
           "type": "string",
           "required": true,
-          "description": "Request id"
+          "description": "Request id (the request's own id, or the `request` its task carries)"
         },
         "status": {
           "type": "enum",

@@ -150,6 +150,16 @@ function mapFields(col) {
   return out;
 }
 
+/** The `guide` convention every root screen prints: where an agent finds an
+ *  operation's parameters (the CLI's `--help`), the app's own manual operation
+ *  when it has one, and the full manual file. */
+export function guideConvention(hasAppGuide) {
+  return (
+    (hasAppGuide ? "Start with `app guide`: the app's own manual. " : "") +
+    "`<module> <operation> --help` lists an operation's parameters; the full manual (rules, recipes, caveats) is AGENT_APP.md in the app's directory."
+  );
+}
+
 /* ------------------------------------------------------------- operations */
 
 function naturalName(group) {
@@ -454,7 +464,7 @@ function buildAgentApp({ oldMd, name, modules, decls, events, triggers, moduleOf
 
   out.push("## Operations", "");
   out.push(
-    "Call an operation with `a2app <app> <module> <operation> --param value` (`<app>` is the app directory, its id or its name). A destructive one first answers `approval_required` with an approval key: ask the person, then repeat the call with `--approve <key>`. `a2app <app> --find <word>` locates an operation by name. Every operation below runs the same handler the app's own screens use.",
+    "Call an operation with `a2app <app> <module> <operation> --param value` (`<app>` is the app directory, its id or its name). A destructive one first answers `approval_required` with an approval key: ask the person, then repeat the call with `--approve <key>`. `a2app <app> --find <word>` locates an operation by name. Every operation below runs on the server in the app's own code: the handler its screens use where they call one, otherwise a server copy of exactly what the screens do.",
     "",
   );
   for (const m of modules) {
@@ -588,7 +598,14 @@ async function main() {
   const routeFiles = readdirSync(hooksDir).filter((f) => f.endsWith(".pb.js") && !f.startsWith("_") && f !== "a2app_routes.pb.js");
   const routes = routeFiles.flatMap((f) => routesIn(sourceText(appDir, `pb/pb_hooks/${f}`) ?? readFileSync(join(hooksDir, f), "utf8")).map((r) => ({ ...r, file: f })));
   const routeByKey = new Map(routes.map((r) => [`${r.method} ${r.path}`, r]));
-  const oldOps = sourceJson(appDir, "operations.json").operations.filter((o) => !o.system);
+  // `health` and `ops.list` are the old system pair (the framework answers both
+  // itself); a `crud` executor was plain record access on one collection, which
+  // the collection's entity (`a2app <app> data <collection> …`) now provides.
+  const isSystemOp = (o) => o.system || ((o.name === "health" || o.name === "ops.list") && o.executor && /^\/api\/(health|_ops)$/.test(String(o.executor.path)));
+  const declared = sourceJson(appDir, "operations.json").operations.filter((o) => !isSystemOp(o));
+  const crudOps = declared.filter((o) => o.executor && o.executor.type === "crud");
+  if (crudOps.length) console.log(`  ! record-access operations left to their entities: ${crudOps.map((o) => `${o.name} (data ${o.executor.collection} ${o.executor.action})`).join(", ")}`);
+  const oldOps = declared.filter((o) => !(o.executor && o.executor.type === "crud"));
   const missing = oldOps.filter((o) => !o.executor || !routeByKey.has(`${String(o.executor.method).toUpperCase()} ${o.executor.path}`));
   if (missing.length) fail(`no route found for: ${missing.map((o) => o.name).join(", ")}`);
   const denied = personOnlyOps(appDir, oldOps, routeByKey);
@@ -600,6 +617,11 @@ async function main() {
   // default `users` is not part of a single-user app.
   const hidden = new Set(["agent_requests"]);
   if (old.authMode !== "multi-user") hidden.add("users");
+  // Collections whose records only the app's operations may shape (e.g. a JSON
+  // sidecar a raw write would destroy): the source operations.json names them
+  // under "x-agent-hidden-collections"; they are reached through operations only.
+  const hideList = sourceJson(appDir, "operations.json")["x-agent-hidden-collections"];
+  if (Array.isArray(hideList)) for (const c of hideList) hidden.add(String(c));
   const entityDefs = {};
   for (const col of schema) {
     if (hidden.has(col.name)) continue;
@@ -626,7 +648,7 @@ async function main() {
     if (t.cooldown_seconds) ev.cooldownSeconds = t.cooldown_seconds;
     return ev;
   });
-  const conventionsApp = { guide: "Every operation's parameters, and how to do each task the app queues, are in AGENT_APP.md in the app's directory." };
+  const conventionsApp = { guide: guideConvention(oldOps.some((o) => o.name === "app.guide")) };
   const conventions = {
     writes: "Prefer a declared operation over a raw write where one exists.",
     labels: "Resolve a label to an id by a filtered read on the entity's label field; on multi-match, ask or fail — never pick.",

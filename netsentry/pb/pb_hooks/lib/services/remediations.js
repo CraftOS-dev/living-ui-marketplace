@@ -240,7 +240,7 @@ function approve(app, actor, p) {
   if (!require('../v2/actions.js').isTyped(repo.jsonOf(rem, 'plan'))) {
     throw new OpError(409, 'NetSentry only applies its own changes, through the monitor on the server. Follow the steps yourself, or ask the agent — it prepares changes for you to confirm.', 'not_typed');
   }
-  if (paused(app)) throw new OpError(409, 'Remediation is paused (Workspace → Settings). Resume it first.', 'paused');
+  if (paused(app)) throw new OpError(409, 'Remediation is paused (Settings → General & fixes). Resume it first.', 'paused');
   approveInternal(app, rem, actor);
   return { ok: true, remediation_id: rem.id, status: 'approved' };
 }

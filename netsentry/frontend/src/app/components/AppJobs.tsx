@@ -391,7 +391,7 @@ export function CustomInstall(): React.JSX.Element {
       {error && <p className="text-[13px] text-red-700 dark:text-red-400">{error}</p>}
       {installed && !flow.status && (
         <p className="rounded-lg bg-[var(--agent-app-surface-2)] p-3 text-[13px]">
-          {installed}: finished — see whether it runs under <a href="#/apps" className="underline">Apps</a> (and what happened under Server → Changes made).
+          {installed}: finished — see whether it runs under <a href="#/apps" className="underline">Apps</a> (and what happened under Server → Overview → Changes made here).
         </p>
       )}
       {result && (

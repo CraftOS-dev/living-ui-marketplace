@@ -58,7 +58,9 @@ act directly, and every change by anyone can be undone.
   Lost and their people with roles.
 - **Deals**: a board per pipeline (drag between stages, drop on won or
   lost), cards with value, close date, days in stage against the stage
-  target, rotting edge, next step; or a table with totals.
+  target, rotting edge, next step; or a table with totals, whose selected
+  rows can be moved to a stage, tagged or moved to the trash together
+  (`deals.bulk`).
 - **Review**: the AI agent's proposals grouped by record, each with the
   change (old to new), its evidence quote, source, reason and confidence;
   accept, edit then accept, reject, or accept every high-confidence one;
@@ -263,7 +265,7 @@ Call an operation with `a2app <app> <module> <operation> --param value` (`<app>`
 - `deals.delete` *(destructive)* — Move to the trash (restorable for 90 days). A proposal when the AI agent asks, unless the policy makes deleting automatic. Params: `id` (string, required), `reason` (string), `evidence` (string), `source` (string), `confidence` (high|medium|low).
 - `deals.restore` — Bring back from the trash (refused when its email or domain now belongs to another record). Params: `id` (string, required).
 - `deals.merge` *(destructive)* — Merge the secondary into the primary: the primary's values win, its blanks are filled, emails/phones/domains/tags are combined, every note, interaction, task, deal and list membership moves over, and the secondary's id keeps resolving to the primary. Undoable. A proposal for the AI agent unless automatic. Params: `primary` (string, required), `secondary` (string, required), `reason` (string), `evidence` (string), `source` (string), `confidence` (high|medium|low).
-- `deals.bulk` — One change to many deals at once, logged (and undone) as one. Params: `ids` (string, required), `action` (tag|untag|set|delete, required), `tag` (string), `list` (string), `field` (string), `value` (string), `note` (string), `reason` (string), `evidence` (string), `source` (string), `confidence` (high|medium|low).
+- `deals.bulk` — One change to many deals at once, logged (and undone) as one. Params: `ids` (string, required), `action` (tag|untag|set|move|delete, required), `tag` (string), `list` (string), `field` (string), `value` (string), `stage` (string), `note` (string), `reason` (string), `evidence` (string), `source` (string), `confidence` (high|medium|low).
 - `deals.export` *(read-only)* — The deals (filtered like deals.list) as CSV: file name, text and count. Params: `q` (string), `preset` (all|open|won|lost|rotting|no_next_step|closing), `filters` (string), `match` (all|any), `view` (string), `columns` (string), `pipeline` (string).
 - `deals.move` — Move a deal to a stage (also into another pipeline by stage id) and/or reorder it (before another deal). A stage change by the AI agent is a proposal unless automatic. Params: `deal` (string, required), `stage` (string), `before` (string), `lost_reason` (string), `reason` (string), `evidence` (string), `source` (string), `confidence` (high|medium|low).
 - `deals.close` — Mark a deal won or lost (with a reason): its close date is set and its home-currency value frozen. A proposal for the AI agent unless automatic. Params: `deal` (string, required), `outcome` (won|lost, required), `reason` (string), `evidence` (string), `source` (string), `confidence` (high|medium|low).
@@ -427,7 +429,7 @@ Send the emails waiting for you in this CRM app. 1) `a2app <app> emails emails.l
 
 ### Notes
 
-132 operations in `operations.json` (generated from the routes; every UI
+130 operations in `operations.json` (generated from the routes; every UI
 action is an op). Groups: app, search, setup, settings, policy, activity,
 asks, fx, people, companies, deals, timeline, dupes, trash, pipelines,
 stages, notes, interactions, tasks, emails, research, meetings, proposals,

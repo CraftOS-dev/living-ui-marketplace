@@ -330,7 +330,7 @@ Stock change: every action posts one batch of movements; Undo posts the opposite
 ## Operations Design
 | Operation | Module | Entity | appliesWhen | Params | Flags |
 | --- | --- | --- | --- | --- | --- |
-| app.guide | app | — | — | — | — |
+| app.guide | app | — | — | — | readOnly |
 | settings.get | settings | — | — | — | readOnly |
 | settings.update | settings | — | — | currency: string, currency_confirmed: boolean, allow_negative: boolean, auto_restock: boolean | — |
 | dashboard.summary | dashboard | — | — | — | readOnly |

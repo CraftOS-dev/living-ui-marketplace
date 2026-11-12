@@ -144,7 +144,7 @@ function InstallForm({ t, onBack }: { t: Template; onBack: () => void }): React.
       )}
       {t.needs.includes('data_root') && <Input label="Your media folder on the server" value={data} onChange={(e) => setData(e.target.value)} placeholder="/srv/data" />}
       <Input label="Where apps live on the server" value={root} onChange={(e) => setRoot(e.target.value)} />
-      <p className="text-[12px] text-[var(--agent-app-muted)]">To use it from away later, see the app → Use it from away, safely (never by opening your router).</p>
+      <p className="text-[12px] text-[var(--agent-app-muted)]">To use it from away later, see the app → Access & safety → Use it from away, safely (never by opening your router).</p>
       <div className="flex items-center gap-2">
         {flow.status ? (
           <Working status={flow.status} />

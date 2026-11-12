@@ -1,0 +1,32 @@
+{
+  "events": [
+    {
+      "type": "company_checkup_requested",
+      "capability": "company_checkup_requested",
+      "description": "Can ask your agent to review the company's records and write a checkup note with the top next actions",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "stage": {
+          "type": "string",
+          "description": "Current company stage at fire time"
+        },
+        "open_issues": {
+          "type": "number",
+          "description": "Open issue count at fire time"
+        },
+        "open_steps": {
+          "type": "number",
+          "description": "Open journey step count at fire time"
+        }
+      },
+      "cooldownSeconds": 60
+    }
+  ],
+  "conventions": {
+    "guide": "`<module> <operation> --help` lists an operation's parameters; the full manual (rules, recipes, caveats) is AGENT_APP.md in the app's directory."
+  }
+}

@@ -1,19 +1,196 @@
 {
-  "opsVersion": 1,
   "operations": [
     {
-      "name": "health",
-      "description": "Liveness check (PocketBase built-in).",
-      "system": true,
-      "params": {},
-      "executor": { "type": "http", "method": "GET", "path": "/api/health" }
+      "name": "files.list",
+      "description": "The workspace tree (the nodes collection) as the explorer shows it: folders first, then A-Z by name, with is_dir, is_markdown and…",
+      "destructive": false,
+      "readOnly": true,
+      "module": "files",
+      "params": {
+        "folder": {
+          "type": "string",
+          "description": "Folder path to list, e.g. notes; default the top level."
+        },
+        "recursive": {
+          "type": "boolean",
+          "description": "Whole subtree (default true) or only the folder's own items."
+        }
+      }
     },
     {
-      "name": "ops.list",
-      "description": "Return this operations manifest.",
-      "system": true,
-      "params": {},
-      "executor": { "type": "http", "method": "GET", "path": "/api/_ops" }
+      "name": "files.read",
+      "description": "Open a .md or .markdown file: its text, its modified time (pass it back as expected_modified when writing), and whether the person has it open in a tab.",
+      "destructive": false,
+      "readOnly": true,
+      "module": "files",
+      "params": {
+        "path": {
+          "type": "string",
+          "required": true,
+          "description": "File path, e.g. notes/todo.md"
+        }
+      }
+    },
+    {
+      "name": "files.write",
+      "description": "Save new text into an existing .md or .markdown file, as Ctrl+S does in the editor; --append true adds the text to the end instead (no newline is inserted: start the text with one).",
+      "destructive": false,
+      "module": "files",
+      "params": {
+        "path": {
+          "type": "string",
+          "required": true,
+          "description": "Existing .md or .markdown file path"
+        },
+        "content": {
+          "type": "string",
+          "description": "The whole new text (\"\" empties the file); required"
+        },
+        "encoding": {
+          "type": "enum",
+          "values": [
+            "text",
+            "base64"
+          ],
+          "description": "base64 for text that starts with -- (front matter); default text"
+        },
+        "append": {
+          "type": "boolean",
+          "description": "Add content to the end instead of replacing (no newline is inserted between; begin content with a newline if needed). Also lets long text be sent in parts."
+        },
+        "expected_modified": {
+          "type": "number",
+          "description": "The modified value from files.read; refuses if the file was saved since"
+        }
+      }
+    },
+    {
+      "name": "files.create",
+      "description": "New empty file (.md is added unless the path ends in .md or .markdown, any case) or new folder, as New File / New Folder; missing parent folders are created.",
+      "destructive": false,
+      "module": "files",
+      "params": {
+        "path": {
+          "type": "string",
+          "required": true,
+          "description": "Folder path + name, e.g. notes/ideas"
+        },
+        "type": {
+          "type": "enum",
+          "values": [
+            "file",
+            "folder"
+          ],
+          "description": "What to create; default file"
+        }
+      }
+    },
+    {
+      "name": "files.upload",
+      "description": "Add a file with this text at a path, as Upload File / Upload Folder; refuses a path that already exists.",
+      "destructive": false,
+      "module": "files",
+      "params": {
+        "path": {
+          "type": "string",
+          "required": true,
+          "description": "New file path, e.g. imported/readme.md"
+        },
+        "content": {
+          "type": "string",
+          "description": "The file's text (\"\" for an empty file); required"
+        },
+        "encoding": {
+          "type": "enum",
+          "values": [
+            "text",
+            "base64"
+          ],
+          "description": "base64 for text that starts with -- (front matter); default text"
+        }
+      }
+    },
+    {
+      "name": "files.upload-overwrite",
+      "description": "Upload that replaces an existing file, as Overwrite in the upload conflict dialog.",
+      "destructive": true,
+      "module": "files",
+      "params": {
+        "path": {
+          "type": "string",
+          "required": true,
+          "description": "File path to create or replace"
+        },
+        "content": {
+          "type": "string",
+          "description": "The file's text (\"\" for an empty file); required"
+        },
+        "encoding": {
+          "type": "enum",
+          "values": [
+            "text",
+            "base64"
+          ],
+          "description": "base64 for text that starts with -- (front matter); default text"
+        }
+      }
+    },
+    {
+      "name": "files.rename",
+      "description": "Rename a file or folder in its folder, as the Rename dialog; a folder's contents move with it and their open tabs follow.",
+      "destructive": false,
+      "module": "files",
+      "params": {
+        "path": {
+          "type": "string",
+          "required": true,
+          "description": "Existing file or folder path"
+        },
+        "name": {
+          "type": "string",
+          "required": true,
+          "description": "New name, e.g. done.md (no / or \\)"
+        }
+      }
+    },
+    {
+      "name": "files.move",
+      "description": "Move a file into another existing folder, as dragging it onto that folder in the explorer.",
+      "destructive": false,
+      "module": "files",
+      "params": {
+        "path": {
+          "type": "string",
+          "required": true,
+          "description": "Existing file path"
+        },
+        "to": {
+          "type": "string",
+          "required": true,
+          "description": "Existing folder path"
+        }
+      }
+    },
+    {
+      "name": "files.delete",
+      "description": "Delete a file, or a folder with everything in it; their open tabs close.",
+      "destructive": true,
+      "module": "files",
+      "params": {
+        "path": {
+          "type": "string",
+          "required": true,
+          "description": "File or folder path"
+        }
+      }
+    },
+    {
+      "name": "editor.tabs",
+      "description": "The files the person has open in editor tabs (the sessions record) and the active one, as last saved by the editor; unsaved edits are not…",
+      "destructive": false,
+      "readOnly": true,
+      "module": "editor",
+      "params": {}
     }
   ]
 }

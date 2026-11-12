@@ -116,8 +116,36 @@ function callIntegration(integration, method, url, body, headers) {
   }
 }
 
+/**
+ * Whether a language model will answer callLLM() right now: CraftBot's bridge,
+ * or a running framework bridge whose LLM service answers. A screen that offers
+ * AI features asks this instead of reading CraftBot's variables itself, so the
+ * features work under any harness that runs the app's bridge. The framework
+ * probe is cached for 10 s, so a status poll does not hammer the service, and a
+ * record left behind by a bridge that died reads as unavailable.
+ */
+function llmAvailable() {
+  if (hostBridge()) return true;
+  const fw = frameworkLlm();
+  if (!fw) return false;
+  const now = Date.now();
+  const store = $app.store();
+  const cached = store.get("a2app.llmProbe");
+  if (cached && cached.url === fw.url && now - cached.at < 10000) return cached.ok === true;
+  let ok = false;
+  try {
+    const res = $http.send({ url: fw.url, method: "GET", timeout: 2 });
+    ok = !!(res && res.statusCode > 0);
+  } catch (_e) {
+    ok = false;
+  }
+  store.set("a2app.llmProbe", { url: fw.url, at: now, ok: ok });
+  return ok;
+}
+
 module.exports = {
   callLLM: callLLM,
+  llmAvailable: llmAvailable,
   callAction: callAction,
   callIntegration: callIntegration,
 };

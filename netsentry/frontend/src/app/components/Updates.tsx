@@ -115,7 +115,7 @@ export function AppUpdates({ app }: { app: AppRecord & { update?: UpdateInfo | n
         )}
         <p className="text-[12px] text-[var(--agent-app-muted)]">
           {policy === 'auto'
-            ? 'Only fixes and small updates, only inside a maintenance window (Settings → Updates), one app at a time — never a new major version or a database upgrade. Each one is recorded under Changes.'
+            ? 'Only fixes and small updates, only inside a maintenance window (Settings → Updates), one app at a time — never a new major version or a database upgrade. Each one is recorded under Overview → Changes made.'
             : policy === 'pinned'
               ? 'NetSentry still tells you about security problems in the version you run.'
               : 'You decide each time.'}

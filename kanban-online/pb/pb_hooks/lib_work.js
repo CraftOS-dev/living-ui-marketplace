@@ -46,6 +46,11 @@ function C() {
   return require(`${__hooks}/lib_cards.js`);
 }
 
+/** The board's "needs attention" rules, once a card has just landed there. */
+function attentionRules(app, card) {
+  if (card.getString('agent_state') === 'needs_attention') require(`${__hooks}/lib_auto.js`).run(app, 'needs_attention', card.id, {});
+}
+
 /* --------------------------------------------------------------- waking */
 
 function markDirty(app) {
@@ -236,6 +241,7 @@ function next(app, e, p) {
       card.set('agent_state', 'needs_attention');
       card.set('attention', 'Agents tried ' + card.getInt('attempt') + ' times without finishing.');
       app.save(card);
+      attentionRules(app, card);
       continue;
     }
     // A card in to-do moves into the first started column when an agent takes it.
@@ -573,6 +579,7 @@ function giveBack(app, e, p) {
   card.set('version', card.getInt('version') + 1);
   app.save(card);
   m.log(app, { board: card.getString('board'), card: card.id, actor: w, kind: 'returned', text: reason, run: runId, meta: { why: why } });
+  attentionRules(app, card);
   return { ok: true, message: requester !== '' ? 'Handed back to ' + M().partyText('user:' + requester, M().namesFor(app)) + '.' : 'Handed back to the team.' };
 }
 
@@ -598,6 +605,7 @@ function fail(app, e, p) {
   card.set('version', card.getInt('version') + 1);
   app.save(card);
   m.log(app, { board: card.getString('board'), card: card.id, actor: w, kind: 'failed', text: reason, run: runId, meta: { attempt: card.getInt('attempt'), of: max } });
+  attentionRules(app, card);
   return { ok: true, retry: card.getString('agent_state') === 'queued' };
 }
 
@@ -644,6 +652,7 @@ function expire(app) {
     card.set('version', card.getInt('version') + 1);
     app.save(card);
     m.log(app, { board: card.getString('board'), card: card.id, actor: { kind: 'system', id: 'system' }, kind: 'expired', text: 'The lease ran out without a heartbeat', run: runId });
+    attentionRules(app, card);
     n++;
   }
   return n;

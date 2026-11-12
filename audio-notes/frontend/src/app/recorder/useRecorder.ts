@@ -89,7 +89,7 @@ function errorName(err: unknown): string {
 }
 
 export const FRAME_BLOCKED_MIC =
-  'This app is not allowed to use the microphone where it is open. Update and restart CraftBot (it must let apps ask for the microphone), or open the app in its own browser tab.';
+  'This app is not allowed to use the microphone where it is open. Open the app in its own browser tab, or let the window it is open in ask for the microphone.';
 
 /** What a failed microphone open means, in words a person can act on. */
 export function micError(err: unknown): RecorderError {
@@ -130,7 +130,7 @@ async function openTab(): Promise<MediaStream> {
   if (!frameAllows('display-capture')) {
     throw new RecorderError(
       'frame_blocked',
-      'This app is not allowed to capture tab or screen audio where it is open. Update and restart CraftBot, or open the app in its own browser tab.',
+      'This app is not allowed to capture tab or screen audio where it is open. Open the app in its own browser tab.',
     );
   }
   let display: MediaStream;
