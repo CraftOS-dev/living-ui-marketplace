@@ -33,6 +33,16 @@ function autonomyOf(rec) {
   return out;
 }
 
+/** The automatic requests to your AI agent the seller switched on (all off unless set). */
+const AUTOMATIONS = ['draft_replies', 'exceptions'];
+
+function automationOf(rec) {
+  const a = u().json(rec, 'automation', {});
+  const out = {};
+  for (const k of AUTOMATIONS) out[k] = a[k] === true;
+  return out;
+}
+
 function settingsView(rec) {
   const U = u();
   const fx = U.json(rec, 'fx', {});
@@ -45,6 +55,7 @@ function settingsView(rec) {
     timezone: rec.getString('timezone'),
     utc_offset: rec.getInt('utc_offset'),
     autonomy: autonomyOf(rec),
+    automation: automationOf(rec),
     guards: { max_price_drop_pct: typeof guards.max_price_drop_pct === 'number' ? guards.max_price_drop_pct : 30, min_margin_pct: typeof guards.min_margin_pct === 'number' ? guards.min_margin_pct : 0 },
     pii_days: rec.getInt('pii_days'),
     low_stock: rec.getInt('low_stock'),
@@ -172,6 +183,8 @@ module.exports = {
   settings: settings,
   settingsView: settingsView,
   autonomyOf: autonomyOf,
+  AUTOMATIONS: AUTOMATIONS,
+  automationOf: automationOf,
   autoAllowed: autoAllowed,
   base: base,
   baseOrEmpty: baseOrEmpty,

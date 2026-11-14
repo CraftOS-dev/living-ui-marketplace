@@ -201,3 +201,18 @@ export const TASK_STATE_LABEL: Record<string, string> = {
   failed: 'Could not finish',
   cancelled: 'Cancelled',
 };
+
+/** An open task that may be asked again, and why. */
+export const TASK_STALE_LABEL: Record<string, string> = {
+  not_sent: 'Not sent',
+  not_picked_up: 'Not picked up in 24 hours',
+  stopped: 'Stopped before finishing',
+};
+
+/** The platform's request behind a task. */
+export const REQUEST_STATUS_LABEL: Record<string, string> = {
+  pending: 'Request waiting for your AI agent',
+  claimed: 'Your AI agent took the request',
+  done: 'Request done',
+  rejected: 'Request turned down',
+};

@@ -398,7 +398,7 @@
     },
     {
       "name": "shops.sync",
-      "description": "Ask your AI agent to bring in the shop's new orders, buyer messages and listings (a sync task).",
+      "description": "Ask your AI agent to bring in the shop's new orders, buyer messages and listings (one shop_sync_requested; nothing fires while one waits).",
       "destructive": false,
       "module": "shops",
       "params": {
@@ -411,7 +411,7 @@
     },
     {
       "name": "shops.help",
-      "description": "Ask your AI agent to help with one setup step of a shop (a setup_help task).",
+      "description": "Ask your AI agent to help with one setup step of a shop (one setup_help_requested).",
       "destructive": false,
       "module": "shops",
       "params": {
@@ -782,7 +782,7 @@
     },
     {
       "name": "products.prepare",
-      "description": "Ask your AI agent to write listings of a product for some shops (a prepare_listing task; its drafts come…",
+      "description": "Ask your AI agent to write listings of a product for some shops (one listing_prep_requested; its drafts come…",
       "destructive": false,
       "module": "products",
       "params": {
@@ -1085,7 +1085,7 @@
     },
     {
       "name": "listings.publish",
-      "description": "Ask your AI agent to publish listings on a shop (default: every ready listing and every live one with unpublished changes).",
+      "description": "Ask your AI agent to publish listings on a shop (one listings_publish_requested; default: every ready listing and every live one with…",
       "destructive": false,
       "module": "listings",
       "params": {
@@ -1254,7 +1254,7 @@
     },
     {
       "name": "stock.push",
-      "description": "Ask your AI agent to set the stock on a shop to stock.plan's numbers (a push_stock task).",
+      "description": "Ask your AI agent to set the stock on a shop to stock.plan's numbers (one stock_push_requested).",
       "destructive": false,
       "module": "stock",
       "params": {
@@ -1722,7 +1722,7 @@
     },
     {
       "name": "orders.help",
-      "description": "Ask your AI agent to check an order's tracking (task…",
+      "description": "Ask your AI agent to check an order's tracking…",
       "destructive": false,
       "module": "orders",
       "params": {
@@ -2093,7 +2093,7 @@
     },
     {
       "name": "inbox.ask-draft",
-      "description": "Ask your AI agent to draft a reply (a draft_reply task).",
+      "description": "Ask your AI agent to draft a reply (one reply_draft_requested).",
       "destructive": false,
       "module": "inbox",
       "params": {
@@ -2110,7 +2110,7 @@
     },
     {
       "name": "inbox.ask-draft-all",
-      "description": "Ask your AI agent to draft replies for every open conversation without a draft.",
+      "description": "Ask your AI agent to draft replies for every open conversation without a draft (one reply_draft_requested for all of them).",
       "destructive": false,
       "module": "inbox",
       "params": {}
@@ -2263,7 +2263,7 @@
     },
     {
       "name": "tasks.list",
-      "description": "Your AI agent's tasks: open ones by default (queued, asked, working), oldest first.",
+      "description": "Your AI agent's tasks: open ones by default (asked, working), oldest first.",
       "destructive": false,
       "readOnly": true,
       "module": "todos",
@@ -2271,7 +2271,6 @@
         "state": {
           "type": "enum",
           "values": [
-            "queued",
             "asked",
             "working",
             "done",
@@ -2279,7 +2278,7 @@
             "cancelled",
             "all"
           ],
-          "description": "queued | asked | working | done | failed | cancelled | all (default: the open ones)"
+          "description": "asked | working | done | failed | cancelled | all (default: the open ones)"
         },
         "limit": {
           "type": "number",
@@ -2316,27 +2315,33 @@
     },
     {
       "name": "tasks.start",
-      "description": "Your AI agent: mark a task as being worked on (the seller sees it).",
+      "description": "Your AI agent: open the work of a request (--request, the id you were handed) or one task (--task): it shows as being worked on, and the…",
       "destructive": false,
       "module": "todos",
       "params": {
+        "request": {
+          "type": "string",
+          "description": "The request id you were handed (the work it asked for)"
+        },
         "task": {
           "type": "string",
-          "required": true,
-          "description": "The task id"
+          "description": "One task id instead"
         }
       }
     },
     {
       "name": "tasks.finish",
-      "description": "Your AI agent: finish a task with a one-line note the seller reads (or --failed true with why).",
+      "description": "Your AI agent: finish the open work of a request (--request) or one task (--task) with a one-line note the seller reads (or --failed true…",
       "destructive": false,
       "module": "todos",
       "params": {
+        "request": {
+          "type": "string",
+          "description": "The request id you were handed (the work it asked for)"
+        },
         "task": {
           "type": "string",
-          "required": true,
-          "description": "The task id"
+          "description": "One task id instead"
         },
         "note": {
           "type": "string",

@@ -46,6 +46,16 @@ module.exports = [
     desc: 'What your AI agent may change without asking: ask (it proposes, the seller approves) or auto, per kind of change.',
     params: { listings: S('Listing text and price', LEVEL), prices: S('SKU prices', LEVEL), stock: S('Stock changes', LEVEL), replies: S('Sending buyer replies', LEVEL), orders: S('Cancelling, refunding and returns', LEVEL) },
   },
+  {
+    name: 'settings.automation',
+    method: 'POST',
+    fn: 'lib_app.automation',
+    effect: 'confirm',
+    agent: 'deny',
+    press: 'the switches under "Ask on its own" in Settings',
+    desc: 'Automatic requests to your AI agent, off until the seller turns them on: a draft when a buyer message comes in, and sorting out a parcel whose tracking turns to a problem.',
+    params: { draft_replies: B('Draft a reply when a buyer message comes in'), exceptions: B('Sort out a parcel whose tracking turns to a failed delivery, a problem or a return') },
+  },
   { name: 'settings.fx-refresh', method: 'POST', fn: 'lib_app.fxRefresh', effect: 'write', desc: "Fetch today's exchange rates against the base currency now (they also refresh every six hours).", params: {} },
   { name: 'activity.list', method: 'GET', fn: 'lib_app.activity', effect: 'read', desc: 'Who changed what, newest first.', params: { limit: N('Rows (default 40)'), target: S('Only this target, e.g. order:<id>, shop:<id>, product:<id>') } },
 ];

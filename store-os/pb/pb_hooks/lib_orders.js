@@ -854,6 +854,7 @@ function shipmentUpdate(ctx, p) {
   if (p.url !== undefined) s.set('url', U.clip(p.url, 500));
   if (p.eta !== undefined) s.set('eta', p.eta === '' ? '' : U.isoDate(p.eta, 'eta'));
   const at = p.event_at ? U.isoDate(p.event_at, 'event_at') : U.now();
+  const before = s.getString('status');
   if (p.status !== undefined) s.set('status', U.oneOf(p.status, TRACK, 'status'));
   if (p.event !== undefined && p.event !== '') {
     const evs = U.json(s, 'events', []);
@@ -871,28 +872,37 @@ function shipmentUpdate(ctx, p) {
     app.save(o);
   }
   L('lib_tasks').finishFor(app, 'order:' + o.id, 'tracking', 'Tracking: ' + s.getString('status'));
+  // Settings: a parcel whose tracking turns to a problem asks your AI agent to sort it out.
+  const problem = (x) => x === 'failed_attempt' || x === 'exception' || x === 'returned';
+  if (problem(s.getString('status')) && !problem(before) && L('lib_tasks').autoOn(app, 'exceptions')) L('lib_tasks').ask(app, 'exception', [exceptionItem(o, '')], 'auto');
   return { order: detail(app, o, ctx.isAgent) };
 }
 
 /* ------------------------------------------------- work for your AI agent */
+
+function exceptionItem(o, note) {
+  return { target: 'order:' + o.id, label: 'Sort out the delivery problem on order ' + o.getString('number'), params: { order: o.id, note: note } };
+}
+
+function trackingItem(o) {
+  return { target: 'order:' + o.id, label: 'Check the tracking of order ' + o.getString('number'), params: { order: o.id } };
+}
 
 function requestHelp(ctx, p) {
   const U = L('lib_util');
   const app = ctx.app;
   const o = ref(app, p.order, p.shop);
   const kind = U.oneOf(p.task, ['tracking', 'exception'], 'task');
-  const label = kind === 'tracking' ? 'Check the tracking of order ' + o.getString('number') : 'Sort out the delivery problem on order ' + o.getString('number');
-  const t = L('lib_tasks').queue(app, kind, 'order:' + o.id, label, { order: o.id, note: U.clip(p.note || '', 1000) }, ctx.actor);
-  return { task: t };
+  return L('lib_tasks').ask(app, kind, [kind === 'tracking' ? trackingItem(o) : exceptionItem(o, U.clip(p.note || '', 1000))], ctx.actor);
 }
 
+/** Every parcel on its way (up to 200), in one request; one task per order. */
 function requestTrackAll(ctx) {
   const U = L('lib_util');
   const app = ctx.app;
-  const ids = app.findRecordsByFilter('orders', "status = 'shipped'", '-shipped_at', 200, 0).map((o) => o.id);
-  if (ids.length === 0) throw U.fail(400, 'No shipped orders are on their way.', 'nothing');
-  const t = L('lib_tasks').queue(app, 'tracking', 'store:tracking', 'Check the tracking of ' + ids.length + ' parcel' + (ids.length === 1 ? '' : 's') + ' on their way', { orders: ids }, ctx.actor);
-  return { task: t };
+  const items = Array.from(app.findRecordsByFilter('orders', "status = 'shipped'", '-shipped_at', 200, 0)).map(trackingItem);
+  if (items.length === 0) throw U.fail(400, 'No shipped orders are on their way.', 'nothing');
+  return L('lib_tasks').ask(app, 'tracking', items, ctx.actor);
 }
 
 module.exports = {

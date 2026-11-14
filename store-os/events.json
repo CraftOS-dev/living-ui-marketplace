@@ -1,18 +1,222 @@
 {
   "events": [
     {
-      "type": "work_requested",
-      "capability": "work_requested",
-      "description": "Hands your AI agent the store work you ask for in Store OS: syncing a shop, writing listings, drafting or sending buyer replies, setting stock on shops, checking tracking, helping set up a shop, and your messages",
+      "type": "shop_sync_requested",
+      "capability": "shop_sync_requested",
+      "description": "Asks your AI agent to bring one shop's new orders, buyer messages and listings into Store OS",
       "payload": {
         "request": {
           "type": "string",
           "required": true,
           "description": "Id of the app's agent request record"
         },
-        "count": {
-          "type": "number",
-          "description": "How many tasks were waiting when the app asked"
+        "shop_id": {
+          "type": "string",
+          "required": true,
+          "description": "The shop"
+        }
+      },
+      "cooldownSeconds": 20
+    },
+    {
+      "type": "setup_help_requested",
+      "capability": "setup_help_requested",
+      "description": "Asks your AI agent to help with one setup step of a shop you are opening or setting up",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "shop_id": {
+          "type": "string",
+          "required": true,
+          "description": "The shop"
+        },
+        "step": {
+          "type": "string",
+          "required": true,
+          "description": "The setup step key"
+        },
+        "note": {
+          "type": "string",
+          "description": "What the seller added"
+        }
+      },
+      "cooldownSeconds": 15
+    },
+    {
+      "type": "listing_prep_requested",
+      "capability": "listing_prep_requested",
+      "description": "Asks your AI agent to write one product's listings for some shops; its drafts wait in Approvals",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "product_id": {
+          "type": "string",
+          "required": true,
+          "description": "The product"
+        },
+        "shop_ids": {
+          "type": "string",
+          "required": true,
+          "description": "The shops, comma separated"
+        },
+        "note": {
+          "type": "string",
+          "description": "What the seller added"
+        }
+      },
+      "cooldownSeconds": 15
+    },
+    {
+      "type": "listings_publish_requested",
+      "capability": "listings_publish_requested",
+      "description": "Asks your AI agent to publish ready listings, or live ones with changes, on one shop",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "shop_id": {
+          "type": "string",
+          "required": true,
+          "description": "The shop"
+        },
+        "listing_ids": {
+          "type": "string",
+          "required": true,
+          "description": "The listings, comma separated"
+        }
+      },
+      "cooldownSeconds": 15
+    },
+    {
+      "type": "stock_push_requested",
+      "capability": "stock_push_requested",
+      "description": "Asks your AI agent to set the stock one shop shows to what Store OS says it should show",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "shop_id": {
+          "type": "string",
+          "required": true,
+          "description": "The shop"
+        }
+      },
+      "cooldownSeconds": 20
+    },
+    {
+      "type": "reply_draft_requested",
+      "capability": "reply_draft_requested",
+      "description": "Asks your AI agent to draft replies to buyers for the seller to read and send",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "thread_ids": {
+          "type": "string",
+          "required": true,
+          "description": "The conversations, comma separated"
+        },
+        "note": {
+          "type": "string",
+          "description": "What the seller added"
+        }
+      },
+      "cooldownSeconds": 10
+    },
+    {
+      "type": "reply_send_requested",
+      "capability": "reply_send_requested",
+      "description": "Asks your AI agent to send one reply the seller wrote, exactly as written",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "thread_id": {
+          "type": "string",
+          "required": true,
+          "description": "The conversation"
+        },
+        "message_id": {
+          "type": "string",
+          "required": true,
+          "description": "The reply to send"
+        }
+      },
+      "cooldownSeconds": 10
+    },
+    {
+      "type": "tracking_check_requested",
+      "capability": "tracking_check_requested",
+      "description": "Asks your AI agent to check the tracking of parcels on their way",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "order_ids": {
+          "type": "string",
+          "required": true,
+          "description": "The orders, comma separated"
+        }
+      },
+      "cooldownSeconds": 20
+    },
+    {
+      "type": "order_exception",
+      "capability": "order_exception",
+      "description": "Asks your AI agent to sort out a delivery problem on one order",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "order_id": {
+          "type": "string",
+          "required": true,
+          "description": "The order"
+        },
+        "note": {
+          "type": "string",
+          "description": "What the seller added"
+        }
+      },
+      "cooldownSeconds": 30
+    },
+    {
+      "type": "question_asked",
+      "capability": "question_asked",
+      "description": "Hands your AI agent a message the seller wrote to it in Store OS",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "chat_id": {
+          "type": "string",
+          "required": true,
+          "description": "The message"
+        },
+        "question": {
+          "type": "string",
+          "required": true,
+          "description": "What the seller wrote"
         }
       },
       "cooldownSeconds": 10

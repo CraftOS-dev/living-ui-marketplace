@@ -267,6 +267,7 @@ function add(ctx, p) {
   if (dir === 'in') touchIn(app, t, at);
   else touchOut(t, at);
   app.save(t);
+  if (dir === 'in') autoDraft(app, [t.id]);
   return get(ctx, { thread: t.id });
 }
 
@@ -283,6 +284,7 @@ function addMany(ctx, p) {
   const items = U.list(p.items, 'items');
   if (items.length === 0) throw U.fail(400, 'Give --items as a JSON list of conversations (see app.guide, "conversation rows").', 'missing_param', { param: 'items' });
   const out = { threads_new: 0, messages_new: 0, skipped: 0, problems: [], new_threads: [] };
+  const heard = [];
   items.forEach((it, i) => {
     try {
       const ext = String(it.thread || it.id || '').trim();
@@ -318,6 +320,7 @@ function addMany(ctx, p) {
         if (dir === 'in') touchIn(app, t, at);
         else touchOut(t, at);
         out.messages_new++;
+        if (dir === 'in' && heard.indexOf(t.id) < 0) heard.push(t.id);
       }
       app.save(t);
     } catch (err) {
@@ -326,6 +329,7 @@ function addMany(ctx, p) {
     }
   });
   if (out.messages_new > 0) L('lib_store').log(app, ctx.actor, out.messages_new + ' buyer message' + (out.messages_new === 1 ? '' : 's') + ' from ' + shop.getString('name'), 'shop:' + shop.id);
+  autoDraft(app, heard);
   return out;
 }
 
@@ -360,10 +364,10 @@ function reply(ctx, p) {
   t.set('draft_by', '');
   if (p.close === true) t.set('status', 'closed');
   app.save(t);
-  let task = null;
-  if (mode === 'agent') task = L('lib_tasks').queue(app, 'send_reply', 'thread:' + t.id, 'Send a reply to ' + (threadRow(app, t, null, null).buyer || 'a buyer') + ': ' + U.clip(text, 80), { thread: t.id, message: m.id }, ctx.actor);
+  let asked = null;
+  if (mode === 'agent') asked = L('lib_tasks').ask(app, 'send_reply', [{ target: 'thread:' + t.id, label: 'Send a reply to ' + (threadRow(app, t, null, null).buyer || 'a buyer') + ': ' + U.clip(text, 80), params: { thread: t.id, message: m.id } }], ctx.actor);
   L('lib_store').log(app, ctx.actor, (mode === 'agent' ? 'Asked your AI agent to send a reply in "' : 'Replied in "') + U.clip(t.getString('subject'), 80) + '"', 'thread:' + t.id);
-  return { message: msgView(m), task: task };
+  return { message: msgView(m), task: asked ? asked.task : null, asked: asked ? asked.asked : false, already: asked ? asked.already : false, message_text: asked ? asked.message : '' };
 }
 
 /** Your AI agent sent a message: confirm a reply you handed it, or (replies set to automatic) record its own. */
@@ -376,7 +380,7 @@ function sent(ctx, p) {
     m.set('state', 'sent');
     m.set('error', '');
     app.save(m);
-    L('lib_tasks').finishFor(app, 'thread:' + m.getString('thread'), 'send_reply', 'Sent');
+    L('lib_tasks').finishFor(app, 'thread:' + m.getString('thread'), 'send_reply', 'Sent', false, { message: m.id });
     return { message: msgView(m) };
   }
   const t = ref(app, p.thread);
@@ -404,7 +408,7 @@ function sendFailed(ctx, p) {
   const t = app.findRecordById('threads', m.getString('thread'));
   t.set('status', 'open');
   app.save(t);
-  L('lib_tasks').finishFor(app, 'thread:' + t.id, 'send_reply', p.error || 'Could not send', true);
+  L('lib_tasks').finishFor(app, 'thread:' + t.id, 'send_reply', p.error || 'Could not send', true, { message: m.id });
   return { message: msgView(m) };
 }
 
@@ -440,19 +444,35 @@ function requestDraft(ctx, p) {
   const U = L('lib_util');
   const app = ctx.app;
   const t = ref(app, p.thread);
-  const row = threadRow(app, t, null, null);
-  const task = L('lib_tasks').queue(app, 'draft_reply', 'thread:' + t.id, 'Draft a reply to ' + (row.buyer || 'a buyer') + ': ' + U.clip(t.getString('subject'), 80), { thread: t.id, note: U.clip(p.note || '', 1000) }, ctx.actor);
-  return { task: task };
+  return L('lib_tasks').ask(app, 'draft_reply', [draftItem(app, t, U.clip(p.note || '', 1000))], ctx.actor);
 }
 
+function draftItem(app, t, note) {
+  const U = L('lib_util');
+  const row = threadRow(app, t, null, null);
+  return { target: 'thread:' + t.id, label: 'Draft a reply to ' + (row.buyer || 'a buyer') + ': ' + U.clip(t.getString('subject'), 80), params: { thread: t.id, note: note || '' } };
+}
+
+/** Every open conversation without a draft (up to 50), in one request. */
 function requestDraftAll(ctx) {
   const app = ctx.app;
-  let n = 0;
-  for (const t of app.findRecordsByFilter('threads', "status = 'open' && draft = ''", 'due_at', 50, 0)) {
-    requestDraft(ctx, { thread: t.id });
-    n++;
+  const items = Array.from(app.findRecordsByFilter('threads', "status = 'open' && draft = ''", 'due_at', 50, 0)).map((t) => draftItem(app, t, ''));
+  if (items.length === 0) return { asked: 0, already: 0, sent: false, message: 'Every open conversation has a draft.' };
+  const out = L('lib_tasks').ask(app, 'draft_reply', items, ctx.actor);
+  // asked stays the count of conversations put to your AI agent in this request (the screens read it).
+  return { asked: out.already ? 0 : out.tasks.length, already: out.already ? out.tasks.length : out.skipped || 0, sent: out.asked, task: out.task, message: out.message };
+}
+
+/** Settings: draft a reply when a buyer message comes in (one request for the conversations that got one). */
+function autoDraft(app, threadIds) {
+  const T = L('lib_tasks');
+  if (threadIds.length === 0 || !T.autoOn(app, 'draft_replies')) return;
+  const items = [];
+  for (const id of threadIds) {
+    const t = L('lib_util').byId(app, 'threads', id);
+    if (t !== null && t.getString('status') === 'open' && t.getString('draft') === '' && items.length < 50) items.push(draftItem(app, t, ''));
   }
-  return { asked: n };
+  if (items.length > 0) T.ask(app, 'draft_reply', items, 'auto');
 }
 
 module.exports = {

@@ -5,7 +5,7 @@ PART A — REQUIREMENTS (SRS). User-approved before build; frozen after; changes
 ## Introduction
 
 ### Purpose
-Store OS is a multichannel e-commerce back office for one seller who runs one or several online shops across platforms (Shopify, WooCommerce, Shopee, Lazada, TikTok Shop, Amazon, eBay, Etsy and more), used in the browser with no accounts or sign-in. Its one job is to run every shop from one place. The seller opens new shops with a setup checklist or adds the ones already running. They keep one catalog with a listing per shop, feed every shop from one stock ledger, and work every order, parcel and buyer message from every shop in one queue. Sales and profit show by shop in the base currency. The seller's AI agent works on the same data through A2App, through the same operations the screens call. It syncs shops, writes listings, drafts and sends buyer replies, checks tracking and helps set shops up. Its listing, price, stock and order changes wait in Approvals unless the seller set that kind of change to automatic. The app hands it work as tasks through one trigger, `work_requested`.
+Store OS is a multichannel e-commerce back office for one seller who runs one or several online shops across platforms (Shopify, WooCommerce, Shopee, Lazada, TikTok Shop, Amazon, eBay, Etsy and more), used in the browser with no accounts or sign-in. Its one job is to run every shop from one place. The seller opens new shops with a setup checklist or adds the ones already running. They keep one catalog with a listing per shop, feed every shop from one stock ledger, and work every order, parcel and buyer message from every shop in one queue. Sales and profit show by shop in the base currency. The seller's AI agent works on the same data through A2App, through the same operations the screens call. It syncs shops, writes listings, drafts and sends buyer replies, checks tracking and helps set shops up. Its listing, price, stock and order changes wait in Approvals unless the seller set that kind of change to automatic. The app hands it one piece of work at a time, each kind through its own trigger naming the record, when the seller asks (or an automatic request they switched on applies).
 
 ### Scope
 **Goals**
@@ -46,7 +46,7 @@ One seller (with an optional own name the greeting uses) who runs shops on marke
 - C-15: The kinds of change the AI agent may make on its own are listings, prices, stock, replies and orders, each "ask" (the default) or "auto". The proposed operations are listings.draft, variants.set-price, stock.adjust, stock.count, orders.cancel, orders.refund and orders.return. Cancelling, refunding and returning orders cannot be undone; listing text and price, SKU prices and stock changes can (stock by an opposite move). A pending proposal expires after 14 days.
 - C-16: Guards: a proposed price drop larger than the largest price drop (default 30 %) is high risk, and the minimum margin (default 0 %) flags prices below it.
 - C-17: Addresses and phone numbers of orders delivered, cancelled or returned more than the buyer-data period ago (default 30 days, 7 to 3650) are removed every night. Names, emails and the orders themselves stay.
-- C-18: Work for the AI agent is a task of one of ten kinds: sync, publish, push_stock, setup_help, prepare_listing, draft_reply, send_reply, tracking, exception, chat. Its state is queued, asked, working, done, failed or cancelled. One trigger, `work_requested`, covers every task waiting at that moment (cooldown 10 s).
+- C-18: Work for the AI agent is a task of one of ten kinds: sync, publish, push_stock, setup_help, prepare_listing, draft_reply, send_reply, tracking, exception, chat. Each kind has its own trigger (events.json): shop_sync_requested, setup_help_requested, listing_prep_requested, listings_publish_requested, stock_push_requested, reply_draft_requested, reply_send_requested, tracking_check_requested, order_exception and question_asked, each with its own params (the record it is about) and cooldown (10 to 30 s). One fire is one piece of work. A task's state is asked (fired, or not sent), working, done, failed or cancelled, and a record has at most one open task of a kind.
 - C-19: Seeds: one settings row (`storesettings01`) with no business and no base currency, every kind of change on "ask", guards 30 % and 0 %, buyer data kept 30 days, low-stock level 5; and the Direct shop. Nothing else is seeded.
 - C-20: The copy has no emoji and no em dashes, and it calls the agent "your AI agent". Platform marks come from Simple Icons, with the platform's initial where none is published.
 
@@ -184,6 +184,7 @@ One seller (with an optional own name the greeting uses) who runs shops on marke
 - F-STG-6: The seller sees the exchange rates (base currency, date, source, number of currencies) and can refresh them now.
 - F-STG-7: The seller can download everything in one JSON file: shops, products, stock, orders, customers and conversations.
 - F-STG-8: The seller sees the activity trail: the last 100 changes by you, your AI agent and Store OS, each linking to what it changed.
+- F-STG-9: The seller can switch on requests your AI agent gets without a click ("Ask on its own"): a draft when a buyer message comes in, and sorting out a parcel whose tracking turns to a failed delivery, a problem or a return. Both start off, and only the seller can change them.
 
 ### Module: Imports (imports)
 - F-IMP-1: The seller can import a seller centre's export (CSV, .xlsx or .xls), read in the browser. They choose the shop (needed for orders; optional for products, to record listings on it) and the file, by picker or drop.
@@ -196,7 +197,7 @@ One seller (with an optional own name the greeting uses) who runs shops on marke
 
 ### Module: Your AI agent panel (chats, todos, activity)
 - F-AGP-1: The seller can tell your AI agent what to do in a chat (where they are in the app goes along as context) and read its replies.
-- F-AGP-2: The seller sees every task handed to your AI agent (Sync, Publish listings, Set stock, Setup help, Write listings, Draft a reply, Send a reply, Check tracking, Delivery problem, Your message). Each shows its state (Waiting, Asked, Working, Done, Could not finish, Cancelled), its note and a link to what it is about, and an open one can be cancelled.
+- F-AGP-2: The seller sees every task handed to your AI agent (Sync, Publish listings, Set stock, Setup help, Write listings, Draft a reply, Send a reply, Check tracking, Delivery problem, Your message). Each shows its state (Asked, Working, Done, Could not finish, Cancelled), its note, the status of its request (waiting, taken, done, turned down) and a link to what it is about, and an open one can be cancelled. One that was not sent, not picked up within 24 hours, or left unfinished for 3 hours says so and has a Retry.
 - F-AGP-3: The seller sees the store's activity trail in the panel.
 - F-AGP-4: The seller sees a task badge wherever work is with the agent ("Your AI agent is on it" while it works).
 
@@ -206,25 +207,27 @@ One seller (with an optional own name the greeting uses) who runs shops on marke
 ### Agent (via A2App)
 - F-AGT-1: The agent can perform every declared operation: the 96 operations in ## Operations Design, across the modules app, platforms, settings, activity, shops, products, variants, listings, stock, orders, shipments, inbox, customers, proposals, todos, chats, reports and imports.
 - F-AGT-2: The agent can read the rules, the row formats for orders, conversations and products, and a recipe per task kind from `app.guide`, and where the store stands from `app.status`.
-- F-AGT-3: The agent can take a `work_requested` task and work every open task, oldest first. For each it runs `tasks.start`, follows the recipe for the task's kind, and ends with `tasks.finish` and a note the seller reads.
+- F-AGT-3: The agent can take a request of any of the ten triggers. It opens the work with `tasks.start --request <id>` (the answer lists what is still open; nothing open means report the request done and stop), does the job by that trigger's instruction, and ends with the operation that closes it or `tasks.finish --request <id>` and a note the seller reads.
 - F-AGT-4: The agent can bring a shop's data in with `orders.upsert-many`, `inbox.add-many` and `products.upsert-many` (or `listings.link`), matched on the shop's own numbers and ids, so sending the same rows again changes nothing. It records the end of a sync with `shops.sync-finish`.
 - F-AGT-5: WHEN the agent calls `listings.draft`, `variants.set-price`, `stock.adjust`, `stock.count`, `orders.cancel`, `orders.refund` or `orders.return` and the seller set that kind to "Ask me" THE SYSTEM SHALL store the call as a proposal in Approvals instead of running it. `proposals.create` puts several such changes in one set, and `proposals.withdraw` takes a pending set back.
 - F-AGT-6: The agent can draft replies (`inbox.draft`, with why), confirm a reply the seller handed it (`inbox.sent`), or report that it could not send one (`inbox.send-failed`). It sends a reply of its own only when replies are set to automatic.
 - F-AGT-7: The agent can record tracking (`shipments.update`), record the stock shops now show (`stock.mark-pushed`), and answer the seller's chat (`chats.reply`).
-- F-AGT-8: WHEN the agent calls an operation the seller keeps for themselves (`settings.autonomy`, `shops.remove`, `inbox.reply`, `proposals.approve`, `proposals.reject`, `proposals.undo`, `chats.send`, `orders.remove`) THE SYSTEM SHALL refuse it and name what the seller presses in the app.
+- F-AGT-8: WHEN the agent calls an operation the seller keeps for themselves (`settings.autonomy`, `settings.automation`, `shops.remove`, `inbox.reply`, `proposals.approve`, `proposals.reject`, `proposals.undo`, `chats.send`, `tasks.retry`, `orders.remove`) THE SYSTEM SHALL refuse it and name what the seller presses in the app.
 - F-AGT-9: WHEN the agent calls a destructive operation THE SYSTEM SHALL answer `approval_required` until the person has approved that call. `products.remove`, `variants.remove` and `listings.remove` also delete nothing without `--confirm true`.
-- F-AGT-10: WHEN a task was asked 30 minutes ago and never started THE SYSTEM SHALL queue it again, and a task started three hours ago and never finished is marked failed.
+- F-AGT-10: WHEN a task was not sent, was not picked up within 24 hours, or was started three hours ago and never finished THE SYSTEM SHALL show it with a Retry that fires the same trigger once for that record. Nothing asks again on its own.
+- F-AGT-11: WHEN the seller asks for work on a record that already has an open task of that kind THE SYSTEM SHALL fire nothing and say the agent was already asked. "Draft all" and "Check tracking" on every parcel fire once, naming only the records without an open task.
+- F-AGT-12: WHEN an automatic request the seller switched on applies (a buyer message comes in; a parcel's tracking turns to a problem) THE SYSTEM SHALL fire its trigger once for that record; with the switch off it fires nothing.
 
 ## Non-Functional Requirements
 - N-1: A change made by the agent, a background job or another window appears on every open screen without a manual refresh. After each operation or job the server sends one message on the realtime topic `store` naming the changed collections. The tab gathers these for 100 ms, and each view reloads 120 ms after the last change to a collection it reads. The tab's own writes reload at once, and a hidden tab catches up when it is shown again.
 - N-2: Exchange rates are fetched at boot when they are missing or older than six hours, and every six hours after that (job `store_fx` at minute 17). Each request times out after 8 s.
-- N-3: Waiting agent work is asked for again every minute (job `store_tasks`), within the trigger's 10 s cooldown. A task asked 30 minutes ago and never started is queued again, and one started three hours ago and never finished is marked failed. Tasks that were waiting are asked for once at boot.
+- N-3: No job and no boot step fires a trigger: requests come only from the seller's clicks and the automatic requests they switched on. Whether a task waits too long (24 hours unpicked, 3 hours unfinished) is worked out when it is read, and shown with a Retry.
 - N-4: Every night at 03:23 (job `store_nightly`) the buyer-data purge runs, and proposals pending for 14 days expire.
 - N-5: Lists stay bounded. Orders and customers load 100 more rows at a time as the list scrolls, at most 500 per call; the catalog shows up to 500 products; the Stock view loads up to 1,000 SKUs; imports are sent in batches of 200 rows, and an upsert of more than 2,000 rows in one call is refused.
 - N-6: Every page has a narrow layout. The Orders, Customers and Stock tables become stacked lists below 1024 px, and the smaller tables below 640 px. Below 1024 px the sidebar becomes a drawer. The main column is at most 1480 px wide.
 
 ## Data Requirements
-- **settings** (module: settings): business_name (string, max 120), owner_name (string, max 80), country (string, max 4), base_currency (string, max 3), timezone (string, max 60), autonomy (json), guards (json), pii_days (number), low_stock (number), fx (json), fx_at (string, max 40), fx_error (string, max 300), utc_offset (number), extras (json), onboarded (boolean), created (datetime, server-set), updated (datetime, server-set).
+- **settings** (module: settings): business_name (string, max 120), owner_name (string, max 80), country (string, max 4), base_currency (string, max 3), timezone (string, max 60), autonomy (json), guards (json), pii_days (number), low_stock (number), fx (json), fx_at (string, max 40), fx_error (string, max 300), utc_offset (number), extras (json), onboarded (boolean), created (datetime, server-set), updated (datetime, server-set), automation (json).
 - **shops** (module: shops): name (string, required, max 80), platform (string, required, max 30), region (string, max 4), currency (string, max 3), url (string, max 500), admin_url (string, max 500), status (string, max 20), connection (string, max 20), setup (json), commission_bps (number), payment_bps (number), fixed_fee_minor (number), ship_days (number), reply_hours (number), stock_share (number), stock_buffer (number), stock_max (number), policies (json), sync_at (string, max 40), sync_note (string, max 2000), sort (number), created (datetime, server-set), updated (datetime, server-set).
 - **products** (module: products): title (string, required, max 300), brand (string, max 120), category (string, max 200), description (string, max 20000), status (string, max 20), images (binary), facts (json), tags (json), note (string, max 2000), created (datetime, server-set), updated (datetime, server-set).
 - **variants** (module: variants): product (ref, required → products), sku (string, required, max 120), option (string, max 120), price_minor (number), cost_minor (number), barcode (string, max 60), weight_g (number), low_stock (number), on_hand (number), sort (number), created (datetime, server-set), updated (datetime, server-set).
@@ -238,13 +241,13 @@ One seller (with an optional own name the greeting uses) who runs shops on marke
 - **messages** (module: inbox): thread (ref, required → threads), direction (string, max 10), author (string, max 10), body (string, max 20000), via (string, max 20), state (string, max 20), error (string, max 500), at (string, max 40), external_id (string, max 120), created (datetime, server-set), updated (datetime, server-set).
 - **proposals** (module: proposals): kind (string, max 20), title (string, max 300), why (string, max 4000), origin (string, max 10), status (string, max 20), risk (string, max 10), items (json), result (json), undo (json), target (string, max 120), decided_at (string, max 40), note (string, max 1000), created (datetime, server-set), updated (datetime, server-set).
 - **chats** (module: chats): text (string, max 4000), reply (string, max 6000), state (string, max 20), task (string, max 40), context (string, max 200), created (datetime, server-set), updated (datetime, server-set).
-- **tasks** (module: todos): kind (string, max 30), target (string, max 120), label (string, max 300), params (json), state (string, max 20), request (string, max 40), note (string, max 4000), asked_at (string, max 40), started_at (string, max 40), done_at (string, max 40), by (string, max 10), created (datetime, server-set), updated (datetime, server-set).
+- **tasks** (module: todos): kind (string, max 30), target (string, max 120), label (string, max 300), params (json), state (string, max 20), request (string, max 40), note (string, max 4000), asked_at (string, max 40), started_at (string, max 40), done_at (string, max 40), by (string, max 10), created (datetime, server-set), updated (datetime, server-set), trigger (string, max 60), requests (json).
 - **imports** (module: imports): kind (string, max 20), shop (ref → shops), file_name (string, max 200), rows (number), created_n (number), updated_n (number), skipped_n (number), problems (json), by (string, max 10), created (datetime, server-set), updated (datetime, server-set).
 - **activity** (module: activity): actor (string, max 10), text (string, max 600), target (string, max 120), created (datetime, server-set), updated (datetime, server-set).
 
 ## External Interfaces
 - **Human (browser):** one single-seller View served by PocketBase at the app's own origin, with these hash routes: `#/overview`, `#/orders/<view>/<order id>`, `#/products/<filter>` (also `#/products/stock` and `#/products/push`), `#/product/<id>` (`#/product/new` for a new product), `#/inbox/<view>/<thread id>`, `#/customers/<filter>/<customer id>`, `#/approvals/<pending|history>`, `#/shops`, `#/shop/<id>` and `#/settings/<section>`. The frame adds the AI agent panel (Chat, Tasks, Activity), the search palette, the add-shop dialog and the import dialog. File input is seller-centre exports (`.csv`, `.xlsx`, `.xls`) and product pictures. File output is the pick-list CSV and the JSON download of everything.
-- **Agent (A2App):** the modules and collections in AGENT_APP.md § Modules; operations exactly as declared in ## Operations Design; tasks with the capabilities `work_requested` (events.json). No other machine interface is offered to agents; the app's own screens call their own routes.
+- **Agent (A2App):** the modules and collections in AGENT_APP.md § Modules; operations exactly as declared in ## Operations Design; tasks with the ten capabilities in events.json, one per kind of work. No other machine interface is offered to agents; the app's own screens call their own routes.
 - **Third-party services (backend only):** `api.frankfurter.dev`, `cdn.jsdelivr.net`.
 
 ## Out of Scope
@@ -352,12 +355,12 @@ The published app is restated here unchanged, so these are standing decisions of
 
 ## Process Flows
 
-Work the app asks an agent for (`work_requested`): the request row follows the A2App task.
+Work the app asks an agent for (one trigger per kind of work): the request row follows the A2App task.
 
 ```mermaid
 stateDiagram-v2
-  [*] --> pending: a task is queued (button, sync, chat) or the minute job asks again (cooldown checked)
-  pending --> claimed: agent takes the task (tasks next), task working
+  [*] --> pending: the seller's click (or an automatic request they switched on) fires the kind's trigger once, naming the record (cooldown checked)
+  pending --> claimed: agent takes the task (tasks next); tasks.start --request marks the work working
   claimed --> done: tasks complete with a summary
   claimed --> rejected: task failed or canceled
   pending --> rejected: task canceled
@@ -369,14 +372,12 @@ A task for the AI agent (`tasks` row):
 
 ```mermaid
 stateDiagram-v2
-  [*] --> queued: shops.sync, products.prepare, inbox.ask-draft, orders.help, chats.send ...
-  queued --> asked: work_requested fired
-  asked --> queued: not started after 30 minutes
-  asked --> working: tasks.start
-  queued --> working: tasks.start
-  working --> done: tasks.finish (note)
-  working --> failed: tasks.finish --failed, or not finished after 3 hours
-  queued --> cancelled: tasks.cancel
+  [*] --> asked: shops.sync, products.prepare, inbox.ask-draft, orders.help, chats.send ... (its trigger fired once; or not sent)
+  asked --> asked: Retry (not sent, or not picked up within 24 hours)
+  asked --> working: tasks.start --request
+  working --> asked: Retry (left unfinished for 3 hours)
+  working --> done: the operation that does the work, or tasks.finish (note)
+  working --> failed: tasks.finish --failed
   asked --> cancelled: tasks.cancel
   working --> cancelled: tasks.cancel
   done --> [*]
@@ -508,8 +509,8 @@ A shop's status moves from setting_up to active when every setup step is done (o
 | tasks.list | todos | — | — | state: enum, limit: number | readOnly |
 | tasks.recent | todos | — | — | limit: number | readOnly |
 | tasks.get | todos | — | — | task: string! | readOnly |
-| tasks.start | todos | — | — | task: string! | — |
-| tasks.finish | todos | — | — | task: string!, note: string, failed: boolean | — |
+| tasks.start | todos | — | — | request: string, task: string | — |
+| tasks.finish | todos | — | — | request: string, task: string, note: string, failed: boolean | — |
 | tasks.cancel | todos | — | — | task: string! | — |
 | chats.list | chats | — | — | limit: number | readOnly |
 | chats.reply | chats | — | — | chat: string!, text: string! | — |

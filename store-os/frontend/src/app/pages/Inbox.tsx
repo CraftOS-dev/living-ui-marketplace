@@ -92,8 +92,10 @@ function ListPane({ view, id, onLog, className }: { view: View; id: string; onLo
   const askAll = async (): Promise<void> => {
     setAsking(true);
     try {
-      const r = await op<{ asked: number }>('inbox.ask-draft-all');
-      notify.info(r.asked === 0 ? 'Nothing left to draft' : 'Asked your AI agent for ' + plural(r.asked, 'draft'));
+      const r = await op<{ asked: number; already: number; sent?: boolean; message?: string }>('inbox.ask-draft-all');
+      if (r.asked > 0 && r.sent === false) notify.error(r.message || 'Your AI agent could not be asked. Retry shortly.');
+      else if (r.asked > 0) notify.info('Asked your AI agent for ' + plural(r.asked, 'draft'));
+      else notify.info(r.already > 0 ? 'Your AI agent was already asked for ' + plural(r.already, 'draft') : 'Nothing left to draft');
       changed('tasks', 'threads');
     } catch {
       /* op showed why */

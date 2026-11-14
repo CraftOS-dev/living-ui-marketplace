@@ -3,17 +3,17 @@
  * Boot, live-update marks, write guards and background jobs.
  *
  * - At boot the app keeps a handle for the jobs (a pooled VM can hold a
- *   committed transaction as $app), quiets the SQL echo, fetches exchange
- *   rates when they are missing or old and asks your AI agent about tasks
- *   that were waiting (sync on boot).
+ *   committed transaction as $app), quiets the SQL echo and fetches exchange
+ *   rates when they are missing or old. It never asks your AI agent for
+ *   anything on its own: requests come from the seller's clicks and the
+ *   automatic requests they switched on (lib_tasks.js).
  * - Every saved or deleted record marks its collection as changed; the
  *   dispatcher then tells open screens (lib_bus.js).
  * - The collections change only through the app's operations. Direct API
  *   writes, even a superuser's (`agent-app data`), are refused: they would
  *   skip the stock ledger, the totals and the activity trail.
- * - Jobs: every minute the task queue (ask again, re-queue, give up); every
- *   six hours the exchange rates; every night the buyer-data purge and the
- *   expiry of old proposals.
+ * - Jobs: every six hours the exchange rates; every night the buyer-data
+ *   purge and the expiry of old proposals. No job fires a trigger.
  */
 
 onBootstrap((e) => {
@@ -37,11 +37,6 @@ onBootstrap((e) => {
     }
   } catch (err) {
     console.log('[store] boot rates: ' + err);
-  }
-  try {
-    if ($app.hasTable('tasks')) require(`${__hooks}/lib_tasks.js`).tick($app);
-  } catch (err) {
-    console.log('[store] boot tasks: ' + err);
   }
 });
 
@@ -135,16 +130,6 @@ onRecordDeleteRequest(
   'activity',
   'tasks',
 );
-
-cronAdd('store_tasks', '* * * * *', () => {
-  const app = $app.store().get('store_app') || $app;
-  try {
-    require(`${__hooks}/lib_tasks.js`).tick(app);
-    require(`${__hooks}/lib_bus.js`).flush(app);
-  } catch (err) {
-    console.error('[store] task job failed:', err);
-  }
-});
 
 cronAdd('store_fx', '17 */6 * * *', () => {
   const app = $app.store().get('store_app') || $app;

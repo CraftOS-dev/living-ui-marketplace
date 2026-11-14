@@ -15,8 +15,9 @@ import { copyText, op } from '../lib/api.ts';
 import { ago, dayShort, dayTime, INTENT_LABEL, money, STATUS_LABEL, time, toDate } from '../lib/format.ts';
 import { href } from '../lib/router.ts';
 import { useStore } from '../lib/store.tsx';
+import { askNotice } from '../lib/ask.ts';
 import { notify } from '../lib/toast.tsx';
-import type { Message, ThreadDetail, ThreadRow } from '../lib/types.ts';
+import type { AskResult, Message, ThreadDetail, ThreadRow } from '../lib/types.ts';
 import { Clock, OrderStatus, TrackPill } from './badges.tsx';
 import { PlatformMark } from './PlatformMark.tsx';
 import { Avatar, Button, Dialog, Field, Pill, Select, TaskBadge, TextArea, TextInput, Tip, Toggle } from './ui.tsx';
@@ -331,12 +332,13 @@ export function Composer({ thread, seed }: { thread: ThreadDetail; seed: { text:
         const url = thread.shop_detail?.admin_url ?? '';
         if (url !== '') window.open(url, '_blank', 'noopener,noreferrer');
       }
-      await op('inbox.reply', { thread: thread.id, text: body, mode: m, close });
+      const r = await op<{ asked: boolean; already: boolean; message_text: string }>('inbox.reply', { thread: thread.id, text: body, mode: m, close });
       latest.current = { text: '', base: '' };
       setText('');
       setBase('');
       setClose(false);
-      notify.info(m === 'agent' ? 'Handed to your AI agent' : m === 'copied' ? 'Copied and marked as sent' : 'Marked as sent');
+      if (m === 'agent') askNotice({ asked: r.asked, already: r.already, message: r.message_text }, 'Handed to your AI agent');
+      else notify.info(m === 'copied' ? 'Copied and marked as sent' : 'Marked as sent');
       changed('threads', 'messages', 'tasks');
     } catch {
       /* op showed why */
@@ -349,10 +351,10 @@ export function Composer({ thread, seed }: { thread: ThreadDetail; seed: { text:
     setBusy('ask');
     try {
       await save();
-      await op('inbox.ask-draft', { thread: thread.id, note: askNote.trim() || undefined });
+      const r = await op<AskResult>('inbox.ask-draft', { thread: thread.id, note: askNote.trim() || undefined });
       setAskOpen(false);
       setAskNote('');
-      notify.info('Asked your AI agent for a draft');
+      askNotice(r, 'Asked your AI agent for a draft');
       changed('tasks', 'threads');
     } catch {
       /* op showed why */
