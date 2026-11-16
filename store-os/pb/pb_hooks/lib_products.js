@@ -678,8 +678,7 @@ function requestPrepare(ctx, p) {
   if (shopIds.length === 0) shopIds = app.findRecordsByFilter('shops', "status != 'paused' && platform != 'direct'", 'sort', 0, 0).map((s) => s.id);
   if (shopIds.length === 0) throw U.fail(400, 'Add a shop first: listings are written for a shop.', 'no_shops');
   const names = shopIds.map((id) => app.findRecordById('shops', id).getString('name'));
-  const t = L('lib_tasks').queue(app, 'prepare_listing', 'product:' + prod.id, 'Prepare listings of ' + prod.getString('title') + ' for ' + names.join(', '), { product: prod.id, shops: shopIds, note: U.clip(p.note || '', 1000) }, ctx.actor);
-  return { task: t };
+  return L('lib_tasks').ask(app, 'prepare_listing', [{ target: 'product:' + prod.id, label: 'Prepare listings of ' + prod.getString('title') + ' for ' + names.join(', '), params: { product: prod.id, shops: shopIds, note: U.clip(p.note || '', 1000) } }], ctx.actor);
 }
 
 function requestPublish(ctx, p) {
@@ -696,8 +695,15 @@ function requestPublish(ctx, p) {
   const given = U.list(p.listings, 'listings');
   const chosen = given.length > 0 ? given.map(String) : ids;
   if (chosen.length === 0) throw U.fail(400, 'Nothing to publish on ' + shop.getString('name') + ': mark listings Ready first.', 'nothing_ready');
-  const t = L('lib_tasks').queue(app, 'publish', 'shop:' + shop.id, 'Publish ' + chosen.length + ' listing' + (chosen.length === 1 ? '' : 's') + ' on ' + shop.getString('name'), { shop: shop.id, listings: chosen }, ctx.actor);
-  return { task: t };
+  // Each listing with its product, so your AI agent opens the right one.
+  const listings = [];
+  for (const id of chosen) {
+    const l = U.byId(app, 'listings', id);
+    if (l === null || l.getString('shop') !== shop.id) throw U.fail(404, 'No listing ' + id + ' on ' + shop.getString('name') + '.', 'not_found');
+    const prod = U.byId(app, 'products', l.getString('product'));
+    listings.push({ id: l.id, product: l.getString('product'), title: prod !== null ? prod.getString('title') : '' });
+  }
+  return L('lib_tasks').ask(app, 'publish', [{ target: 'shop:' + shop.id, label: 'Publish ' + chosen.length + ' listing' + (chosen.length === 1 ? '' : 's') + ' on ' + shop.getString('name'), params: { shop: shop.id, listings: listings } }], ctx.actor);
 }
 
 /* ---------------------------------------------------------------- imports */

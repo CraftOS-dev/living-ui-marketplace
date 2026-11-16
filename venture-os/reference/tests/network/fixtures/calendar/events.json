@@ -1,0 +1,171 @@
+[
+  {
+    "id": "evt_acme_soon",
+    "summary": "Acme Robotics first meeting",
+    "start_in_hours": 6,
+    "duration_minutes": 45,
+    "location": "Google Meet",
+    "hangoutLink": "https://meet.google.com/abc-defg-hij",
+    "organizer": {
+      "email": "owner@venture.test",
+      "displayName": "Olivia Owner",
+      "self": true
+    },
+    "attendees": [
+      {
+        "email": "owner@venture.test",
+        "displayName": "Olivia Owner",
+        "responseStatus": "accepted",
+        "organizer": true,
+        "self": true
+      },
+      {
+        "email": "partner@venture.test",
+        "displayName": "Paul Partner",
+        "responseStatus": "accepted"
+      },
+      {
+        "email": "maya@acmerobotics.ai",
+        "displayName": "Maya Chen",
+        "responseStatus": "accepted"
+      },
+      {
+        "email": "tomas@acmerobotics.ai",
+        "displayName": "Tomas Varga",
+        "responseStatus": "needsAction"
+      }
+    ]
+  },
+  {
+    "id": "evt_kite_later",
+    "summary": "KitePay catch-up",
+    "start_in_hours": 30,
+    "duration_minutes": 30,
+    "organizer": {
+      "email": "owner@venture.test",
+      "self": true
+    },
+    "attendees": [
+      {
+        "email": "owner@venture.test",
+        "responseStatus": "accepted",
+        "self": true
+      },
+      {
+        "email": "leo@kitepay.eu",
+        "displayName": "Leo Brandt",
+        "responseStatus": "accepted"
+      }
+    ]
+  },
+  {
+    "id": "evt_internal",
+    "summary": "Partners weekly",
+    "start_in_hours": 4,
+    "duration_minutes": 60,
+    "organizer": {
+      "email": "owner@venture.test",
+      "self": true
+    },
+    "attendees": [
+      {
+        "email": "owner@venture.test",
+        "responseStatus": "accepted",
+        "self": true
+      },
+      {
+        "email": "partner@venture.test",
+        "responseStatus": "accepted"
+      }
+    ]
+  },
+  {
+    "id": "evt_lumen_past",
+    "summary": "Call: Lumen Health",
+    "start_in_hours": -26,
+    "duration_minutes": 30,
+    "organizer": {
+      "email": "partner@venture.test",
+      "displayName": "Paul Partner"
+    },
+    "attendees": [
+      {
+        "email": "partner@venture.test",
+        "displayName": "Paul Partner",
+        "responseStatus": "accepted",
+        "organizer": true
+      },
+      {
+        "email": "raj@lumenhealth.io",
+        "displayName": "Raj Patel",
+        "responseStatus": "accepted"
+      }
+    ]
+  },
+  {
+    "id": "evt_acme_done",
+    "summary": "Acme Robotics intro call",
+    "start_in_hours": -3,
+    "duration_minutes": 60,
+    "organizer": {
+      "email": "owner@venture.test",
+      "self": true
+    },
+    "attendees": [
+      {
+        "email": "owner@venture.test",
+        "responseStatus": "accepted",
+        "self": true
+      },
+      {
+        "email": "maya@acmerobotics.ai",
+        "displayName": "Maya Chen",
+        "responseStatus": "accepted"
+      }
+    ]
+  },
+  {
+    "id": "evt_declined",
+    "summary": "Vendor pitch",
+    "start_in_hours": -5,
+    "duration_minutes": 30,
+    "organizer": {
+      "email": "sales@vendor.example"
+    },
+    "attendees": [
+      {
+        "email": "owner@venture.test",
+        "responseStatus": "declined",
+        "self": true
+      },
+      {
+        "email": "sales@vendor.example",
+        "displayName": "Vendor Sales",
+        "responseStatus": "accepted",
+        "organizer": true
+      }
+    ]
+  },
+  {
+    "id": "evt_kite_done",
+    "summary": "KitePay intro",
+    "start_in_hours": -4,
+    "duration_minutes": 30,
+    "organizer": {
+      "email": "owner@venture.test",
+      "self": true
+    },
+    "attendees": [
+      {
+        "email": "owner@venture.test",
+        "responseStatus": "accepted",
+        "self": true
+      },
+      {
+        "email": "leo@kitepay.eu",
+        "displayName": "Leo Brandt",
+        "responseStatus": "accepted"
+      }
+    ]
+  }
+]

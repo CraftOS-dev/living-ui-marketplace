@@ -1,0 +1,213 @@
+<?xml version="1.0"?>
+<edgarSubmission>
+
+    <schemaVersion>X0708</schemaVersion>
+
+    <submissionType>D/A</submissionType>
+
+    <testOrLive>LIVE</testOrLive>
+
+    <primaryIssuer>
+        <cik>0001723443</cik>
+        <entityName>InSitu Biologics, Inc.</entityName>
+        <issuerAddress>
+            <street1>3510 HOPKINS PLACE N.</street1>
+            <street2>BUILDING 4</street2>
+            <city>OAKDALE</city>
+            <stateOrCountry>MN</stateOrCountry>
+            <stateOrCountryDescription>MINNESOTA</stateOrCountryDescription>
+            <zipCode>55128</zipCode>
+        </issuerAddress>
+        <issuerPhoneNumber>651-337-4799</issuerPhoneNumber>
+        <jurisdictionOfInc>DELAWARE</jurisdictionOfInc>
+        <edgarPreviousNameList>
+            <previousName>InSitu Biologics, Inc</previousName>
+        </edgarPreviousNameList>
+        <entityType>Corporation</entityType>
+        <yearOfInc>
+            <overFiveYears>true</overFiveYears>
+        </yearOfInc>
+    </primaryIssuer>
+
+    <relatedPersonsList>
+        <relatedPersonInfo>
+            <relatedPersonName>
+                <firstName>Daniel</firstName>
+                <lastName>Halpern</lastName>
+            </relatedPersonName>
+            <relatedPersonAddress>
+                <street1>3510 Hopkins Place</street1>
+                <street2>Building 4</street2>
+                <city>Oakdale</city>
+                <stateOrCountry>MN</stateOrCountry>
+                <stateOrCountryDescription>MINNESOTA</stateOrCountryDescription>
+                <zipCode>55128</zipCode>
+            </relatedPersonAddress>
+            <relatedPersonRelationshipList>
+                <relationship>Executive Officer</relationship>
+                <relationship>Director</relationship>
+            </relatedPersonRelationshipList>
+            <relationshipClarification></relationshipClarification>
+        </relatedPersonInfo>
+        <relatedPersonInfo>
+            <relatedPersonName>
+                <firstName>William</firstName>
+                <lastName>Taylor</lastName>
+            </relatedPersonName>
+            <relatedPersonAddress>
+                <street1>3510 Hopkins Place</street1>
+                <street2>Building 4</street2>
+                <city>Oakdale</city>
+                <stateOrCountry>MN</stateOrCountry>
+                <stateOrCountryDescription>MINNESOTA</stateOrCountryDescription>
+                <zipCode>55128</zipCode>
+            </relatedPersonAddress>
+            <relatedPersonRelationshipList>
+                <relationship>Executive Officer</relationship>
+            </relatedPersonRelationshipList>
+            <relationshipClarification></relationshipClarification>
+        </relatedPersonInfo>
+        <relatedPersonInfo>
+            <relatedPersonName>
+                <firstName>Sandi</firstName>
+                <lastName>Klemann</lastName>
+            </relatedPersonName>
+            <relatedPersonAddress>
+                <street1>3510 Hopkins Place</street1>
+                <street2>Building 4</street2>
+                <city>Oakdale</city>
+                <stateOrCountry>MN</stateOrCountry>
+                <stateOrCountryDescription>MINNESOTA</stateOrCountryDescription>
+                <zipCode>55128</zipCode>
+            </relatedPersonAddress>
+            <relatedPersonRelationshipList>
+                <relationship>Executive Officer</relationship>
+            </relatedPersonRelationshipList>
+            <relationshipClarification></relationshipClarification>
+        </relatedPersonInfo>
+        <relatedPersonInfo>
+            <relatedPersonName>
+                <firstName>Robert</firstName>
+                <lastName>Wilson</lastName>
+            </relatedPersonName>
+            <relatedPersonAddress>
+                <street1>3510 Hopkins Place</street1>
+                <street2>Building 4</street2>
+                <city>Oakdale</city>
+                <stateOrCountry>MN</stateOrCountry>
+                <stateOrCountryDescription>MINNESOTA</stateOrCountryDescription>
+                <zipCode>55128</zipCode>
+            </relatedPersonAddress>
+            <relatedPersonRelationshipList>
+                <relationship>Director</relationship>
+            </relatedPersonRelationshipList>
+            <relationshipClarification></relationshipClarification>
+        </relatedPersonInfo>
+        <relatedPersonInfo>
+            <relatedPersonName>
+                <firstName>Greg</firstName>
+                <lastName>Van Guilder</lastName>
+            </relatedPersonName>
+            <relatedPersonAddress>
+                <street1>3510 Hopkins Place</street1>
+                <street2>Building 4</street2>
+                <city>Oakdale</city>
+                <stateOrCountry>MN</stateOrCountry>
+                <stateOrCountryDescription>MINNESOTA</stateOrCountryDescription>
+                <zipCode>55128</zipCode>
+            </relatedPersonAddress>
+            <relatedPersonRelationshipList>
+                <relationship>Director</relationship>
+            </relatedPersonRelationshipList>
+            <relationshipClarification></relationshipClarification>
+        </relatedPersonInfo>
+        <relatedPersonInfo>
+            <relatedPersonName>
+                <firstName>Ivan</firstName>
+                <lastName>Shaw</lastName>
+            </relatedPersonName>
+            <relatedPersonAddress>
+                <street1>3510 Hopkins Place</street1>
+                <street2>Building 4</street2>
+                <city>Oakdale</city>
+                <stateOrCountry>MN</stateOrCountry>
+                <stateOrCountryDescription>MINNESOTA</stateOrCountryDescription>
+                <zipCode>55128</zipCode>
+            </relatedPersonAddress>
+            <relatedPersonRelationshipList>
+                <relationship>Director</relationship>
+            </relatedPersonRelationshipList>
+            <relationshipClarification></relationshipClarification>
+        </relatedPersonInfo>
+    </relatedPersonsList>
+
+    <offeringData>
+        <industryGroup>
+            <industryGroupType>Biotechnology</industryGroupType>
+        </industryGroup>
+        <issuerSize>
+            <revenueRange>Decline to Disclose</revenueRange>
+        </issuerSize>
+        <federalExemptionsExclusions>
+            <item>06b</item>
+        </federalExemptionsExclusions>
+        <typeOfFiling>
+            <newOrAmendment>
+                <isAmendment>true</isAmendment>
+                <previousAccessionNumber>0001790300-23-000004</previousAccessionNumber>
+            </newOrAmendment>
+            <dateOfFirstSale>
+                <value>2022-10-14</value>
+            </dateOfFirstSale>
+        </typeOfFiling>
+        <durationOfOffering>
+            <moreThanOneYear>true</moreThanOneYear>
+        </durationOfOffering>
+        <typesOfSecuritiesOffered>
+            <isDebtType>true</isDebtType>
+            <isOptionToAcquireType>true</isOptionToAcquireType>
+            <isSecurityToBeAcquiredType>true</isSecurityToBeAcquiredType>
+        </typesOfSecuritiesOffered>
+        <businessCombinationTransaction>
+            <isBusinessCombinationTransaction>false</isBusinessCombinationTransaction>
+            <clarificationOfResponse></clarificationOfResponse>
+        </businessCombinationTransaction>
+        <minimumInvestmentAccepted>1850</minimumInvestmentAccepted>
+        <salesCompensationList></salesCompensationList>
+        <offeringSalesAmounts>
+            <totalOfferingAmount>19837423</totalOfferingAmount>
+            <totalAmountSold>15037850</totalAmountSold>
+            <totalRemaining>4799573</totalRemaining>
+            <clarificationOfResponse>$4,799,573 represents the aggregate exercise price to exercise in cash all warrants issued in the offering, calculated at the exercise prices currently in effect.</clarificationOfResponse>
+        </offeringSalesAmounts>
+        <investors>
+            <hasNonAccreditedInvestors>false</hasNonAccreditedInvestors>
+            <totalNumberAlreadyInvested>27</totalNumberAlreadyInvested>
+        </investors>
+        <salesCommissionsFindersFees>
+            <salesCommissions>
+                <dollarAmount>0</dollarAmount>
+            </salesCommissions>
+            <findersFees>
+                <dollarAmount>0</dollarAmount>
+            </findersFees>
+            <clarificationOfResponse></clarificationOfResponse>
+        </salesCommissionsFindersFees>
+        <useOfProceeds>
+            <grossProceedsUsed>
+                <dollarAmount>0</dollarAmount>
+            </grossProceedsUsed>
+            <clarificationOfResponse>Excludes ordinary course compensation paid to officers.</clarificationOfResponse>
+        </useOfProceeds>
+        <signatureBlock>
+            <authorizedRepresentative>false</authorizedRepresentative>
+            <signature>
+                <issuerName>InSitu Biologics, Inc.</issuerName>
+                <signatureName>/s/ Daniel Halpern</signatureName>
+                <nameOfSigner>Daniel Halpern</nameOfSigner>
+                <signatureTitle>Chief Executive Officer</signatureTitle>
+                <signatureDate>2026-10-26</signatureDate>
+            </signature>
+        </signatureBlock>
+    </offeringData>
+</edgarSubmission>

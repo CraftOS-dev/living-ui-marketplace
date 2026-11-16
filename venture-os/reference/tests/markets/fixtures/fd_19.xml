@@ -1,0 +1,195 @@
+<?xml version="1.0"?>
+<edgarSubmission>
+
+    <schemaVersion>X0708</schemaVersion>
+
+    <submissionType>D</submissionType>
+
+    <testOrLive>LIVE</testOrLive>
+
+    <primaryIssuer>
+        <cik>0001781160</cik>
+        <entityName>Quintessent Inc.</entityName>
+        <issuerAddress>
+            <street1>120 CREMONA DRIVE, SUITE 155</street1>
+            <city>GOLETA</city>
+            <stateOrCountry>CA</stateOrCountry>
+            <stateOrCountryDescription>CALIFORNIA</stateOrCountryDescription>
+            <zipCode>93117</zipCode>
+        </issuerAddress>
+        <issuerPhoneNumber>(425) 999-9934</issuerPhoneNumber>
+        <jurisdictionOfInc>DELAWARE</jurisdictionOfInc>
+        <issuerPreviousNameList>
+            <value>None</value>
+        </issuerPreviousNameList>
+        <edgarPreviousNameList>
+            <value>None</value>
+        </edgarPreviousNameList>
+        <entityType>Corporation</entityType>
+        <yearOfInc>
+            <overFiveYears>true</overFiveYears>
+        </yearOfInc>
+    </primaryIssuer>
+
+    <relatedPersonsList>
+        <relatedPersonInfo>
+            <relatedPersonName>
+                <firstName>Alan</firstName>
+                <lastName>Liu</lastName>
+            </relatedPersonName>
+            <relatedPersonAddress>
+                <street1>c/o Quintessent Inc.</street1>
+                <street2>120 Cremona Drive, Suite 155</street2>
+                <city>Goleta</city>
+                <stateOrCountry>CA</stateOrCountry>
+                <stateOrCountryDescription>CALIFORNIA</stateOrCountryDescription>
+                <zipCode>93117</zipCode>
+            </relatedPersonAddress>
+            <relatedPersonRelationshipList>
+                <relationship>Executive Officer</relationship>
+                <relationship>Director</relationship>
+            </relatedPersonRelationshipList>
+            <relationshipClarification></relationshipClarification>
+        </relatedPersonInfo>
+        <relatedPersonInfo>
+            <relatedPersonName>
+                <firstName>John</firstName>
+                <lastName>Bowers</lastName>
+            </relatedPersonName>
+            <relatedPersonAddress>
+                <street1>c/o Quintessent Inc.</street1>
+                <street2>120 Cremona Drive, Suite 155</street2>
+                <city>Goleta</city>
+                <stateOrCountry>CA</stateOrCountry>
+                <stateOrCountryDescription>CALIFORNIA</stateOrCountryDescription>
+                <zipCode>93117</zipCode>
+            </relatedPersonAddress>
+            <relatedPersonRelationshipList>
+                <relationship>Director</relationship>
+            </relatedPersonRelationshipList>
+            <relationshipClarification></relationshipClarification>
+        </relatedPersonInfo>
+        <relatedPersonInfo>
+            <relatedPersonName>
+                <firstName>Robert</firstName>
+                <lastName>Nunn</lastName>
+            </relatedPersonName>
+            <relatedPersonAddress>
+                <street1>c/o Quintessent Inc.</street1>
+                <street2>120 Cremona Drive, Suite 155</street2>
+                <city>Goleta</city>
+                <stateOrCountry>CA</stateOrCountry>
+                <stateOrCountryDescription>CALIFORNIA</stateOrCountryDescription>
+                <zipCode>93117</zipCode>
+            </relatedPersonAddress>
+            <relatedPersonRelationshipList>
+                <relationship>Executive Officer</relationship>
+                <relationship>Director</relationship>
+            </relatedPersonRelationshipList>
+            <relationshipClarification></relationshipClarification>
+        </relatedPersonInfo>
+        <relatedPersonInfo>
+            <relatedPersonName>
+                <firstName>Manny</firstName>
+                <lastName>Stockman</lastName>
+            </relatedPersonName>
+            <relatedPersonAddress>
+                <street1>c/o Quintessent Inc.</street1>
+                <street2>120 Cremona Drive, Suite 155</street2>
+                <city>Goleta</city>
+                <stateOrCountry>CA</stateOrCountry>
+                <stateOrCountryDescription>CALIFORNIA</stateOrCountryDescription>
+                <zipCode>93117</zipCode>
+            </relatedPersonAddress>
+            <relatedPersonRelationshipList>
+                <relationship>Director</relationship>
+            </relatedPersonRelationshipList>
+            <relationshipClarification></relationshipClarification>
+        </relatedPersonInfo>
+        <relatedPersonInfo>
+            <relatedPersonName>
+                <firstName>Gerd</firstName>
+                <lastName>Goette</lastName>
+            </relatedPersonName>
+            <relatedPersonAddress>
+                <street1>c/o Quintessent Inc.</street1>
+                <street2>120 Cremona Drive, Suite 155</street2>
+                <city>Goleta</city>
+                <stateOrCountry>CA</stateOrCountry>
+                <stateOrCountryDescription>CALIFORNIA</stateOrCountryDescription>
+                <zipCode>93117</zipCode>
+            </relatedPersonAddress>
+            <relatedPersonRelationshipList>
+                <relationship>Director</relationship>
+            </relatedPersonRelationshipList>
+            <relationshipClarification></relationshipClarification>
+        </relatedPersonInfo>
+    </relatedPersonsList>
+
+    <offeringData>
+        <industryGroup>
+            <industryGroupType>Other Technology</industryGroupType>
+        </industryGroup>
+        <issuerSize>
+            <revenueRange>Decline to Disclose</revenueRange>
+        </issuerSize>
+        <federalExemptionsExclusions>
+            <item>06b</item>
+        </federalExemptionsExclusions>
+        <typeOfFiling>
+            <newOrAmendment>
+                <isAmendment>false</isAmendment>
+            </newOrAmendment>
+            <dateOfFirstSale>
+                <value>2026-04-08</value>
+            </dateOfFirstSale>
+        </typeOfFiling>
+        <durationOfOffering>
+            <moreThanOneYear>false</moreThanOneYear>
+        </durationOfOffering>
+        <typesOfSecuritiesOffered>
+            <isEquityType>true</isEquityType>
+        </typesOfSecuritiesOffered>
+        <businessCombinationTransaction>
+            <isBusinessCombinationTransaction>false</isBusinessCombinationTransaction>
+            <clarificationOfResponse></clarificationOfResponse>
+        </businessCombinationTransaction>
+        <minimumInvestmentAccepted>0</minimumInvestmentAccepted>
+        <salesCompensationList></salesCompensationList>
+        <offeringSalesAmounts>
+            <totalOfferingAmount>40888044</totalOfferingAmount>
+            <totalAmountSold>36388045</totalAmountSold>
+            <totalRemaining>4499999</totalRemaining>
+            <clarificationOfResponse>Series A Preferred Stock and the Common Stock issuable upon conversion thereof.</clarificationOfResponse>
+        </offeringSalesAmounts>
+        <investors>
+            <hasNonAccreditedInvestors>false</hasNonAccreditedInvestors>
+            <totalNumberAlreadyInvested>18</totalNumberAlreadyInvested>
+        </investors>
+        <salesCommissionsFindersFees>
+            <salesCommissions>
+                <dollarAmount>0</dollarAmount>
+            </salesCommissions>
+            <findersFees>
+                <dollarAmount>0</dollarAmount>
+            </findersFees>
+            <clarificationOfResponse></clarificationOfResponse>
+        </salesCommissionsFindersFees>
+        <useOfProceeds>
+            <grossProceedsUsed>
+                <dollarAmount>0</dollarAmount>
+            </grossProceedsUsed>
+            <clarificationOfResponse></clarificationOfResponse>
+        </useOfProceeds>
+        <signatureBlock>
+            <authorizedRepresentative>false</authorizedRepresentative>
+            <signature>
+                <issuerName>Quintessent Inc.</issuerName>
+                <signatureName>/s/ Alan Liu</signatureName>
+                <nameOfSigner>Alan Liu</nameOfSigner>
+                <signatureTitle>Chief Executive Officer</signatureTitle>
+                <signatureDate>2026-11-10</signatureDate>
+            </signature>
+        </signatureBlock>
+    </offeringData>
+</edgarSubmission>

@@ -47,8 +47,9 @@ import { ago, currencySign, money, num, plural } from '../lib/format.ts';
 import { changed, useLive } from '../lib/live.ts';
 import { go, href } from '../lib/router.ts';
 import { useStore } from '../lib/store.tsx';
+import { askNotice } from '../lib/ask.ts';
 import { notify } from '../lib/toast.tsx';
-import type { OrderList, SetupStep, ShopDetail, Task } from '../lib/types.ts';
+import type { AskResult, OrderList, SetupStep, ShopDetail, Task } from '../lib/types.ts';
 import { CONNECTION_ICON, SHOP_STATUS } from './Shops.tsx';
 
 /* ------------------------------------------------- inline save-on-blur */
@@ -323,9 +324,8 @@ function ShopView({ shop: s, back, onShop }: { shop: ShopDetail; back: ReactNode
   const sync = async (): Promise<void> => {
     setSyncing(true);
     try {
-      await op('shops.sync', { shop: s.id });
+      askNotice(await op<AskResult>('shops.sync', { shop: s.id }), 'Asked your AI agent to sync');
       changed('tasks', 'shops');
-      notify.info('Asked your AI agent to sync');
     } catch {
       /* the notice says why */
     } finally {
@@ -503,9 +503,8 @@ function SetupCard({ shop: s, onShop }: { shop: ShopDetail; onShop: (d: ShopDeta
   const ask = async (step: SetupStep): Promise<void> => {
     setAsking(step.key);
     try {
-      await op('shops.help', { shop: s.id, step: step.key });
+      askNotice(await op<AskResult>('shops.help', { shop: s.id, step: step.key }));
       changed('tasks', 'shops');
-      notify.info('Asked your AI agent');
     } catch {
       /* the notice says why */
     } finally {
@@ -831,9 +830,8 @@ function PoliciesCard({ shop: s }: { shop: ShopDetail }): React.JSX.Element {
   const ask = async (): Promise<void> => {
     setAsking(true);
     try {
-      await op('shops.help', { shop: s.id, step: 'policies' });
+      askNotice(await op<AskResult>('shops.help', { shop: s.id, step: 'policies' }));
       changed('tasks', 'shops');
-      notify.info('Asked your AI agent');
     } catch {
       /* the notice says why */
     } finally {

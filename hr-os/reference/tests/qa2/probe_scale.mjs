@@ -1,0 +1,10 @@
+import { newApi } from './lib.mjs';
+const api = newApi();
+const PAY = { as: 'payroll@scale.test' };
+const runs = (await api.op('payruns.list', { status: 'all' }, PAY)).payruns;
+const iss = (await api.op('payruns.issues', { payrun: runs[0].id }, PAY)).issues;
+const c = {};
+for (const i of iss) c[i.severity + ':' + i.code] = (c[i.severity + ':' + i.code] || 0) + 1;
+console.log(runs[0].number, JSON.stringify(c));
+const fl = await api.op('filings.list', { show: 'all', year: 2026, limit: 100 }, PAY);
+console.log('filings on a fresh entity (no generate):', (fl.filings || []).length, (fl.filings || []).slice(0, 6).map((f) => f.kind + ' ' + f.period).join('; '));

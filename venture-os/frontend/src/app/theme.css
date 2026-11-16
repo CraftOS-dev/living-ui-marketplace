@@ -1,0 +1,472 @@
+/*
+ * Venture OS look: HR OS's quiet instrument, made lighter (SPEC 13).
+ * Cool light greys from the host's kit tokens (--agent-app-*), hairline
+ * panels, Inter at 13px, thin mono numerals (JetBrains Mono) for every
+ * figure, black primary buttons, a 2px ink bar on the active sidebar row.
+ * Colour carries meaning only: blue --vo-a for the primary series, teal
+ * --vo-b for the secondary series, red bad, amber warn, green good. Your AI
+ * agent is black and white with a Sparkle. Light and dark follow the host.
+ *
+ * The values below are the first paint. lib/themeColors.ts reads what the
+ * host's pack resolves to and rewrites every --vo-* colour on <html> with
+ * contrast checks (text 4.5:1, hover apart from every surface), on every
+ * theme change, because color-mix alone fails some packs.
+ *
+ * Motion (all of it): a 6px settle per panel on page open (.vo-in), 150 to
+ * 200ms colour transitions, the Focus card slide (.vo-slide), a chart's one
+ * sweep on first draw (charts.tsx), rows folding on delete (.vo-fold),
+ * one breathing dot for "working" (.vo-pulse) and Home's constellation
+ * (components/home/Constellation.tsx: the sphere turns, companies travel
+ * their orbits, a company that needs attention pulses; paused on hover).
+ * Nothing else moves. With prefers-reduced-motion none of it runs.
+ *
+ * Structure (Fix 4): sections inside a card are separated by full-width
+ * hairline dividers (.vo-sections, ui.tsx Sections and Section).
+ */
+@import '@fontsource-variable/inter';
+@import '@fontsource-variable/jetbrains-mono';
+
+/* Tailwind's own layer order, declared first: this file loads before Tailwind. */
+@layer theme, base, components, utilities;
+
+:root {
+  --vo-page: color-mix(in srgb, var(--agent-app-bg) 62%, #dfe5e8);
+  --vo-side: color-mix(in srgb, var(--agent-app-bg) 72%, #d9dfe2);
+  --vo-panel: color-mix(in srgb, var(--agent-app-surface) 90%, #eef2f4);
+  --vo-raised: var(--agent-app-surface);
+  --vo-sunk: color-mix(in srgb, var(--vo-page), var(--agent-app-text) 4%);
+  --vo-line: color-mix(in srgb, var(--agent-app-border), #8a959b 34%);
+  --vo-line-2: color-mix(in srgb, var(--agent-app-border), #8a959b 58%);
+  --vo-hair: color-mix(in srgb, var(--agent-app-border), #8a959b 14%);
+  --vo-ink: var(--agent-app-text);
+  --vo-ink-2: color-mix(in srgb, var(--agent-app-text), var(--agent-app-muted) 35%);
+  --vo-muted: color-mix(in srgb, var(--agent-app-muted), var(--agent-app-text) 12%);
+  --vo-faint: color-mix(in srgb, var(--agent-app-muted), var(--vo-page) 30%);
+  --vo-hover: color-mix(in srgb, var(--vo-page), var(--agent-app-text) 6%);
+  --vo-active: color-mix(in srgb, var(--vo-page), var(--agent-app-text) 11%);
+  /* Hover on a selected row (its fill is --vo-active): apart from the selected fill, the hover and the surface. */
+  --vo-active-hover: color-mix(in srgb, var(--vo-page), var(--agent-app-text) 16%);
+  --vo-agent: var(--vo-ink);
+  --vo-agent-ink: var(--vo-page);
+  --vo-on-ink: var(--vo-page);
+  --vo-radius: min(var(--agent-app-radius, 0.5rem), 8px);
+  --vo-radius-sm: calc(var(--vo-radius) * 0.75);
+  --vo-font: 'Inter Variable', var(--agent-app-font);
+  --vo-mono: 'JetBrains Mono Variable', ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  /* Between panels and blocks on every page (PageBody, Home's grid, a module's own gap-5 and gap-6 grids). */
+  --vo-gap: 12px;
+
+  --vo-a: #2563eb;
+  --vo-b: #0b7d73;
+  --vo-bad: #c81e1e;
+  --vo-warn: #9a5a06;
+  --vo-good: #15803d;
+  --vo-shadow: 0 1px 2px rgb(16 24 32 / 0.06);
+  --vo-shadow-lg: 0 18px 40px rgb(16 24 32 / 0.16), 0 3px 8px rgb(16 24 32 / 0.08);
+  --vo-overlay: rgb(16 22 26 / 0.3);
+}
+
+:root[data-theme='dark'] {
+  --vo-page: color-mix(in srgb, var(--agent-app-bg) 70%, #0e1316);
+  --vo-side: color-mix(in srgb, var(--agent-app-bg) 60%, #0b0f12);
+  --vo-panel: color-mix(in srgb, var(--agent-app-surface) 80%, #121a1f);
+  --vo-raised: color-mix(in srgb, var(--agent-app-surface) 82%, #1a242a);
+  --vo-sunk: color-mix(in srgb, var(--vo-page), #000 22%);
+  --vo-line: color-mix(in srgb, var(--agent-app-border), #5b6970 30%);
+  --vo-line-2: color-mix(in srgb, var(--agent-app-border), #7a8a92 45%);
+  --vo-hair: color-mix(in srgb, var(--agent-app-border), #5b6970 10%);
+  --vo-a: #6b9cff;
+  --vo-b: #34d1c0;
+  --vo-bad: #f87171;
+  --vo-warn: #f2a541;
+  --vo-good: #4ade80;
+  --vo-shadow: 0 1px 2px rgb(0 0 0 / 0.35);
+  --vo-shadow-lg: 0 20px 44px rgb(0 0 0 / 0.55), 0 3px 10px rgb(0 0 0 / 0.35);
+  --vo-overlay: rgb(0 0 0 / 0.5);
+}
+
+:root {
+  --vo-a-soft: color-mix(in srgb, var(--vo-a), transparent 86%);
+  --vo-b-soft: color-mix(in srgb, var(--vo-b), transparent 86%);
+  --vo-bad-soft: color-mix(in srgb, var(--vo-bad), transparent 88%);
+  --vo-warn-soft: color-mix(in srgb, var(--vo-warn), transparent 86%);
+  --vo-good-soft: color-mix(in srgb, var(--vo-good), transparent 86%);
+  --vo-agent-soft: color-mix(in srgb, var(--vo-ink), transparent 92%);
+}
+
+/* Everything you can click shows the hand (Tailwind's reset leaves buttons on the arrow). */
+@layer base {
+  button:not(:disabled),
+  [role='button']:not([aria-disabled='true']),
+  [role='switch']:not(:disabled),
+  [role='radio']:not(:disabled),
+  [role='checkbox']:not(:disabled),
+  [role='tab'],
+  [role='menuitem'],
+  [role='option'],
+  [role='treeitem'],
+  [draggable='true'],
+  a[href],
+  summary,
+  label[for],
+  label:has(input[type='checkbox']),
+  label:has(input[type='radio']),
+  select:not(:disabled),
+  input[type='checkbox']:not(:disabled),
+  input[type='radio']:not(:disabled),
+  input[type='range'],
+  input[type='file'] {
+    cursor: pointer;
+  }
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--vo-muted);
+    opacity: 0.85;
+  }
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+body {
+  margin: 0;
+  background: var(--vo-page);
+  color: var(--vo-ink);
+  font-family: var(--vo-font);
+  font-size: 13px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: 'cv11', 'ss01';
+}
+
+/* Component classes sit in the components layer, so a Tailwind utility on the same element wins. */
+@layer components {
+  .vo-mono {
+    font-family: var(--vo-mono);
+    font-feature-settings: 'zero' 0;
+    letter-spacing: 0;
+  }
+  .vo-num {
+    font-variant-numeric: tabular-nums;
+  }
+  /* Panel header labels and nothing else: one short mono uppercase label. */
+  .vo-label {
+    font-family: var(--vo-mono);
+    font-size: 10.5px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--vo-muted);
+  }
+  /* The type scale: 12, 13, 14, 15, 26 (and 10.5 for .vo-label). */
+  .vo-t12 {
+    font-size: 12px;
+    line-height: 16px;
+  }
+  .vo-t13 {
+    font-size: 13px;
+    line-height: 18px;
+  }
+  .vo-t14 {
+    font-size: 14px;
+    line-height: 20px;
+  }
+  .vo-t15 {
+    font-size: 15px;
+    line-height: 20px;
+  }
+  .vo-t26 {
+    font-size: 26px;
+    line-height: 32px;
+  }
+  /* Free text (names, notes, agent replies) never widens its column. */
+  .vo-wrap {
+    overflow-wrap: anywhere;
+    word-break: normal;
+  }
+  /* A panel: hairline border on the page, faint inner surface. */
+  .vo-panel {
+    background: var(--vo-panel);
+    border: 1px solid var(--vo-line);
+    border-radius: var(--vo-radius);
+  }
+  .hit {
+    position: relative;
+  }
+}
+
+.vo-focus:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--vo-a), transparent 30%);
+  outline-offset: 1px;
+}
+
+.vo-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--vo-muted), transparent 60%) transparent;
+}
+.vo-scroll::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.vo-scroll::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--vo-muted), transparent 65%);
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+/* Tab and segment strips scroll sideways only when they must, with no scrollbar showing. */
+.vo-strip {
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+.vo-strip::-webkit-scrollbar {
+  display: none;
+}
+
+/* A text action or link in running text: underlined at rest, ink on hover. */
+.vo-link {
+  text-decoration-line: underline;
+  text-decoration-thickness: 1px;
+  text-decoration-color: var(--vo-line-2);
+  text-underline-offset: 3px;
+  transition: text-decoration-color 150ms ease, color 150ms ease;
+}
+.vo-link:hover {
+  text-decoration-color: currentColor;
+}
+
+/*
+ * Sections in a card (ui.tsx Sections, Fix 4): a full-width hairline divider between consecutive sections, each
+ * section padded so its title sits at the top left. data-pad: card (the card's side padding, dividers edge to
+ * edge), flush (inside a padded body), tight (a dense stack of figures).
+ */
+/* Fix 5: the firm's own logo on the dark theme. Most logos are dark ink on transparency and would vanish on a dark
+   sidebar, so on dark they sit on a small white plate (company logos already sit on white tiles in both themes). */
+:root[data-theme='dark'] .vo-logo-plate {
+  background: #ffffff;
+  border-radius: 6px;
+  padding: 3px 6px;
+}
+:root[data-theme='dark'] .vo-logo-plate[data-square] {
+  padding: 3px;
+}
+
+.vo-sections > * {
+  min-width: 0;
+}
+.vo-sections > * + * {
+  border-top: 1px solid var(--vo-line);
+}
+.vo-sections[data-pad='card'] > * {
+  padding: 16px 20px;
+}
+@media (min-width: 768px) {
+  .vo-sections[data-pad='card'] > * {
+    padding: 16px 24px;
+  }
+}
+.vo-sections[data-pad='flush'] > * {
+  padding: 16px 0;
+}
+.vo-sections[data-pad='flush'] > :first-child {
+  padding-top: 0;
+}
+.vo-sections[data-pad='flush'] > :last-child {
+  padding-bottom: 0;
+}
+.vo-sections[data-pad='tight'] > * {
+  padding: 10px 0;
+}
+.vo-sections[data-pad='tight'] > :first-child {
+  padding-top: 0;
+}
+.vo-sections[data-pad='tight'] > :last-child {
+  padding-bottom: 0;
+}
+
+/* Panels and blocks sit --vo-gap apart on every page: a module's own gap-5 and gap-6 grids inside PageBody follow. */
+[data-vo-body] .gap-6,
+[data-vo-body] .gap-5 {
+  gap: var(--vo-gap);
+}
+
+/* ------------------------------------------------------------- motion */
+
+/* A panel settles 6px when a page opens (one per panel, no stagger; backwards fill only). */
+@keyframes vo-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.vo-in {
+  animation: vo-in 260ms cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
+}
+/* Overlays (dialogs, sheets, menus, toasts) appear by opacity only. */
+@keyframes vo-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.vo-fade {
+  animation: vo-fade 160ms ease backwards;
+}
+/* The next Focus card slides in 6px from the side it comes from. */
+@keyframes vo-slide-next {
+  from {
+    opacity: 0;
+    transform: translateX(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes vo-slide-prev {
+  from {
+    opacity: 0;
+    transform: translateX(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.vo-slide-next {
+  animation: vo-slide-next 200ms cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
+}
+.vo-slide-prev {
+  animation: vo-slide-prev 200ms cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
+}
+/* A row leaving a list folds away (grid rows collapse to 0). */
+.vo-fold {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition: grid-template-rows 200ms ease, opacity 200ms ease;
+}
+.vo-fold > * {
+  min-height: 0;
+  overflow: hidden;
+}
+.vo-fold[data-gone='true'] {
+  grid-template-rows: 0fr;
+  opacity: 0;
+}
+/* The one breathing dot for "working". */
+@keyframes vo-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+.vo-pulse {
+  animation: vo-pulse 1.6s ease-in-out infinite;
+}
+/* A loading placeholder: a still block (no shimmer). */
+.vo-skel {
+  background: var(--vo-sunk);
+  border-radius: 4px;
+}
+
+.vo-scrim {
+  background: var(--vo-overlay);
+  animation: vo-fade 160ms ease backwards;
+}
+
+/* ------------------------------------------------------------- phones */
+
+/*
+ * Tap targets on touch screens (pointer: coarse), at least 40px:
+ *  .vo-tap     a control grows to 40px tall and wide (buttons, fields, rows);
+ *  .vo-tap-sq  a control grows to 40 x 40 (icon buttons, tabs, segments);
+ *  .hit        a small mark keeps its size and gets a 40 x 40 touch area.
+ */
+@media (pointer: coarse) {
+  .vo-tap {
+    min-height: 40px;
+    min-width: 40px;
+  }
+  .vo-tap-sq {
+    min-width: 40px;
+    min-height: 40px;
+  }
+  [role='switch'].vo-tap-sq:hover {
+    box-shadow: none;
+  }
+  .hit::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: max(100%, 40px);
+    height: max(100%, 40px);
+    transform: translate(-50%, -50%);
+  }
+}
+/* Nothing lives only behind a hover on a touch screen. */
+@media (hover: none) {
+  .vo-board-card {
+    padding-right: 36px;
+  }
+  .group:hover .group-hover\:opacity-100,
+  .hover-only {
+    opacity: 1 !important;
+  }
+  .hover-only {
+    visibility: visible !important;
+  }
+}
+/* iOS zooms into fields under 16px. */
+@supports (-webkit-touch-callout: none) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
+@media print {
+  html,
+  body,
+  #root {
+    height: auto !important;
+    background: #fff !important;
+    color: #111 !important;
+  }
+  [data-vo-chrome] {
+    display: none !important;
+  }
+  [data-vo-frame],
+  #vo-main {
+    position: static !important;
+    overflow: visible !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vo-in,
+  .vo-fade,
+  .vo-slide-next,
+  .vo-slide-prev,
+  .vo-scrim,
+  .vo-pulse {
+    animation: none;
+  }
+  .vo-fold {
+    transition: none;
+  }
+}

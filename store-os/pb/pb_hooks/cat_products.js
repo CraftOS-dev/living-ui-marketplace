@@ -64,7 +64,7 @@ module.exports = [
     desc: 'Create or update products from rows (a product export or your AI agent\'s sync), matched on SKU. Rows sharing "group" become SKUs of one product. With --shop the listing on that shop is recorded too. Row format: app.guide rows.product.',
     params: { items: S('JSON list of product rows', { required: true }), shop: S('The shop these rows come from'), stock_mode: S('new_only (default: stock counts only for new SKUs) | set (count every SKU to the given stock) | ignore', { enum: ['new_only', 'set', 'ignore'] }) },
   },
-  { name: 'products.prepare', method: 'POST', fn: 'lib_products.requestPrepare', effect: 'write', desc: 'Ask your AI agent to write listings of a product for some shops (a prepare_listing task; its drafts come back through Approvals).', params: { product: PRODUCT, shops: S('JSON list of shops (ids or names); default every active shop'), note: S('What the seller wants, e.g. "stress gift-giving"') } },
+  { name: 'products.prepare', method: 'POST', fn: 'lib_products.requestPrepare', effect: 'write', desc: 'Ask your AI agent to write listings of a product for some shops (one listing_prep_requested; its drafts come back through Approvals).', params: { product: PRODUCT, shops: S('JSON list of shops (ids or names); default every active shop'), note: S('What the seller wants, e.g. "stress gift-giving"') } },
   {
     name: 'variants.add',
     method: 'POST',
@@ -103,5 +103,5 @@ module.exports = [
     params: { listing: S('Listing id'), product: S('The product (with --shop)'), shop: S('The shop (with --product)'), status: S('draft | ready | live | paused', { required: true, enum: ['draft', 'ready', 'live', 'paused'] }), external_id: S("The platform's listing id"), url: S('Listing link') },
   },
   { name: 'listings.remove', method: 'POST', fn: 'lib_products.listingRemove', effect: 'write', destructive: true, lookup: 'lib_products.lookupListing', desc: 'Remove a listing from Store OS (it is not taken off the platform).', params: { listing: S('Listing id'), product: S('The product (with --shop)'), shop: S('The shop (with --product)') } },
-  { name: 'listings.publish', method: 'POST', fn: 'lib_products.requestPublish', effect: 'write', desc: 'Ask your AI agent to publish listings on a shop (default: every ready listing and every live one with unpublished changes).', params: { shop: S('The shop (id or name)', { required: true }), listings: S('JSON list of listing ids (default: all that are due)') } },
+  { name: 'listings.publish', method: 'POST', fn: 'lib_products.requestPublish', effect: 'write', desc: 'Ask your AI agent to publish listings on a shop (one listings_publish_requested; default: every ready listing and every live one with unpublished changes).', params: { shop: S('The shop (id or name)', { required: true }), listings: S('JSON list of listing ids (default: all that are due)') } },
 ];

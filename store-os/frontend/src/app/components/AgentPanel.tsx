@@ -1,19 +1,58 @@
 /**
  * Talk to your AI agent: tell it what to do (a chat task), see every task it
- * was handed and how each ended, and the activity trail of the store.
+ * was handed, its request's status and how each ended (Retry when one was not
+ * sent, not picked up within 24 hours, or left unfinished), and the activity
+ * trail of the store.
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ArrowUp, Clock3, ExternalLink, Sparkles, User } from 'lucide-react';
-import { cn } from '../../kit/index.ts';
+import { cn, getPbClient } from '../../kit/index.ts';
+import type { AgentRequestRecord } from '../../kit/index.ts';
+import { askNotice } from '../lib/ask.ts';
 import { op } from '../lib/api.ts';
 import { changed, useLive } from '../lib/live.ts';
-import { ago, TASK_LABEL } from '../lib/format.ts';
+import { ago, REQUEST_STATUS_LABEL, TASK_LABEL } from '../lib/format.ts';
 import { targetHref, useRoute } from '../lib/router.ts';
-import type { Activity, Chat, Task } from '../lib/types.ts';
+import type { Activity, AskResult, Chat, Task } from '../lib/types.ts';
 import { currentAgentTab, useOpenSignal } from './Shell.tsx';
 import { Button, Drawer, Empty, IconBadge, TaskBadge, Tabs } from './ui.tsx';
 
 type Tab = 'chat' | 'tasks' | 'activity';
+
+/** Ask again, once, for a task that was not sent, not picked up within 24 hours, or left unfinished. */
+function useRetry(): { retrying: string; retry: (id: string) => Promise<void> } {
+  const [retrying, setRetrying] = useState('');
+  const retry = async (id: string): Promise<void> => {
+    setRetrying(id);
+    try {
+      askNotice(await op<AskResult>('tasks.retry', { task: id }), 'Asked your AI agent again');
+      changed('tasks', 'activity');
+    } catch {
+      /* the notice says why */
+    } finally {
+      setRetrying('');
+    }
+  };
+  return { retrying, retry };
+}
+
+/** The status of the platform's requests behind these tasks (pending, claimed, done, rejected). */
+function useRequestStatus(ids: string[]): Record<string, AgentRequestRecord['status']> {
+  const key = Array.from(new Set(ids.filter((x) => /^[a-z0-9]{15}$/.test(x)))).sort().join(',');
+  const live = useLive<Record<string, AgentRequestRecord['status']>>(
+    'agent-requests:' + key,
+    async () => {
+      if (key === '') return {};
+      const rows = await getPbClient().call((pb) => pb.collection('agent_requests').getFullList<AgentRequestRecord>({ filter: key.split(',').map((id) => 'id = "' + id + '"').join(' || '), fields: 'id,status' }), { silent: true });
+      const out: Record<string, AgentRequestRecord['status']> = {};
+      for (const r of rows) out[r.id] = r.status;
+      return out;
+    },
+    ['agent_requests'],
+    [key],
+  );
+  return live.data ?? {};
+}
 
 function ChatView(): React.JSX.Element {
   const route = useRoute();
@@ -21,6 +60,7 @@ function ChatView(): React.JSX.Element {
   const tasks = useLive<{ tasks: Task[] }>('agent-chat-tasks', (signal) => op('tasks.recent', { limit: 60 }, { signal, quiet: true }), ['tasks', 'chats']);
   const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
+  const { retrying, retry } = useRetry();
   const end = useRef<HTMLDivElement>(null);
   const list = chats.data?.chats ?? [];
   useEffect(() => {
@@ -31,7 +71,8 @@ function ChatView(): React.JSX.Element {
     if (t === '' || busy) return;
     setBusy(true);
     try {
-      await op('chats.send', { text: t, context: route.page + (route.sub ? ':' + route.sub : '') + (route.id ? ':' + route.id : '') });
+      const r = await op<AskResult>('chats.send', { text: t, context: route.page + (route.sub ? ':' + route.sub : '') + (route.id ? ':' + route.id : '') });
+      if (!r.asked) askNotice(r);
       setText('');
       changed('chats', 'tasks');
     } catch {
@@ -69,7 +110,12 @@ function ChatView(): React.JSX.Element {
                 </div>
               ) : (
                 <div className="flex items-center gap-2 pl-1">
-                  <TaskBadge task={task ? { id: task.id, kind: task.kind, state: task.state, label: task.label } : { id: '', kind: 'chat', state: 'asked', label: '' }} />
+                  <TaskBadge task={task ? { id: task.id, kind: task.kind, state: task.state, label: task.label, stale: task.stale ?? '' } : { id: '', kind: 'chat', state: 'asked', label: '' }} />
+                  {task !== undefined && task.stale && (task.state === 'asked' || task.state === 'working') && (
+                    <Button size="sm" variant="tile" loading={retrying === task.id} onClick={() => void retry(task.id)}>
+                      Retry
+                    </Button>
+                  )}
                 </div>
               )}
             </div>
@@ -103,6 +149,8 @@ function ChatView(): React.JSX.Element {
 function TasksView(): React.JSX.Element {
   const tasks = useLive<{ tasks: Task[] }>('agent-tasks', (signal) => op('tasks.recent', { limit: 60 }, { signal, quiet: true }), ['tasks']);
   const list = tasks.data?.tasks ?? [];
+  const requests = useRequestStatus(list.map((t) => t.request));
+  const { retrying, retry } = useRetry();
   const cancel = async (id: string): Promise<void> => {
     try {
       await op('tasks.cancel', { task: id });
@@ -126,7 +174,8 @@ function TasksView(): React.JSX.Element {
                 {t.note !== '' && <p className="mt-1 text-[13px] leading-5 text-[var(--so-ink-2)]">{t.note}</p>}
                 <div className="mt-2 flex flex-wrap items-center gap-2">
                   <TaskBadge task={t} />
-                  <span className="text-[12px] text-[var(--so-muted)]">{ago(t.done_at || t.created)}</span>
+                  <span className="text-[12px] text-[var(--so-muted)]">{ago(t.done_at || t.asked_at || t.created)}</span>
+                  {open && t.request !== '' && requests[t.request] !== undefined && <span className="text-[12px] text-[var(--so-muted)]">{REQUEST_STATUS_LABEL[requests[t.request]!]}</span>}
                 </div>
               </div>
               <div className="flex shrink-0 flex-col items-end gap-1.5">
@@ -134,6 +183,11 @@ function TasksView(): React.JSX.Element {
                   <a href={to} className="inline-flex h-8 items-center gap-1 rounded-full px-2.5 text-[12px] font-semibold text-[var(--so-ink-2)] hover:bg-[var(--so-tile)]">
                     Open <ExternalLink size={12} />
                   </a>
+                )}
+                {open && t.stale && (
+                  <Button size="sm" variant="secondary" loading={retrying === t.id} onClick={() => void retry(t.id)}>
+                    Retry
+                  </Button>
                 )}
                 {open && (
                   <Button size="sm" variant="tile" onClick={() => void cancel(t.id)}>

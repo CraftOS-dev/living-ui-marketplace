@@ -1,0 +1,186 @@
+// Deals: create and move with stage events and emitted events, agent rules, restricted deals, pipelines.
+import { newApi, fresh, setupFirm, section, ok, eq, refuses, summary, PEOPLE, DEMO, upload } from './lib.mjs';
+import { deckPdf } from './fixtures.mjs';
+
+fresh();
+const api = newApi();
+const firm = await setupFirm(api);
+const O = { as: 'owner' };
+const A = { as: 'agent' };
+const P = { as: PEOPLE.partner };
+const X = { as: PEOPLE.outsider };
+const N = { as: PEOPLE.analyst };
+const ev = async (name) => (await api.op('testkit.events', {}, O)).events.filter((e) => e.name === name);
+
+section('create with a stage event and deal.created');
+await api.op('testkit.events', { clear: true }, O);
+const d = (await api.op('deals.create', { company: 'acme.com', round_type: 'seed', raise: '3000000', post_money: '15000000', check: '500000', source: 'referral', people: [{ person: { name: 'Jane Doe', email: 'jane@acme.com' }, role: 'founder' }] }, O)).deal;
+eq(d.number, 'D-0001', 'display id from settings.seq');
+eq(d.stage, 'sourced', 'opens at the first stage');
+eq(d.status, 'open', 'open');
+eq(d.point && d.point.id, firm.members[DEMO.owner], 'point partner = the caller');
+ok(d.team.length === 1 && d.team[0].role === 'point', 'the point partner is on the deal team');
+ok(d.people.length === 1 && d.people[0].role === 'founder', 'the founder is on the deal');
+eq(d.round.raise_minor, 300000000, 'raise in minor units');
+eq(d.check_minor, 50000000, 'check in minor units');
+eq(d.ownership_ppm, 33333, 'ownership = check / post-money (ppm)');
+eq(d.company.domain, 'acme.com', 'company created from the domain');
+const created = await ev('deal.created');
+ok(created.length === 1 && created[0].payload.deal === d.id && created[0].payload.stage === 'sourced', 'deal.created { deal, company, pipeline, stage }', created);
+ok((await ev('company.created')).length === 1 && (await ev('person.created')).length === 1, 'company.created and person.created emitted');
+await refuses(api, 'deals.create', { company: 'acme.com' }, O, 409, 'duplicate', 'a second open deal for the company is refused');
+
+section('move with stage events and deal.moved');
+await api.op('testkit.events', { clear: true }, O);
+const m1 = (await api.op('deals.move', { deal: d.number, stage: 'screen' }, O)).deal;
+eq(m1.stage, 'screen', 'moved to screen');
+const m2 = (await api.op('deals.move', { deal: d.number, stage: 'First meeting', note: 'call booked' }, O)).deal;
+eq(m2.stage, 'first_meeting', 'moved by stage label');
+const moved = await ev('deal.moved');
+ok(moved.length === 2 && moved[0].payload.from === 'sourced' && moved[0].payload.to === 'screen' && moved[1].payload.to === 'first_meeting', 'deal.moved { deal, from, to } twice', moved);
+const tl = await api.op('records.timeline', { deal: d.number }, O);
+ok(tl.items.filter((i) => i.kind === 'deal_moved').length === 2 && tl.items.some((i) => i.kind === 'deal_created'), 'stage events in the timeline');
+await refuses(api, 'deals.move', { deal: d.number, stage: 'nowhere' }, O, 400, 'invalid_param', 'an unknown stage names the stages');
+const board = await api.op('deals.board', {}, O);
+ok(board.stages.length === 8 && board.stages.filter((s) => s.key === 'first_meeting')[0].count === 1, 'the board shows the deal in first meeting');
+eq(board.stages.filter((s) => s.key === 'diligence')[0].stall_days, 21, 'stall days per stage (diligence 21)');
+
+section('status');
+await api.op('testkit.events', { clear: true }, O);
+const st = (await api.op('deals.status', { deal: d.number, status: 'hold', reason: 'waiting for the lead' }, O)).deal;
+eq(st.status, 'hold', 'on hold');
+const closed = await ev('deal.closed');
+ok(closed.length === 1 && closed[0].payload.status === 'hold', 'deal.closed { deal, status, reason }', closed);
+await refuses(api, 'deals.move', { deal: d.number, stage: 'diligence' }, O, 409, 'not_open', 'a held deal does not move');
+await api.op('deals.status', { deal: d.number, status: 'open' }, O);
+eq((await ev('deal.closed')).length, 1, 'reopening emits no deal.closed');
+
+section('your AI agent on deals');
+const ad = await api.call('deals.create', { company: 'beta.io', source: 'inbound' }, A);
+ok(ad.status === 200 && ad.body.deal && ad.body.deal.stage === 'sourced' && ad.body.deal.point === null, 'your AI agent opens a deal at the first stage', ad.body);
+const later = await api.call('deals.create', { company: 'gamma.io', stage: 'diligence' }, A);
+ok(later.status === 200 && later.body.proposed === true, 'opening at a later stage is a proposal', later.body);
+const mv = await api.call('deals.move', { deal: d.number, stage: 'diligence', why: 'meeting held' }, A);
+ok(mv.status === 200 && mv.body.proposed === true, 'a move is a proposal', mv.body);
+eq((await api.op('deals.get', { deal: d.number }, O)).deal.stage, 'first_meeting', 'nothing moved yet');
+await refuses(api, 'deals.status', { deal: d.number, status: 'passed' }, A, 403, 'agent_not_permitted', 'status is people only');
+await refuses(api, 'deals.restrict', { deal: d.number, restricted: true }, A, 403, 'agent_not_permitted', 'restricting is people only');
+const asg = await api.call('deals.assign', { deal: d.number, point: PEOPLE.partner }, A);
+ok(asg.status === 200 && asg.body.proposed === true, 'assignment is a proposal');
+const up = await api.call('deals.update', { deal: d.number, raise: '4000000' }, A);
+ok(up.status === 200 && up.body.proposed === true, 'deals.update is a proposal');
+const fill = (await api.op('records.enrich', { deal: d.number, fields: { instrument: 'safe_cap', raise: '5000000' }, source_ref: 'deck p.4' }, A)).deal;
+ok(fill.instrument === 'safe_cap' && fill.round.raise_minor === 300000000 && fill.proposal !== null, 'records.enrich fills the empty instrument and proposes the raise change', fill);
+await refuses(api, 'deals.people', { deal: d.number, add: [{ person: 'cto@acme.com', role: 'founder' }] }, A, 404, 'not_found', 'a person named by an unknown email is not invented');
+const ppl2 = await api.call('deals.people', { deal: d.number, add: [{ person: { name: 'Carl', email: 'carl@acme.com' }, role: 'founder' }] }, A);
+ok(ppl2.status === 200 && ppl2.body.deal.people.length === 2, 'your AI agent adds a founder directly', ppl2.body);
+
+section('stage moves promoted: only to Screen');
+await api.op('settings.autonomy', { autonomy: { stage_moves: 'auto' } }, O);
+const b2 = ad.body.deal;
+const scr = await api.call('deals.move', { deal: b2.number, stage: 'screen' }, A);
+ok(scr.status === 200 && scr.body.deal && scr.body.deal.stage === 'screen', 'a move to screen runs directly', scr.body);
+const fm = await api.call('deals.move', { deal: b2.number, stage: 'first_meeting' }, A);
+ok(fm.status === 200 && fm.body.proposed === true, 'a move further is still a proposal', fm.body);
+await api.op('settings.autonomy', { autonomy: { stage_moves: 'ask' } }, O);
+
+section('restricted deals');
+const r = (await api.op('deals.create', { company: 'secretco.com', name: 'Project Owl', restricted: true }, O)).deal;
+await api.op('deals.team', { deal: r.number, add: [PEOPLE.partner] }, O);
+ok((await api.call('deals.get', { deal: r.number }, O)).status === 200, 'the owner sees it');
+ok((await api.call('deals.get', { deal: r.number }, P)).status === 200, 'a team member sees it');
+await refuses(api, 'deals.get', { deal: r.number }, X, 403, 'restricted', 'a partner off the team does not');
+await refuses(api, 'deals.get', { deal: r.number }, N, 403, 'restricted', 'an analyst off the team does not');
+await refuses(api, 'deals.get', { deal: r.number }, A, 403, 'restricted', 'your AI agent does not (agent_allowed off)');
+const xl = await api.op('deals.list', {}, X);
+ok(!xl.deals.some((x) => x.id === r.id) && xl.hidden === 1, 'deals.list hides it and says hidden: 1', xl);
+const al = await api.op('deals.list', {}, A);
+ok(!al.deals.some((x) => x.id === r.id) && al.hidden === 1, 'hidden from your AI agent too, with hidden: 1');
+const xb = await api.op('deals.board', {}, X);
+eq(xb.hidden, 1, 'the board says hidden: 1');
+const xs = await api.op('search.query', { q: 'Owl' }, X);
+ok(!xs.results.some((x) => x.kind === 'deal'), 'search does not find it for an outsider');
+const ps = await api.op('search.query', { q: 'Owl' }, P);
+ok(ps.results.some((x) => x.kind === 'deal' && x.href === '#/deals/' + r.number), 'search finds it for the team');
+const ct = await api.op('companies.get', { company: 'secretco.com' }, X);
+ok(ct.company.deals.length === 0 && ct.company.deals_hidden === 1, 'the company page hides it with deals_hidden: 1');
+await api.op('deals.restrict', { deal: r.number, restricted: true, agent_allowed: true }, P);
+ok((await api.call('deals.get', { deal: r.number }, A)).status === 200, 'with agent_allowed your AI agent sees it');
+await refuses(api, 'deals.team', { deal: r.number, remove: [PEOPLE.partner] }, X, 403, 'restricted', 'an outsider cannot change its team');
+await api.op('deals.restrict', { deal: r.number, restricted: false }, O);
+ok((await api.call('deals.get', { deal: r.number }, X)).status === 200, 'opened to the firm, the outsider sees it');
+
+section('pipelines');
+const pls = await api.op('pipelines.list', {}, O);
+ok(pls.pipelines.length === 1 && pls.pipelines[0].key === 'deal_flow' && pls.pipelines[0].open >= 3, 'deal_flow is seeded with its open count');
+eq(pls.pipelines[0].stages.map((s) => s.stall_days), [7, 7, 7, 21, 14, 7, 21, 0], 'seeded stall days');
+const spv = (await api.op('deals.create', { company: 'acme.com', pipeline: 'spv' }, O)).deal;
+eq(spv.pipeline.key, 'spv', 'the spv pipeline is created on first use');
+eq((await api.op('pipelines.list', {}, O)).pipelines.length, 2, 'two pipelines now');
+await refuses(api, 'pipelines.save', { pipeline: 'deal_flow', stages: [{ key: 'sourced', label: 'Sourced', stall_days: 7 }, { label: 'Screen', stall_days: 5 }] }, O, 409, 'stage_in_use', 'a stage holding deals cannot be removed');
+const sv = await api.op('pipelines.save', { pipeline: 'spv', stages: [{ key: 'sourced', label: 'Sourced', stall_days: 3 }, { label: 'Allocation', stall_days: 10 }, { label: 'Closed', stall_days: 0 }] }, O);
+eq(sv.pipeline.stages.map((s) => s.key), ['sourced', 'allocation', 'closed'], 'stages saved with keys from labels');
+await refuses(api, 'pipelines.save', { pipeline: 'spv', name: 'X' }, A, 403, 'agent_not_permitted', 'your AI agent cannot change pipelines');
+await refuses(api, 'pipelines.save', { pipeline: 'spv', name: 'X' }, P, 403, 'not_permitted', 'a partner (settings view) cannot either');
+
+section('fund scope');
+const fund2 = await api.op('entities.save', { kind: 'fund', name: 'Fund II', currency: 'USD' }, O);
+const fund2Id = (fund2.entity || fund2).id;
+const scoped = await api.op('members.invite', { email: 'scoped@northwind.test', name: 'Scoped', role: 'partner', funds: [fund2Id] }, { as: 'owner', pin: true });
+await api.op('auth.accept-invite', { email: 'scoped@northwind.test', code: scoped.code, password: 'demo-pass-1' });
+await api.op('deals.create', { company: 'fundco.com', fund: firm.fund }, O);
+const sl = await api.op('deals.list', {}, { as: 'scoped@northwind.test' });
+ok(!sl.deals.some((x) => x.company.domain === 'fundco.com') && sl.hidden >= 1, 'a deal of a fund outside the member\'s scope is hidden');
+ok(sl.deals.some((x) => x.company.domain === 'acme.com'), 'deals without a fund stay visible');
+
+section('a merged deal\'s old id resolves to the deal kept');
+const k1 = (await api.op('deals.create', { company: 'merge-a.com' }, O)).deal;
+const k2 = (await api.op('deals.create', { company: 'merge-b.com' }, O)).deal;
+const rootUp = await upload(api, 'files.upload', { deal: k2.number }, [{ name: 'Root deck.pdf', bytes: deckPdf() }], 'owner');
+await upload(api, 'files.upload', { deal: k2.number }, [{ name: 'Root deck.pdf', bytes: deckPdf(['v2']) }], 'owner');
+const mrg = await api.call('deals.merge', { keep: k1.number, drop: k2.number }, O);
+ok(mrg.status === 200, 'deals.merge (deals module) folds the second deal into the first', mrg.body);
+eq((await api.op('deals.get', { deal: k2.id }, O)).deal.id, k1.id, 'the dropped deal\'s id resolves to the kept deal');
+eq((await api.op('deals.get', { deal: k2.number }, O)).deal.id, k1.id, 'its display id too');
+const k3 = (await api.op('deals.create', { company: 'merge-c.com' }, O)).deal;
+await api.op('deals.merge', { keep: k3.number, drop: k1.number }, O);
+eq((await api.op('deals.get', { deal: k2.id }, O)).deal.id, k3.id, 'through a second merge (a chain of aliases)');
+ok(!(await api.op('deals.list', { status: 'all' }, O)).deals.some((x) => x.id === k2.id || x.id === k1.id), 'merged deals are not listed');
+const movedFiles = await api.op('files.list', { deal: k3.number, all_versions: true }, O);
+ok(movedFiles.files.filter((f) => f.name === 'Root deck.pdf' && f.folder === '').length === 2, 'the merges moved both versions of a root-folder file to the kept deal (lib_files.move)', movedFiles.files.map((f) => [f.name, f.folder, f.owner_id]));
+ok(rootUp.status === 200, 'root file stored');
+
+section('board speed with 600 deals');
+const bulk = await api.op('testkit.bulk-deals', { count: 600 }, O);
+eq(bulk.created, 600, '600 deals opened');
+// Two calls warm the server's runtimes; then the median of five (wall clock and the server's own time).
+await api.call('deals.board', {}, O);
+await api.call('deals.board', {}, O);
+const walls = [];
+const servers = [];
+let big = null;
+for (let i = 0; i < 5; i++) {
+  const t0 = Date.now();
+  const r = await api.call('deals.board', {}, O);
+  walls.push(Date.now() - t0);
+  servers.push(Number(/dur=([0-9.]+)/.exec(r.headers.get('server-timing') || '')[1]));
+  big = r.body;
+}
+walls.sort((x, y) => x - y);
+servers.sort((x, y) => x - y);
+ok(big.total >= 600, 'the board holds them all (' + big.total + ')');
+// The handler's own time (Server-Timing) is the measure: wall clock also counts the machine's other load.
+ok(servers[2] < 150, 'deals.board handler takes ' + servers[2] + ' ms (median Server-Timing, under 150; wall clock ' + walls.join(', ') + ' ms)');
+const lim = await api.op('deals.board', { limit: 20 }, O);
+const busy = lim.stages.filter((s) => s.count > 20)[0];
+ok(busy !== undefined && busy.deals.length === 20 && busy.count > 20, 'a column keeps its count and shows --limit cards');
+const card = big.stages.filter((s) => s.key === 'sourced')[0].deals[0];
+ok(card.company && card.company.name && card.point && card.point.name && typeof card.days_in_stage === 'number' && card.stage_label === 'Sourced', 'cards carry company, point partner, stage label and days', card);
+const lr = await api.call('deals.list', { limit: 200 }, O);
+const lms = Number(/dur=([0-9.]+)/.exec(lr.headers.get('server-timing') || 'dur=0')[1]);
+ok(lr.body.deals.length === 200 && lms < 100, 'deals.list of 200 cards: handler ' + lms + ' ms');
+const lst = lr.body;
+const one = (await api.op('deals.get', { deal: card.number }, O)).deal;
+eq([card.title, card.stage, card.point.id, card.company.id, card.check_minor], [one.title, one.stage, one.point.id, one.company.id, one.check_minor], 'a board card matches deals.get');
+
+summary('t02 deals');

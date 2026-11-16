@@ -1,0 +1,6 @@
+name,email,phone,location,current_title,current_company,source,links,tags,consent,notes
+Alice Ong,alice.ong@example.com,+65 9111 2222,Singapore,Backend Engineer,Acme,job_board,https://example.com/alice,go;postgres,yes,Met at a meetup
+Ben Ito,ben.ito@example.com,,Tokyo,SRE,Beta KK,,,,no,
+Jane Doe,JANE@example.com,,,,,,,,,
+,missing@example.com,,,,,,,,,
+Cara Lim,cara@example.com,,,,,bogus_source,,,,

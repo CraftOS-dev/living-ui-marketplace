@@ -292,10 +292,9 @@ function remove(ctx, p) {
 function requestSync(ctx, p) {
   const app = ctx.app;
   const r = ref(app, p.shop);
-  const T = L('lib_tasks');
-  const t = T.queue(app, 'sync', 'shop:' + r.id, 'Sync ' + r.getString('name') + ': new orders, messages and listings', { shop: r.id, platform: r.getString('platform'), since: r.getString('sync_at') }, ctx.actor);
-  L('lib_store').log(app, ctx.actor, 'Asked your AI agent to sync ' + r.getString('name'), 'shop:' + r.id);
-  return { task: t };
+  const out = L('lib_tasks').ask(app, 'sync', [{ target: 'shop:' + r.id, label: 'Sync ' + r.getString('name') + ': new orders, messages and listings', params: { shop: r.id, platform: r.getString('platform'), since: r.getString('sync_at') } }], ctx.actor);
+  if (out.asked) L('lib_store').log(app, ctx.actor, 'Asked your AI agent to sync ' + r.getString('name'), 'shop:' + r.id);
+  return out;
 }
 
 function requestHelp(ctx, p) {
@@ -304,8 +303,7 @@ function requestHelp(ctx, p) {
   const r = ref(app, p.shop);
   const s = stepsOf(r).filter((x) => x.key === p.step)[0];
   if (!s) throw U.fail(400, 'No step ' + p.step + ' on this shop.', 'invalid_param', { param: 'step' });
-  const t = L('lib_tasks').queue(app, 'setup_help', 'shop:' + r.id, 'Help with "' + s.title + '" for ' + r.getString('name'), { shop: r.id, step: s.key, title: s.title, link: s.link, note: U.clip(p.note || '', 1000) }, ctx.actor);
-  return { task: t };
+  return L('lib_tasks').ask(app, 'setup_help', [{ target: 'shop:' + r.id, label: 'Help with "' + s.title + '" for ' + r.getString('name'), params: { shop: r.id, step: s.key, title: s.title, link: s.link, note: U.clip(p.note || '', 1000) } }], ctx.actor);
 }
 
 function syncFinish(ctx, p) {

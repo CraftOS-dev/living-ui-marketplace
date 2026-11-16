@@ -1,0 +1,30 @@
+// Debug: open one page and log every /api request with its status and time.
+import { createRequire } from 'node:module';
+const require = createRequire('C:/Users/zfoong/Desktop/agent/code/git/CraftBot/app/ui_layer/browser/frontend/package.json');
+const { chromium } = require('playwright-core');
+const PORT = Number(process.env.PORT ?? 3189);
+const BASE = `http://127.0.0.1:${PORT}/`;
+const [email = 'owner@northwind.test', path = 'performance', wait = '6000'] = process.argv.slice(2);
+const browser = await chromium.launch({ headless: true });
+const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+const page = await ctx.newPage();
+const started = new Map();
+page.on('request', (r) => r.url().includes('/api/') && started.set(r, Date.now()));
+page.on('requestfinished', async (r) => {
+  if (!r.url().includes('/api/')) return;
+  const res = await r.response();
+  console.log((res ? res.status() : '?') + ' ' + (Date.now() - (started.get(r) ?? Date.now())) + 'ms ' + r.method() + ' ' + r.url().replace(BASE, '').slice(0, 140));
+});
+page.on('requestfailed', (r) => r.url().includes('/api/') && console.log('FAILED ' + r.url().replace(BASE, '') + ' ' + (r.failure() || {}).errorText));
+page.on('console', (m) => m.type() !== 'debug' && console.log('console.' + m.type() + ': ' + m.text().slice(0, 200)));
+await page.goto(BASE + '#/home');
+await page.waitForSelector('input[type=email]', { timeout: 20000 });
+await page.fill('input[type=email]', email);
+await page.fill('input[type=password]', 'demo-pass-1');
+await page.getByRole('button', { name: 'Sign in' }).last().click();
+await page.waitForSelector('#hr-main', { timeout: 20000 });
+console.log('--- signed in; opening ' + path);
+await page.goto(BASE + '#/' + path);
+await page.waitForTimeout(Number(wait));
+console.log('--- body text: ' + (await page.evaluate(() => document.querySelector('#hr-main')?.innerText.slice(0, 300).replace(/\n/g, ' | '))));
+await browser.close();

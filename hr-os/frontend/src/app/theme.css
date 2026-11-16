@@ -1,0 +1,537 @@
+/*
+ * HR OS look: a quiet instrument (the Piano Coach language). Cool light greys
+ * from the host's kit tokens (--agent-app-*), hairline panels, small
+ * monospaced readouts, thin mono numerals for every figure. Colour carries
+ * meaning only: blue for the primary series (employee pay, earnings,
+ * present), teal for the secondary series (employer cost, time, remote), red
+ * for blockers, amber for warnings, green for done. Your AI agent is black and
+ * white with a star. Light and dark follow the host.
+ *
+ * The values below are the first paint. lib/themeColors.ts reads what the
+ * host's pack resolves to and rewrites every --hr-* colour on <html> with
+ * contrast checks (text 4.5:1, controls 3:1), on every theme change.
+ */
+@import '@fontsource-variable/inter';
+@import '@fontsource-variable/jetbrains-mono';
+
+/* Tailwind's own layer order, declared first: this file loads before Tailwind. */
+@layer theme, base, components, utilities;
+
+:root {
+  --hr-page: color-mix(in srgb, var(--agent-app-bg) 62%, #dfe5e8);
+  --hr-side: color-mix(in srgb, var(--agent-app-bg) 72%, #d9dfe2);
+  --hr-panel: color-mix(in srgb, var(--agent-app-surface) 90%, #eef2f4);
+  --hr-raised: var(--agent-app-surface);
+  --hr-sunk: color-mix(in srgb, var(--hr-page), var(--agent-app-text) 4%);
+  --hr-line: color-mix(in srgb, var(--agent-app-border), #8a959b 34%);
+  --hr-line-2: color-mix(in srgb, var(--agent-app-border), #8a959b 58%);
+  --hr-hair: color-mix(in srgb, var(--agent-app-border), #8a959b 14%);
+  --hr-ink: var(--agent-app-text);
+  --hr-ink-2: color-mix(in srgb, var(--agent-app-text), var(--agent-app-muted) 35%);
+  --hr-muted: color-mix(in srgb, var(--agent-app-muted), var(--agent-app-text) 12%);
+  --hr-faint: color-mix(in srgb, var(--agent-app-muted), var(--hr-page) 30%);
+  --hr-hover: color-mix(in srgb, var(--hr-page), var(--agent-app-text) 6%);
+  --hr-active: color-mix(in srgb, var(--hr-page), var(--agent-app-text) 11%);
+  /* Your AI agent: black and white, like the ink (white on dark in dark mode). */
+  --hr-agent: var(--hr-ink);
+  --hr-agent-ink: var(--hr-page);
+  --hr-agent-soft: color-mix(in srgb, var(--hr-ink), transparent 92%);
+  /* The label colour on ink buttons and the selected chip. */
+  --hr-on-ink: var(--hr-page);
+  --hr-radius: min(var(--agent-app-radius, 0.5rem), 8px);
+  --hr-radius-sm: calc(var(--hr-radius) * 0.75);
+  --hr-font: 'Inter Variable', var(--agent-app-font);
+  --hr-mono: 'JetBrains Mono Variable', ui-monospace, 'Cascadia Mono', Consolas, monospace;
+
+  --hr-rh: #2563eb;
+  --hr-lh: #0b7d73;
+  --hr-bad: #c81e1e;
+  --hr-warn: #9a5a06;
+  --hr-good: #15803d;
+  --hr-shadow: 0 1px 2px rgb(16 24 32 / 0.06);
+  --hr-shadow-lg: 0 18px 40px rgb(16 24 32 / 0.16), 0 3px 8px rgb(16 24 32 / 0.08);
+  --hr-overlay: rgb(16 22 26 / 0.3);
+}
+
+:root[data-theme='dark'] {
+  --hr-page: color-mix(in srgb, var(--agent-app-bg) 70%, #0e1316);
+  --hr-side: color-mix(in srgb, var(--agent-app-bg) 60%, #0b0f12);
+  --hr-panel: color-mix(in srgb, var(--agent-app-surface) 80%, #121a1f);
+  --hr-raised: color-mix(in srgb, var(--agent-app-surface) 82%, #1a242a);
+  --hr-sunk: color-mix(in srgb, var(--hr-page), #000 22%);
+  --hr-line: color-mix(in srgb, var(--agent-app-border), #5b6970 30%);
+  --hr-line-2: color-mix(in srgb, var(--agent-app-border), #7a8a92 45%);
+  --hr-hair: color-mix(in srgb, var(--agent-app-border), #5b6970 10%);
+  --hr-rh: #6b9cff;
+  --hr-lh: #34d1c0;
+  --hr-bad: #f87171;
+  --hr-warn: #f2a541;
+  --hr-good: #4ade80;
+  --hr-shadow: 0 1px 2px rgb(0 0 0 / 0.35);
+  --hr-shadow-lg: 0 20px 44px rgb(0 0 0 / 0.55), 0 3px 10px rgb(0 0 0 / 0.35);
+  --hr-overlay: rgb(0 0 0 / 0.5);
+}
+
+:root {
+  --hr-rh-soft: color-mix(in srgb, var(--hr-rh), transparent 86%);
+  --hr-lh-soft: color-mix(in srgb, var(--hr-lh), transparent 86%);
+  --hr-bad-soft: color-mix(in srgb, var(--hr-bad), transparent 88%);
+  --hr-warn-soft: color-mix(in srgb, var(--hr-warn), transparent 86%);
+  --hr-good-soft: color-mix(in srgb, var(--hr-good), transparent 86%);
+}
+
+/* Everything you can click shows the hand (Tailwind's reset leaves buttons on the arrow). */
+@layer base {
+  button:not(:disabled),
+  [role='button']:not([aria-disabled='true']),
+  [role='switch']:not(:disabled),
+  [role='radio']:not(:disabled),
+  [role='checkbox']:not(:disabled),
+  [role='tab'],
+  [role='menuitem'],
+  [role='option'],
+  [role='treeitem'],
+  a[href],
+  summary,
+  label[for],
+  label:has(input[type='checkbox']),
+  label:has(input[type='radio']),
+  select:not(:disabled),
+  input[type='checkbox']:not(:disabled),
+  input[type='radio']:not(:disabled),
+  input[type='range'],
+  input[type='file'] {
+    cursor: pointer;
+  }
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--hr-muted);
+    opacity: 0.85;
+  }
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+body {
+  margin: 0;
+  background: var(--hr-page);
+  color: var(--hr-ink);
+  font-family: var(--hr-font);
+  font-size: 13px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: 'cv11', 'ss01';
+}
+
+/* Component classes sit in the components layer, so a Tailwind utility (hover:bg-..., text-...) on the same element wins. */
+@layer components {
+.hr-mono {
+  font-family: var(--hr-mono);
+  font-feature-settings: 'zero' 0;
+  letter-spacing: 0;
+}
+.hr-num {
+  font-variant-numeric: tabular-nums;
+}
+/* The small uppercase readout labels of an instrument panel. */
+.hr-label {
+  font-family: var(--hr-mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--hr-muted);
+}
+/*
+ * The type scale: 10.5px mono caps labels (.hr-label) and 12, 13, 14, 15, 26px
+ * text, nothing else. 12 secondary lines and hints, 13 body and controls, 14
+ * card titles and dialog body titles, 15 dialog and sheet titles, 26 the
+ * page title and the one big readout. As classes (or text-[12px] ... text-[26px]):
+ */
+.hr-t12 {
+  font-size: 12px;
+  line-height: 16px;
+}
+.hr-t13 {
+  font-size: 13px;
+  line-height: 18px;
+}
+.hr-t14 {
+  font-size: 14px;
+  line-height: 20px;
+}
+.hr-t15 {
+  font-size: 15px;
+  line-height: 20px;
+}
+.hr-t26 {
+  font-size: 26px;
+  line-height: 32px;
+}
+/* Free text (names, notes, addresses, agent replies) never widens its column. */
+.hr-wrap {
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+/* A panel: hairline border on the page, faint inner surface. */
+.hr-panel {
+  background: var(--hr-panel);
+  border: 1px solid var(--hr-line);
+  border-radius: var(--hr-radius);
+}
+
+/* The faint measuring grid behind canvases (org chart, schedule, wallchart). */
+.hr-grid {
+  background-color: var(--hr-sunk);
+  background-image: linear-gradient(to right, color-mix(in srgb, var(--hr-line), transparent 55%) 1px, transparent 1px), linear-gradient(to bottom, color-mix(in srgb, var(--hr-line), transparent 55%) 1px, transparent 1px);
+  background-size: 24px 24px;
+  background-position: -1px -1px;
+}
+
+}
+
+.hr-focus:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--hr-rh), transparent 30%);
+  outline-offset: 1px;
+}
+
+.hr-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--hr-muted), transparent 60%) transparent;
+}
+.hr-scroll::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.hr-scroll::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--hr-muted), transparent 65%);
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+/* Tab and segment strips: they scroll sideways only when they must, with no scrollbar showing (never a vertical one). */
+.hr-strip {
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+.hr-strip::-webkit-scrollbar {
+  display: none;
+}
+
+/* A text action or a link in running text: underlined at rest (a hairline 3px under), ink on hover. */
+.hr-link {
+  text-decoration-line: underline;
+  text-decoration-thickness: 1px;
+  text-decoration-color: var(--hr-line-2);
+  text-underline-offset: 3px;
+  transition: text-decoration-color 150ms ease, color 150ms ease;
+}
+.hr-link:hover {
+  text-decoration-color: currentColor;
+}
+
+/* Money behind "Hide pay": six muted dots (the digits are not in the page), read as hidden, not as empty. */
+.hr-hidden-pay {
+  color: var(--hr-muted) !important;
+  letter-spacing: 0.12em;
+  user-select: none;
+}
+
+/* Table rows are buttons in a grid; numbers line up on the right. */
+.hr-table-row {
+  transition: background-color 150ms ease;
+}
+
+/* ------------------------------------------------------------- motion */
+
+/* A panel settles 6px when a page opens (fill backwards only: no lasting transform). */
+@keyframes hr-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.hr-in {
+  animation: hr-in 260ms cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
+}
+@keyframes hr-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.hr-fade {
+  animation: hr-fade 200ms ease backwards;
+}
+/* A decided row's outcome ("Approved", "Dismissed") fades in over it (components/decision.tsx). */
+.hr-outcome {
+  animation: hr-fade 140ms ease backwards;
+}
+@keyframes hr-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+/* Only the small "working" dot of your AI agent breathes. */
+.hr-pulse {
+  animation: hr-pulse 1.6s ease-in-out infinite;
+}
+@keyframes hr-shimmer {
+  from {
+    background-position: -200px 0;
+  }
+  to {
+    background-position: 200px 0;
+  }
+}
+.hr-skel {
+  background: linear-gradient(90deg, var(--hr-sunk) 0px, var(--hr-hover) 80px, var(--hr-sunk) 160px);
+  background-size: 400px 100%;
+  animation: hr-shimmer 1.3s linear infinite;
+  border-radius: 4px;
+}
+
+/* ------------------------------------------------------------ dialogs */
+
+.hr-scrim {
+  background: var(--hr-overlay);
+  backdrop-filter: blur(3px);
+  animation: hr-fade 160ms ease backwards;
+}
+@keyframes hr-dialog {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.hr-dialog {
+  animation: hr-dialog 200ms cubic-bezier(0.16, 0.84, 0.3, 1) backwards;
+}
+@keyframes hr-sheet {
+  from {
+    transform: translateX(24px);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+.hr-sheet {
+  animation: hr-sheet 220ms cubic-bezier(0.16, 0.84, 0.3, 1) backwards;
+}
+@keyframes hr-drawer {
+  from {
+    transform: translateX(-24px);
+    opacity: 0.6;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+.hr-drawer {
+  animation: hr-drawer 200ms cubic-bezier(0.16, 0.84, 0.3, 1) backwards;
+}
+@keyframes hr-up {
+  from {
+    transform: translateY(18px);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+.hr-up {
+  animation: hr-up 220ms cubic-bezier(0.16, 0.84, 0.3, 1) backwards;
+}
+
+/* Range inputs in the instrument style. */
+.hr-range {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 18px;
+  background: transparent;
+}
+.hr-range::-webkit-slider-runnable-track {
+  height: 3px;
+  border-radius: 3px;
+  background: var(--hr-line-2);
+}
+.hr-range::-moz-range-track {
+  height: 3px;
+  border-radius: 3px;
+  background: var(--hr-line-2);
+}
+.hr-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  margin-top: -5.5px;
+  border-radius: 999px;
+  background: var(--hr-raised);
+  border: 1.5px solid var(--hr-ink);
+}
+.hr-range::-moz-range-thumb {
+  width: 13px;
+  height: 13px;
+  border-radius: 999px;
+  background: var(--hr-raised);
+  border: 1.5px solid var(--hr-ink);
+}
+
+/* ------------------------------------------------------------- phones */
+
+/*
+ * Tap targets on touch screens (pointer: coarse), at least 40px:
+ *  - .hr-tap     a control grows to 40px tall and at least 40px wide (Button, fields, Checkbox,
+ *                MenuItem, pickers, table rows, Inbox rows);
+ *  - .hr-tap-sq  a control grows to 40 x 40 (IconButton, back arrow, Segmented, Tabs, the Toggle's
+ *                button around its track);
+ *  - .hit        a small mark keeps its size and gets an invisible 40 x 40 touch area
+ *                centred on it (Hint, LinkButton, inline links).
+ * A mouse keeps the compact sizes.
+ */
+@layer components {
+  .hit {
+    position: relative;
+  }
+}
+@media (pointer: coarse) {
+  .hr-tap {
+    min-height: 40px;
+    min-width: 40px;
+  }
+  .hr-tap-sq {
+    min-width: 40px;
+    min-height: 40px;
+  }
+  /* A tapped switch keeps no hover ring around its touch area. */
+  [role='switch'].hr-tap-sq:hover {
+    box-shadow: none;
+  }
+  .hit::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: max(100%, 40px);
+    height: max(100%, 40px);
+    transform: translate(-50%, -50%);
+  }
+}
+/* A phone header's "More" list: every action a full-width row; a menu button shows its name. */
+@media (max-width: 767.98px) {
+  .hr-head-more > * {
+    width: 100%;
+  }
+  .hr-head-more > button {
+    justify-content: flex-start;
+  }
+  .hr-head-more > button[aria-haspopup] {
+    width: 100% !important;
+    gap: 8px;
+    padding: 0 10px;
+    color: var(--hr-ink);
+  }
+  .hr-head-more > button[aria-haspopup]::after {
+    content: attr(aria-label);
+    font-size: 13px;
+    font-weight: 500;
+  }
+}
+/* Nothing lives only behind a hover on a touch screen. */
+@media (hover: none) {
+  .group:hover .group-hover\:opacity-100,
+  .hover-only {
+    opacity: 1 !important;
+  }
+  .hover-only {
+    visibility: visible !important;
+  }
+}
+/* iOS zooms into fields under 16px. */
+@supports (-webkit-touch-callout: none) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* -------------------------------------------------------------- print */
+
+@page {
+  size: A4;
+  margin: 16mm 14mm;
+}
+@media print {
+  html,
+  body,
+  #root {
+    height: auto !important;
+    background: #fff !important;
+    color: #111 !important;
+  }
+  .hr-no-print,
+  nav,
+  [data-hr-shell-chrome] {
+    display: none !important;
+  }
+  .hr-print-page {
+    box-shadow: none !important;
+    border: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: auto !important;
+    max-width: none !important;
+    background: #fff !important;
+    color: #111 !important;
+  }
+  .hr-print-page * {
+    color: #111 !important;
+    border-color: #bbb !important;
+  }
+  .hr-hidden-pay {
+    color: #111 !important;
+    background: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hr-in,
+  .hr-fade,
+  .hr-outcome,
+  .hr-dialog,
+  .hr-sheet,
+  .hr-up,
+  .hr-drawer,
+  .hr-scrim {
+    animation: none;
+  }
+  .hr-pulse,
+  .hr-skel {
+    animation: none;
+  }
+}

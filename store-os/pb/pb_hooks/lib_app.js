@@ -97,6 +97,19 @@ function autonomy(ctx, p) {
   return settingsGet(ctx);
 }
 
+/** The seller switches automatic requests to your AI agent on or off. */
+function automation(ctx, p) {
+  const S = L('lib_store');
+  const app = ctx.app;
+  const r = S.settings(app);
+  const a = S.automationOf(r);
+  for (const k of S.AUTOMATIONS) if (p[k] !== undefined) a[k] = p[k] === true;
+  r.set('automation', a);
+  app.save(r);
+  S.log(app, 'person', 'Ask your AI agent on its own: ' + (a.draft_replies ? 'drafts for new buyer messages' : 'no drafts') + ', ' + (a.exceptions ? 'delivery problems' : 'no delivery problems'), '');
+  return settingsGet(ctx);
+}
+
 function fxRefresh(ctx) {
   const S = L('lib_store');
   const out = S.fxRefresh(ctx.app);
@@ -120,7 +133,7 @@ function status(ctx) {
     shops: shops,
     attention: att,
     open_tasks: tasks,
-    next: settings.base_currency === '' ? 'The seller has not set up the store yet (settings.update --business_name --country --base_currency).' : tasks.length > 0 ? 'Work the open tasks (tasks.list).' : 'Nothing is waiting for you.',
+    next: settings.base_currency === '' ? 'The seller has not set up the store yet (settings.update --business_name --country --base_currency).' : tasks.length > 0 ? 'Each open task came with its own request; work one when its request is handed to you (tasks.start --request <id>).' : 'Nothing is waiting for you.',
   };
 }
 
@@ -199,4 +212,4 @@ function convert(ctx, p) {
   return { amount: amount, from: from, to: to, result: Number((amount * rate).toFixed(U.exp(to))), rate: Number(rate.toPrecision(6)), date: t.date };
 }
 
-module.exports = { convert: convert, settingsGet: settingsGet, settingsUpdate: settingsUpdate, autonomy: autonomy, fxRefresh: fxRefresh, status: status, activity: activity, search: search, purge: purge, exportAll: exportAll };
+module.exports = { convert: convert, settingsGet: settingsGet, settingsUpdate: settingsUpdate, autonomy: autonomy, automation: automation, fxRefresh: fxRefresh, status: status, activity: activity, search: search, purge: purge, exportAll: exportAll };
