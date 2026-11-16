@@ -1,0 +1,55 @@
+[
+  {
+    "id": "evt_acme_first_meeting",
+    "summary": "Acme Robotics / Northwind Ventures: first meeting",
+    "start_in_hours": 20,
+    "duration_minutes": 45,
+    "location": "Google Meet",
+    "hangoutLink": "https://meet.google.com/abc-defg-hij",
+    "description": "Seed round. Deck in the deal room.",
+    "organizer": { "email": "owner@venture.test", "displayName": "Olivia Owner", "self": true },
+    "attendees": [
+      { "email": "owner@venture.test", "displayName": "Olivia Owner", "responseStatus": "accepted", "organizer": true, "self": true },
+      { "email": "partner@venture.test", "displayName": "Paul Partner", "responseStatus": "accepted" },
+      { "email": "maya@acmerobotics.ai", "displayName": "Maya Chen", "responseStatus": "accepted" },
+      { "email": "tomas@acmerobotics.ai", "displayName": "Tomas Varga", "responseStatus": "needsAction" }
+    ]
+  },
+  {
+    "id": "evt_northwind_board",
+    "summary": "Northwind Analytics board meeting (Q3)",
+    "start_in_hours": 50,
+    "duration_minutes": 90,
+    "location": "Northwind Analytics, Lisbon office",
+    "description": "Q3 review, 2027 plan, VP Sales hire.",
+    "organizer": { "email": "ana@northwind-analytics.com", "displayName": "Ana Silva" },
+    "attendees": [
+      { "email": "ana@northwind-analytics.com", "displayName": "Ana Silva", "responseStatus": "accepted", "organizer": true },
+      { "email": "owner@venture.test", "displayName": "Olivia Owner", "responseStatus": "accepted", "self": true }
+    ]
+  },
+  {
+    "id": "evt_internal_weekly",
+    "summary": "Partners weekly",
+    "start_in_hours": 4,
+    "duration_minutes": 60,
+    "location": "Office",
+    "organizer": { "email": "owner@venture.test", "displayName": "Olivia Owner", "self": true },
+    "attendees": [
+      { "email": "owner@venture.test", "displayName": "Olivia Owner", "responseStatus": "accepted", "organizer": true, "self": true },
+      { "email": "partner@venture.test", "displayName": "Paul Partner", "responseStatus": "accepted" }
+    ]
+  },
+  {
+    "id": "evt_lumen_past_call",
+    "summary": "Call: Lumen Health",
+    "start_in_hours": -26,
+    "duration_minutes": 30,
+    "location": "Phone",
+    "organizer": { "email": "partner@venture.test", "displayName": "Paul Partner" },
+    "attendees": [
+      { "email": "partner@venture.test", "displayName": "Paul Partner", "responseStatus": "accepted", "organizer": true },
+      { "email": "raj@lumenhealth.io", "displayName": "Raj Patel", "responseStatus": "accepted" }
+    ]
+  }
+]

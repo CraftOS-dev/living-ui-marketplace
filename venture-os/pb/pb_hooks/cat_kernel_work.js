@@ -1,0 +1,44 @@
+/**
+ * Catalog: the work between people and your AI agent: Next (the one
+ * queue), proposals, asking your AI agent (agent.ask, agent.cannot),
+ * questions, activity (undo) and notifications.
+ */
+const S = (desc, extra) => Object.assign({ type: 'string', desc: desc }, extra || {});
+const N = (desc, extra) => Object.assign({ type: 'number', desc: desc }, extra || {});
+const B = (desc, extra) => Object.assign({ type: 'boolean', desc: desc }, extra || {});
+const PAGE = { limit: N('Rows (default 50)'), offset: N('Rows to skip') };
+const PROPOSAL = S('Proposal id', { required: true });
+
+module.exports = [
+  /* Next */
+  { name: 'next.list', method: 'GET', fn: 'lib_next.list', perm: 'signed', effect: 'read', desc: "Everything waiting for the caller, one queue: verdicts, drafts to approve, proposals, votes, alerts, tasks... sorted by urgency, each with its figures and 1 to 3 actions (an op with params). Snoozed items are left out. Your AI agent's own Next is its drafts and proposals; --member: the Next of a person whose question waits for you. Your rows: action labels, local time (--full true: all).", params: { limit: N('Items (default 50)'), cursor: S('next_cursor of the previous page'), kinds: S('Only these kinds (comma list): verdict, draft, proposal, vote, decision, verify, alert, condition, payment, mark, candidate, note, task, stall'), member: S("Your AI agent: read this member's Next (id, email or name) while a question they asked waits for your answer") } },
+  { name: 'next.count', method: 'GET', fn: 'lib_next.count', perm: 'signed', effect: 'read', desc: "How many items wait in the caller's Next, by kind.", params: { member: S("Your AI agent: count this member's Next (id, email or name) while a question they asked waits for your answer") } },
+  { name: 'next.snooze', method: 'POST', fn: 'lib_next.snooze', perm: 'signed', agent: 'deny', effect: 'write', track: false, desc: 'Hide one Next item until a day (08:00 in the firm zone), for some hours, or until tomorrow by default; --until "" brings it back.', params: { key: S('The item key', { required: true }), until: S('Day YYYY-MM-DD'), hours: N('Hours instead of a day') } },
+
+  /* proposals */
+  { name: 'proposals.list', method: 'GET', fn: 'lib_proposals.list', perm: 'signed', effect: 'read', desc: "Your AI agent's proposals the caller can act on: pending (default, oldest first) or decided, each with items (before and after), evidence, confidence and risk.", params: Object.assign({ status: S('pending | decided | all', { enum: ['pending', 'decided', 'all'] }), kind: S('Proposal kind') }, PAGE) },
+  { name: 'proposals.get', method: 'GET', fn: 'lib_proposals.get', perm: 'signed', effect: 'read', desc: 'One proposal with its items and their states (pending, applied, stale, failed, dismissed, superseded).', params: { proposal: PROPOSAL } },
+  { name: 'proposals.create', method: 'POST', fn: 'lib_proposals.create', perm: 'signed', effect: 'write', track: false, desc: 'Your AI agent: propose several changes as one set (each item an op that becomes a proposal, with its params), with --why, --evidence and --confidence for the set.', params: { title: S('What the set does'), why: S('One or two lines on why'), evidence: S('The supporting quote, or JSON {"quote","file","page","url"}'), confidence: N('0 to 1'), items: S('JSON list [{"op":"<op>","params":{...}}]', { required: true }) } },
+  { name: 'proposals.accept', method: 'POST', fn: 'lib_proposals.accept', perm: 'signed', agent: 'deny', effect: 'write', track: false, pinIf: 'lib_proposals.acceptNeedsPin', desc: 'Accept a proposal (all items, or the chosen ones; the rest are dismissed). Each runs as you, checked again first (stale items are skipped), as its own undoable change.', params: { proposal: PROPOSAL, items: S('JSON list of item indexes to apply (default all)') } },
+  { name: 'proposals.dismiss', method: 'POST', fn: 'lib_proposals.dismiss', perm: 'signed', agent: 'deny', effect: 'write', track: false, desc: 'Dismiss a proposal, with a note for your AI agent.', params: { proposal: PROPOSAL, note: S('Why, so your AI agent does better next time') } },
+  { name: 'proposals.withdraw', method: 'POST', fn: 'lib_proposals.withdraw', perm: 'signed', effect: 'write', track: false, desc: 'Withdraw a pending proposal that no longer applies.', params: { proposal: PROPOSAL } },
+
+  /* your AI agent: one trigger per task (lib_agent) */
+  { name: 'agent.ask', method: 'POST', fn: 'lib_agent.opAsk', perm: 'signed', agent: 'deny', effect: 'write', track: false, desc: "Ask your AI agent for one task on one record now: --trigger (settings.get agent_triggers) and --record (the id its param names; none for a firm task). Answers the request id. 409 while the record already waits for an answer (Retry after 24 hours, or --again <request id> once it was done or rejected), on a cooldown, or in a demo firm.", params: { trigger: S('The trigger', { required: true }), record: S('The record id its param names'), again: S('The request id a screen saw done or rejected: ask once more') } },
+  { name: 'agent.cannot', method: 'POST', fn: 'lib_agent.opCannot', perm: 'signed', effect: 'write', desc: 'Your AI agent only: you could not do what a trigger asked (the file cannot be read, a login or a person is needed): say why. The person sees it on the record and may ask again.', params: { trigger: S('The trigger that asked you', { required: true }), record: S('The record id from its params (none for a firm task)'), reason: S('What you saw and what a person can do', { required: true }) } },
+
+  /* questions */
+  { name: 'chat.ask', method: 'POST', fn: 'lib_agent.chatAsk', perm: 'signed', agent: 'deny', effect: 'write', track: false, desc: 'Tell your AI agent something: a question or an instruction becomes a question (trigger question_asked). Answers the question; follow its request to show the answer.', params: { text: S('What to answer or do', { required: true }), context: S('Where the person was, e.g. #/deals/D-0012') } },
+  { name: 'chat.list', method: 'GET', fn: 'lib_agent.chatList', perm: 'signed', effect: 'read', desc: "Questions asked of your AI agent and their answers, newest first (the caller's own; settings viewers and your AI agent: everyone's, --mine true for one's own).", params: { status: S('waiting | answered | failed | all', { enum: ['waiting', 'answered', 'failed', 'all'] }), mine: B('Only my questions'), limit: N('Rows (default 30)') } },
+  { name: 'chat.get', method: 'GET', fn: 'lib_agent.chatGet', perm: 'signed', effect: 'read', desc: "One question with its answer. For your AI agent: the question, where the person was (context), the top of the asker's Next (asker_next) and the local time.", params: { ask: S('Question id', { required: true }) } },
+  { name: 'chat.answer', method: 'POST', fn: 'lib_agent.chatAnswer', perm: 'signed', effect: 'write', desc: 'Your AI agent only: the answer to a question (short and plain, with the numbers, dates and record names you used). It shows under the ask and the asker is told.', params: { ask: S('Question id', { required: true }), answer: S('The answer', { required: true }) } },
+
+  /* activity (undo) */
+  { name: 'activity.list', method: 'GET', fn: 'lib_activity.list', perm: 'signed', effect: 'read', desc: "Changes as undoable units, newest first: who, what, which record, how many records it touched, whether it was undone. --view runs groups your AI agent's runs.", params: Object.assign({ run: S("Your AI agent's run id"), actor: S('person | agent | system', { enum: ['person', 'agent', 'system'] }), target: S('collection:id or a record id'), op: S('Operation name'), mine: B('Only my changes'), view: S('entries (default) | runs', { enum: ['entries', 'runs'] }) }, PAGE) },
+  { name: 'activity.undo', method: 'POST', fn: 'lib_activity.undo', perm: 'signed', agent: 'deny', effect: 'write', track: false, desc: "Undo one change (--entry) or a whole run of your AI agent (--run), as one unit: everything or nothing. Refused when something it touched changed again later.", params: { entry: S('Activity entry id'), run: S("Your AI agent's run id") } },
+
+  /* notifications */
+  { name: 'notifications.list', method: 'GET', fn: 'lib_notify.list', perm: 'signed', effect: 'read', desc: 'Your notifications, newest first, with the unread count.', params: Object.assign({ unread: B('Only unread ones') }, PAGE) },
+  { name: 'notifications.read', method: 'POST', fn: 'lib_notify.read', perm: 'signed', agent: 'deny', effect: 'write', track: false, desc: 'Mark a notification read (or unread with --read false).', params: { notification: S('Notification id', { required: true }), read: B('Read (default true)') } },
+  { name: 'notifications.read-all', method: 'POST', fn: 'lib_notify.readAll', perm: 'signed', agent: 'deny', effect: 'write', track: false, desc: 'Mark all your notifications read.' },
+];

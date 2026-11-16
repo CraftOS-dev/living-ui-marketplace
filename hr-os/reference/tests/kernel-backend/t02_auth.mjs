@@ -1,0 +1,105 @@
+// Sign-in, invites, lockout, the approval PIN, owner recovery, members and roles.
+import { DEMO, eq, fresh, newApi, ok, refuses, section, summary } from './lib.mjs';
+
+fresh();
+const api = newApi();
+const setup = await api.op('setup.complete', { company_name: 'Auth Co', country: 'SG', owner_name: 'Owner One', email: DEMO.owner, password: DEMO.password, pin: DEMO.pin });
+let recovery = setup.recovery_code;
+const O = { as: 'owner' };
+const OP = { as: 'owner', pin: true };
+
+section('login and lockout');
+await refuses(api, 'auth.login', { email: DEMO.owner, password: 'wrong-pass' }, { as: 'anon' }, 401, 'wrong_password', 'wrong password');
+await refuses(api, 'auth.login', { email: 'nobody@x.test', password: 'whatever1' }, { as: 'anon' }, 401, 'wrong_password', 'unknown email answers the same');
+const inv = await api.op('members.invite', { email: 'lock@northwind.test', name: 'Lee Lock', role: 'employee' }, OP);
+ok(/^[A-Z0-9]{5}-[A-Z0-9]{5}$/.test(inv.code), 'invite code XXXXX-XXXXX');
+await refuses(api, 'auth.login', { email: 'lock@northwind.test', password: 'anything1' }, { as: 'anon' }, 401, 'wrong_password', 'an invited member cannot sign in before accepting');
+await refuses(api, 'auth.accept-invite', { email: 'lock@northwind.test', code: 'AAAAA-BBBBB', password: DEMO.password }, { as: 'anon' }, 400, 'bad_invite', 'wrong invite code');
+const acc = await api.op('auth.accept-invite', { email: 'lock@northwind.test', code: inv.code, password: DEMO.password });
+ok(acc.token && acc.me.member.email === 'lock@northwind.test', 'accepted the invite and signed in');
+await refuses(api, 'auth.accept-invite', { email: 'lock@northwind.test', code: inv.code, password: DEMO.password }, { as: 'anon' }, 400, 'bad_invite', 'an invite code works once');
+// The wrong invite code above counted as one failure: nine more wrong passwords lock the account.
+const st9 = [];
+for (let i = 0; i < 9; i++) st9.push((await api.call('auth.login', { email: 'lock@northwind.test', password: 'wrong-' + i })).status);
+eq(st9, [401, 401, 401, 401, 401, 401, 401, 401, 401], 'nine wrong passwords answer 401');
+await refuses(api, 'auth.login', { email: 'lock@northwind.test', password: DEMO.password }, { as: 'anon' }, 423, 'locked', 'locked after 10 wrong passwords (right password refused)');
+const reset = await api.op('members.reset', { member: 'lock@northwind.test' }, OP);
+ok(reset.code, 'an administrator gives a new sign-in code (clears the lock)');
+const acc2 = await api.op('auth.accept-invite', { email: 'lock@northwind.test', code: reset.code, password: 'new-pass-22' });
+ok(acc2.token, 'the member sets a new password with the code');
+await api.op('members.disable', { member: 'lock@northwind.test' }, OP);
+await refuses(api, 'auth.login', { email: 'lock@northwind.test', password: 'new-pass-22' }, { as: 'anon' }, 403, 'account_disabled', 'disabled member cannot sign in');
+await api.op('members.enable', { member: 'lock@northwind.test' }, OP);
+const back = await api.call('auth.login', { email: 'lock@northwind.test', password: 'new-pass-22' });
+eq(back.status, 200, 'enabled member signs in again');
+
+section('PIN');
+await refuses(api, 'members.invite', { email: 'x1@northwind.test', name: 'X', role: 'employee' }, O, 400, 'missing_param', 'confirm op without pin');
+await refuses(api, 'members.invite', { email: 'x1@northwind.test', name: 'X', role: 'employee', pin: '000001' }, O, 403, 'wrong_pin', 'wrong PIN refused');
+const st = await api.op('pin.status', {}, O);
+eq(st.has_pin, true, 'owner has a PIN');
+const lockT = 'lock@northwind.test';
+api.setToken(lockT, back.body.token);
+await refuses(api, 'members.signout', {}, { as: 'agent' }, 403, 'agent_not_permitted', 'agent cannot sign people out');
+await refuses(api, 'pin.change', { current_pin: '123456', new_pin: '654321' }, { as: lockT }, 409, 'pin_not_set', 'a member without a PIN must set one first');
+await refuses(api, 'pin.set', { password: 'bad-password', new_pin: '246810' }, { as: lockT }, 400, 'wrong_password', 'setting a PIN needs the password');
+await api.op('pin.set', { password: 'new-pass-22', new_pin: '246810' }, { as: lockT });
+await refuses(api, 'pin.set', { password: 'new-pass-22', new_pin: '246811' }, { as: lockT }, 409, 'pin_exists', 'pin.set only the first time');
+await api.op('pin.change', { current_pin: '246810', new_pin: '135790' }, { as: lockT });
+// Five wrong PINs lock the PIN.
+for (let i = 0; i < 4; i++) await api.call('pin.change', { current_pin: '00000' + i, new_pin: '112233' }, { as: lockT });
+const fifth = await api.call('pin.change', { current_pin: '000009', new_pin: '112233' }, { as: lockT });
+ok(fifth.status === 403 && /locked/.test(fifth.body.message), 'fifth wrong PIN locks it', fifth.body);
+await refuses(api, 'pin.change', { current_pin: '135790', new_pin: '112233' }, { as: lockT }, 423, 'pin_locked', 'right PIN refused while locked');
+await api.op('pin.reset', { member: lockT }, OP);
+const after = await api.op('pin.status', {}, { as: lockT });
+eq(after.has_pin, false, 'administrator cleared the PIN (and the lock)');
+await api.op('pin.set', { password: 'new-pass-22', new_pin: '246810' }, { as: lockT });
+eq((await api.op('pin.status', {}, { as: lockT })).has_pin, true, 'member set a new PIN');
+
+section('owner recovery');
+await refuses(api, 'pin.recover', { recovery_code: 'AAAAA-BBBBB-CCCCC-DDDDD', new_pin: '975310' }, O, 400, 'bad_recovery_code', 'wrong recovery code');
+const rec = await api.op('pin.recover', { recovery_code: recovery, new_pin: '975310' }, O);
+ok(rec.recovery_code && rec.recovery_code !== recovery, 'PIN reset with the recovery code; a new code is issued');
+await refuses(api, 'pin.recover', { recovery_code: recovery, new_pin: '975311' }, O, 400, 'bad_recovery_code', 'the old recovery code no longer works');
+recovery = rec.recovery_code;
+await refuses(api, 'members.invite', { email: 'x2@northwind.test', name: 'X', role: 'employee', pin: DEMO.pin }, O, 403, 'wrong_pin', 'old PIN refused after recovery');
+const rr = await api.op('auth.recover', { email: DEMO.owner, recovery_code: recovery, password: 'recovered-1', new_pin: DEMO.pin });
+ok(rr.token && rr.recovery_code !== recovery, 'owner signed in with the recovery code and set a new password and PIN');
+api.forget(DEMO.owner);
+await refuses(api, 'auth.login', { email: DEMO.owner, password: DEMO.password }, { as: 'anon' }, 401, 'wrong_password', 'old password no longer works');
+api.setToken(DEMO.owner, rr.token);
+await api.op('auth.change-password', { current: 'recovered-1', password: DEMO.password }, O).then((r) => api.setToken(DEMO.owner, r.token));
+const pinOk = await api.call('members.invite', { email: 'x3@northwind.test', name: 'Xavier Three', role: 'hr_admin' }, OP);
+eq(pinOk.status, 200, 'the new PIN works');
+
+section('members and roles');
+const hrInv = pinOk.body;
+const hrJoin = await api.op('auth.accept-invite', { email: 'x3@northwind.test', code: hrInv.code, password: DEMO.password });
+api.setToken('x3@northwind.test', hrJoin.token);
+await api.op('pin.set', { password: DEMO.password, new_pin: DEMO.pin }, { as: 'x3@northwind.test' });
+const HR = { as: 'x3@northwind.test', pin: true };
+await refuses(api, 'members.invite', { email: 'own2@northwind.test', name: 'O', role: 'owner' }, HR, 403, 'not_permitted', 'HR admin cannot make an owner');
+await refuses(api, 'roles.add', { name: 'Site lead', levels: { time: 'full' } }, HR, 403, 'not_permitted', 'HR admin cannot change roles (admin edit only)');
+await refuses(api, 'settings.update', { company_name: 'Hacked' }, { as: 'x3@northwind.test' }, 403, 'not_permitted', 'HR admin cannot change company settings');
+const role = await api.op('roles.add', { name: 'Site lead', levels: { time: 'full', people: 'view' }, team_scope: true }, OP);
+eq(role.code, 'site_lead', 'owner added a role (code from the name)');
+await refuses(api, 'roles.update', { role: 'owner', name: 'Boss' }, OP, 409, 'invalid', 'the Owner role cannot change');
+await refuses(api, 'roles.delete', { role: 'employee' }, OP, 409, 'invalid', 'built-in roles stay');
+const del = await api.op('roles.delete', { role: 'site_lead' }, OP);
+eq(del.deleted, true, 'a custom role nobody has can be deleted');
+await refuses(api, 'members.disable', { member: DEMO.owner }, OP, 409, 'invalid', 'you cannot disable yourself');
+await refuses(api, 'members.update', { member: DEMO.owner, role: 'employee' }, OP, 409, 'last_owner', 'keep one owner');
+const list = await api.op('members.list', {}, O);
+ok(list.total >= 3 && list.members.every((m) => m.has_pin !== undefined), 'members list with PIN flag');
+const auditRows = await api.op('audit.list', { op: 'members.invite' }, O);
+ok(auditRows.total >= 3, 'invites are in the audit trail (' + auditRows.total + ')');
+const allAudit = JSON.stringify(await api.op('audit.list', { limit: 500 }, O));
+ok(allAudit.indexOf('demo-pass-1') < 0 && allAudit.indexOf('new-pass-22') < 0 && allAudit.indexOf('"123456"') < 0 && allAudit.indexOf(recovery) < 0, 'no password, PIN or recovery code in the audit trail');
+await refuses(api, 'members.list', {}, { as: lockT }, 403, 'not_permitted', 'an employee cannot list members');
+const agentMembers = await api.call('members.list', {}, { as: 'agent' });
+eq(agentMembers.status, 200, 'your AI agent can read the member list');
+await refuses(api, 'members.invite', { email: 'a@x.test', name: 'A', role: 'employee' }, { as: 'agent' }, 403, 'agent_not_permitted', 'your AI agent cannot invite');
+
+const s = summary('t02_auth');
+process.exitCode = s.failed > 0 ? 1 : 0;

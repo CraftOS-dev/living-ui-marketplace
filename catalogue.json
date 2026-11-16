@@ -362,6 +362,26 @@
       "folder": "speedrun-application",
       "tags": ["startup", "fundraising", "a16z", "speedrun", "applications", "writing", "productivity"],
       "version": "1.0.0"
+    },
+    {
+      "id": "hr-os",
+      "agentAppVersion": "0.1.0",
+      "toolkit": "blueprint-pocketbase-kit",
+      "name": "HR OS",
+      "description": "Run HR and payroll for every company, country and currency in one place: people and org charts, time and attendance, leave, expenses, payroll with country rule packs, hiring and performance, while your AI agent reads receipts, reviews pay runs and drafts letters and you approve what changes.",
+      "folder": "hr-os",
+      "tags": ["HR", "payroll", "people", "hiring", "time tracking", "business"],
+      "version": "1.0.0"
+    },
+    {
+      "id": "venture-os",
+      "agentAppVersion": "0.1.0",
+      "toolkit": "blueprint-pocketbase-kit",
+      "name": "Venture OS",
+      "description": "Run your venture firm in one place: deal flow, diligence, committee votes, portfolio monitoring, funds and LP reporting, while your AI agent reads decks, writes briefs and drafts the follow-ups, and partners decide.",
+      "folder": "venture-os",
+      "tags": ["venture capital", "deal flow", "portfolio", "funds", "investing", "business"],
+      "version": "1.0.0"
     }
   ]
 }

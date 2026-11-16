@@ -1,0 +1,8 @@
+# kernel-backend tests
+
+Run against a scratch copy of the app (never the delivered folder, never a live port):
+
+1. Copy the app to a scratch folder without `pb/pb_data`; add `stubs/` over it (scratch-only test kit: `events_test.js`, `lib_testkit.js`, `cat_test_core.js`, `cron_test.js`, a `rule_packs` stub migration used only while the payroll migration is absent, and country stubs used only where the app has no country file); run `node tools/gen.mjs` in the copy. `sync.sh` does this for the kernel-backend scratch folder.
+2. `HR_APP=<scratch copy> HR_PORT=3181 node run_all.mjs` (each test resets the scratch database through `tools/dev/reset.sh` and starts it with `tools/dev/serve.sh`; seeded tests run `tools/dev/seed_demo.mjs`).
+
+Tests: t01 empty-database read sweep (nobody, owner, employee, agent) and setup; t02 sign-in, invites, lockout, PIN, owner recovery, members and roles; t03 team scope, pay visibility, effective dating (past, today, future), Update vs Edit, people and calendar contracts, seeded sweep by role; t04 sealed values, bank approval with PIN and the two-person rule, your AI agent's deny, propose and auto paths; t05 approval flows, events, questions to your AI agent, module cron, CSV imports; t06 pack profile fields, photos, documents with files; t07 kiosk codes and limits; t08 your AI agent through the CLI (deny before params, hand-offs, guide, proposals, what wakes it); t09 structured facts and pin.verify; t10 inbox.route for your AI agent only (in-app links, quoted requests, dedupe by record), a question handed to a person, single-name references; t11 pay.update starting pay (reason hire, first day of work by default) and plain refusals with codes.

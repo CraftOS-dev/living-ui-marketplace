@@ -1,0 +1,50 @@
+// Browser journey (scratch only): HR starts a quarterly cycle from the wizard and launches it from the last step.
+//   node journey_launch.mjs [width]     (OUT env for screenshots)
+import { createRequire } from 'node:module';
+import { mkdirSync } from 'node:fs';
+const require = createRequire('C:/Users/zfoong/Desktop/agent/code/git/CraftBot/app/ui_layer/browser/frontend/package.json');
+const { chromium } = require('playwright-core');
+const OUT = process.env.OUT ?? 'C:/Users/zfoong/AppData/Local/Temp/claude/c--Users-zfoong-Desktop-agent-code-git-CraftBot/c0e5901d-2062-4482-8bdc-490138be0b72/scratchpad/hr_os/performance/shots_after';
+mkdirSync(OUT, { recursive: true });
+const w = Number(process.argv[2] ?? 1440);
+const BASE = 'http://127.0.0.1:3189/';
+const browser = await chromium.launch({ headless: true });
+const ctx = await browser.newContext({ viewport: { width: w, height: w < 500 ? 844 : 900 }, isMobile: w < 500, hasTouch: w < 500 });
+const page = await ctx.newPage();
+const errors = [];
+page.on('console', (m) => m.type() === 'error' && errors.push(m.text()));
+page.on('response', (r) => r.status() >= 400 && errors.push(`${r.status()} ${r.url()}`));
+await page.goto(BASE + '#/home');
+await page.waitForSelector('input[type=email]', { timeout: 30000 });
+await page.fill('input[type=email]', 'hr@northwind.test');
+await page.fill('input[type=password]', 'demo-pass-1');
+await page.getByRole('button', { name: 'Sign in' }).last().click();
+await page.waitForSelector('#hr-main', { timeout: 30000 });
+await page.goto(BASE + '#/performance/cycles/new');
+await page.getByRole('radio', { name: 'Quarterly' }).first().waitFor({ timeout: 45000 });
+await page.getByRole('radio', { name: 'Quarterly' }).first().click();
+await page.waitForTimeout(1500);
+let clicks = 1;
+for (let i = 0; i < 3; i++) {
+  await page.getByRole('button', { name: 'Continue' }).click();
+  clicks++;
+  await page.waitForTimeout(300);
+}
+const hint = await page.locator('text=This template is answered by').textContent().catch(() => '');
+await page.screenshot({ path: `${OUT}/hr_wizard_phases_${w}.png` });
+await page.getByRole('button', { name: 'Launch' }).click();
+clicks++;
+const dialog = page.getByRole('dialog');
+await dialog.waitFor({ timeout: 45000 });
+const text = await dialog.textContent();
+await page.screenshot({ path: `${OUT}/hr_wizard_confirm_${w}.png` });
+await dialog.getByRole('button', { name: 'Launch' }).click();
+clicks++;
+await page.waitForURL(/#\/performance\/cycles\/[a-z0-9]{15}$/, { timeout: 45000 });
+await page.waitForFunction(() => document.querySelector('#hr-main [role=status]') === null, null, { timeout: 45000 }).catch(() => {});
+await page.waitForTimeout(800);
+const meta = await page.locator('header .hr-label').first().textContent();
+await page.screenshot({ path: `${OUT}/hr_wizard_launched_${w}.png` });
+console.log(JSON.stringify({ clicks, hint, confirm: text?.slice(0, 160), url: page.url().replace(BASE, ''), meta, errors }, null, 1));
+await browser.close();
+process.exit(errors.length === 0 && /Running/.test(meta ?? '') ? 0 : 1);

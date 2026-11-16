@@ -1,0 +1,345 @@
+// India pack generator: in (TDS on salary, FY2026-27), in-epf, in-esi and
+// state professional tax packs.
+import { writeModule, RETRIEVED } from './emit.mjs';
+
+const FY = { from: '2026-04-01', to: '2027-03-31' };
+
+const NEW_SLABS = [{ over: 0, rate: 0 }, { over: 400000, rate: 0.05 }, { over: 800000, rate: 0.1 }, { over: 1200000, rate: 0.15 }, { over: 1600000, rate: 0.2 }, { over: 2000000, rate: 0.25 }, { over: 2400000, rate: 0.3 }];
+const OLD_SLABS = [{ over: 0, rate: 0 }, { over: 250000, rate: 0.05 }, { over: 500000, rate: 0.2 }, { over: 1000000, rate: 0.3 }];
+const OLD_SENIOR = [{ over: 0, rate: 0 }, { over: 300000, rate: 0.05 }, { over: 500000, rate: 0.2 }, { over: 1000000, rate: 0.3 }];
+const OLD_SUPER = [{ over: 0, rate: 0 }, { over: 500000, rate: 0.2 }, { over: 1000000, rate: 0.3 }];
+
+const TAX_SOURCES = [
+  { title: 'Finance Bill 2026, Memorandum explaining the provisions (Union Budget 2026-27)', url: 'https://www.indiabudget.gov.in/doc/memo.pdf', retrieved: RETRIEVED, note: 'Tax year 2026-27 under the Income-tax Act, 2025: section 202 (default) rates 0 to 4 lakh nil, 5, 10, 15, 20, 25 and 30 percent; optional (old) regime 2.5 / 3 / 5 lakh by age; surcharge 10, 15, 25, 37 percent (25 percent cap under section 202) with marginal relief; Health and Education Cess 4 percent; no change from 2025-26; TDS on salaries at Part III rates.' },
+  { title: 'Income Tax Department, Salaried individuals for AY 2026-27 (updated 9 Jul 2026)', url: 'https://www.incometax.gov.in/iec/foportal/help/individual/return-applicable-1', retrieved: RETRIEVED, note: 'Slab tables, rebate limits (60,000 up to 12 lakh new regime; 12,500 up to 5 lakh old regime), surcharge table and marginal relief, 80C 1.5 lakh, 80CCD(1B) 50,000.' },
+  { title: 'CBDT e-Filing ITR-2 validation rules AY 2026-27 (V1.0)', url: 'https://www.incometax.gov.in/iec/foportal/sites/default/files/2026-05/CBDT__e-Filing_ITR%202_Validation%20Rules_AY%202026-27_V1.0.pdf', retrieved: '2026-11-05', note: 'Rule 53: for employers other than central and state government, the section 10(10AA) deduction (earned leave encashment) cannot exceed 25 lakh; 10(10AA) is not in the list of exemptions barred under the new regime (rule 54).' },
+  { title: 'CBDT e-Filing ITR-1 validation rules AY 2026-27', url: 'https://www.incometax.gov.in/iec/foportal/sites/default/files/2026-05/CBDT_e-Filing_ITR%201_Validation%20Rules_AY%202026-27.pdf', retrieved: RETRIEVED, note: 'Standard deduction for employees limited to 75,000 (new regime) and 50,000 (old regime); rebate marginal relief ends at 12,70,590.' },
+  { title: 'Income Tax Department search results: Income-tax Act, 2025 section 19 (standard deduction) and section 156 (rebate)', url: 'https://www.incometaxindia.gov.in/w/section-156-84', retrieved: RETRIEVED, note: 'Section 156: rebate of 100 percent of tax or 60,000 for resident individuals under section 202(1) with income up to 12 lakh; section 19: 75,000 (section 202(1)) or 50,000. incometaxindia.gov.in returned HTTP 403 to direct fetches; read from the official search result text.' }
+];
+
+function tdsSteps() {
+  // The annual tax on an income var, as steps ending in var annual_tax<sfx>.
+  const chain = (inc, sfx) => [
+    { var: 'tax' + sfx, expr: 'table(slab, ' + inc + ')' },
+    { var: 'rebated' + sfx, expr: '!profile.in_resident ? tax' + sfx + ' : (is_new ? (' + inc + ' <= 1200000 ? 0 : min(tax' + sfx + ', ' + inc + ' - 1200000)) : (' + inc + ' <= 500000 ? max(0, tax' + sfx + ' - 12500) : tax' + sfx + '))', explain: 'Rebate (section 156): new regime up to 60,000 for income up to 12 lakh, with marginal relief just above; old regime up to 12,500 for income up to 5 lakh.' },
+    { var: 'with_sc' + sfx, expr: inc + ' <= 5000000 ? rebated' + sfx + ' : (' + inc + ' <= 10000000 ? min(rebated' + sfx + ' * 1.1, tax50 + (' + inc + ' - 5000000)) : (' + inc + ' <= 20000000 ? min(rebated' + sfx + ' * 1.15, tax100 * 1.1 + (' + inc + ' - 10000000)) : (' + inc + ' <= 50000000 || is_new ? min(rebated' + sfx + ' * 1.25, tax200 * 1.15 + (' + inc + ' - 20000000)) : min(rebated' + sfx + ' * 1.37, tax500 * 1.25 + (' + inc + ' - 50000000)))))', explain: 'Surcharge 10 percent over 50 lakh, 15 percent over 1 crore, 25 percent over 2 crore, 37 percent over 5 crore (old regime only), each with marginal relief.' },
+    { var: 'annual_tax' + sfx, expr: 'with_sc' + sfx + ' * 1.04', round: { mode: 'half_up', step: 10 }, explain: 'Plus Health and Education Cess 4 percent, rounded to the nearest 10 rupees.' }
+  ];
+  // Income for the year from projected amounts (suffix picks the projection).
+  const income = (sfx) => ({ var: 'income' + sfx, expr: 'max(0, sal' + sfx + ' - min(is_new ? 75000 : 50000, sal' + sfx + ') - hra_ex' + sfx + ' - leave_ex' + sfx + ' - (is_new ? 0 : min(2500, pt' + sfx + ')) - (is_new ? 0 : profile.in_other_exemptions_annual) - hp + profile.in_other_income_annual - via' + sfx + ')', round: { mode: 'half_up', step: 10 }, explain: 'Total income: salary less the standard deduction (section 19) and, under the old regime, HRA, professional tax, other exemptions and home loan interest, plus declared other income, less deductions; rounded to the nearest 10 rupees.' });
+  // Leave encashment on leaving (LEAVE_EXIT, tag exit_leave_payout): exempt up to the least of the amount, the
+  // lifetime limit less exemption already used, 10 months' average salary and the cash equivalent of the leave
+  // credit at 30 days per completed year of service (section 10(10AA)(ii), Income-tax Act 1961).
+  const leaveEx = (sfx, exitVar) => ({ var: 'leave_ex' + sfx, expr: exitVar + ' <= 0 ? 0 : max(0, min(' + exitVar + ', max(0, 2500000 - profile.in_leave_exempt_used), 10 * avg_sal, cash_eq))', explain: 'Leave encashment exemption: the least of the amount, 25 lakh less exemption used before, 10 months\' average salary and the leave credit (30 days per completed year of service at most) at the average salary.' });
+  const hra = (sfx) => ({ var: 'hra_ex' + sfx, expr: '!is_new && profile.in_rent_paid_annual > 0 ? max(0, min(hra' + sfx + ', profile.in_rent_paid_annual - 0.1 * basic' + sfx + ', (profile.in_metro ? 0.5 : 0.4) * basic' + sfx + ')) : 0', explain: 'Old regime HRA exemption: the least of HRA received, rent paid less 10 percent of salary, and 50 percent (metro) or 40 percent of salary.' });
+  const via = (sfx) => ({ var: 'via' + sfx, expr: 'is_new ? profile.in_80ccd2_annual : min(150000, profile.in_80c_annual + pf' + sfx + ') + min(50000, profile.in_80ccd1b_annual) + profile.in_80d_annual + profile.in_other_deductions_annual + profile.in_80ccd2_annual', explain: 'Deductions: under the new regime only the employer NPS contribution entered; under the old regime 80C (with employee PF and VPF) up to 1.5 lakh, NPS 80CCD(1B) up to 50,000, 80D and other declared deductions.' });
+  const proj = (tag) => 'ytd("' + tag + '") + sum("' + tag + '") + per_' + tag + ' * future';
+  const base = [
+    { check: 'run.frequency == "monthly"', issue: 'in_monthly_only', severity: 'blocker', message: 'The in pack projects monthly pay. Other frequencies are not covered.' },
+    { var: 'is_salary_run', expr: 'run.kind == "regular" || run.kind == "termination"', explain: 'Regular pay and final pay carry the month\'s salary; other runs (bonus, off-cycle, corrections recomputed by payroll) pay extra amounts on top of it.' },
+    { var: 'leaving', expr: 'coalesce(employee.end_day, "") != "" && employee.end_day <= run.period_end', explain: 'No salary after this period when the employment ends in it.' },
+    { var: 'month_paid', expr: 'regular_count_in_month(run.pay_date) > 0', explain: 'A regular payslip of this month is already locked.' },
+    { check: 'is_salary_run || has_prev_regular() || leaving', issue: 'in_tds_no_regular_pay', severity: 'blocker', message: 'This payslip is not a salary payment and no regular payslip dated on or before it is locked, so the year\'s salary cannot be projected. Lock this month\'s regular run first (or date this payment after it), or pay this amount with the regular pay.' },
+    { var: 'future', expr: 'leaving ? 0 : (is_salary_run ? run.periods_remaining : run.periods_remaining + (month_paid ? 0 : 1))', explain: 'Months of salary still to come in the tax year (April to March): the periods after this one, plus this month when its regular pay is not yet locked.' },
+    { var: 'per_in_salary_recurring', expr: 'is_salary_run ? sum("in_salary_recurring") : prev_regular("in_salary_recurring")', explain: 'Recurring monthly salary: this payslip\'s for a salary payment, else the latest regular payslip\'s.' },
+    { var: 'per_in_basic_da', expr: 'is_salary_run ? sum("in_basic_da") : prev_regular("in_basic_da")' },
+    { var: 'per_in_hra', expr: 'is_salary_run ? sum("in_hra") : prev_regular("in_hra")' },
+    { var: 'per_in_pt', expr: 'is_salary_run ? sum("in_pt") : prev_regular("in_pt")' },
+    { var: 'per_in_pf_employee', expr: 'is_salary_run ? sum("in_pf_employee") : prev_regular("in_pf_employee")' },
+    { var: 'exit_pay', expr: 'ytd("exit_leave_payout") + sum("exit_leave_payout")', explain: 'Unused leave paid on leaving (LEAVE_EXIT) this tax year.' },
+    { var: 'sal', expr: 'ytd("in_salary") + sum("in_salary") + exit_pay + per_in_salary_recurring * future + profile.in_prev_employer_salary', explain: 'Projected salary for the tax year: every locked payslip of the year, this payslip, recurring salary for the months to come, and a previous employer\'s pay this year (Form 12B).' },
+    { var: 'basic', expr: proj('in_basic_da') },
+    { var: 'hra', expr: proj('in_hra') },
+    { var: 'pt', expr: proj('in_pt') },
+    { var: 'pf', expr: proj('in_pf_employee') },
+    { var: 'is_new', expr: 'profile.in_regime == "new"' },
+    { var: 'age', expr: 'age_on(run.tax_year_end)', explain: 'Age at any time in the tax year: the age on its last day.' },
+    { var: 'hp', expr: 'is_new ? 0 : min(200000, profile.in_home_loan_interest_annual)', explain: 'Old regime: interest on a self-occupied home loan, up to 2 lakh.' },
+    { var: 'svc_years', expr: 'floor(coalesce(employee.years_of_service, 0))', explain: 'Completed years of service.' },
+    { var: 'm0', expr: 'month_start(run.period_end)' },
+    { var: 'avg_from', expr: 'add_months(m0, -10)' },
+    { var: 'avg_months', expr: 'clamp(months_between(coalesce(employee.hire_day, avg_from), m0), 0, 10)', explain: 'Months of service in the 10 months before the month of leaving.' },
+    { var: 'avg_sal', expr: 'avg_months > 0 ? (ytd_since("in_basic_da", avg_from) - ytd_since("in_basic_da", m0)) / avg_months : 0', explain: 'Average monthly salary (basic plus DA) over the 10 months before the month of leaving.' },
+    { var: 'leave_days', expr: 'coalesce(context.exit_leave_days, -1)', explain: 'Days of earned leave paid out, when payroll passes them.' },
+    { var: 'credit_days', expr: 'leave_days >= 0 ? min(leave_days, 30 * svc_years) : 30 * svc_years' },
+    { var: 'cash_eq', expr: 'credit_days * avg_sal / 30', explain: 'Cash equivalent of the leave credit at the average salary.' },
+    leaveEx('', 'exit_pay'),
+    { check: 'exit_pay <= 0', issue: 'in_leave_exit_exemption', severity: 'warning', message: 'Leave encashment on leaving: the section 10(10AA)(ii) exemption (Income-tax Act 1961, 25 lakh for non-government employees per the AY 2026-27 e-filing rules) was applied. Confirm the corresponding provision of the Income-tax Act 2025, and enter exemption used with earlier employers on the tax profile.' },
+    { check: 'exit_pay <= 0 || (leave_days >= 0 && coalesce(employee.years_of_service, -1) >= 0)', issue: 'in_leave_exit_days_missing', severity: 'warning', message: 'The leave days paid out or the years of service were not given, so the leave credit for the exemption was taken at 30 days per completed year of service. Check the exemption against the actual leave credit.' },
+    hra(''), via(''), income(''),
+    { var: 'slab', expr: 'is_new ? "in_new" : (profile.in_resident && age >= 80 ? "in_old_super" : (profile.in_resident && age >= 60 ? "in_old_senior" : "in_old"))' },
+    { var: 'tax50', expr: 'table(slab, 5000000)' },
+    { var: 'tax100', expr: 'table(slab, 10000000)' },
+    { var: 'tax200', expr: 'table(slab, 20000000)' },
+    { var: 'tax500', expr: 'table(slab, 50000000)' }
+  ].concat(chain('income', ''));
+  // the same year without this payslip, for payments on top of the month's salary
+  const without = [
+    { var: 'sal_w', expr: 'sal - sum("in_salary") - sum("exit_leave_payout")' },
+    { var: 'exit_pay_w', expr: 'exit_pay - sum("exit_leave_payout")' },
+    { var: 'basic_w', expr: 'basic - sum("in_basic_da")' },
+    { var: 'hra_w', expr: 'hra - sum("in_hra")' },
+    { var: 'pt_w', expr: 'pt - sum("in_pt")' },
+    { var: 'pf_w', expr: 'pf - sum("in_pf_employee")' },
+    leaveEx('_w', 'exit_pay_w'), hra('_w'), via('_w'), income('_w')
+  ].concat(chain('income_w', '_w'));
+  const tail = [
+    { var: 'paid', expr: 'ytd_code("IN_TDS") + profile.in_prev_employer_tds', explain: 'Tax deducted on every locked payslip of the year, and by a previous employer.' },
+    { code: 'IN_TDS', name: 'Income tax (TDS on salary)', kind: 'deduction', stage: 'statutory', amount: 'is_salary_run ? max(0, (annual_tax - paid) / (future + 1)) : max(0, annual_tax - annual_tax_w)', round: { mode: 'half_up', step: 1 }, tags: ['in_tds'], payee: 'Income Tax Department', filing: 'in_24q', explain: 'Salary payments: the projected tax for the year less tax already deducted, spread over this and the months to come (section 392, average rate). Other payments (bonus, off-cycle): the extra tax for the year that this payment adds, deducted now.' }
+  ];
+  return base.concat(without, tail);
+}
+
+function tdsPack() {
+  const steps = tdsSteps();
+  const run = (m, y = 2026) => ({ period_start: y + '-' + m + '-01', period_end: y + '-' + m + (m === '04' || m === '06' || m === '09' || m === '11' ? '-30' : m === '02' ? '-28' : '-31'), pay_date: y + '-' + m + (m === '04' || m === '06' || m === '09' || m === '11' ? '-30' : m === '02' ? '-28' : '-31') });
+  const sal = (amt, extra = []) => [{ code: 'IN_BASIC', name: 'Salary', kind: 'earning', amount: amt, tags: ['in_salary', 'in_salary_recurring'] }].concat(extra);
+  const vectors = [
+    { name: 'New regime, 1,00,000 a month: rebate takes the tax to nil', source: 'derived', reference: 'April: 12 x 1,00,000 = 12,00,000 less standard deduction 75,000 = 11,25,000. Tax 20,000 + 10% x 3,25,000 = 52,500; income up to 12 lakh, so the section 156 rebate removes it.', input: { run: run('04'), employee: { birth_date: '1990-05-01' }, profile: { in_regime: 'new' }, lines: sal(100000) }, expect: { IN_TDS: 0 }, expect_vars: { income: 1125000, tax: 52500, annual_tax: 0 } },
+    { name: 'New regime, 1,50,000 a month', source: 'derived', reference: '18,00,000 - 75,000 = 17,25,000. Tax 20,000 + 40,000 + 60,000 + 20% x 1,25,000 = 1,45,000; cess 4% = 5,800; 1,50,800 for the year; April TDS 1,50,800 / 12 = 12,566.67 = 12,567.', input: { run: run('04'), employee: { birth_date: '1990-05-01' }, profile: { in_regime: 'new' }, lines: sal(150000) }, expect: { IN_TDS: 12567 }, expect_vars: { annual_tax: 150800 } },
+    { name: 'New regime, marginal relief just over 12 lakh (March true-up)', source: 'derived', reference: 'Salary for the year 12,85,000 (11 x 1,00,000 paid, 1,85,000 in March): income 12,10,000, slab tax 61,500, limited to the 10,000 over 12 lakh; cess 400; 10,400 deducted in March.', input: { run: run('03', 2027), employee: { birth_date: '1990-05-01' }, profile: { in_regime: 'new' }, lines: sal(185000), history: [{ pay_date: '2027-02-28', period_end: '2027-02-28', kind: 'regular', by_tag: { in_salary: 1100000, in_salary_recurring: 1100000 }, by_code: { IN_TDS: 0 } }] }, expect: { IN_TDS: 10400 }, expect_vars: { income: 1210000, tax: 61500, rebated: 10000 } },
+    { name: 'Old regime with HRA, 80C, PF and professional tax', source: 'derived', reference: 'Monthly basic 50,000, HRA 25,000, other 25,000; PF 1,800 and PT 200 a month; rent 3,00,000 a year in a metro; 80C declared 1,00,000. Year: salary 12,00,000; HRA exempt = least of 3,00,000, 3,00,000 - 60,000 = 2,40,000, 50% x 6,00,000 = 3,00,000 = 2,40,000; standard deduction 50,000; PT 2,400; 80C min(1,50,000, 1,00,000 + 21,600) = 1,21,600. Income 7,86,000; tax 12,500 + 20% x 2,86,000 = 69,700; cess 2,788; 72,490 rounded; April TDS 6,040.83 = 6,041.', input: { run: run('04'), employee: { birth_date: '1990-05-01' }, profile: { in_regime: 'old', in_rent_paid_annual: 300000, in_metro: true, in_80c_annual: 100000 }, lines: [{ code: 'IN_BASIC', kind: 'earning', amount: 50000, tags: ['in_salary', 'in_salary_recurring', 'in_basic_da'] }, { code: 'IN_HRA', kind: 'earning', amount: 25000, tags: ['in_salary', 'in_salary_recurring', 'in_hra'] }, { code: 'IN_SPECIAL', kind: 'earning', amount: 25000, tags: ['in_salary', 'in_salary_recurring'] }, { code: 'PF', kind: 'deduction', stage: 'statutory', amount: 1800, tags: ['in_pf_employee'] }, { code: 'PT', kind: 'deduction', stage: 'statutory', amount: 200, tags: ['in_pt'] }] }, expect: { IN_TDS: 6041 }, expect_vars: { hra_ex: 240000, income: 786000, annual_tax: 72490 } },
+    { name: 'Old regime, senior citizen with 4 lakh: rebate to nil', source: 'derived', reference: 'Age 65: income 4,50,000 - 50,000 = 4,00,000; tax 5% x 1,00,000 over 3 lakh = 5,000; income up to 5 lakh, rebate up to 12,500 removes it.', input: { run: run('04'), employee: { birth_date: '1961-06-01' }, profile: { in_regime: 'old' }, lines: sal(37500) }, expect: { IN_TDS: 0 }, expect_vars: { tax: 5000, rebated: 0 } },
+    { name: 'QA B-6: bonus after the month\'s regular pay, new regime', source: 'derived', reference: 'Hired 1 November 2026 at 3,00,000 a month; November TDS 19,500 (year 15,00,000 - 75,000 = 14,25,000; tax 93,750; cess 97,500; over 5 months). Bonus 50,000 in its own payslip in November: the year becomes 3,00,000 paid + 50,000 + 4 months x 3,00,000 = 15,50,000; income 14,75,000; tax 20,000 + 40,000 + 15% x 2,75,000 = 1,01,250; cess 1,05,300. Without the bonus the year tax is 97,500, so the bonus adds 7,800, deducted now (section 392 average rate on the estimated income; regular months stay at 19,500).', input: { run: { kind: 'bonus', period_start: '2026-11-01', period_end: '2026-11-30', pay_date: '2026-11-30' }, employee: { birth_date: '1992-03-01', hire_day: '2026-11-01' }, profile: { in_regime: 'new' }, lines: [{ code: 'IN_BONUS', kind: 'earning', amount: 50000, tags: ['in_salary'] }], history: [{ pay_date: '2026-11-30', period_end: '2026-11-30', kind: 'regular', by_tag: { in_salary: 300000, in_salary_recurring: 300000, in_basic_da: 300000, in_pf_employee: 3000, in_tds: 19500 }, by_code: { IN_TDS: 19500 } }] }, expect: { IN_TDS: 7800 }, expect_vars: { sal: 1550000, annual_tax: 105300, annual_tax_w: 97500 } },
+    { name: 'December regular pay after the bonus: the monthly TDS stays 19,500', source: 'derived', reference: 'Locked: November regular (3,00,000, TDS 19,500) and bonus (50,000, TDS 7,800). December: year 15,50,000, tax 1,05,300, paid 27,300, spread over December to March: 78,000 / 4 = 19,500.', input: { run: { period_start: '2026-12-01', period_end: '2026-12-31', pay_date: '2026-12-31' }, employee: { birth_date: '1992-03-01', hire_day: '2026-11-01' }, profile: { in_regime: 'new' }, lines: [{ code: 'IN_BASIC', kind: 'earning', amount: 300000, tags: ['in_salary', 'in_salary_recurring', 'in_basic_da'] }], history: [{ pay_date: '2026-11-30', period_end: '2026-11-30', kind: 'regular', by_tag: { in_salary: 300000, in_salary_recurring: 300000 }, by_code: { IN_TDS: 19500 } }, { pay_date: '2026-11-30', period_end: '2026-11-30', kind: 'bonus', by_tag: { in_salary: 50000 }, by_code: { IN_TDS: 7800 } }] }, expect: { IN_TDS: 19500 } },
+    { name: 'Bonus with no regular payslip locked: blocked', source: 'derived', reference: 'Without any regular pay the year cannot be projected, so the payslip is blocked instead of deducting nothing.', input: { run: { kind: 'bonus', period_start: '2026-11-01', period_end: '2026-11-30', pay_date: '2026-11-30' }, employee: { birth_date: '1992-03-01', hire_day: '2026-11-01' }, profile: { in_regime: 'new' }, lines: [{ code: 'IN_BONUS', kind: 'earning', amount: 50000, tags: ['in_salary'] }] }, expect: {}, expect_issues: ['in_tds_no_regular_pay'] },
+    { name: 'Final pay: the rest of the year\'s tax is due now', source: 'derived', reference: 'Leaving 31 October 2026 after April to September at 1,50,000 (TDS 6 x 12,567 = 75,402). October final pay 1,50,000: no salary after it, so the year is 10,50,000; income 9,75,000; tax 20,000 + 10% x 1,75,000 = 37,500, inside the 12 lakh rebate: 0. Nothing more is deducted (the earlier TDS is refunded through the return, not by the pack).', input: { run: { kind: 'termination', period_start: '2026-10-01', period_end: '2026-10-31', pay_date: '2026-10-31' }, employee: { birth_date: '1992-03-01', end_day: '2026-10-31' }, profile: { in_regime: 'new' }, lines: sal(150000), history: [{ pay_date: '2026-09-30', period_end: '2026-09-30', kind: 'regular', by_tag: { in_salary: 900000, in_salary_recurring: 900000 }, by_code: { IN_TDS: 75402 } }] }, expect: { IN_TDS: 0 }, expect_vars: { sal: 1050000, annual_tax: 0 } },
+    { name: 'QA N-2: final pay with leave encashment, less than a year of service', source: 'derived', reference: 'E0020: hired 1 November 2026 at 4,50,000 basic (November TDS 50,700), leaving 15 December 2026: final basic 2,17,741.94 and LEAVE_EXIT 7,67,596.15. Section 10(10AA)(ii): no completed year of service, so the leave credit counted is 30 x 0 = 0 days and the exemption is nil (warnings ask HR to confirm the 2025 Act provision and give the leave days). Year: 4,50,000 + 2,17,741.94 + 7,67,596.15 = 14,35,338.09; income 13,60,340; tax 60,000 + 15% x 1,60,340 = 84,051; cess 87,410; less 50,700 = 36,710.', input: { run: { kind: 'termination', period_start: '2026-12-01', period_end: '2026-12-15', pay_date: '2026-12-15' }, employee: { birth_date: '1985-07-01', hire_day: '2026-11-01', end_day: '2026-12-15', years_of_service: 0.12 }, profile: { in_regime: 'new' }, context: { exit_leave_days: 44.35 }, lines: [{ code: 'IN_BASIC', kind: 'earning', amount: 217741.94, tags: ['in_salary', 'in_salary_recurring', 'in_basic_da'] }, { code: 'LEAVE_EXIT', kind: 'earning', amount: 767596.15, tags: ['exit_leave_payout', 'termination'] }], history: [{ pay_date: '2026-11-30', period_end: '2026-11-30', kind: 'regular', by_tag: { in_salary: 450000, in_salary_recurring: 450000, in_basic_da: 450000 }, by_code: { IN_TDS: 50700 } }] }, expect: { IN_TDS: 36710 }, expect_vars: { leave_ex: 0, sal: 1435338.09 }, expect_issues: ['in_leave_exit_exemption'] },
+    { name: 'Retirement after 20 years: leave encashment exemption', source: 'derived', reference: 'Basic 2,00,000 a month for the 10 months before December (February to November: 20,00,000, average 2,00,000). Leaving 31 December 2026 after 20 years with 300 days of earned leave paid as LEAVE_EXIT 30,00,000. Exemption: least of 30,00,000, 25,00,000, 10 x 2,00,000 = 20,00,000 and 300 days x 2,00,000 / 30 = 20,00,000, so 20,00,000. Year: 16,00,000 (April to November) + 2,00,000 + 30,00,000 = 48,00,000; income 48,00,000 - 75,000 - 20,00,000 = 27,25,000; tax 3,00,000 + 30% x 3,25,000 = 3,97,500; cess 4,13,400; less 1,95,000 paid = 2,18,400.', input: { run: { kind: 'termination', period_start: '2026-12-01', period_end: '2026-12-31', pay_date: '2026-12-31' }, employee: { birth_date: '1966-12-10', hire_day: '2006-12-01', end_day: '2026-12-31', years_of_service: 20.08 }, profile: { in_regime: 'new' }, context: { exit_leave_days: 300 }, lines: [{ code: 'IN_BASIC', kind: 'earning', amount: 200000, tags: ['in_salary', 'in_salary_recurring', 'in_basic_da'] }, { code: 'LEAVE_EXIT', kind: 'earning', amount: 3000000, tags: ['exit_leave_payout', 'termination'] }], history: [{ pay_date: '2026-03-31', period_end: '2026-03-31', kind: 'regular', by_tag: { in_salary: 400000, in_basic_da: 400000 }, by_code: {} }, { pay_date: '2026-11-30', period_end: '2026-11-30', kind: 'regular', by_tag: { in_salary: 1600000, in_salary_recurring: 1600000, in_basic_da: 1600000 }, by_code: { IN_TDS: 195000 } }] }, expect: { IN_TDS: 218400 }, expect_vars: { avg_sal: 200000, leave_ex: 2000000, income: 2725000, annual_tax: 413400 }, expect_issues: ['in_leave_exit_exemption'] },
+    { name: 'New regime, 60 lakh a year: 10 percent surcharge', source: 'derived', reference: 'Income 60,00,000 - 75,000 = 59,25,000; tax 3,00,000 + 30% x 35,25,000 = 13,57,500; surcharge 10% = 1,35,750 (relief limit 10,80,000 + 9,25,000 = 20,05,000 not reached); cess 4%: 15,52,980; April TDS 1,29,415.', input: { run: run('04'), employee: { birth_date: '1980-05-01' }, profile: { in_regime: 'new' }, lines: sal(500000) }, expect: { IN_TDS: 129415 }, expect_vars: { annual_tax: 1552980 } },
+    { name: 'New regime, surcharge marginal relief just over 50 lakh', source: 'derived', reference: 'Salary 50,85,000 (44,00,000 paid, 6,85,000 in March): income 50,10,000; tax 10,83,000; with 10% surcharge 11,91,300, limited to tax on 50 lakh 10,80,000 + 10,000 = 10,90,000; cess 43,600; 11,33,600 for the year; 9,00,000 deducted April to February, so 2,33,600 in March.', input: { run: run('03', 2027), employee: { birth_date: '1980-05-01' }, profile: { in_regime: 'new' }, lines: sal(685000), history: [{ pay_date: '2027-02-28', period_end: '2027-02-28', kind: 'regular', by_tag: { in_salary: 4400000, in_salary_recurring: 4400000 }, by_code: { IN_TDS: 900000 } }] }, expect: { IN_TDS: 233600 }, expect_vars: { with_sc: 1090000, annual_tax: 1133600 } }
+  ];
+  const money = (key, label, help, form) => ({ key, label, type: 'money', default: 0, min: 0, help, form });
+  return {
+    code: 'in',
+    country: 'IN',
+    region: '',
+    name: 'India FY 2026-27 income tax deducted at source on salaries (new and old regime)',
+    version: '2026.3',
+    effective_from: FY.from,
+    effective_to: FY.to,
+    currency: 'INR',
+    tax_year: { start: '04-01' },
+    date_basis: 'pay_date',
+    requires: [],
+    order: 30,
+    ship: 'active',
+    sources: TAX_SOURCES,
+    notes: 'Covers TDS on salary for tax year 2026-27 under the Income-tax Act, 2025 (salary TDS now section 392; slabs in section 202 and Part III of the First Schedule; the Finance Act 2026 kept the 2025-26 rates): default new regime and the optional old regime, standard deduction (75,000 / 50,000), rebate with marginal relief (section 156), surcharge with marginal relief, 4 percent cess, an annual projection from tax year to date plus recurring pay, and a March true-up because the remaining tax is spread over the periods left. Payments that are not the month\'s salary (bonus, off-cycle, corrections recomputed by payroll) project the year from every locked payslip plus the latest regular salary for the months to come and deduct the extra tax they add in the month paid; such a payment with no regular payslip locked is blocked (in_tds_no_regular_pay). Final pay and a last regular pay project no salary after the leaving period. Unused leave paid on leaving (LEAVE_EXIT, tag exit_leave_payout; its seed component carries no other tags) is salary less the section 10(10AA)(ii) exemption: the least of the amount, 25 lakh less exemption used with earlier employers (profile), 10 months\' average salary (basic plus DA from history) and the leave credit at 30 days per completed year of service at the average salary (days from context.exit_leave_days when payroll passes them). The 25 lakh limit is from the CBDT AY 2026-27 e-filing validation rules under the 1961 Act; the Income-tax Act 2025 provision was not read, so the payslip carries a warning to confirm it. Old regime inputs are declared annual amounts on the tax profile (80C, 80CCD(1B), 80D, HRA rent and metro, home loan interest, other deductions); employee PF and VPF lines (tag in_pf_employee) count in 80C and professional tax lines (tag in_pt) are deducted. Not covered: perquisite valuation, relief under section 89 (arrears), special-rate incomes, the employer NPS limits (enter the allowable 80CCD(2) amount), lower deduction certificates, non-monthly pay, and Form 16 / 24Q files (payroll builds them from these lines). Declarations must be checked against proofs before the last quarter as usual.',
+    profile_fields: [
+      { key: 'in_regime', label: 'Tax regime', type: 'enum', default: 'new', required: true, options: [{ value: 'new', label: 'New regime (default, section 202)' }, { value: 'old', label: 'Old regime (employee opted out)' }] },
+      { key: 'in_resident', label: 'Resident in India', type: 'boolean', default: true, help: 'Rebate and the higher old-regime exemption for seniors apply to residents only.' },
+      { key: 'in_metro', label: 'Lives in a metro city (Delhi, Mumbai, Kolkata, Chennai) for HRA', type: 'boolean', default: false },
+      money('in_rent_paid_annual', 'Rent paid in the tax year (old regime HRA)', 'Annual rent for the HRA exemption.', 'Form 12BB'),
+      money('in_80c_annual', '80C investments declared (old regime)', 'Life insurance, PPF, ELSS and similar; employee PF is added by the pack.', 'Form 12BB'),
+      money('in_80ccd1b_annual', 'NPS 80CCD(1B) declared (old regime)', 'Up to 50,000.', 'Form 12BB'),
+      money('in_80d_annual', 'Health insurance 80D allowed (old regime)', 'Enter the allowable amount after the 80D limits.', 'Form 12BB'),
+      money('in_80ccd2_annual', 'Employer NPS 80CCD(2) allowed', 'Enter the allowable employer NPS contribution (both regimes).', 'Form 12BB'),
+      money('in_home_loan_interest_annual', 'Home loan interest, self-occupied (old regime)', 'Up to 2 lakh.', 'Form 12BB'),
+      money('in_other_exemptions_annual', 'Other exempt allowances (old regime)', 'For example LTA claimed.', 'Form 12BB'),
+      money('in_other_deductions_annual', 'Other Chapter VI-A deductions (old regime)', 'For example 80E, 80G as allowed.', 'Form 12BB'),
+      money('in_other_income_annual', 'Other income declared to the employer', 'Income the employee asked to include.', 'Form 12BB'),
+      money('in_prev_employer_salary', 'Salary from a previous employer this tax year', '', 'Form 12B'),
+      money('in_prev_employer_tds', 'TDS by a previous employer this tax year', '', 'Form 12B'),
+      money('in_leave_exempt_used', 'Leave encashment exemption already used (lifetime)', 'Exemption under section 10(10AA) claimed on leaving earlier employers; it reduces the 25 lakh limit.', 'Form 12B')
+    ],
+    tags: [
+      { tag: 'in_salary', label: 'Taxable salary', help: 'Every amount taxed under Salaries in this period.' },
+      { tag: 'in_salary_recurring', label: 'Recurring salary', help: 'The part that repeats each month; it is projected for the rest of the year.' },
+      { tag: 'in_basic_da', label: 'Basic plus DA (HRA salary)', help: 'Salary for the HRA exemption.' },
+      { tag: 'in_hra', label: 'HRA received' },
+      { tag: 'in_pf_employee', label: 'Employee PF and VPF', help: 'Counted in 80C under the old regime.' },
+      { tag: 'in_pt', label: 'Professional tax', help: 'Deducted under the old regime.' },
+      { tag: 'exit_leave_payout', label: 'Unused leave paid on leaving (LEAVE_EXIT)', help: 'Set by payroll on the LEAVE_EXIT line; taxed as salary less the leave encashment exemption.' }
+    ],
+    seed_components: [
+      { code: 'IN_BASIC', name: 'Basic', kind: 'earning', stage: '', calc: 'fixed', tags: ['in_salary', 'in_salary_recurring', 'in_basic_da', 'in_remuneration', 'in_pt_wages'], taxable: true, sort: 10 },
+      { code: 'IN_DA', name: 'Dearness allowance', kind: 'earning', stage: '', calc: 'fixed', tags: ['in_salary', 'in_salary_recurring', 'in_basic_da', 'in_remuneration', 'in_pt_wages'], taxable: true, sort: 20 },
+      { code: 'IN_HRA', name: 'House rent allowance', kind: 'earning', stage: '', calc: 'fixed', tags: ['in_salary', 'in_salary_recurring', 'in_hra', 'in_remuneration', 'in_code_excluded', 'in_pt_wages'], taxable: true, sort: 30 },
+      { code: 'IN_SPECIAL', name: 'Special allowance', kind: 'earning', stage: '', calc: 'fixed', tags: ['in_salary', 'in_salary_recurring', 'in_remuneration', 'in_pt_wages'], taxable: true, sort: 40 },
+      { code: 'IN_CONVEYANCE', name: 'Conveyance allowance', kind: 'earning', stage: '', calc: 'fixed', tags: ['in_salary', 'in_salary_recurring', 'in_remuneration', 'in_code_excluded', 'in_pt_wages'], taxable: true, sort: 50 },
+      { code: 'IN_OVERTIME', name: 'Overtime', kind: 'earning', stage: '', calc: 'input', tags: ['in_salary', 'in_remuneration', 'in_code_excluded', 'in_pt_wages'], taxable: true, sort: 60 },
+      { code: 'LEAVE_EXIT', name: 'Leave encashment on leaving', kind: 'earning', stage: '', calc: 'days', tags: [], taxable: true, sort: 75 },
+      { code: 'IN_BONUS', name: 'Bonus', kind: 'earning', stage: '', calc: 'input', tags: ['in_salary', 'in_remuneration', 'in_code_excluded', 'in_pt_wages'], taxable: true, sort: 70 }
+    ],
+    tables: {
+      in_new: { type: 'brackets', rows: NEW_SLABS },
+      in_old: { type: 'brackets', rows: OLD_SLABS },
+      in_old_senior: { type: 'brackets', rows: OLD_SENIOR },
+      in_old_super: { type: 'brackets', rows: OLD_SUPER }
+    },
+    steps,
+    vectors,
+    min_wage: { note: 'Minimum wages in India are set by state and by skill; the Code on Wages floor wage is not encoded.' },
+    filings: [
+      { code: 'in_tds_deposit', name: 'TDS deposit (challan ITNS 281)', frequency: 'monthly', due_rule: '7th of the following month (30 April for March)', form: 'Challan 281' },
+      { code: 'in_24q', name: 'Quarterly TDS statement on salaries', frequency: 'quarterly', due_rule: '31 July, 31 October, 31 January, 31 May', form: 'Form 24Q (name may change under the Income-tax Act, 2025)' },
+      { code: 'in_form16', name: 'Form 16 to employees', frequency: 'yearly', due_rule: '15 June', form: 'Form 16 Part A and Part B' }
+    ],
+    documents: [{ code: 'in_form16', name: 'Form 16 Part B data', year_end: true }, { code: 'in_24q', name: '24Q annexure II data', year_end: true }]
+  };
+}
+
+const CODE_WAGES = [
+  { var: 'rem', expr: 'sum("in_remuneration")', explain: 'All remuneration in the period (Code on Social Security 2020, section 2(88)).' },
+  { var: 'excl', expr: 'sum("in_code_excluded")', explain: 'Components the Code excludes from wages (HRA, conveyance, overtime, bonus, commission and others).' },
+  { var: 'wages', expr: 'rem - excl + max(0, excl - 0.5 * rem)', explain: 'Wages under the Code: when exclusions exceed half of the remuneration, the excess counts as wages.' }
+];
+
+const LABOUR_SOURCES = [
+  { title: 'Cyril Amarchand Mangaldas, Enhancement of wage ceiling and other updates to the PF Schemes (30 Sep 2026)', url: 'https://www.cyrilshroff.com/wp-content/uploads/2026/09/Client-Alert-Code-on-Social-Security-2020-2909.pdf', retrieved: RETRIEVED, note: 'Secondary (law firm). Notification S.O. 5109(E), 17 Sep 2026: EPF wage ceiling 15,000 to 25,000 from 17 Sep 2026 under the Code on Social Security 2020; EPF Scheme 2026, Pension Scheme 2026, EDLI Scheme 2026 (G.S.R. 703(E) to 705(E)); no ceiling for international workers.' },
+  { title: 'Web search summary: ESIC circular on the Code on Social Security wages definition (section 2(88), 50 percent proviso), Labour Codes in force 21 Nov 2025', url: 'https://taxclue.in/blog/rule-19-20-social-security-central-rules-2026-rate-of-contributions-and-administrative-expenses/', retrieved: RETRIEVED, note: 'Secondary. ESI 0.75 percent employee and 3.25 percent employer up to 21,000 a month; Code on Social Security (Central) Rules 2026 rules 19 and 20 round each share up to the next rupee.' }
+];
+
+function epfPack() {
+  const steps = CODE_WAGES.concat([
+    { check: '!(run.period_start < "2026-09-17" && run.period_end >= "2026-09-17")', issue: 'in_pf_ceiling_split', severity: 'blocker', message: 'This period spans 17 September 2026, when the EPF wage ceiling rose from 15,000 to 25,000. Split the period or enter PF by hand.' },
+    { var: 'ceiling', expr: 'run.period_start >= "2026-09-17" ? 25000 : 15000' },
+    { var: 'pf_on', expr: 'profile.in_pf_member' },
+    { var: 'pf_base', expr: 'profile.in_pf_full_wages || profile.in_international_worker ? wages : min(wages, ceiling)' },
+    { var: 'eps_on', expr: 'pf_on && profile.in_eps_member && age_on(run.period_end) < 58', explain: 'Pension contributions stop at 58.' },
+    { code: 'IN_PF_EE', name: 'Provident fund (employee 12%)', kind: 'deduction', stage: 'statutory', when: 'pf_on', amount: '0.12 * pf_base', round: { mode: 'half_up', step: 1 }, tags: ['in_pf_employee'], payee: 'EPFO', filing: 'in_ecr' },
+    { code: 'IN_VPF', name: 'Voluntary provident fund', kind: 'deduction', stage: 'statutory', when: 'pf_on && profile.in_vpf_rate > 0', amount: 'profile.in_vpf_rate * pf_base', round: { mode: 'half_up', step: 1 }, tags: ['in_pf_employee'], payee: 'EPFO', filing: 'in_ecr' },
+    { code: 'IN_EPS_ER', name: 'Pension scheme (employer 8.33%)', kind: 'employer', when: 'eps_on', amount: '0.0833 * min(wages, ceiling)', round: { mode: 'half_up', step: 1 }, payee: 'EPFO', filing: 'in_ecr' },
+    { code: 'IN_EPF_ER', name: 'Provident fund (employer)', kind: 'employer', when: 'pf_on', amount: 'round(0.12 * pf_base, 0) - line("IN_EPS_ER")', round: { mode: 'half_up', step: 1 }, payee: 'EPFO', filing: 'in_ecr', explain: 'Employer 12 percent less the pension share.' },
+    { code: 'IN_EDLI_ER', name: 'EDLI (employer 0.5%)', kind: 'employer', when: 'pf_on', amount: '0.005 * min(wages, ceiling)', round: { mode: 'half_up', step: 1 }, payee: 'EPFO', filing: 'in_ecr' },
+    { code: 'IN_PF_ADMIN_ER', name: 'PF administration charges (0.5%)', kind: 'employer', when: 'pf_on', amount: '0.005 * pf_base', round: { mode: 'half_up', step: 1 }, payee: 'EPFO', filing: 'in_ecr', explain: 'Per employee share; the establishment minimum is not applied here.' }
+  ]);
+  const lines = (basic, hra) => [{ code: 'IN_BASIC', kind: 'earning', amount: basic, tags: ['in_remuneration'] }, { code: 'IN_HRA', kind: 'earning', amount: hra, tags: ['in_remuneration', 'in_code_excluded'] }];
+  return {
+    code: 'in-epf', country: 'IN', region: '', name: 'India EPF, EPS, EDLI and PF charges (Code on Social Security 2020)', version: '2026.1', effective_from: FY.from, effective_to: FY.to, currency: 'INR', tax_year: { start: '04-01' }, date_basis: 'period_end', requires: [], order: 10, ship: 'draft',
+    sources: LABOUR_SOURCES,
+    notes: 'DRAFT: epfo.gov.in returned HTTP 403 and the gazette notification was not fetched, so nothing here is verified against an official source. Unverified: the 25,000 ceiling from 17 September 2026 (law-firm summary of S.O. 5109(E)) and whether it also caps the pension share; the 12 percent, 8.33 percent pension, 0.5 percent EDLI and 0.5 percent administration rates and the rounding to the rupee (long-standing EPF rates, not re-read from EPFO this session); pension stopping at 58; the Code wage definition with the 50 percent rule as applied to PF. Not covered: the establishment minimum administration charge, higher pension on actual wages, reduced rates for notified establishments, international worker rules beyond removing the ceiling. Check every rate with EPFO and a recent ECR before activating.',
+    profile_fields: [
+      { key: 'in_pf_member', label: 'PF member', type: 'boolean', default: true },
+      { key: 'in_eps_member', label: 'Pension scheme (EPS) member', type: 'boolean', default: true, help: 'Off for members who joined above the wage ceiling and are outside EPS.' },
+      { key: 'in_pf_full_wages', label: 'PF on full wages (above the ceiling)', type: 'boolean', default: false },
+      { key: 'in_vpf_rate', label: 'Voluntary PF rate', type: 'number', default: 0, min: 0, max: 1, help: 'For example 0.05 for 5 percent.' },
+      { key: 'in_international_worker', label: 'International worker (no wage ceiling)', type: 'boolean', default: false }
+    ],
+    tags: [{ tag: 'in_remuneration', label: 'Remuneration (Code wages)' }, { tag: 'in_code_excluded', label: 'Excluded from Code wages', help: 'HRA, conveyance, overtime, bonus, commission and the other exclusions in section 2(88).' }],
+    seed_components: [],
+    tables: {},
+    steps,
+    vectors: [
+      { name: 'Basic 20,000 and HRA 10,000 in October 2026 (25,000 ceiling)', source: 'derived', reference: 'Code wages: 30,000 - 10,000 = 20,000 (exclusions are a third, under half). PF base min(20,000, 25,000) = 20,000: employee 2,400; EPS 8.33% = 1,666; employer EPF 2,400 - 1,666 = 734; EDLI 100; admin 100.', input: { run: { period_start: '2026-10-01', period_end: '2026-10-31', pay_date: '2026-10-31' }, employee: { birth_date: '1990-01-01' }, lines: lines(20000, 10000) }, expect: { IN_PF_EE: 2400, IN_EPS_ER: 1666, IN_EPF_ER: 734, IN_EDLI_ER: 100, IN_PF_ADMIN_ER: 100 } },
+      { name: '50 percent rule: basic 10,000 and HRA 30,000', source: 'derived', reference: 'Remuneration 40,000; exclusions 30,000 exceed half (20,000) by 10,000, so wages = 10,000 + 10,000 = 20,000. Employee PF 12% = 2,400.', input: { run: { period_start: '2026-10-01', period_end: '2026-10-31', pay_date: '2026-10-31' }, employee: { birth_date: '1990-01-01' }, lines: lines(10000, 30000) }, expect: { IN_PF_EE: 2400 }, expect_vars: { wages: 20000 } },
+      { name: 'Before 17 September 2026: 15,000 ceiling', source: 'derived', reference: 'July 2026, wages 30,000: PF base 15,000; employee 1,800; EPS 1,250 (8.33% x 15,000 = 1,249.5); employer EPF 550.', input: { run: { period_start: '2026-07-01', period_end: '2026-07-31', pay_date: '2026-07-31' }, employee: { birth_date: '1990-01-01' }, lines: lines(30000, 0) }, expect: { IN_PF_EE: 1800, IN_EPS_ER: 1250, IN_EPF_ER: 550 } }
+    ],
+    filings: [{ code: 'in_ecr', name: 'PF contributions and ECR', frequency: 'monthly', due_rule: '15th of the following month', form: 'Electronic Challan cum Return' }],
+    documents: []
+  };
+}
+
+function esiPack() {
+  const steps = CODE_WAGES.concat([
+    { var: 'covered', expr: 'profile.in_esi_status == "covered" || (profile.in_esi_status == "auto" && wages > 0 && wages <= 21000)', explain: 'Covered when wages are within 21,000 (set covered for the rest of a contribution period when wages rise).' },
+    { code: 'IN_ESI_EE', name: 'ESI (employee 0.75%)', kind: 'deduction', stage: 'statutory', when: 'covered', amount: '0.0075 * wages', round: { mode: 'up', step: 1 }, tags: ['in_esi_employee'], payee: 'ESIC', filing: 'in_esic' },
+    { code: 'IN_ESI_ER', name: 'ESI (employer 3.25%)', kind: 'employer', when: 'covered', amount: '0.0325 * wages', round: { mode: 'up', step: 1 }, payee: 'ESIC', filing: 'in_esic' }
+  ]);
+  return {
+    code: 'in-esi', country: 'IN', region: '', name: 'India Employees State Insurance (ESI)', version: '2026.1', effective_from: FY.from, effective_to: FY.to, currency: 'INR', tax_year: { start: '04-01' }, date_basis: 'period_end', requires: [], order: 10, ship: 'draft',
+    sources: LABOUR_SOURCES,
+    notes: 'DRAFT: esic.gov.in refused connections, so the rates (0.75 percent employee, 3.25 percent employer), the 21,000 coverage limit and the round-up-to-the-rupee rule come from secondary summaries of the Code on Social Security (Central) Rules 2026 and an ESIC circular. Not covered: contribution periods (April to September, October to March) beyond the manual "covered" setting, the employee exemption for low daily wages, the higher limit for persons with disability, and implemented-area checks. Verify with ESIC before activating.',
+    profile_fields: [{ key: 'in_esi_status', label: 'ESI coverage', type: 'enum', default: 'auto', options: [{ value: 'auto', label: 'By wages this month (up to 21,000)' }, { value: 'covered', label: 'Covered for this contribution period' }, { value: 'not_covered', label: 'Not covered' }] }],
+    tags: [{ tag: 'in_remuneration', label: 'Remuneration (Code wages)' }, { tag: 'in_code_excluded', label: 'Excluded from Code wages' }],
+    seed_components: [],
+    tables: {},
+    steps,
+    vectors: [
+      { name: 'Wages 18,500: both shares rounded up', source: 'derived', reference: 'Employee 0.75% x 18,500 = 138.75, rounded up 139; employer 3.25% = 601.25, rounded up 602 (example in the secondary summary).', input: { run: { period_start: '2026-10-01', period_end: '2026-10-31', pay_date: '2026-10-31' }, lines: [{ code: 'IN_BASIC', kind: 'earning', amount: 18500, tags: ['in_remuneration'] }] }, expect: { IN_ESI_EE: 139, IN_ESI_ER: 602 } },
+      { name: 'Wages 25,000: not covered', source: 'derived', reference: 'Above 21,000 with coverage on auto: no ESI.', input: { run: { period_start: '2026-10-01', period_end: '2026-10-31', pay_date: '2026-10-31' }, lines: [{ code: 'IN_BASIC', kind: 'earning', amount: 25000, tags: ['in_remuneration'] }] }, expect: { IN_ESI_EE: 0, IN_ESI_ER: 0 } }
+    ],
+    filings: [{ code: 'in_esic', name: 'ESI contribution', frequency: 'monthly', due_rule: '15th of the following month', form: 'ESIC portal challan' }],
+    documents: []
+  };
+}
+
+// Professional tax packs. Monthly slabs by gross monthly salary unless noted.
+const PT = {
+  mh: { name: 'Maharashtra', ship: 'draft', men: [{ to: 7500, value: 0 }, { over: 7500, to: 10000, value: 175 }, { over: 10000, value: 200 }], women: [{ to: 25000, value: 0 }, { over: 25000, value: 200 }], feb: { over: 10000, women_over: 25000, value: 300 }, src: 'secondary', note: 'Women up to 25,000 exempt per several 2026 summaries; HROne (9 Jun 2026) still shows 10,000 for women. 300 in February for the top slab (annual 2,500).' },
+  ka: { name: 'Karnataka', ship: 'draft', rows: [{ to: 24999, value: 0 }, { over: 24999, value: 200 }], src: 'secondary', note: 'Sources conflict: one summary gives nil below 25,000 and 200 above; HROne gives 150 from 25,001 to 41,999 and 200 from 42,000; whether February is 300 (to reach 2,500 a year) is unconfirmed. The pack uses nil below 25,000 and 200 at 25,000 and above.' },
+  wb: { name: 'West Bengal', ship: 'draft', rows: [{ to: 10000, value: 0 }, { over: 10000, to: 15000, value: 110 }, { over: 15000, to: 25000, value: 130 }, { over: 25000, to: 40000, value: 150 }, { over: 40000, value: 200 }], src: 'secondary', note: 'Two secondary sources agree.' },
+  tg: { name: 'Telangana', ship: 'active', rows: [{ to: 15000, value: 0 }, { over: 15000, to: 20000, value: 150 }, { over: 20000, value: 200 }], src: 'official', note: 'Official First Schedule of the Telangana Tax on Professions, Trades, Callings and Employments Act, 1987 (as amended up to date), item 1.' },
+  gj: { name: 'Gujarat', ship: 'draft', rows: [{ to: 11999, value: 0 }, { over: 11999, value: 200 }], src: 'secondary', note: 'Most 2026 summaries give nil below 12,000 and 200 from 12,000; HROne (9 Jun 2026) shows the older 80 / 150 / 200 slabs from 6,000.' },
+  ap: { name: 'Andhra Pradesh', ship: 'draft', rows: [{ to: 15000, value: 0 }, { over: 15000, to: 20000, value: 150 }, { over: 20000, value: 200 }], src: 'secondary', note: 'Two secondary sources agree; same slabs as the Telangana schedule, which comes from the same 1987 Act. apct.gov.in was unreachable.' },
+  tn: { name: 'Tamil Nadu', ship: 'draft', half: [{ to: 21000, value: 0 }, { over: 21000, to: 30000, value: 135 }, { over: 30000, to: 45000, value: 315 }, { over: 45000, to: 60000, value: 690 }, { over: 60000, to: 75000, value: 1025 }, { over: 75000, value: 1250 }], src: 'secondary', note: 'Half-yearly tax on half-yearly income, levied by each local body. Values from HROne (9 Jun 2026); Greater Chennai Corporation is reported to have revised its slabs, which may differ. Deducted in the September and March pay runs on income for April to September and October to March.' }
+};
+
+function ptPack(code) {
+  const p = PT[code];
+  const ptCode = 'in-pt-' + code;
+  const src = p.src === 'official'
+    ? [{ title: 'Telangana Commercial Taxes Department, Professions Tax First Schedule', url: 'https://www.tgct.gov.in/tgportal/AllActs/APPT/APPTSchedule.aspx', retrieved: RETRIEVED, note: 'Salary and wage earners: up to 15,000 nil; 15,001 to 20,000: 150 a month; above 20,000: 200 a month.' }]
+    : [{ title: 'HROne, Professional tax slab rates 2026-27 (updated 9 Jun 2026)', url: 'https://hrone.cloud/blog/professional-tax-slab-rates-2026-27/', retrieved: RETRIEVED, note: 'Secondary vendor page.' }, { title: 'Web search summary of 2026 state professional tax guides (Kredily, Tally, IndPayroll and others)', url: 'https://www.indpayroll.com/blog/professional-tax-slab-rates-by-state-in-india-2026-complete-guide', retrieved: RETRIEVED, note: 'Secondary.' }];
+  let steps, tables, vectors, profile = [];
+  const run = (m, y = 2026) => ({ period_start: y + '-' + m + '-01', period_end: y + '-' + m + '-28', pay_date: y + '-' + m + '-28' });
+  if (code === 'mh') {
+    tables = { pt_men: { type: 'bands', rows: p.men }, pt_women: { type: 'bands', rows: p.women } };
+    profile = [{ key: 'in_pt_women', label: 'Maharashtra women\'s slab applies', type: 'boolean', help: 'Women earning up to the women\'s threshold are exempt. Leave empty to use the employee\'s recorded gender.' }];
+    steps = [
+      { var: 'wage_month', expr: 'month_start(run.period_end)', explain: 'Professional tax is due on the month\'s salary, across every salary payslip of the month.' },
+      { var: 'next_month', expr: 'add_months(wage_month, 1)' },
+      { var: 'w', expr: 'sum("in_pt_wages") + (ytd_since("in_pt_wages", wage_month) - ytd_since("in_pt_wages", next_month))' },
+      { var: 'women', expr: 'coalesce(profile.in_pt_women, employee.gender == "female")' },
+      { var: 'base_pt', expr: 'women ? band("pt_women", w) : band("pt_men", w)' },
+      { code: 'IN_PT', name: 'Professional tax (Maharashtra)', kind: 'deduction', stage: 'statutory', when: 'run.kind == "regular" || run.kind == "termination"', amount: '(month(run.period_end) == 2 && base_pt == 200 ? 300 : base_pt) - (ytd_code_since("IN_PT", wage_month) - ytd_code_since("IN_PT", next_month))', round: { mode: 'half_up', step: 1 }, tags: ['in_pt'], payee: 'Maharashtra GST Department', filing: 'in_pt' }
+    ];
+    vectors = [
+      { name: 'Man earning 12,000 in October', source: 'derived', reference: 'Above 10,000: 200.', input: { run: run('10'), employee: { gender: 'male' }, lines: [{ code: 'B', kind: 'earning', amount: 12000, tags: ['in_pt_wages'] }] }, expect: { IN_PT: 200 } },
+      { name: 'Top slab in February', source: 'derived', reference: '300 in February.', input: { run: run('02', 2027), employee: { gender: 'male' }, lines: [{ code: 'B', kind: 'earning', amount: 50000, tags: ['in_pt_wages'] }] }, expect: { IN_PT: 300 } },
+      { name: 'Woman earning 20,000', source: 'derived', reference: 'Women up to 25,000: nil.', input: { run: run('10'), employee: { gender: 'female' }, lines: [{ code: 'B', kind: 'earning', amount: 20000, tags: ['in_pt_wages'] }] }, expect: { IN_PT: 0 } }
+    ];
+  } else if (code === 'tn') {
+    tables = { pt_half: { type: 'bands', rows: p.half } };
+    steps = [
+      { var: 'half_end', expr: 'month(run.period_end) == 9 || month(run.period_end) == 3' },
+      { var: 'half_start', expr: 'month(run.period_end) >= 4 && month(run.period_end) <= 9 ? text(year(run.period_end)) + "-04-01" : text(year(run.period_end) - (month(run.period_end) <= 3 ? 1 : 0)) + "-10-01"' },
+      { var: 'half_income', expr: 'ytd_since("in_pt_wages", half_start) + sum("in_pt_wages")' },
+      { code: 'IN_PT', name: 'Professional tax (Tamil Nadu, half-yearly)', kind: 'deduction', stage: 'statutory', when: 'half_end && run.kind == "regular"', amount: 'band("pt_half", half_income)', round: { mode: 'half_up', step: 1 }, tags: ['in_pt'], payee: 'Local body (corporation or municipality)', filing: 'in_pt' }
+    ];
+    vectors = [
+      { name: 'Half-year income 1,20,000 deducted in September', source: 'derived', reference: '1,00,000 paid April to August plus 20,000 in September: above 75,000 gives 1,250.', input: { run: run('09'), lines: [{ code: 'B', kind: 'earning', amount: 20000, tags: ['in_pt_wages'] }], history: [{ pay_date: '2026-08-28', period_end: '2026-08-28', kind: 'regular', by_tag: { in_pt_wages: 100000 }, by_code: {} }] }, expect: { IN_PT: 1250 } },
+      { name: 'No deduction in other months', source: 'derived', reference: 'Only September and March runs carry the half-yearly tax.', input: { run: run('08'), lines: [{ code: 'B', kind: 'earning', amount: 20000, tags: ['in_pt_wages'] }] }, expect: { IN_PT: 0 } }
+    ];
+  } else {
+    tables = { pt_monthly: { type: 'bands', rows: p.rows } };
+    steps = [
+      { var: 'wage_month', expr: 'month_start(run.period_end)', explain: 'Professional tax is due on the month\'s salary, across every salary payslip of the month.' },
+      { var: 'next_month', expr: 'add_months(wage_month, 1)' },
+      { var: 'w', expr: 'sum("in_pt_wages") + (ytd_since("in_pt_wages", wage_month) - ytd_since("in_pt_wages", next_month))' },
+      { code: 'IN_PT', name: 'Professional tax (' + p.name + ')', kind: 'deduction', stage: 'statutory', when: 'run.kind == "regular" || run.kind == "termination"', amount: 'band("pt_monthly", w) - (ytd_code_since("IN_PT", wage_month) - ytd_code_since("IN_PT", next_month))', round: { mode: 'half_up', step: 1 }, tags: ['in_pt'], payee: p.name + ' professional tax authority', filing: 'in_pt' }
+    ];
+    const top = p.rows[p.rows.length - 1].value;
+    const second = p.rows.length > 2 ? p.rows[1] : null;
+    vectors = [
+      { name: p.name + ': 50,000 a month', source: p.src === 'official' ? 'official' : 'derived', reference: 'Top slab: ' + top + '.', input: { run: run('10'), lines: [{ code: 'B', kind: 'earning', amount: 50000, tags: ['in_pt_wages'] }] }, expect: { IN_PT: top } },
+      { name: p.name + ': 10,000 a month', source: p.src === 'official' ? 'official' : 'derived', reference: 'Lowest slab: nil.', input: { run: run('10'), lines: [{ code: 'B', kind: 'earning', amount: 10000, tags: ['in_pt_wages'] }] }, expect: { IN_PT: 0 } }
+    ];
+    vectors.push({ name: p.name + ': final pay in a month already taxed', source: 'derived', reference: 'A regular payslip of October already paid ' + top + ' on 50,000; a final pay in the same month carries 0 more.', input: { run: { kind: 'termination', period_start: '2026-10-01', period_end: '2026-10-28', pay_date: '2026-10-28' }, lines: [{ code: 'B', kind: 'earning', amount: 20000, tags: ['in_pt_wages'] }], history: [{ pay_date: '2026-10-28', period_end: '2026-10-28', kind: 'regular', by_tag: { in_pt_wages: 50000 }, by_code: { IN_PT: top } }] }, expect: { IN_PT: 0 } });
+    if (second) vectors.push({ name: p.name + ': ' + (second.over + 1) + ' a month', source: p.src === 'official' ? 'official' : 'derived', reference: 'Second slab: ' + second.value + '.', input: { run: run('10'), lines: [{ code: 'B', kind: 'earning', amount: second.over + 1, tags: ['in_pt_wages'] }] }, expect: { IN_PT: second.value } });
+  }
+  return {
+    code: ptCode, country: 'IN', region: code.toUpperCase(), name: 'India professional tax, ' + p.name, version: code === 'tn' ? '2026.1' : '2026.2', effective_from: FY.from, effective_to: FY.to, currency: 'INR', tax_year: { start: '04-01' }, date_basis: 'period_end', requires: [], order: 20, ship: p.ship,
+    sources: src,
+    notes: (p.ship === 'draft' ? 'DRAFT: the state\'s official schedule was not reachable this session; slabs come from secondary 2026 summaries. ' : '') + p.note + ' Wages: lines tagged in_pt_wages (gross salary).' + (code === 'tn' ? '' : ' Regular and final pay carry the month\'s tax on the month\'s salary across payslips, less tax already deducted this month; bonus and off-cycle payslips carry none.') + ' Labour Welfare Fund is not included.',
+    profile_fields: profile,
+    tags: [{ tag: 'in_pt_wages', label: 'Salary for professional tax', help: 'Gross monthly salary.' }],
+    seed_components: [],
+    tables,
+    steps,
+    vectors,
+    filings: [{ code: 'in_pt', name: 'Professional tax return and payment (' + p.name + ')', frequency: code === 'tn' ? 'half_yearly' : 'monthly', due_rule: 'per the state rules', form: 'State professional tax return' }],
+    documents: []
+  };
+}
+
+export function build() {
+  const files = [
+    writeModule('packs/in.js', 'India rule pack: TDS on salaries, tax year 2026-27, version 2026.3.', tdsPack())
+  ];
+  // in-epf, in-esi and in-pt-gj are maintained by hand in APP since the packs-verify round (2026.2+); not generated here.
+  void epfPack; void esiPack;
+  for (const st of Object.keys(PT)) if (st !== 'gj') files.push(writeModule('packs/in-pt-' + st + '.js', 'India professional tax, ' + PT[st].name + ', version ' + (st === 'tn' ? '2026.1' : '2026.2') + '.', ptPack(st)));
+  return files;
+}

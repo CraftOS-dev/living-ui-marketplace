@@ -1,0 +1,178 @@
+/**
+ * Catalog: files, their text layers and anchors (kernel-records). Your AI
+ * agent reads files within its scope, uploads by --paths, reads scanned
+ * pages (pages.set-ocr) and anchors passages; an NDA file opens for it only
+ * while a person's ask about that deal is pending; deleting a file is a
+ * proposal.
+ */
+const S = (desc, extra) => Object.assign({ type: 'string', desc: desc }, extra || {});
+const N = (desc, extra) => Object.assign({ type: 'number', desc: desc }, extra || {});
+const B = (desc, extra) => Object.assign({ type: 'boolean', desc: desc }, extra || {});
+
+const OWNER = {
+  deal: S('Deal id or D-0001 (its room)'),
+  company: S('Company id, domain or name'),
+  person: S('Person id or email'),
+  owner_collection: S('Another owner: its collection (with owner_id), e.g. updates, lps, entities'),
+  owner_id: S('Record id of that owner'),
+};
+const FILE = S('File id', { required: true });
+const MAX_BODY = 209715200;
+
+module.exports = [
+  {
+    name: 'files.list',
+    method: 'GET',
+    fn: 'lib_files.opList',
+    perm: 'signed',
+    effect: 'read',
+    desc: 'The files of one owner (a deal\'s room also holds files tied to the deal), current versions in folder order, with the folders and each file\'s text state. hidden counts files you may not open (NDA files of a deal nobody asked you about, restricted deals).',
+    params: Object.assign({}, OWNER, { folder: S('Only this folder (e.g. Legal)'), q: S('Name contains'), all_versions: B('true: every version'), deleted: B('true: the trash'), limit: N('Rows (default 200)'), offset: N('Rows to skip') }),
+  },
+  {
+    name: 'files.get',
+    method: 'GET',
+    fn: 'lib_files.opGet',
+    perm: 'signed',
+    effect: 'read',
+    desc: 'One file: its owner, folder, version chain (newest first, each with its content hash), NDA flag, text state (waiting, extracting, ready, needs_ocr, none, failed) and the pages that need OCR.',
+    params: { file: FILE },
+  },
+  {
+    name: 'files.upload',
+    method: 'POST',
+    fn: 'lib_files.opUpload',
+    perm: 'signed',
+    agent: 'allow',
+    effect: 'write',
+    files: ['file'],
+    bodyLimit: MAX_BODY,
+    desc: 'Store files for an owner: people upload, your AI agent gives --paths \'["C:/.../deck.pdf"]\'. A file named like one already in the folder becomes its next version. --nda true keeps it to the deal team. Text is read in the background (files.get shows when ready).',
+    params: Object.assign({}, OWNER, {
+      for_deal: S('Tie a non-deal owner\'s file to this deal (its rights and NDA follow the deal)'),
+      folder: S('Folder path, e.g. Legal/Term sheet'),
+      nda: B('true: under NDA (only the deal team; your AI agent while a person asked it about the deal)'),
+      origin: S('Where it came from', { enum: ['upload', 'email', 'agent', 'import', 'link', 'generated', 'system'] }),
+      name: S('Store one file under this name'),
+      paths: S('JSON list of absolute local paths (your AI agent)'),
+      source_ref: S('Where the file came from: a link or an email message id'),
+    }),
+  },
+  {
+    name: 'files.version',
+    method: 'POST',
+    fn: 'lib_files.opVersion',
+    perm: 'signed',
+    agent: 'allow',
+    effect: 'write',
+    files: ['file'],
+    bodyLimit: MAX_BODY,
+    desc: 'Store a new version of a file (one upload, or --paths with one path): it keeps the file\'s name and folder; the previous version stays in its chain.',
+    params: Object.assign({ file: FILE, paths: S('JSON list with one absolute local path (your AI agent)'), origin: S('Where it came from', { enum: ['upload', 'email', 'agent', 'import', 'link', 'generated', 'system'] }), source_ref: S('Where the file came from') }),
+  },
+  {
+    name: 'files.delete',
+    method: 'POST',
+    fn: 'lib_files.opDelete',
+    perm: 'signed',
+    agent: 'propose',
+    kind: 'files',
+    preview: 'lib_files.previewDelete',
+    effect: 'write',
+    desc: 'Move a file and all its versions to the trash (files.list --deleted true shows it; Undo brings it back). For you it is a proposal.',
+    params: { file: FILE },
+  },
+  {
+    name: 'files.move',
+    method: 'POST',
+    fn: 'lib_files.opMove',
+    perm: 'signed',
+    agent: 'allow',
+    effect: 'write',
+    desc: 'Move a file with all its versions to another --folder (empty: the root), or to another owner: --deal, --company or --person. Its NDA flag goes with it (an NDA file stays in a deal).',
+    params: Object.assign({ file: FILE, folder: S('Folder path, e.g. Legal (empty: the root)'), deal: S('New owner: a deal'), company: S('New owner: a company'), person: S('New owner: a person') }),
+  },
+  {
+    name: 'files.set-nda',
+    method: 'POST',
+    fn: 'lib_files.opSetNda',
+    perm: 'signed',
+    agent: 'deny',
+    effect: 'write',
+    desc: 'Put a file and all its versions under NDA (--nda true: only the deal team opens it; the file must belong to a deal) or take it out (--nda false: the deal team only).',
+    params: { file: FILE, nda: B('true: under NDA; false: open to everyone who sees the deal', { required: true }) },
+  },
+  {
+    name: 'files.download',
+    method: 'GET',
+    fn: 'lib_files.opDownload',
+    perm: 'signed',
+    effect: 'read',
+    desc: 'The file itself: people get its bytes (shown in the page, or saved with --download true); your AI agent gets its local path to read.',
+    params: Object.assign({ file: FILE, download: B('true: save instead of show') }),
+  },
+  {
+    name: 'files.text',
+    method: 'GET',
+    fn: 'lib_text.opText',
+    perm: 'signed',
+    effect: 'read',
+    desc: 'A file\'s text as numbered lines per page (10 pages from --from; at most 50 with --to), with the pages that need OCR. Anchor a passage with anchors.create using these line numbers. 409 text_not_ready while it is being read.',
+    params: Object.assign({ file: FILE, from: N('First page (default 1)'), to: N('Last page') }),
+  },
+  {
+    name: 'pages.get',
+    method: 'GET',
+    fn: 'lib_text.opPagesGet',
+    perm: 'signed',
+    effect: 'read',
+    desc: 'Pages of a file for the reader: size, text, positioned items ([text, left, top, height, width, angle, end_of_line] in points) and the anchors on them (up to 20 pages).',
+    params: Object.assign({ file: FILE, from: N('First page (default 1)'), to: N('Last page') }),
+  },
+  {
+    name: 'pages.set-ocr',
+    method: 'POST',
+    fn: 'lib_text.opSetOcr',
+    perm: 'signed',
+    agent: 'allow',
+    effect: 'write',
+    desc: 'Your reading of a page with little or no text (a scan, a slide picture): --words \'[{"text","x0","top","x1","bottom"}]\' in points from an OCR tool, or --text with plain lines. It becomes the page\'s text layer (anchors work on it). A page with anchors keeps its text.',
+    params: Object.assign({ file: FILE, page: N('Page number (1-based)', { required: true }), words: S('JSON list of word boxes'), text: S('Plain text of the page, when there are no boxes') }),
+  },
+  {
+    name: 'anchors.create',
+    method: 'POST',
+    fn: 'lib_text.opAnchorCreate',
+    perm: 'signed',
+    agent: 'allow',
+    effect: 'write',
+    desc: 'Anchor a passage (the citation behind a fact, an answer or a memo block): --file --page with --lines "3-4" (files.text numbers) or --quote "<exact text>"; --passages \'[{"file","page","lines"},...]\' anchors several at once. Or a message passage: --message_id with --start --end --quote. The same passage gives the same anchor. dd.answer also takes passages inline.',
+    params: Object.assign(
+      {
+        file: S('File id'),
+        page: N('Page number (1-based)'),
+        lines: S('Line range from files.text, e.g. "3-4"'),
+        from_char: N('Start inside the first line'),
+        to_char: N('End inside the last line'),
+        start: N('Start offset in the page text'),
+        end: N('End offset in the page text'),
+        quote: S('The exact words (spaces aside)'),
+        area: S('JSON [x, y, width, height] in points (a chart or table)'),
+        message_id: S('An email message id (a message passage)'),
+        ref_collection: S('Collection of the record keeping that message body'),
+        ref_id: S('Id of that record'),
+        deal: S('Deal of a message passage'),
+        passages: S('JSON list of passages to anchor at once: [{"file","page","lines"} or {"file","page","quote"}] (at most 50)'),
+      },
+    ),
+  },
+  {
+    name: 'anchors.resolve',
+    method: 'GET',
+    fn: 'lib_text.opAnchorResolve',
+    perm: 'signed',
+    effect: 'read',
+    desc: 'Check anchors before citing them: each answers ok (with file, page, quote and rectangles) or why not (missing, not_visible, an NDA reason); valid says the page still holds the quote; with --deal, in_scope says the anchor may be cited for that deal (its own room or its company\'s files).',
+    params: Object.assign({ anchor: S('One anchor id'), anchors: S('JSON list of anchor ids'), deal: S('The deal a citation is for (citation scope)') }),
+  },
+];
