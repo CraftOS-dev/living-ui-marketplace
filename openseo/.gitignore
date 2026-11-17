@@ -1,0 +1,23 @@
+# Credentials are runtime artifacts: never shipped, exported, or committed.
+.agent-token
+
+# OpenSEO's release, downloaded and unpacked at install (see upstream.json).
+upstream/
+
+# The live data: OpenSEO's local state, settings (keys) and adapter state
+# (the toolkit's lifecycle dataDir).
+data/
+
+# Framework runtime state: serve records, logs, the gate pass, and backups.
+.a2app/serve.json
+.a2app/serve.log
+.a2app/serve.lock
+.a2app/dev.json
+.a2app/dev/
+.a2app/gate-pass.json
+.a2app/backups/
+
+# Pipeline output (pnpm, the build, migrations): see sidecar/context.mjs.
+logs/
+
+node_modules/

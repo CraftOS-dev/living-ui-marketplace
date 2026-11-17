@@ -1,0 +1,516 @@
+{
+  "about": "Every OpenSEO MCP tool, as the agent operation of the same name. `tool` runs it through OpenSEO's own MCP server; `sidecar` runs an operation of this install (a2app/app.mjs). `destructive: true` makes the person approve the call first: permanent deletions, public sharing, and anything that starts recurring charges. One-off paid runs need a cost cap from OpenSEO itself. Run a2app/gen-operations.mjs after any change.",
+  "operations": {
+    "app.guide": {
+      "sidecar": "guide",
+      "module": "app",
+      "summary": "Start here: how to use this app, what is set up, and OpenSEO playbooks",
+      "readOnly": true,
+      "params": {
+        "topic": {
+          "type": "string",
+          "description": "A playbook name from the guide (OpenSEO's own skills, e.g. seo-audit, keyword-research). Omit for the overview."
+        }
+      }
+    },
+    "app.status": {
+      "sidecar": "status",
+      "module": "app",
+      "summary": "OpenSEO version, health, which keys are set, and where settings live",
+      "readOnly": true,
+      "params": {}
+    },
+    "app.set_keys": {
+      "sidecar": "set_api_keys",
+      "module": "app",
+      "summary": "Store DataForSEO, OpenRouter or Google keys, then restart OpenSEO",
+      "params": {
+        "dataforseo_login": {
+          "type": "string",
+          "description": "DataForSEO API login (an email), with dataforseo_password"
+        },
+        "dataforseo_password": {
+          "type": "string",
+          "description": "DataForSEO API password (not the account password)"
+        },
+        "dataforseo_api_key": {
+          "type": "string",
+          "description": "Or the ready base64 of login:password"
+        },
+        "openrouter_api_key": {
+          "type": "string",
+          "description": "For SAM, OpenSEO's in-app assistant (optional)"
+        },
+        "openrouter_model": {
+          "type": "string",
+          "description": "Model for SAM, e.g. anthropic/claude-sonnet-5 (optional)"
+        },
+        "openrouter_base_url": {
+          "type": "string",
+          "description": "Any OpenAI-compatible server instead of OpenRouter (optional)"
+        },
+        "google_client_id": {
+          "type": "string",
+          "description": "Google OAuth client id, for Search Console and GA4 (optional)"
+        },
+        "google_client_secret": {
+          "type": "string",
+          "description": "Google OAuth client secret (optional)"
+        },
+        "google_maps_api_key": {
+          "type": "string",
+          "description": "Google Maps key for the Local SEO map (optional)"
+        },
+        "context_api_key": {
+          "type": "string",
+          "description": "Context.dev key, for audits that render JavaScript (optional)"
+        },
+        "telemetry": {
+          "type": "boolean",
+          "description": "Send OpenSEO's anonymous usage heartbeat (default off)"
+        }
+      }
+    },
+    "whoami": {
+      "tool": "whoami",
+      "module": "projects",
+      "summary": "Show the account, server mode and remaining credits"
+    },
+    "list_projects": {
+      "tool": "list_projects",
+      "module": "projects",
+      "summary": "List projects with their id, domain and default market (start here)"
+    },
+    "create_project": {
+      "tool": "create_project",
+      "module": "projects",
+      "summary": "Create a project with a name, domain and default market"
+    },
+    "research_project_website": {
+      "tool": "research_project_website",
+      "module": "projects",
+      "summary": "Draft a project's brand, overview and competitors from its website"
+    },
+    "save_project_website_setup": {
+      "tool": "save_project_website_setup",
+      "module": "projects",
+      "summary": "Save a website setup the person confirmed"
+    },
+    "get_project_context": {
+      "tool": "get_project_context",
+      "module": "projects",
+      "summary": "Read the project's shared memory: overview, goals, competitors, pages"
+    },
+    "update_project_context": {
+      "tool": "update_project_context",
+      "module": "projects",
+      "summary": "Add, edit or delete entries in the project's shared memory"
+    },
+    "list_saved_keywords": {
+      "tool": "list_saved_keywords",
+      "module": "keywords",
+      "summary": "List the project's saved keywords with metrics and tags"
+    },
+    "remove_saved_keywords": {
+      "tool": "remove_saved_keywords",
+      "module": "keywords",
+      "summary": "Delete saved keywords by their saved-keyword id",
+      "destructive": true
+    },
+    "get_suggested_keywords": {
+      "tool": "get_suggested_keywords",
+      "module": "keywords",
+      "summary": "Suggest seed keywords from Search Console near-wins"
+    },
+    "research_keywords": {
+      "tool": "research_keywords",
+      "module": "keywords",
+      "summary": "Keyword ideas for 1-5 seeds with volume, difficulty and CPC (paid)"
+    },
+    "save_keywords": {
+      "tool": "save_keywords",
+      "module": "keywords",
+      "summary": "Save keywords to the project, with metrics and tags"
+    },
+    "get_keyword_metrics": {
+      "tool": "get_keyword_metrics",
+      "module": "keywords",
+      "summary": "Volume, difficulty, intent, CPC and trends for up to 700 keywords (paid)"
+    },
+    "get_serp_results": {
+      "tool": "get_serp_results",
+      "module": "serp",
+      "summary": "Live Google results for 1-10 keywords (paid)"
+    },
+    "list_countries": {
+      "sidecar": "list_countries",
+      "module": "serp",
+      "summary": "Country locationCode and languageCode for every market (no key needed)",
+      "readOnly": true,
+      "params": {
+        "query": {
+          "type": "string",
+          "description": "Part of a country name, a two-letter code (e.g. UK), or a locationCode. Omit for all of OpenSEO's markets."
+        }
+      }
+    },
+    "search_serp_locations": {
+      "tool": "search_serp_locations",
+      "module": "serp",
+      "summary": "Exact city or region names for local searches (no credits; needs DataForSEO)"
+    },
+    "get_ranked_keywords": {
+      "tool": "get_ranked_keywords",
+      "module": "serp",
+      "summary": "Keywords a domain or page ranks for in one country (paid)"
+    },
+    "find_serp_competitors": {
+      "tool": "find_serp_competitors",
+      "module": "serp",
+      "summary": "Domains competing in Google for a set of keywords (paid)"
+    },
+    "get_domain_overview": {
+      "tool": "get_domain_overview",
+      "module": "domains",
+      "summary": "Estimated organic traffic and ranking keywords of a domain (paid)"
+    },
+    "get_domain_keyword_suggestions": {
+      "tool": "get_domain_keyword_suggestions",
+      "module": "domains",
+      "summary": "Organic keywords a domain ranks for, with positions (paid)"
+    },
+    "get_backlinks_overview": {
+      "tool": "get_backlinks_overview",
+      "module": "domains",
+      "summary": "Backlink summary: totals and top referring domains (paid)"
+    },
+    "get_backlinks_profile": {
+      "tool": "get_backlinks_profile",
+      "module": "domains",
+      "summary": "Individual backlinks with anchors, authority and spam signals (paid)"
+    },
+    "get_ai_visibility_tracker": {
+      "tool": "get_ai_visibility_tracker",
+      "module": "ai-setup",
+      "summary": "Read the AI visibility setup: topics, prompts, brand, engines"
+    },
+    "explore_prompt": {
+      "tool": "explore_prompt",
+      "module": "ai-setup",
+      "summary": "Ask one prompt in ChatGPT, or compare four AI engines (paid)"
+    },
+    "generate_ai_visibility_prompts": {
+      "tool": "generate_ai_visibility_prompts",
+      "module": "ai-setup",
+      "summary": "Suggest topics and prompts to track from the project's context"
+    },
+    "research_ai_visibility_prompts": {
+      "tool": "research_ai_visibility_prompts",
+      "module": "ai-setup",
+      "summary": "Questions people ask about a keyword, with ChatGPT's answers (paid)"
+    },
+    "complete_ai_research_setup": {
+      "tool": "complete_ai_research_setup",
+      "module": "ai-setup",
+      "summary": "Set up Prompt Research keywords for a saved website (paid)"
+    },
+    "save_ai_visibility_tracker": {
+      "tool": "save_ai_visibility_tracker",
+      "module": "ai-setup",
+      "summary": "Create or edit tracked prompts and engines (new trackers check weekly)",
+      "destructive": true
+    },
+    "estimate_ai_visibility_cost": {
+      "tool": "estimate_ai_visibility_cost",
+      "module": "ai-setup",
+      "summary": "Estimate what AI visibility checks cost, without running them"
+    },
+    "set_ai_visibility_schedule": {
+      "tool": "set_ai_visibility_schedule",
+      "module": "ai-setup",
+      "summary": "Turn scheduled AI visibility checks on, change or pause them",
+      "destructive": true
+    },
+    "run_ai_visibility_check": {
+      "tool": "run_ai_visibility_check",
+      "module": "ai-results",
+      "summary": "Start a one-off AI visibility check now, within a cost cap (paid)"
+    },
+    "get_ai_visibility_run": {
+      "tool": "get_ai_visibility_run",
+      "module": "ai-results",
+      "summary": "Progress of an AI visibility check, and when to poll again"
+    },
+    "get_ai_visibility_results": {
+      "tool": "get_ai_visibility_results",
+      "module": "ai-results",
+      "summary": "Brand and competitor mentions in AI answers for one run"
+    },
+    "get_ai_visibility_answer": {
+      "tool": "get_ai_visibility_answer",
+      "module": "ai-results",
+      "summary": "Read one stored AI answer with its mentions and cited pages"
+    },
+    "get_ai_visibility_sources": {
+      "tool": "get_ai_visibility_sources",
+      "module": "ai-results",
+      "summary": "Pages and domains AI answers cited in one run"
+    },
+    "get_ai_visibility_trend": {
+      "tool": "get_ai_visibility_trend",
+      "module": "ai-results",
+      "summary": "Whether AI visibility is improving or declining"
+    },
+    "export_ai_visibility_data": {
+      "tool": "export_ai_visibility_data",
+      "module": "ai-results",
+      "summary": "Export AI visibility observations as a CSV or JSON download link"
+    },
+    "create_rank_tracker": {
+      "tool": "create_rank_tracker",
+      "module": "ranks",
+      "summary": "Create a rank tracker; a schedule spends credits once it has keywords",
+      "destructive": true
+    },
+    "get_rank_tracker": {
+      "tool": "get_rank_tracker",
+      "module": "ranks",
+      "summary": "List rank trackers, or one tracker's keywords and latest positions"
+    },
+    "get_rank_history": {
+      "tool": "get_rank_history",
+      "module": "ranks",
+      "summary": "Position history of a tracker's keywords over recent checks"
+    },
+    "add_rank_tracking_keywords": {
+      "tool": "add_rank_tracking_keywords",
+      "module": "ranks",
+      "summary": "Add keywords to a rank tracker (fetches their metrics; paid)"
+    },
+    "remove_rank_tracking_keywords": {
+      "tool": "remove_rank_tracking_keywords",
+      "module": "ranks",
+      "summary": "Stop tracking keywords; their history is kept",
+      "destructive": true
+    },
+    "pin_rank_tracking_keywords": {
+      "tool": "pin_rank_tracking_keywords",
+      "module": "ranks",
+      "summary": "Pin or unpin tracked keywords"
+    },
+    "estimate_rank_tracker_cost": {
+      "tool": "estimate_rank_tracker_cost",
+      "module": "ranks",
+      "summary": "The most a rank check can cost, without running it"
+    },
+    "run_rank_tracker": {
+      "tool": "run_rank_tracker",
+      "module": "ranks",
+      "summary": "Start a rank check now, within a credit cap (paid)"
+    },
+    "search_local_businesses": {
+      "tool": "search_local_businesses",
+      "module": "local",
+      "summary": "Search business listings near a point, with filters (paid)"
+    },
+    "get_local_serp_results": {
+      "tool": "get_local_serp_results",
+      "module": "local",
+      "summary": "Google Maps or Local Finder results for a keyword at a point (paid)"
+    },
+    "get_google_business_questions": {
+      "tool": "get_google_business_questions",
+      "module": "local",
+      "summary": "Questions and answers on a Google Business Profile (paid)"
+    },
+    "get_business_profile": {
+      "tool": "get_business_profile",
+      "module": "local",
+      "summary": "One Google Business Profile: categories, rating, address (paid)"
+    },
+    "get_business_reviews": {
+      "tool": "get_business_reviews",
+      "module": "local",
+      "summary": "A business's Google reviews with ratings and owner replies (paid)"
+    },
+    "get_business_updates": {
+      "tool": "get_business_updates",
+      "module": "local",
+      "summary": "Posts, offers and events on a Google Business Profile (paid)"
+    },
+    "list_business_categories": {
+      "tool": "list_business_categories",
+      "module": "local",
+      "summary": "Google Business categories by use (no credits; needs DataForSEO)"
+    },
+    "get_local_rank_grid": {
+      "tool": "get_local_rank_grid",
+      "module": "local",
+      "summary": "Map a business's Google Maps visibility over a grid (paid)"
+    },
+    "list_search_console_sites": {
+      "tool": "list_search_console_sites",
+      "module": "search-console",
+      "summary": "List Search Console properties of the connected Google accounts"
+    },
+    "set_search_console_site": {
+      "tool": "set_search_console_site",
+      "module": "search-console",
+      "summary": "Choose which Search Console property the project reads"
+    },
+    "get_search_console_performance": {
+      "tool": "get_search_console_performance",
+      "module": "search-console",
+      "summary": "Clicks, impressions, CTR and position by query, page or country"
+    },
+    "inspect_urls": {
+      "tool": "inspect_urls",
+      "module": "search-console",
+      "summary": "Whether Google indexed up to 10 pages, and why not"
+    },
+    "submit_indexnow_urls": {
+      "tool": "submit_indexnow_urls",
+      "module": "search-console",
+      "summary": "Tell IndexNow engines (Bing and others) that pages changed"
+    },
+    "list_google_analytics_properties": {
+      "tool": "list_google_analytics_properties",
+      "module": "analytics",
+      "summary": "List GA4 properties of the connected Google accounts"
+    },
+    "set_google_analytics_property": {
+      "tool": "set_google_analytics_property",
+      "module": "analytics",
+      "summary": "Choose which GA4 property the project reads"
+    },
+    "get_google_analytics_organic_overview": {
+      "tool": "get_google_analytics_organic_overview",
+      "module": "analytics",
+      "summary": "Is organic traffic improving: sessions, users, conversions, revenue"
+    },
+    "get_google_analytics_organic_landing_pages": {
+      "tool": "get_google_analytics_organic_landing_pages",
+      "module": "analytics",
+      "summary": "Landing pages that get organic traffic, with their outcomes"
+    },
+    "get_google_analytics_page_performance": {
+      "tool": "get_google_analytics_page_performance",
+      "module": "analytics",
+      "summary": "Views, users, engagement and key events per page"
+    },
+    "get_google_analytics_key_events": {
+      "tool": "get_google_analytics_key_events",
+      "module": "analytics",
+      "summary": "Active GA4 key events (conversions) with counts"
+    },
+    "get_google_analytics_traffic_acquisition": {
+      "tool": "get_google_analytics_traffic_acquisition",
+      "module": "analytics",
+      "summary": "Traffic by channel, source/medium or campaign"
+    },
+    "get_google_analytics_audience_breakdown": {
+      "tool": "get_google_analytics_audience_breakdown",
+      "module": "analytics",
+      "summary": "Visitors by device, country, or new versus returning"
+    },
+    "get_google_analytics_ecommerce_performance": {
+      "tool": "get_google_analytics_ecommerce_performance",
+      "module": "analytics",
+      "summary": "Ecommerce items, carts, purchases and revenue"
+    },
+    "get_google_analytics_site_search": {
+      "tool": "get_google_analytics_site_search",
+      "module": "analytics",
+      "summary": "What visitors search for on the site itself"
+    },
+    "get_google_analytics_measurement_health": {
+      "tool": "get_google_analytics_measurement_health",
+      "module": "analytics",
+      "summary": "How GA4 is set up on the connected property"
+    },
+    "get_search_opportunities": {
+      "tool": "get_search_opportunities",
+      "module": "analytics",
+      "summary": "Pages most worth improving: Search Console ranks 4-20 joined with GA4"
+    },
+    "run_site_audit": {
+      "tool": "run_site_audit",
+      "module": "audits",
+      "summary": "Start a site audit (10 pages or more); it runs in the background"
+    },
+    "list_site_audits": {
+      "tool": "list_site_audits",
+      "module": "audits",
+      "summary": "List the project's site audits, newest first"
+    },
+    "delete_site_audit": {
+      "tool": "delete_site_audit",
+      "module": "audits",
+      "summary": "Delete one site audit with its pages, issues and Lighthouse results",
+      "destructive": true
+    },
+    "get_audit_status": {
+      "tool": "get_audit_status",
+      "module": "audits",
+      "summary": "Progress of a site audit (the latest one without auditId)"
+    },
+    "get_audit_issues": {
+      "tool": "get_audit_issues",
+      "module": "audits",
+      "summary": "Prioritized issues from a finished audit, each with how to fix it"
+    },
+    "get_audit_pages": {
+      "tool": "get_audit_pages",
+      "module": "audits",
+      "summary": "Crawled pages with status, title, indexability and links"
+    },
+    "get_audit_lighthouse": {
+      "tool": "get_audit_lighthouse",
+      "module": "audits",
+      "summary": "Lighthouse scores and Core Web Vitals from an audit"
+    },
+    "save_report": {
+      "tool": "save_report",
+      "module": "reports",
+      "summary": "Save or replace an HTML report in the project"
+    },
+    "list_reports": {
+      "tool": "list_reports",
+      "module": "reports",
+      "summary": "List the project's saved reports, newest first"
+    },
+    "get_report": {
+      "tool": "get_report",
+      "module": "reports",
+      "summary": "Read one saved report"
+    },
+    "set_report_sharing": {
+      "tool": "set_report_sharing",
+      "module": "reports",
+      "summary": "Turn a report's public link on or off (hosted OpenSEO only)",
+      "destructive": true
+    },
+    "delete_report": {
+      "tool": "delete_report",
+      "module": "reports",
+      "summary": "Delete one saved report",
+      "destructive": true
+    },
+    "list_report_templates": {
+      "tool": "list_report_templates",
+      "module": "reports",
+      "summary": "List the project's report templates"
+    },
+    "save_report_template": {
+      "tool": "save_report_template",
+      "module": "reports",
+      "summary": "Save a reusable report brief as a template"
+    },
+    "delete_report_template": {
+      "tool": "delete_report_template",
+      "module": "reports",
+      "summary": "Delete one report template",
+      "destructive": true
+    }
+  }
+}

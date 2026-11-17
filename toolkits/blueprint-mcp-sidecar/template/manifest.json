@@ -1,0 +1,19 @@
+{
+  "id": "REPLACED_AT_IMPORT",
+  "name": "MCP Sidecar App",
+  "agentAppVersion": "0.1.0",
+  "adapterVersion": "0.1.0",
+  "appVersion": "0.1.0",
+  "authMode": "none",
+  "modules": [
+    { "name": "app", "summary": "the app" }
+  ],
+  "modificationLock": true,
+  "capabilities": { "integrations": [] },
+  "pipeline": {
+    "install": "node sidecar/pipeline.mjs install",
+    "build": "node sidecar/pipeline.mjs build",
+    "start": "node sidecar/serve.mjs",
+    "health": "/api/_a2app"
+  }
+}

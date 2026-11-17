@@ -1,0 +1,10 @@
+{
+  "repository": "https://github.com/CraftOS-dev/Agent-App",
+  "commit": "5e9c7a1e28fd4742cbb49e49188d63031f35c145",
+  "verifiedUnchangedThrough": "b6d039db6a5cd2f2fd38f0e919eeccb339c82ccd",
+  "packages": {
+    "template/sidecar/vendor/a2app-adapter-core-0.1.0-alpha.0.tgz": "sha256:d5252e6fcf4715730d28cb22a44debf126a957a1093b5ecaf85b8513f641db6e",
+    "template/sidecar/vendor/a2app-rules-0.1.0-alpha.0.tgz": "sha256:895d6edff5d009f16d581589338037f70ef5ddc6b00a8712cc2fae479d77b8ee"
+  },
+  "note": "The sidecar is new marketplace code on top of the unmodified adapter-core; the tarballs are the ones dev-studio vendors."
+}

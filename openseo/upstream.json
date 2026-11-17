@@ -1,0 +1,16 @@
+{
+  "name": "OpenSEO",
+  "authors": "Ben Senescu and Every App, Inc.",
+  "website": "https://openseo.so",
+  "repository": "https://github.com/every-app/open-seo",
+  "license": "MIT",
+  "copyright": "Copyright (c) 2026 Ben Senescu",
+  "tag": "v0.1.27",
+  "commit": "4fa42c879fd26657aec3472dcf44f08226816df3",
+  "archive": "https://codeload.github.com/every-app/open-seo/zip/refs/tags/v0.1.27",
+  "sha256": "369570b1c8c1bb6a54408b2a42fa53d1f08f7e3a00a32ace2b7c542cd4086dfb",
+  "dir": "upstream",
+  "mcpPath": "/mcp",
+  "healthPath": "/api/health",
+  "toolSources": ["src/server/mcp"]
+}

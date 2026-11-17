@@ -1,0 +1,18 @@
+{
+  "name": "a2app-mcp-sidecar",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A2App sidecar in front of an app's own MCP server (marketplace toolkit blueprint-mcp-sidecar)",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@a2app/adapter-core": "file:vendor/a2app-adapter-core-0.1.0-alpha.0.tgz",
+    "@a2app/rules": "file:vendor/a2app-rules-0.1.0-alpha.0.tgz"
+  },
+  "overrides": {
+    "@a2app/rules": "$@a2app/rules"
+  }
+}

@@ -1,0 +1,39 @@
+{
+ "id": "blueprint-mcp-sidecar",
+ "description": "The marketplace's MCP sidecar toolkit: runs an existing open-source app exactly as its authors release it (downloaded from its own pinned, hash-checked release) and puts the A2App adapter in front of it. Every agent operation is one of the app's own MCP tools; the person's browser gets the app's own UI, passed through untouched. NOT part of the framework.",
+ "template": "template",
+ "adapterVersionFrom": "sidecar/serve.mjs",
+ "systemPaths": [
+  "manifest.json",
+  "sidecar/pipeline.mjs",
+  "sidecar/serve.mjs",
+  "sidecar/mcp.mjs",
+  "sidecar/context.mjs",
+  "sidecar/upstream.mjs",
+  "sidecar/guard.mjs",
+  "sidecar/check.mjs",
+  "sidecar/package.json",
+  "sidecar/package-lock.json",
+  "sidecar/vendor/a2app-adapter-core-0.1.0-alpha.0.tgz",
+  "sidecar/vendor/a2app-rules-0.1.0-alpha.0.tgz",
+  "sidecar/vendor/SHA256SUMS",
+  "sidecar/vendor/NOTICE.md"
+ ],
+ "adapterPaths": [
+  "sidecar/serve.mjs",
+  "sidecar/mcp.mjs"
+ ],
+ "gate": [
+  {
+   "name": "sidecar syntax",
+   "run": "node --check sidecar/pipeline.mjs && node --check sidecar/serve.mjs && node --check sidecar/mcp.mjs && node --check sidecar/context.mjs && node --check sidecar/upstream.mjs && node --check sidecar/guard.mjs && node --check sidecar/check.mjs && node --check a2app/app.mjs"
+  },
+  {
+   "name": "operations resolve (every declared operation maps to an upstream MCP tool or a sidecar operation)",
+   "run": "node sidecar/check.mjs"
+  }
+ ],
+ "lifecycle": {
+  "dataDir": "data"
+ }
+}

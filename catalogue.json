@@ -382,6 +382,16 @@
       "folder": "venture-os",
       "tags": ["venture capital", "deal flow", "portfolio", "funds", "investing", "business"],
       "version": "1.0.0"
+    },
+    {
+      "id": "openseo",
+      "agentAppVersion": "0.1.0",
+      "toolkit": "blueprint-mcp-sidecar",
+      "name": "OpenSEO",
+      "description": "OpenSEO, the open-source alternative to Semrush and Ahrefs by Ben Senescu and Every App (openseo.so, MIT), running exactly as its authors release it. Keyword research, rank tracking, site audits, domain and backlink research, competitors, local SEO, AI visibility across ChatGPT, Claude, Gemini and Perplexity, Search Console, GA4 and reports. Your AI agent works through all 84 of OpenSEO's own tools, and you approve deletions and anything that starts recurring charges. Bring your own DataForSEO key and pay only for the data you use. All the credit goes to the OpenSEO team: github.com/every-app/open-seo.",
+      "folder": "openseo",
+      "tags": ["SEO", "keyword research", "rank tracking", "site audit", "marketing", "open source"],
+      "version": "0.1.0"
     }
   ]
 }

@@ -1,0 +1,72 @@
+{
+  "id": "openseo",
+  "name": "OpenSEO",
+  "agentAppVersion": "0.1.0",
+  "adapterVersion": "0.1.0",
+  "appVersion": "0.1.0",
+  "authMode": "none",
+  "modules": [
+    {
+      "name": "app",
+      "summary": "Start here: the guide, setup status and keys"
+    },
+    {
+      "name": "projects",
+      "summary": "Projects, the account, and each project's shared business context"
+    },
+    {
+      "name": "keywords",
+      "summary": "Keyword research, keyword metrics and saved keyword lists"
+    },
+    {
+      "name": "serp",
+      "summary": "Live Google results, a site's ranking keywords and SERP competitors"
+    },
+    {
+      "name": "domains",
+      "summary": "Domain traffic overview, domain keywords and backlinks"
+    },
+    {
+      "name": "ai-setup",
+      "summary": "AI visibility setup: prompts, engines, tracker, costs and schedule"
+    },
+    {
+      "name": "ai-results",
+      "summary": "AI visibility checks and results: mentions, answers, sources, trend"
+    },
+    {
+      "name": "ranks",
+      "summary": "Rank trackers: keywords, positions, history and checks"
+    },
+    {
+      "name": "local",
+      "summary": "Local SEO: Maps results, business profiles, reviews, rank grid"
+    },
+    {
+      "name": "search-console",
+      "summary": "Google Search Console: performance, indexing and IndexNow"
+    },
+    {
+      "name": "analytics",
+      "summary": "Google Analytics 4 reports and search opportunities"
+    },
+    {
+      "name": "audits",
+      "summary": "Site audits: crawl a site, read its issues, pages and Lighthouse"
+    },
+    {
+      "name": "reports",
+      "summary": "Saved HTML reports and report templates"
+    }
+  ],
+  "modificationLock": true,
+  "capabilities": {
+    "integrations": []
+  },
+  "pipeline": {
+    "install": "node sidecar/pipeline.mjs install",
+    "build": "node sidecar/pipeline.mjs build",
+    "start": "node sidecar/serve.mjs",
+    "health": "/api/_a2app"
+  }
+}
