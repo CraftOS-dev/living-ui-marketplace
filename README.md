@@ -11,7 +11,7 @@ Pre-built Living UI applications for CraftBot. Browse and install instantly from
 5. Wait for download and installation
 6. App appears in your sidebar, ready to use
 
-**Development Studio uses a different installation route.** Its catalogue entry is pinned to an approved commit in [its own repository](https://github.com/ahmad-ajmal/DevelopmentStudio); CraftBot's current marketplace Add button cannot install the new Agent-App framework. Follow [Studio's standalone setup](https://github.com/ahmad-ajmal/DevelopmentStudio/blob/b8407197d4586994d773b4f63cb08fd4ae749e2b/README.md), then connect the running app to CraftBot through Settings → Agents. This connection requires no changes to CraftBot. The entry declares the actual framework version and is not a format-2 package.
+**Development Studio uses a different installation route.** Its catalogue entry is pinned to an approved commit in [its own repository](https://github.com/ahmad-ajmal/DevelopmentStudio); CraftBot's current marketplace Add button cannot install the new Agent-App framework. Follow [Studio's standalone setup](https://github.com/ahmad-ajmal/DevelopmentStudio/blob/93f3bfa4088bbf425d8ce6c9bea4356789264a9c/README.md), then connect the running app to CraftBot through Settings → Agents. This connection requires no changes to CraftBot. The entry declares the actual framework version and is not a format-2 package.
 
 ## Contributing
 
