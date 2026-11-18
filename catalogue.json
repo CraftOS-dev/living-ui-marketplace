@@ -234,7 +234,12 @@
       "toolkit": "blueprint-pocketbase-kit", 
       "name": "NetSentry", 
       "description": "Look after the server it runs on, in plain words: what runs, what to fix (each with its one button), app updates and backups, files, app settings, any app from a Compose file, disk space, programs, the firewall, SSH keys, scheduled jobs, a recorded terminal — and an agent that prepares fixes you confirm with one tap. Every change is previewed, confirmed by a person and can be undone.", 
-      "folder": "netsentry", 
+      "source": {
+        "type": "github",
+        "url": "https://github.com/ahmad-ajmal/NetSentry",
+        "commit": "24a868d30f48d91db8714a8fced7d3975c7d4a92",
+        "path": "."
+      },
       "tags": ["server", "security", "self-hosting", "monitoring", "devops", "multi-user"],
       "version": "1.0.0"
     },
