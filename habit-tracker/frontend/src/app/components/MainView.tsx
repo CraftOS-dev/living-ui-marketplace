@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { useAgentAware } from '../agent/hooks'
 import type { AppController } from '../AppController'
-import { useController, useSystemTheme, useViewport } from '../lib/hooks'
+import { useController, useSystemTheme, useToday, useViewport } from '../lib/hooks'
 import { TopBar } from './TopBar'
 import { HabitList } from './HabitList'
 import { DashboardSidebar } from './DashboardSidebar'
@@ -20,6 +20,16 @@ export function MainView({ controller }: MainViewProps) {
   const snap = useController(controller)
   const searchRef = useRef<HTMLInputElement | null>(null)
   const { isMobile } = useViewport()
+  const today = useToday()
+
+  // A new day changes every row's today entry, streak and 30-day strip, and
+  // the dashboard: reload them when the date rolls over.
+  const loadedDay = useRef(today)
+  useEffect(() => {
+    if (loadedDay.current === today) return
+    loadedDay.current = today
+    void controller.refresh()
+  }, [controller, today])
 
   // Build a stable heatmap loader so MiniHeatmaps don't refetch on every render.
   const loadHeatmap = useCallback(

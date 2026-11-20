@@ -1,28 +1,563 @@
 {
-  "opsVersion": 1,
   "operations": [
-    {
-      "name": "health",
-      "description": "Liveness check (PocketBase built-in).",
-      "system": true,
-      "params": {},
-      "executor": { "type": "http", "method": "GET", "path": "/api/health" }
-    },
-    {
-      "name": "ops.list",
-      "description": "Return this operations manifest.",
-      "system": true,
-      "params": {},
-      "executor": { "type": "http", "method": "GET", "path": "/api/_ops" }
-    },
     {
       "name": "habits.clear-entries",
       "description": "Delete ALL daily entries of one habit (its full history) and return how many were removed.",
       "destructive": true,
+      "module": "habits",
       "params": {
-        "habit_id": { "type": "string", "required": true, "description": "The habit record id to reset." }
-      },
-      "executor": { "type": "http", "method": "POST", "path": "/api/ops/habits/clear-entries" }
+        "habit_id": {
+          "type": "string",
+          "required": true,
+          "description": "The habit record id to reset."
+        }
+      }
+    },
+    {
+      "name": "app.guide",
+      "description": "What the app is, habit types, how days, completion and streaks work, valid colours and icons, and recipes for common jobs.",
+      "destructive": false,
+      "readOnly": true,
+      "module": "app",
+      "params": {}
+    },
+    {
+      "name": "app.state",
+      "description": "The main screen: done today, this week's rate, streaks of 7+ days, top streak, category chips, each habit with today's value and streak.",
+      "destructive": false,
+      "readOnly": true,
+      "module": "app",
+      "params": {
+        "search": {
+          "type": "string",
+          "description": "Only habits whose name contains this text (the search box)."
+        },
+        "category_id": {
+          "type": "string",
+          "description": "Only habits in this category (a category chip)."
+        },
+        "include_archived": {
+          "type": "boolean",
+          "description": "Also list archived habits (the app hides them). Default false."
+        }
+      }
+    },
+    {
+      "name": "habits.get",
+      "description": "One habit's detail panel: settings, today's entry, current and best streak, 30-day rate, total completions and the 30-day trend.",
+      "destructive": false,
+      "readOnly": true,
+      "module": "habits",
+      "params": {
+        "habit_id": {
+          "type": "string",
+          "required": true,
+          "description": "The habit id."
+        }
+      }
+    },
+    {
+      "name": "habits.history",
+      "description": "One habit's heatmap: value, completed, intensity and note per day for the last N days.",
+      "destructive": false,
+      "readOnly": true,
+      "module": "habits",
+      "params": {
+        "habit_id": {
+          "type": "string",
+          "required": true,
+          "description": "The habit id."
+        },
+        "days": {
+          "type": "number",
+          "description": "How many days back, 7-730. Default 365."
+        },
+        "all_days": {
+          "type": "boolean",
+          "description": "List every day, empty ones too. Default false."
+        }
+      }
+    },
+    {
+      "name": "habits.create",
+      "description": "Add a habit (the New habit form).",
+      "destructive": false,
+      "module": "habits",
+      "params": {
+        "name": {
+          "type": "string",
+          "required": true,
+          "description": "Habit name."
+        },
+        "type": {
+          "type": "enum",
+          "values": [
+            "binary",
+            "count",
+            "duration",
+            "negative"
+          ],
+          "description": "Default binary. negative is an avoid habit (a habit to break)."
+        },
+        "target": {
+          "type": "number",
+          "description": "Per-day target, above 0. Required for count and duration."
+        },
+        "unit": {
+          "type": "string",
+          "description": "count/duration only. Default reps (count) or min (duration)."
+        },
+        "description": {
+          "type": "string",
+          "description": "Why this habit matters."
+        },
+        "color": {
+          "type": "enum",
+          "values": [
+            "#EF4444",
+            "#F97316",
+            "#F59E0B",
+            "#EAB308",
+            "#84CC16",
+            "#22C55E",
+            "#10B981",
+            "#14B8A6",
+            "#06B6D4",
+            "#0EA5E9",
+            "#3B82F6",
+            "#6366F1",
+            "#8B5CF6",
+            "#A855F7",
+            "#D946EF",
+            "#EC4899",
+            "#F43F5E",
+            "#737373"
+          ],
+          "description": "Palette colour. Default #22C55E."
+        },
+        "icon": {
+          "type": "enum",
+          "values": [
+            "Activity",
+            "AlarmClock",
+            "Apple",
+            "Ban",
+            "Banana",
+            "Bath",
+            "Bed",
+            "BellRing",
+            "Bike",
+            "Book",
+            "Brain",
+            "Briefcase",
+            "Brush",
+            "Calendar",
+            "CheckCircle2",
+            "ChefHat",
+            "Cigarette",
+            "Circle",
+            "Coffee",
+            "Compass",
+            "Croissant",
+            "Crown",
+            "Dog",
+            "Droplet",
+            "Dumbbell",
+            "Edit3",
+            "Feather",
+            "Flame",
+            "Flower2",
+            "Footprints",
+            "Gamepad2",
+            "Gem",
+            "Gift",
+            "GlassWater",
+            "Globe2",
+            "GraduationCap",
+            "Guitar",
+            "Hammer",
+            "Hand",
+            "HandCoins",
+            "Headphones",
+            "Heart",
+            "HeartPulse",
+            "Home",
+            "IceCream",
+            "Languages",
+            "Laptop",
+            "Leaf",
+            "Lightbulb",
+            "MessagesSquare",
+            "Mic",
+            "Microscope",
+            "Moon",
+            "MountainSnow",
+            "Music",
+            "Notebook",
+            "Paintbrush",
+            "Palette",
+            "Pencil",
+            "Pizza",
+            "Plane",
+            "Plus",
+            "Salad",
+            "Scale",
+            "ScrollText",
+            "ShieldCheck",
+            "ShoppingBag",
+            "ShowerHead",
+            "Smile",
+            "Sofa",
+            "Sparkles",
+            "Sprout",
+            "Stethoscope",
+            "Sun",
+            "SunMedium",
+            "Target",
+            "Tent",
+            "Timer",
+            "ToyBrick",
+            "TreeDeciduous",
+            "Trophy",
+            "Tv",
+            "Umbrella",
+            "Wallet",
+            "Waves",
+            "Wifi",
+            "Wind",
+            "Wine",
+            "Zap"
+          ],
+          "description": "Icon name (the icon picker). Default CheckCircle2."
+        },
+        "category_id": {
+          "type": "string",
+          "description": "Category id. Omit for Uncategorized."
+        }
+      }
+    },
+    {
+      "name": "habits.update",
+      "description": "Edit a habit (the Edit habit form); only the params you pass change.",
+      "destructive": false,
+      "module": "habits",
+      "params": {
+        "habit_id": {
+          "type": "string",
+          "required": true,
+          "description": "The habit id."
+        },
+        "name": {
+          "type": "string",
+          "description": "New name."
+        },
+        "type": {
+          "type": "enum",
+          "values": [
+            "binary",
+            "count",
+            "duration",
+            "negative"
+          ],
+          "description": "New type. Switching to count/duration needs a target."
+        },
+        "target": {
+          "type": "number",
+          "description": "Per-day target, above 0 (count/duration)."
+        },
+        "unit": {
+          "type": "string",
+          "description": "Unit (count/duration). Empty gives reps or min."
+        },
+        "description": {
+          "type": "string",
+          "description": "New description; empty clears it."
+        },
+        "color": {
+          "type": "enum",
+          "values": [
+            "#EF4444",
+            "#F97316",
+            "#F59E0B",
+            "#EAB308",
+            "#84CC16",
+            "#22C55E",
+            "#10B981",
+            "#14B8A6",
+            "#06B6D4",
+            "#0EA5E9",
+            "#3B82F6",
+            "#6366F1",
+            "#8B5CF6",
+            "#A855F7",
+            "#D946EF",
+            "#EC4899",
+            "#F43F5E",
+            "#737373"
+          ],
+          "description": "Palette colour."
+        },
+        "icon": {
+          "type": "enum",
+          "values": [
+            "Activity",
+            "AlarmClock",
+            "Apple",
+            "Ban",
+            "Banana",
+            "Bath",
+            "Bed",
+            "BellRing",
+            "Bike",
+            "Book",
+            "Brain",
+            "Briefcase",
+            "Brush",
+            "Calendar",
+            "CheckCircle2",
+            "ChefHat",
+            "Cigarette",
+            "Circle",
+            "Coffee",
+            "Compass",
+            "Croissant",
+            "Crown",
+            "Dog",
+            "Droplet",
+            "Dumbbell",
+            "Edit3",
+            "Feather",
+            "Flame",
+            "Flower2",
+            "Footprints",
+            "Gamepad2",
+            "Gem",
+            "Gift",
+            "GlassWater",
+            "Globe2",
+            "GraduationCap",
+            "Guitar",
+            "Hammer",
+            "Hand",
+            "HandCoins",
+            "Headphones",
+            "Heart",
+            "HeartPulse",
+            "Home",
+            "IceCream",
+            "Languages",
+            "Laptop",
+            "Leaf",
+            "Lightbulb",
+            "MessagesSquare",
+            "Mic",
+            "Microscope",
+            "Moon",
+            "MountainSnow",
+            "Music",
+            "Notebook",
+            "Paintbrush",
+            "Palette",
+            "Pencil",
+            "Pizza",
+            "Plane",
+            "Plus",
+            "Salad",
+            "Scale",
+            "ScrollText",
+            "ShieldCheck",
+            "ShoppingBag",
+            "ShowerHead",
+            "Smile",
+            "Sofa",
+            "Sparkles",
+            "Sprout",
+            "Stethoscope",
+            "Sun",
+            "SunMedium",
+            "Target",
+            "Tent",
+            "Timer",
+            "ToyBrick",
+            "TreeDeciduous",
+            "Trophy",
+            "Tv",
+            "Umbrella",
+            "Wallet",
+            "Waves",
+            "Wifi",
+            "Wind",
+            "Wine",
+            "Zap"
+          ],
+          "description": "Icon name (the icon picker)."
+        },
+        "category_id": {
+          "type": "string",
+          "description": "Category id; empty or none for Uncategorized."
+        }
+      }
+    },
+    {
+      "name": "habits.archive",
+      "description": "Archive a habit (hidden from list and dashboard, history kept) or bring it back with archived=false.",
+      "destructive": false,
+      "module": "habits",
+      "params": {
+        "habit_id": {
+          "type": "string",
+          "required": true,
+          "description": "The habit id."
+        },
+        "archived": {
+          "type": "boolean",
+          "description": "true archives (default), false brings it back."
+        }
+      }
+    },
+    {
+      "name": "habits.reorder",
+      "description": "Set the list order: habit ids top first (pass every active habit).",
+      "destructive": false,
+      "module": "habits",
+      "params": {
+        "habit_ids": {
+          "type": "string",
+          "required": true,
+          "description": "JSON list of habit ids in the new order, e.g. [\"id1\",\"id2\"]."
+        }
+      }
+    },
+    {
+      "name": "habits.delete",
+      "description": "Delete a habit and all of its history.",
+      "destructive": true,
+      "module": "habits",
+      "params": {
+        "habit_id": {
+          "type": "string",
+          "required": true,
+          "description": "The habit id."
+        }
+      }
+    },
+    {
+      "name": "entries.set",
+      "description": "Set a day's value and/or note (default today; last 365 days).",
+      "destructive": false,
+      "module": "entries",
+      "params": {
+        "habit_id": {
+          "type": "string",
+          "required": true,
+          "description": "The habit id."
+        },
+        "day": {
+          "type": "string",
+          "description": "YYYY-MM-DD within the last 365 days. Default today."
+        },
+        "value": {
+          "type": "number",
+          "description": "binary/negative: 0 or 1. count/duration: 0 or more."
+        },
+        "note": {
+          "type": "string",
+          "description": "Note for the day; empty clears it."
+        }
+      }
+    },
+    {
+      "name": "entries.mark",
+      "description": "Mark a day done (binary 1, count/duration its target) or not done (0); default today.",
+      "destructive": false,
+      "module": "entries",
+      "params": {
+        "habit_id": {
+          "type": "string",
+          "required": true,
+          "description": "The habit id."
+        },
+        "done": {
+          "type": "boolean",
+          "required": true,
+          "description": "true = done, false = not done."
+        },
+        "day": {
+          "type": "string",
+          "description": "YYYY-MM-DD within the last 365 days. Default today."
+        }
+      }
+    },
+    {
+      "name": "entries.add",
+      "description": "Add to a count/duration habit's day value (negative subtracts, never below 0); default today.",
+      "destructive": false,
+      "module": "entries",
+      "params": {
+        "habit_id": {
+          "type": "string",
+          "required": true,
+          "description": "The habit id."
+        },
+        "amount": {
+          "type": "number",
+          "description": "How much to add; negative subtracts. Default 1."
+        },
+        "day": {
+          "type": "string",
+          "description": "YYYY-MM-DD within the last 365 days. Default today."
+        }
+      }
+    },
+    {
+      "name": "categories.create",
+      "description": "Add a category (name and palette colour); it goes last among the chips.",
+      "destructive": false,
+      "module": "categories",
+      "params": {
+        "name": {
+          "type": "string",
+          "required": true,
+          "description": "Category name."
+        },
+        "color": {
+          "type": "enum",
+          "values": [
+            "#EF4444",
+            "#F97316",
+            "#F59E0B",
+            "#EAB308",
+            "#84CC16",
+            "#22C55E",
+            "#10B981",
+            "#14B8A6",
+            "#06B6D4",
+            "#0EA5E9",
+            "#3B82F6",
+            "#6366F1",
+            "#8B5CF6",
+            "#A855F7",
+            "#D946EF",
+            "#EC4899",
+            "#F43F5E",
+            "#737373"
+          ],
+          "description": "Palette colour. Default #10B981."
+        }
+      }
+    },
+    {
+      "name": "categories.delete",
+      "description": "Delete a category; its habits become Uncategorized (they and their history are kept).",
+      "destructive": true,
+      "module": "categories",
+      "params": {
+        "category_id": {
+          "type": "string",
+          "required": true,
+          "description": "The category id."
+        }
+      }
     }
   ]
 }

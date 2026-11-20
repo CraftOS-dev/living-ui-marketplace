@@ -1,29 +1,124 @@
 {
-  "id": "{{PROJECT_ID}}",
-  "name": "{{PROJECT_NAME}}",
-  "description": "{{PROJECT_DESCRIPTION}}",
-  "agentAppVersion": 2,
-  "createdAt": "{{CREATED_AT}}",
+  "id": "trading-view",
+  "name": "Trading View",
+  "agentAppVersion": "0.1.0",
+  "adapterVersion": "0.2.0",
+  "appVersion": "2.0.0",
   "authMode": "none",
-  "port": "{{PORT}}",
-  "pbVersion": "0.39.7",
-  "kitVersion": "0.6.0",
-  "craftbotVersion": "1.4.3",
-  "pipeline": {
-    "install": "npm install --ignore-scripts --prefix frontend",
-    "build": "npm run build --prefix frontend",
-    "start": "pocketbase serve --http=127.0.0.1:{{PORT}} --dir pb/pb_data --hooksDir pb/pb_hooks --migrationsDir pb/pb_migrations --publicDir pb/pb_public",
-    "health": "/api/health"
-  },
+  "modules": [
+    {
+      "name": "app",
+      "summary": "guide, context",
+      "entities": []
+    },
+    {
+      "name": "settings",
+      "summary": "get, update",
+      "entities": [
+        "settings"
+      ]
+    },
+    {
+      "name": "market",
+      "summary": "search, quotes, bars, info, news, events, health, live",
+      "entities": [
+        "symbols",
+        "bars"
+      ]
+    },
+    {
+      "name": "indicators",
+      "summary": "catalogue",
+      "entities": []
+    },
+    {
+      "name": "chart",
+      "summary": "indicators, levels, explain",
+      "entities": []
+    },
+    {
+      "name": "workspaces",
+      "summary": "list, get, create, update, delete, duplicate, activate…",
+      "entities": [
+        "workspaces"
+      ]
+    },
+    {
+      "name": "widgets",
+      "summary": "add, update, layout, remove",
+      "entities": [
+        "widgets"
+      ]
+    },
+    {
+      "name": "charts",
+      "summary": "set, add_indicator, remove_indicator",
+      "entities": []
+    },
+    {
+      "name": "watchlists",
+      "summary": "list, get, create, update, delete, add, remove, move, item",
+      "entities": [
+        "watchlists"
+      ]
+    },
+    {
+      "name": "drawings",
+      "summary": "list, add, update, delete, clear, adopt",
+      "entities": [
+        "drawings"
+      ]
+    },
+    {
+      "name": "alerts",
+      "summary": "list, create, update, delete, events, seen, check, respond",
+      "entities": [
+        "alerts"
+      ]
+    },
+    {
+      "name": "analyses",
+      "summary": "request, list, get, start, complete, fail, cancel, delete",
+      "entities": [
+        "analyses"
+      ]
+    },
+    {
+      "name": "screener",
+      "summary": "universes, fields, run, heatmap",
+      "entities": []
+    },
+    {
+      "name": "screens",
+      "summary": "list, save, delete",
+      "entities": [
+        "screens"
+      ]
+    },
+    {
+      "name": "activity",
+      "summary": "list, undo, redo, runs, revert_run",
+      "entities": [
+        "activity"
+      ]
+    },
+    {
+      "name": "records",
+      "summary": "the app's other stored records",
+      "entities": [
+        "watch_items",
+        "alert_events"
+      ]
+    }
+  ],
+  "modificationLock": false,
   "capabilities": {
-    "external_hosts": [
-      "data-api.binance.vision",
-      "query1.finance.yahoo.com"
-    ],
-    "triggers": [
-      "alert_fired",
-      "analysis_requested"
-    ]
+    "integrations": []
   },
-  "adapterVersion": "1.9.0"
+  "pipeline": {
+    "install": "node pb-fetch.mjs && npm --prefix frontend install --ignore-scripts --no-audit --no-fund",
+    "build": "node pb-build.mjs",
+    "start": "node pb-serve.mjs",
+    "health": "/api/_a2app"
+  }
 }

@@ -9,7 +9,7 @@ function guide(app) {
   const kinds = require(`${__hooks}/lib_kinds.js`);
   const misc = require(`${__hooks}/lib_misc.js`);
   const s = misc.settingsGet(app);
-  const run = 'agent-app run <project>';
+  const run = 'a2app <app>';
   const parts = app.findRecordsByFilter('parts', 'archived = false', '-updated', 15, 0).map((p) => ({ name: p.getString('name'), status: p.getString('status') }));
   return {
     app: 'CAD Workshop: parametric parts (brackets, enclosures, mounts, fixtures) built from a typed feature tree by the OpenCascade kernel. Every number comes from the kernel. No logins.',
@@ -43,20 +43,20 @@ function guide(app) {
       import_failed: 'a STEP file could not be read or has no closed solids',
     },
     recipes: {
-      'Start a part': run + ' parts.create --name "Wall bracket" [--material PETG] [--description "..."]',
-      'A plate with four corner holes': run + ' edits.batch --part "Wall bracket" --steps \'[{"op":"params.set","name":"t","value":"4"},{"op":"features.add","kind":"sketch","params":{"plane":"XY","items":[{"type":"rectangle","id":"r1","width":60,"height":60,"corner_radius":5}]}},{"op":"features.add","kind":"extrude","params":{"sketch":"s1","extent":{"type":"distance","distance":{"expr":"t"}}}},{"op":"features.add","kind":"hole","params":{"face":{"faces":{"keys":["ext1.cap_end"]},"expect":1},"positions":[[24,24],[-24,24],[24,-24],[-24,-24]],"size":"M4","fit":"clearance","through":true}}]\'',
-      'Round the edges the person selected': run + ' selection.get --part <part>, then ' + run + ' features.add --part <part> --kind fillet --params \'{"edges": <edges_ref from selection.get>, "radius": 3}\'',
-      'Change a dimension': run + ' params.set --part <part> --name t --value 5 (or features.update --part <part> --feature ext1 --params \'{"extent": {"type": "distance", "distance": 12}}\'); read delta in the answer.',
-      'Pull or push a face': run + ' features.add --part <part> --kind push_pull --params \'{"face": {"faces": {"keys": ["ext1.cap_end"]}, "expect": 1}, "distance": 5}\' (a negative distance pushes the face in and cuts).',
-      'Find keys': run + ' model.describe --part <part> --of faces [--feature ext1] [--type plane]; edges with --of edges. ' + run + ' refs.resolve --part <part> --ref \'{"edges": {"created_by": "ext1", "parallel_to": "Z"}, "expect": 4}\' tests a reference.',
-      'Measure': run + ' model.measure --part <part> --a ext1.cap_start --b ext1.cap_end (distance, angle, gap); ' + run + ' model.properties --part <part> (volume, mass, bounding box, center of mass).',
-      'A build failed': run + ' builds.get --part <part> shows error (code, feature, message, candidates); fix that feature with features.update, or roll back with features.roll-to --to <feature> to inspect earlier states (roll-to --to end restores).',
-      'Look at it': run + ' views.render --part <part> [--views \'["front","right","top","iso"]\'] [--highlight \'["fil1.blend.1"]\'] returns the PNG path.',
-      'Spec checks that run on every build': run + ' checks.save --part <part> --name "Fits the case" --kind fits_within --box \'[80,60,40]\'; --kind bbox_z --op le --target 30; --kind center_distance --refs \'{"a":"hole1.bore.1","b":"hole1.bore.2"}\' --op eq --target 48 --tolerance 0.05 (between hole axes; distance is the closest gap between surfaces). checks.list shows pass, fail or could not run.',
-      'Export for printing or CAD': run + ' exports.create --part <part> --format 3mf (or stl, step, glb) [--tolerance 0.02] returns the absolute file path; attach or upload it with your own tools.',
-      'Undo': run + ' changes.list --part <part> shows batches (newest first), each with kind edit, undo or redo; ' + run + ' changes.revert --batch <id> [--preview true]. To undo the last step, revert the newest batch of kind edit or redo whose reverted_by is empty; to redo, revert the newest batch of kind undo whose reverted_by is empty (none if an edit came after it).',
-      'Bring in a vendor part': run + ' assets.add --part <part> --path "<absolute path to .step>", then features.add --kind import_step --params \'{"asset": "<asset id>"}\'.',
-      'Compare before and after a batch': run + ' compare.builds --part <part> --batch <id> (added and removed volume; the person sees it in the app).',
+      'Start a part': run + ' parts parts.create --name "Wall bracket" [--material PETG] [--description "..."]',
+      'A plate with four corner holes': run + ' edits edits.batch --part "Wall bracket" --steps \'[{"op":"params.set","name":"t","value":"4"},{"op":"features.add","kind":"sketch","params":{"plane":"XY","items":[{"type":"rectangle","id":"r1","width":60,"height":60,"corner_radius":5}]}},{"op":"features.add","kind":"extrude","params":{"sketch":"s1","extent":{"type":"distance","distance":{"expr":"t"}}}},{"op":"features.add","kind":"hole","params":{"face":{"faces":{"keys":["ext1.cap_end"]},"expect":1},"positions":[[24,24],[-24,24],[24,-24],[-24,-24]],"size":"M4","fit":"clearance","through":true}}]\'',
+      'Round the edges the person selected': run + ' selection selection.get --part <part>, then ' + run + ' features features.add --part <part> --kind fillet --params \'{"edges": <edges_ref from selection.get>, "radius": 3}\'',
+      'Change a dimension': run + ' params params.set --part <part> --name t --value 5 (or features.update --part <part> --feature ext1 --params \'{"extent": {"type": "distance", "distance": 12}}\'); read delta in the answer.',
+      'Pull or push a face': run + ' features features.add --part <part> --kind push_pull --params \'{"face": {"faces": {"keys": ["ext1.cap_end"]}, "expect": 1}, "distance": 5}\' (a negative distance pushes the face in and cuts).',
+      'Find keys': run + ' model model.describe --part <part> --of faces [--feature ext1] [--type plane]; edges with --of edges. ' + run + ' refs refs.resolve --part <part> --ref \'{"edges": {"created_by": "ext1", "parallel_to": "Z"}, "expect": 4}\' tests a reference.',
+      'Measure': run + ' model model.measure --part <part> --a ext1.cap_start --b ext1.cap_end (distance, angle, gap); ' + run + ' model model.properties --part <part> (volume, mass, bounding box, center of mass).',
+      'A build failed': run + ' builds builds.get --part <part> shows error (code, feature, message, candidates); fix that feature with features.update, or roll back with features.roll-to --to <feature> to inspect earlier states (roll-to --to end restores).',
+      'Look at it': run + ' views views.render --part <part> [--views \'["front","right","top","iso"]\'] [--highlight \'["fil1.blend.1"]\'] returns the PNG path.',
+      'Spec checks that run on every build': run + ' checks checks.save --part <part> --name "Fits the case" --kind fits_within --box \'[80,60,40]\'; --kind bbox_z --op le --target 30; --kind center_distance --refs \'{"a":"hole1.bore.1","b":"hole1.bore.2"}\' --op eq --target 48 --tolerance 0.05 (between hole axes; distance is the closest gap between surfaces). checks.list shows pass, fail or could not run.',
+      'Export for printing or CAD': run + ' exports exports.create --part <part> --format 3mf (or stl, step, glb) [--tolerance 0.02] returns the absolute file path; attach or upload it with your own tools.',
+      'Undo': run + ' changes changes.list --part <part> shows batches (newest first), each with kind edit, undo or redo; ' + run + ' changes changes.revert --batch <id> [--preview true]. To undo the last step, revert the newest batch of kind edit or redo whose reverted_by is empty; to redo, revert the newest batch of kind undo whose reverted_by is empty (none if an edit came after it).',
+      'Bring in a vendor part': run + ' assets assets.add --part <part> --path "<absolute path to .step>", then features.add --kind import_step --params \'{"asset": "<asset id>"}\'.',
+      'Compare before and after a batch': run + ' compare compare.builds --part <part> --batch <id> (added and removed volume; the person sees it in the app).',
     },
     settings: { display_unit: s.display_unit, agent_wait_s: s.agent_wait_s },
   };

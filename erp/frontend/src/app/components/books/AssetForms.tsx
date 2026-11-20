@@ -189,7 +189,7 @@ export function DepreciateModal({ open, onClose, onDone }: { open: boolean; onCl
       params={{ month }}
       intro={
         <div className="flex flex-col gap-3">
-          <p className="text-[14px] leading-6 text-[var(--erp-ink-2)]">Each asset's monthly share of its cost moves to the depreciation cost, once per month. Months already posted are never posted twice.</p>
+          <p className="text-[14px] leading-6 text-[var(--erp-ink-2)]">Each asset's monthly share of its cost moves to the depreciation cost, once per month. Months already posted are never posted twice. Finished months also post on their own early in the next month.</p>
           <Field label="Through">
             <MonthField value={month} onChange={setMonth} ariaLabel="Through month" max={today().slice(0, 7)} />
           </Field>

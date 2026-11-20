@@ -10,7 +10,7 @@ import { Button, Dialog, Textarea, cn, fireAgentTrigger, toast, useAgentRequest 
 import { getLang, t } from '../lib/i18n.ts';
 import { Prose } from './ui.tsx';
 
-/** Fire one of the app's triggers (see triggers.json); adds the reader's language. */
+/** Fire one of the app's triggers (see events.json); adds the reader's language. */
 export async function handToCraftBot(trigger: string, params: Record<string, unknown>): Promise<string | null> {
   const r = await fireAgentTrigger(trigger, { lang: getLang(), ...params });
   if (!r.ok || r.requestId === undefined) {

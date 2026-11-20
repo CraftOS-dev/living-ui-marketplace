@@ -1,17 +1,34 @@
 {
-  "id": "{{PROJECT_ID}}",
-  "name": "{{PROJECT_NAME}}",
-  "description": "{{PROJECT_DESCRIPTION}}",
-  "livingUIVersion": 2,
-  "createdAt": "{{CREATED_AT}}",
+  "id": "brainstorm-graph",
+  "name": "Brainstorm Graph",
+  "agentAppVersion": "0.1.0",
+  "adapterVersion": "0.2.0",
+  "appVersion": "1.0.0",
   "authMode": "none",
-  "port": "{{PORT}}",
-  "pbVersion": "0.39.7",
-  "kitVersion": "0.5.0",
+  "modules": [
+    {
+      "name": "sessions",
+      "summary": "summarize, outline, get, create, ai-explore",
+      "entities": [
+        "sessions"
+      ]
+    },
+    {
+      "name": "nodes",
+      "summary": "add, edit, expand, ai-answer, delete",
+      "entities": [
+        "nodes"
+      ]
+    }
+  ],
+  "modificationLock": false,
+  "capabilities": {
+    "integrations": []
+  },
   "pipeline": {
-    "install": "npm install --ignore-scripts --prefix frontend",
-    "build": "npm run build --prefix frontend",
-    "start": "pocketbase serve --http=127.0.0.1:{{PORT}} --dir pb/pb_data --hooksDir pb/pb_hooks --migrationsDir pb/pb_migrations --publicDir pb/pb_public",
-    "health": "/api/health"
+    "install": "node pb-fetch.mjs && npm --prefix frontend install --ignore-scripts --no-audit --no-fund",
+    "build": "node pb-build.mjs",
+    "start": "node pb-serve.mjs",
+    "health": "/api/_a2app"
   }
 }

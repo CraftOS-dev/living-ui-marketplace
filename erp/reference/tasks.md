@@ -1,0 +1,82 @@
+# Tasks: ERP
+
+Every task cites what it implements. These features already exist in the published app `erp` 1.0.0, so the build tasks are recorded as done.
+
+## Build
+- [x] T-1 (F-ACC-1, F-ACC-2, F-ACC-3, F-ACC-4, F-ACC-5): first-run setup in three steps (Company, You, Ready). It offers the country presets and business types, and `setup.complete` creates the chart template, base currency, bank and cash accounts, taxes, main warehouse, categories, leave types and the owner in one transaction (`pages/Welcome.tsx`, `pb_hooks/lib_setup.js`).
+- [x] T-2 (F-ACC-6, F-ACC-7, F-ACC-8, F-ACC-9, F-ACC-10): sign-in and joining with an invite code. Wrong credentials get one answer, ten failures lock the account for 15 minutes, and codes are hashed and valid for 7 days (`pages/Welcome.tsx`, `lib_auth.js`).
+- [x] T-3 (F-ACC-11): member sessions of 30 days, renewed every 12 hours of use. A 401 for `session_required` or `account_inactive` returns the page to sign-in (`lib/session.ts`, `lib/api.ts`).
+- [x] T-4 (F-FRM-1, F-FRM-2, F-FRM-3, F-FRM-4, F-FRM-5): the sidebar of module trees, with role-filtered entries, inline "+", counts from `home.needs` and the banks, and the fold to an icon rail with flyouts. The open groups and fold state are kept in localStorage (`components/Shell.tsx`, `lib/nav.ts`).
+- [x] T-5 (F-FRM-6): the phone bottom bar (Home, Needs you, raised "+", Search, Menu) with the Menu sheet (`components/Shell.tsx`).
+- [x] T-6 (F-FRM-7): the search palette (Ctrl K, "/", arrows, Enter), with pages plus `search.global` results (`components/Palette.tsx`).
+- [x] T-7 (F-FRM-8): the "New" full screen with the circular reveal and role-filtered tile groups (`components/Create.tsx`, `components/FullScreen.tsx`).
+- [x] T-8 (F-FRM-9, F-FRM-10): module switches hide pages, Home cards and palette entries. Unoffered list pages show "This page is not part of your role" (`lib/me.ts`, `lib/nav.ts` LISTED, `App.tsx`).
+- [x] T-9 (F-FRM-11, F-FRM-12): colors derived from the host theme with contrast checks, and the surface scopes. Numbers read "1,234.50", with line icons only (`lib/themeColors.ts`, `theme.css`, `lib/format.ts`).
+- [x] T-10 (F-FRM-13, F-FRM-14): live updates through the `erp` realtime topic and the `agent_requests` queue, debounced and paused while hidden. An open page reloads onto a new build when idle (`lib/live.ts`, `pb_hooks/lib_bus.js`, `hooks.pb.js`).
+- [x] T-11 (F-HOME-1, F-HOME-2, F-HOME-3): the Home header, the Needs you strip and the setup checklist for administrators (`pages/HomePage.tsx`, `lib_home.js`).
+- [x] T-12 (F-HOME-4, F-HOME-5, F-HOME-6, F-HOME-7, F-HOME-8): role-shaped finance cards: cash with its 30-day line, the aging rings, sales against last month by today, best customers, and profit by month (`home.summary`).
+- [x] T-13 (F-HOME-9, F-HOME-10, F-HOME-11): the overdue invoice and bills due lists, the pipeline tiles, and the stock and projects cards, with the `collections_requested` and `reorder_review` requests.
+- [x] T-14 (F-HOME-12, F-HOME-13, F-HOME-14): the "You" card (leave rings, hours, claims, pay or holiday), the Your AI agent card with the ask box (`asks.create`), and the Welcome card.
+- [x] T-15 (F-NEED-1, F-NEED-2, F-NEED-3, F-NEED-4): Needs you groups with decisions in place, and the chase and reconcile requests (`pages/NeedsPage.tsx`, `home.needs`).
+- [x] T-16 (F-DOC-1): one document engine for nine types, with lines, totals, taxes and currencies (`lib_docs.js`, `lib_doclines.js`, `components/sales/*`).
+- [x] T-17 (F-DOC-2, F-DOC-3, F-DOC-4): the document lists: chips with counts, search, party and date filters, money, flow and quote strips, and bulk reminders and payment (`pages/docs/DocsPage.tsx`, `components/status.ts`).
+- [x] T-18 (F-DOC-5, F-DOC-6, F-DOC-7): the new-document screen in three numbered steps, with recent parties, quick create, the line editor with Enter-to-add, More options, and the credit-limit check (`pages/docs/DocNewPage.tsx`, `components/sales/editor.tsx`, `form.tsx`).
+- [x] T-19 (F-DOC-8, F-DOC-9, F-DOC-10, F-DOC-11): the document page: the paper or the editor in place, the next-step button and menu, conversions with source links and the Flow chain, and derived statuses (`pages/docs/DocPage.tsx`, `components/sales/docside.tsx`, `paper.tsx`).
+- [x] T-20 (F-DOC-12, F-DOC-13): the posting rules per type, with COGS at average cost, GRNI clearing and purchase price variance, and exact voids with the journal preview (`lib_docs.js`, `lib_ledger.js`, `components/Books.tsx` ConfirmPosting).
+- [x] T-21 (F-DOC-14, F-DOC-15, F-DOC-16): delete, cancel, close and reopen; recording a payment from a document; applying a credit (`docs.*`, `payments.record`, `payments.apply`).
+- [x] T-22 (F-DOC-17, F-DOC-18, F-DOC-19, F-DOC-20, F-DOC-21): the document as text with "Open in email" and print, "Send by your AI agent" (`doc_send_requested`), the agent pills, notes and filled-field notice, the changed-elsewhere banner, and draft-only rights.
+- [x] T-23 (F-PTY-1, F-PTY-2, F-PTY-6): the customer and supplier lists, the party form, and delete or archive (`pages/parties/PartiesPage.tsx`, `components/sales/partyform.tsx`, `lib_parties.js`).
+- [x] T-24 (F-PTY-3, F-PTY-4, F-PTY-5): the party page with the aging donut, open and recent documents, the statement with print and CSV, and contacts (`pages/parties/PartyPage.tsx`, `parties.statement`, `contacts.*`).
+- [x] T-25 (F-INV-1, F-INV-2, F-INV-3, F-INV-11, F-INV-12): items as cards or a list, with figures, filters, sorts, statuses and bulk archive. The item editor has a photo, category icons, units, prices, reorder levels and opening stock (`pages/stock/ItemsPage.tsx`, `components/stock/ItemEditor.tsx`, `icons.tsx`, `lib_items.js`).
+- [x] T-26 (F-INV-4): the item page with on hand per warehouse, the 90-day chart, open orders and movements (`pages/stock/ItemPage.tsx`, `items.get`).
+- [x] T-27 (F-INV-5, F-INV-6, F-INV-7): the stock change screen (in, out, count, transfer) with reasons, scanner input and the live journal preview. Moving-average valuation, the negative-stock rule, and stock changes with exact voids (`components/stock/StockChangeScreen.tsx`, `lib_stock.js`, `lib_items.js`).
+- [x] T-28 (F-INV-8): stock on hand per warehouse with the books check and CSV (`pages/stock/StockPage.tsx`, `reports.stock`).
+- [x] T-29 (F-INV-9): reorder suggestions by supplier into one draft purchase order each, safe to repeat, with the `reorder_review` request (`pages/stock/ReorderPage.tsx`, `reorder.*`).
+- [x] T-30 (F-INV-10): warehouses with stats, archive, and guarded delete (`pages/stock/WarehousesPage.tsx`).
+- [x] T-31 (F-MFG-1): bills of materials with component costs, the in-use toggle and "Can build now" (`pages/make/BomsPage.tsx`, `BomPage.tsx`, `components/make/parts.tsx`, `lib_mfg.js`).
+- [x] T-32 (F-MFG-2, F-MFG-3, F-MFG-4): the build planner with shortfalls and estimated cost, complete with preview (components at average cost plus labor and overhead), void and delete (`components/make/NewBuild.tsx`, `pages/make/BuildPage.tsx`).
+- [x] T-33 (F-PAY-1, F-PAY-6): the payments list and the payment page (`pages/money/PaymentsPage.tsx`, `PaymentPage.tsx`).
+- [x] T-34 (F-PAY-2, F-PAY-3, F-PAY-4, F-PAY-5): "Record a payment" in three steps with oldest-first allocation, credits and take back, realized exchange differences, and post, void and delete (`components/money/RecordPayment.tsx`, `ApplyCredit.tsx`, `lib_payments.js`).
+- [x] T-35 (F-BNK-1, F-BNK-4): bank, cash and card accounts with their ledger accounts, and transfers across currencies (`pages/money/BanksPage.tsx`, `components/money/BankForms.tsx`, `lib_banking.js`).
+- [x] T-36 (F-BNK-2): statement import with column detection, preview, duplicate skipping (unique `dedupe`) and undo (`components/money/ImportStatement.tsx`, `bank.import-*`).
+- [x] T-37 (F-BNK-3, F-BNK-5): reconciliation with suggestions, match, create payment, book entry, transfer, ignore and unmatch. The `bank_lines_waiting` request goes out from the page and after each import (`pages/money/BankPage.tsx`, `components/money/StatementLine.tsx`, `LineActions.tsx`).
+- [x] T-38 (F-ACT-1, F-ACT-2): the chart of accounts with control accounts and balances, and the account ledger with running balance and CSV (`pages/books/AccountsPage.tsx`, `AccountPage.tsx`, `lib_accounts.js`).
+- [x] T-39 (F-ACT-3): journal entries: the list, the balanced manual entry editor and reversal (`pages/books/JournalsPage.tsx`, `JournalPage.tsx`, `components/books/JournalEditor.tsx`, `lib_ledger.js`).
+- [x] T-40 (F-ACT-4): opening balances for accounts, open invoices and bills, and stock against opening balance equity (`components/settings/Opening.tsx`, `opening.*`).
+- [x] T-41 (F-ACT-5, F-ACT-6): taxes, payment terms and currencies as data, and "Get today's rates" from Frankfurter then currency-api, 8 s each (`components/settings/Lists.tsx`, `lib_accounts.refreshRates`).
+- [x] T-42 (F-ACT-7, F-ACT-10): the month-end close checklist computed from the data. Close and reopen use the soft lock, the lock dates live in Settings, and `close_review_requested` hands the review to the agent (`pages/books/ClosePage.tsx`, `lib_close.js`, `components/settings/Locks.tsx`).
+- [x] T-43 (F-ACT-8): fixed assets with straight-line monthly depreciation posted once per month, dispose and delete (`pages/books/AssetsPage.tsx`, `AssetPage.tsx`, `components/books/AssetForms.tsx`, `lib_assets.js`).
+- [x] T-44 (F-ACT-9): budgets per account and month with spread and spent against plan (`pages/books/BudgetsPage.tsx`, `budgets.*`).
+- [x] T-45 (F-RPT-1, F-RPT-2, F-RPT-3, F-RPT-4): the report gallery and one report page with presets, comparison, grouping, chart, drill-down, CSV and print (`pages/reports/*`, `components/reports/*`, `lib_reports.js`).
+- [x] T-46 (F-PPL-1, F-PPL-2, F-PPL-4): the directory, the employee form with pay fields gated by rights, and the departments dialog (`pages/people/EmployeesPage.tsx`, `components/people/EmployeeForm.tsx`, `Departments.tsx`, `lib_people.js`).
+- [x] T-47 (F-PPL-3, F-PPL-6, F-PPL-7): the employee page tabs with field visibility, the invite from the page, and delete or mark as left (`pages/people/EmployeePage.tsx`).
+- [x] T-48 (F-PPL-5): the org chart tree with search and folding (`pages/people/OrgPage.tsx`, `employees.org`).
+- [x] T-49 (F-LV-1, F-LV-2, F-LV-3, F-LV-4): leave types, holidays, the request form with working-day counting and half days, and balances (`pages/people/LeavePage.tsx`, `components/people/Leave.tsx`, `lib_leave.js`).
+- [x] T-50 (F-LV-5, F-LV-6, F-LV-7, F-LV-8): team approvals, cancellation rules, the leave calendar and balance adjustments.
+- [x] T-51 (F-CLM-1, F-CLM-2, F-CLM-3, F-CLM-6): the expense claim editor with receipts, and submit, approve or reject in the claim lists (`components/people/ClaimEditor.tsx`, `pages/people/ClaimsPage.tsx`, `ClaimPage.tsx`, `lib_claims.js`).
+- [x] T-52 (F-CLM-4, F-CLM-5): post approved claims and pay them back in one entry, with previews (`claims.post`, `claims.pay`).
+- [x] T-53 (F-PRL-1, F-PRL-2, F-PRL-6): pay components as data and their assignment to people, with no statutory calculations (`pages/people/PayrollPage.tsx`, `lib_payroll.js`).
+- [x] T-54 (F-PRL-3, F-PRL-4, F-PRL-5): pay runs: draft one per month, adjust, recompute, approve, post and pay; payslips and My payslips (`pages/people/PayrunPage.tsx`, `PayslipPage.tsx`).
+- [x] T-55 (F-PRJ-1, F-PRJ-2, F-PRJ-6): projects with the form, the card list and figures, and guarded delete (`pages/work/ProjectsPage.tsx`, `components/work/common.tsx`, `lib_projects.js`).
+- [x] T-56 (F-PRJ-3, F-PRJ-4): the task board with drag and drop (`tasks.move`), and the project time and money tabs (`components/work/Board.tsx`, `pages/work/ProjectPage.tsx`).
+- [x] T-57 (F-PRJ-5): bill approved time to one draft invoice per project, with the time freed again when that invoice is deleted or voided (`timesheets.bill`).
+- [x] T-58 (F-TS-1, F-TS-2, F-TS-3): the weekly timesheet grid (one day at a time on phones), submit, team approval or send back, and history (`pages/work/TimesheetsPage.tsx`, `timesheets.*`).
+- [x] T-59 (F-AIS-1, F-AIS-2): proposals, with the exact journal lines, reason, plain-words parameters and history. Approval runs as the person, with the stale and approval-limit checks (`pages/agent/ProposalsPage.tsx`, `ProposalPage.tsx`, `components/Proposal.tsx`, `lib_agent.approve`).
+- [x] T-60 (F-AIS-3): the Inbox drop zone, kinds, statuses, retry and remove, with `inbox_waiting` fired on upload and by the `erp_inbox` job (`pages/agent/InboxPage.tsx`, `lib_agent.fireIfNeeded`).
+- [x] T-61 (F-AIS-4, F-AIS-5, F-AIS-6, F-AIS-7): Questions (`question_asked`), What your AI agent did, field marks on records, and the honest request states (`pages/agent/AsksPage.tsx`, `AgentActivityPage.tsx`, `components/AskAgent.tsx`, `components/Activity.tsx`).
+- [x] T-62 (F-SET-1, F-SET-2, F-SET-3): the Settings hub with sections per role, company details and module switches (`pages/settings/SettingsPage.tsx`, `components/settings/Company.tsx`, `Modules.tsx`).
+- [x] T-63 (F-SET-4, F-SET-5): the team (invites, new codes, sign out everywhere, disable, enable) and roles, with levels per module, the administration right, approval limits and owner protections (`components/settings/Team.tsx`, `Roles.tsx`, `lib_auth.js`).
+- [x] T-64 (F-SET-6, F-SET-7): numbering series, default accounts and document defaults, and your AI agent's autonomy settings (`components/settings/Numbering.tsx`, `DefaultAccounts.tsx`, `Agent.tsx`, `lib_settings.js`).
+- [x] T-65 (F-SET-8, F-SET-9): CSV import with mapping, preview and undo, and CSV export with formula-safe cells (`components/settings/ImportExport.tsx`, `lib_import.js`, `lib_csv.js`).
+- [x] T-66 (F-SET-10, F-SET-12): the audit trail with filters, and the Activity card on every record: history, notes and files (`components/settings/Audit.tsx`, `components/Activity.tsx`, `lib_audit.js`).
+- [x] T-67 (F-SET-11): the profile page: details, password change, sign out everywhere else, and rights per module (`pages/settings/ProfilePage.tsx`).
+- [x] T-68 (F-AGT-1, F-AGT-2, F-AGT-14): the 256 agent operations generated from the catalog into `operations.json` and served by `a2app_routes.pb.js` through the same handlers. Params are validated with closest-match refusals, and `app.guide` gives the conventions and recipes (`cat_*.js`, `tools/gen.mjs`, `lib_ops.js`, `lib_guide.js`).
+- [x] T-69 (F-AGT-3, F-AGT-4, F-AGT-5): proposals instead of postings, autonomy under the ceiling, `already_waiting` retries, `proposals.withdraw`, and `--confirm true` for deletions run by the agent (`lib_agent.proposeOrRun`, `lib_ops.run`).
+- [x] T-70 (F-AGT-6, F-AGT-7, F-AGT-8, F-AGT-9, F-AGT-10, F-AGT-11, F-AGT-12, F-AGT-13): the seven task playbooks in AGENT_APP.md § Work the app asks for, and their events in `events.json`, backed by the inbox, bank, asks, reorder, docs, close and marks operations.
+
+## Verification
+- [x] Framework-files check (`validateFrameworkFiles` of the Agent App CLI) reports no problems for manifest.json, operations.json, AGENT_APP.md, reference/requirements.md and reference/tasks.md.
+- [x] ## Operations Design in reference/requirements.md lists exactly the 256 operations of operations.json, each under its declared module.
+- [ ] Agent App Framework gate (`agent-app <dir> validate`) passes, including the describe budget on a dev instance.
+- [ ] Every declared operation answers through `a2app` on a live instance.
+- [ ] The View renders identically to the published build (screenshot comparison).

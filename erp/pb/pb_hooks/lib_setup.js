@@ -121,6 +121,8 @@ function complete(ctx, p) {
   const preset = COUNTRIES[country];
   if (preset === undefined) throw util.fail(400, 'country must be one of: ' + Object.keys(COUNTRIES).join(', '), 'invalid_param');
   let cur = util.str(p, 'currency', preset.currency).toUpperCase();
+  // "Another country" carries no currency: the wizard asks for one.
+  if (cur === '') throw util.fail(400, 'Choose the base currency (a 3-letter ISO code, e.g. USD).', 'missing_param', { param: 'currency' });
   if (!/^[A-Z]{3}$/.test(cur)) throw util.fail(400, 'currency must be a 3-letter ISO code, e.g. USD', 'invalid_param');
   const fy = util.int(p, 'fiscal_start_month', preset.fy, 1, 12);
   const type = util.oneOf(p, 'business_type', Object.keys(BUSINESS_MODULES), 'services');

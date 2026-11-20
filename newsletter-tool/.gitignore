@@ -1,0 +1,36 @@
+# Credentials are runtime artifacts: never shipped, exported, or committed.
+.agent-token
+.principal
+.superuser
+
+# The live database and adapter-owned state (the toolkit's lifecycle dataDir).
+pb/pb_data/
+
+# The PocketBase binary is fetched per machine (pb-fetch.mjs), never committed.
+pb/pocketbase
+pb/pocketbase.exe
+
+# The built View (frontend/ compiled by pb-build.mjs) and its dependencies.
+pb/pb_public/
+frontend/node_modules/
+frontend/*.tsbuildinfo
+
+# Framework runtime state.
+.a2app/serve.json
+.a2app/serve.log
+.a2app/serve.lock
+.a2app/dev.json
+.a2app/dev/
+.a2app/public/
+.a2app/gate-pass.json
+.a2app/backups/
+.a2app/lifecycle.lock
+.a2app/bridge.json
+.a2app/bridge.lock
+.a2app/bridge.log
+.a2app/bridge-llm.json
+.a2app/describe-cache.json
+.a2app/build-fingerprint.txt
+
+# App logs (console relay, attribution).
+logs/

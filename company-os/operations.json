@@ -1,93 +1,462 @@
 {
-  "opsVersion": 1,
   "operations": [
     {
-      "name": "health",
-      "description": "Liveness check (PocketBase built-in).",
-      "system": true,
-      "params": {},
-      "executor": { "type": "http", "method": "GET", "path": "/api/health" }
-    },
-    {
-      "name": "ops.list",
-      "description": "Return this operations manifest.",
-      "system": true,
-      "params": {},
-      "executor": { "type": "http", "method": "GET", "path": "/api/_ops" }
-    },
-    {
-      "name": "onboarding.complete",
-      "description": "Create the company from the onboarding wizard answers and seed the vocabulary pack, module activation, Journey steps, starter metrics, and the default meeting ritual. Fails with 409 if a company already exists.",
-      "params": {
-        "name": { "type": "string", "description": "Company name" },
-        "what_it_does": { "type": "string", "description": "Plain-language description of the business" },
-        "company_type": { "type": "string", "required": true, "enum": ["services", "retail_ecommerce", "food_hospitality", "software_digital", "other"] },
-        "stage": { "type": "string", "required": true, "enum": ["validate", "setup", "first_customers", "grow", "scale"] },
-        "team_size": { "type": "string", "enum": ["solo", "two_five", "six_fifteen", "sixteen_fifty", "fifty_plus"] },
-        "focus": { "type": "string", "description": "JSON array of focus areas chosen in the wizard" }
-      },
-      "executor": { "type": "http", "method": "POST", "path": "/api/ops/onboarding-complete" }
-    },
-    {
       "name": "journey.autocheck",
-      "description": "Mark data-detectable Journey steps done (e.g. first customer exists, first sale recorded). Returns the titles of newly completed steps.",
-      "params": {},
-      "executor": { "type": "http", "method": "POST", "path": "/api/ops/journey-autocheck" }
+      "description": "Mark data-detectable Journey steps done (e.g.",
+      "destructive": false,
+      "module": "journey",
+      "params": {}
     },
     {
       "name": "stage.recompute",
-      "description": "Compute the suggested company stage from real records. When it differs from the current stage an open suggestion card is created; nothing is applied.",
-      "params": {},
-      "executor": { "type": "http", "method": "POST", "path": "/api/ops/stage-recompute" }
+      "description": "Compute the suggested company stage from real records.",
+      "destructive": false,
+      "module": "stage",
+      "params": {}
     },
     {
       "name": "stage.advance",
-      "description": "Apply a user-confirmed stage change: sets the company stage, unlocks that stage's Journey steps, and marks newly recommended modules as suggestions.",
+      "description": "Apply a user-confirmed stage change: sets the company stage, unlocks that stage's Journey steps, and marks newly recommended modules as…",
+      "destructive": false,
+      "module": "stage",
       "params": {
-        "stage": { "type": "string", "required": true, "enum": ["validate", "setup", "first_customers", "grow", "scale"] }
-      },
-      "executor": { "type": "http", "method": "POST", "path": "/api/ops/stage-advance" }
+        "stage": {
+          "type": "enum",
+          "values": [
+            "validate",
+            "setup",
+            "first_customers",
+            "grow",
+            "scale"
+          ],
+          "required": true
+        }
+      }
     },
     {
       "name": "workflows.run",
-      "description": "Run one built-in workflow: weekly_digest (writes a Weekly review note), journey_autocheck, stage_check, or attention_sweep (opens suggestion cards for overdue follow-ups and low runway). Every run is recorded in workflow_runs.",
+      "description": "Run one built-in workflow: weekly_digest (writes a Weekly review note), journey_autocheck, stage_check, or attention_sweep (opens…",
+      "destructive": false,
+      "module": "workflows",
       "params": {
-        "workflow": { "type": "string", "required": true, "enum": ["weekly_digest", "journey_autocheck", "stage_check", "attention_sweep"] }
-      },
-      "executor": { "type": "http", "method": "POST", "path": "/api/ops/workflows-run" }
+        "workflow": {
+          "type": "enum",
+          "values": [
+            "weekly_digest",
+            "journey_autocheck",
+            "stage_check",
+            "attention_sweep"
+          ],
+          "required": true
+        }
+      }
     },
     {
       "name": "ai.draft-plan",
-      "description": "Draft the EMPTY fields of the one-page plan (mission, who we serve, offer, how we make money) from the onboarding answers via the CraftBot bridge. Draft-only; returns 503 when no AI is available.",
-      "params": {},
-      "executor": { "type": "http", "method": "POST", "path": "/api/ops/ai-draft-plan" }
+      "description": "Draft the EMPTY fields of the one-page plan (mission, who we serve, offer, how we make money) from the onboarding answers via the CraftBot…",
+      "destructive": false,
+      "module": "ai",
+      "params": {}
     },
     {
       "name": "marketing.ai_campaign_ideas",
-      "description": "Suggest 3 concrete low-cost campaign ideas for a funnel goal, from the company profile and active channels, via the CraftBot LLM. Suggestions only; returns 503 when no AI is available.",
+      "description": "Suggest 3 concrete low-cost campaign ideas for a funnel goal, from the company profile and active channels, via the CraftBot LLM.",
+      "destructive": false,
+      "module": "marketing",
       "params": {
-        "goal": { "type": "string", "enum": ["awareness", "leads", "sales", "loyalty"], "description": "Funnel goal the ideas should target" }
-      },
-      "executor": { "type": "http", "method": "POST", "path": "/api/ops/ai-campaign-ideas" }
+        "goal": {
+          "type": "enum",
+          "values": [
+            "awareness",
+            "leads",
+            "sales",
+            "loyalty"
+          ],
+          "description": "Funnel goal the ideas should target"
+        }
+      }
     },
     {
       "name": "marketing.ai_content_draft",
-      "description": "Draft copy for one content piece (post, email, ad, article, event) from its title/format and the company profile via the CraftBot LLM. Saves onto the content note when a promoId is given and its note is empty. Returns 503 when no AI is available.",
+      "description": "Draft copy for one content piece (post, email, ad, article, event) from its title/format and the company profile via the CraftBot LLM.",
+      "destructive": false,
+      "module": "marketing",
       "params": {
-        "promoId": { "type": "string", "description": "Optional id of the promos record to draft for and save onto" },
-        "title": { "type": "string", "description": "Content title/topic (used when no promoId)" },
-        "format": { "type": "string", "enum": ["post", "email", "ad", "article", "event", "other"], "description": "Content format" }
-      },
-      "executor": { "type": "http", "method": "POST", "path": "/api/ops/ai-content-draft" }
+        "promoId": {
+          "type": "string",
+          "description": "Optional id of the promos record to draft for and save onto"
+        },
+        "title": {
+          "type": "string",
+          "description": "Content title/topic (used when no promoId)"
+        },
+        "format": {
+          "type": "enum",
+          "values": [
+            "post",
+            "email",
+            "ad",
+            "article",
+            "event",
+            "other"
+          ],
+          "description": "Content format"
+        }
+      }
     },
     {
-      "name": "team.member_access",
-      "description": "Manage another account's access (owner/admin only). approve/revoke toggle a member's approved flag; make_admin/make_member change role (owner only); remove deletes the account. You cannot change your own or the owner's access.",
+      "name": "company.overview",
+      "description": "Home at a glance: stage, the Journey next step, open suggestions, cash and runway (when Money is on), attention list, open tasks, this…",
+      "destructive": false,
+      "readOnly": true,
+      "module": "company",
       "params": {
-        "userId": { "type": "string", "required": true, "description": "Target users record id" },
-        "action": { "type": "string", "required": true, "enum": ["approve", "revoke", "make_admin", "make_member", "remove"], "description": "Access change to apply" }
-      },
-      "executor": { "type": "http", "method": "POST", "path": "/api/ops/member-access" }
+        "month": {
+          "type": "string",
+          "description": "Calendar month as YYYY-MM (default: this month)"
+        }
+      }
+    },
+    {
+      "name": "journey.status",
+      "description": "The Journey page: each stage's progress and lock state, its steps with the action each offers (mark_done, undo, open:<page>), and whether…",
+      "destructive": false,
+      "readOnly": true,
+      "module": "journey",
+      "params": {}
+    },
+    {
+      "name": "customers.pipeline",
+      "description": "The customer pipeline board: customers grouped by pipeline stage with count and total value per stage, follow-up dates (overdue flagged).",
+      "destructive": false,
+      "readOnly": true,
+      "module": "customers",
+      "params": {
+        "query": {
+          "type": "string",
+          "description": "Search text matched against name, email and note"
+        }
+      }
+    },
+    {
+      "name": "money.summary",
+      "description": "Money page numbers (owner/admin): cash on hand, this month in/out/net, runway, month-by-month totals, invoices with their…",
+      "destructive": false,
+      "readOnly": true,
+      "module": "money",
+      "params": {}
+    },
+    {
+      "name": "goals.scorecard",
+      "description": "The weekly numbers scorecard: the last 8 week columns for each active metric, goal hit or miss per week, 4-week average and owner.",
+      "destructive": false,
+      "readOnly": true,
+      "module": "goals",
+      "params": {}
+    },
+    {
+      "name": "marketing.dashboard",
+      "description": "Marketing readings: channel and campaign spend, cost per customer, return on spend, insights, funnel coverage, channel mix, and each…",
+      "destructive": false,
+      "readOnly": true,
+      "module": "marketing",
+      "params": {}
+    },
+    {
+      "name": "team.list",
+      "description": "The Team page: people and the seats they hold, seats with their accountable person, the hiring pipeline, and (owner/admin) login accounts…",
+      "destructive": false,
+      "readOnly": true,
+      "module": "team",
+      "params": {}
+    },
+    {
+      "name": "files.download",
+      "description": "Get a stored file, either a Files entry (file) or a Kanban card attachment (card + filename): name, type, size, and the content as base64…",
+      "destructive": false,
+      "readOnly": true,
+      "module": "files",
+      "params": {
+        "file": {
+          "type": "string",
+          "description": "Files entry id"
+        },
+        "card": {
+          "type": "string",
+          "description": "Kanban card id (for an attachment)"
+        },
+        "filename": {
+          "type": "string",
+          "description": "Stored attachment name, as listed in the card's attachments"
+        }
+      }
+    },
+    {
+      "name": "company.update",
+      "description": "Edit the company: name and cash on hand (owner/admin), the one-page plan fields, and values (up to 5 kept).",
+      "destructive": false,
+      "module": "company",
+      "params": {
+        "name": {
+          "type": "string",
+          "description": "Company name (Settings)"
+        },
+        "cash_on_hand": {
+          "type": "number",
+          "description": "Cash on hand (Money page)"
+        },
+        "mission": {
+          "type": "string",
+          "description": "Why we exist"
+        },
+        "who_we_serve": {
+          "type": "string",
+          "description": "Who we serve"
+        },
+        "offer": {
+          "type": "string",
+          "description": "What we offer"
+        },
+        "how_money": {
+          "type": "string",
+          "description": "How we make money"
+        },
+        "three_year_picture": {
+          "type": "string",
+          "description": "Three years from now"
+        },
+        "year_goals": {
+          "type": "string",
+          "description": "This year"
+        },
+        "values": {
+          "type": "string",
+          "description": "JSON array of value words, e.g. [\"Honest\",\"Fast\"]; the first 5 are kept"
+        }
+      }
+    },
+    {
+      "name": "journey.set_step",
+      "description": "Mark a do-it-yourself (attest) Journey step done, or undo a step that was marked done by hand.",
+      "destructive": false,
+      "module": "journey",
+      "params": {
+        "step": {
+          "type": "string",
+          "required": true,
+          "description": "Journey step id"
+        },
+        "done": {
+          "type": "boolean",
+          "required": true,
+          "description": "true marks it done, false undoes it"
+        }
+      }
+    },
+    {
+      "name": "customers.save",
+      "description": "Add a customer (no id) or edit one, as the form does: the stage must be one of the pipeline stages (default the first).",
+      "destructive": false,
+      "module": "customers",
+      "params": {
+        "id": {
+          "type": "string",
+          "description": "Customer id to edit; omit to add a new one"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name (required when adding)"
+        },
+        "pipeline_stage": {
+          "type": "string",
+          "description": "Pipeline stage, one of the company pipeline (see company.overview)"
+        },
+        "email": {
+          "type": "string",
+          "description": "Email"
+        },
+        "phone": {
+          "type": "string",
+          "description": "Phone"
+        },
+        "follow_up": {
+          "type": "string",
+          "description": "Follow-up date YYYY-MM-DD, or empty to clear"
+        },
+        "value": {
+          "type": "number",
+          "description": "What they are worth to you"
+        },
+        "is_org": {
+          "type": "boolean",
+          "description": "true for a business, false for a person"
+        },
+        "note": {
+          "type": "string",
+          "description": "Note"
+        }
+      }
+    },
+    {
+      "name": "money.record_invoice_income",
+      "description": "Record a paid, not yet recorded invoice as money in (category Sales, dated today) and mark it recorded, like Record income on the Money…",
+      "destructive": false,
+      "module": "money",
+      "params": {
+        "invoice": {
+          "type": "string",
+          "required": true,
+          "description": "Invoice id"
+        }
+      }
+    },
+    {
+      "name": "marketing.record_spend",
+      "description": "Record money spent on a campaign: adds a Marketing expense in Money dated today and adds the amount to the campaign's spend.",
+      "destructive": false,
+      "module": "marketing",
+      "params": {
+        "campaign": {
+          "type": "string",
+          "required": true,
+          "description": "Campaign id"
+        },
+        "amount": {
+          "type": "number",
+          "required": true,
+          "description": "Amount spent, more than 0"
+        }
+      }
+    },
+    {
+      "name": "goals.set_number",
+      "description": "Fill in or clear one weekly number on the scorecard: an active metric, one of the last 8 weeks (default this week).",
+      "destructive": false,
+      "module": "goals",
+      "params": {
+        "metric": {
+          "type": "string",
+          "required": true,
+          "description": "Metric id"
+        },
+        "week": {
+          "type": "string",
+          "description": "Any date YYYY-MM-DD inside the week column (default: this week)"
+        },
+        "value": {
+          "type": "number",
+          "description": "The number; omit it to clear the cell"
+        }
+      }
+    },
+    {
+      "name": "roadmap.link",
+      "description": "Make one roadmap milestone a prerequisite of another (refused when it would create a cycle), or remove that link with remove=true.",
+      "destructive": false,
+      "module": "roadmap",
+      "params": {
+        "prerequisite": {
+          "type": "string",
+          "required": true,
+          "description": "Milestone id that must finish first"
+        },
+        "milestone": {
+          "type": "string",
+          "required": true,
+          "description": "Milestone id that depends on it"
+        },
+        "remove": {
+          "type": "boolean",
+          "description": "true removes the link instead (default false)"
+        }
+      }
+    },
+    {
+      "name": "processes.use_template",
+      "description": "Start from a ready-made process for this kind of business, as the empty Processes page offers (only while no process exists).",
+      "destructive": false,
+      "module": "processes",
+      "params": {
+        "template": {
+          "type": "string",
+          "required": true,
+          "description": "Template name"
+        }
+      }
+    },
+    {
+      "name": "files.upload",
+      "description": "Upload a file (base64, at most 20 MB) into Files, at the root or into a folder.",
+      "destructive": false,
+      "module": "files",
+      "params": {
+        "name": {
+          "type": "string",
+          "required": true,
+          "description": "File name with extension, e.g. price-list.pdf"
+        },
+        "content_base64": {
+          "type": "string",
+          "required": true,
+          "description": "The file content, base64-encoded"
+        },
+        "folder": {
+          "type": "string",
+          "description": "Folder id; omit for the root"
+        },
+        "mime": {
+          "type": "string",
+          "description": "Content type; guessed from the extension when omitted"
+        }
+      }
+    },
+    {
+      "name": "kanban.attach",
+      "description": "Attach a file (base64, at most 10 MB; up to 10 files per card) to a Kanban card.",
+      "destructive": false,
+      "module": "kanban",
+      "params": {
+        "card": {
+          "type": "string",
+          "required": true,
+          "description": "Kanban card id"
+        },
+        "name": {
+          "type": "string",
+          "required": true,
+          "description": "File name with extension"
+        },
+        "content_base64": {
+          "type": "string",
+          "required": true,
+          "description": "The file content, base64-encoded"
+        }
+      }
+    },
+    {
+      "name": "kanban.detach",
+      "description": "Remove one attached file from a Kanban card.",
+      "destructive": true,
+      "module": "kanban",
+      "params": {
+        "card": {
+          "type": "string",
+          "required": true,
+          "description": "Kanban card id"
+        },
+        "filename": {
+          "type": "string",
+          "required": true,
+          "description": "Stored attachment name, as listed in the card's attachments"
+        }
+      }
+    },
+    {
+      "name": "roadmap.auto_layout",
+      "description": "Rearrange every roadmap milestone into columns by dependency depth, like the canvas Auto-layout.",
+      "destructive": true,
+      "module": "roadmap",
+      "params": {}
     }
   ]
 }

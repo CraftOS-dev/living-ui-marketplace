@@ -6,10 +6,11 @@
  * (overdue red, today green, none amber), days in stage (red past the
  * stage's target) and a rotting edge when nothing happened for longer than
  * the stage allows. Cards drag between stages and onto the Won and Lost
- * zones at the bottom. #/deals?id=.. opens a deal's page.
+ * zones at the bottom. The table selects rows for the bulk bar (move to a
+ * stage, tag, trash). #/deals?id=.. opens a deal's page.
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { AlertTriangle, CalendarClock, Clock, Kanban, Plus, Rows3, Search, Settings2, Sparkles, Trophy, XCircle } from 'lucide-react';
+import { AlertTriangle, ArrowRight, CalendarClock, Clock, Kanban, Plus, Rows3, Search, Settings2, Sparkles, Tag as TagIcon, Trash2, Trophy, X, XCircle } from 'lucide-react';
 import { cn, toast } from '../../kit/index.ts';
 import { api, errMessage } from '../lib/api.ts';
 import { PIPELINE_KIND_LABEL, compact, money, relDay, stageColor, since } from '../lib/format.ts';
@@ -25,7 +26,7 @@ import { FilterBar, RecordTable, cell } from '../components/Table.tsx';
 import type { Column } from '../components/Table.tsx';
 import { specsOf } from '../components/fields.tsx';
 import { filterFields } from './Records.tsx';
-import { Btn, Empty, IconBtn, Modal, Seg, Spinner, input } from '../components/ui.tsx';
+import { Btn, Empty, IconBtn, Menu, Modal, Seg, Spinner, input, useConfirm } from '../components/ui.tsx';
 
 const NEXT_STYLE: Record<string, { color: string; label: string }> = {
   overdue: { color: 'var(--cr-neg)', label: 'Next activity overdue' },
@@ -315,7 +316,12 @@ function DealsList({ q }: { q: Record<string, string> }): React.JSX.Element {
   const [sort, setSort] = useState('expected_close');
   const [dir, setDir] = useState<'asc' | 'desc'>('asc');
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [confirmEl, confirm] = useConfirm();
+  const [tagOpen, setTagOpen] = useState(false);
+  const [tag, setTag] = useState('');
   const searchRef = useRef<HTMLInputElement | null>(null);
+  // Another pipeline, preset or mode starts with nothing selected.
+  useEffect(() => setSelected(new Set()), [pipeline?.id, preset, mode]);
   const live = useLive(
     () => api.deals({ pipeline: pipeline?.id, q: search, preset: mode === 'board' ? 'open' : preset || 'open', filters, match, sort: mode === 'board' ? 'position' : sort, dir: mode === 'board' ? 'asc' : dir, limit: 2000 }),
     ['deals', 'deal_people', 'tasks', 'stages', 'proposals', 'interactions', 'notes', 'companies', 'fx_rates'],
@@ -345,8 +351,19 @@ function DealsList({ q }: { q: Record<string, string> }): React.JSX.Element {
   const deals = live.data?.deals ?? [];
   const totals = { open: deals.filter((d) => d.status === 'open').reduce((t, d) => t + (d.home_value ?? 0), 0), weighted: deals.filter((d) => d.status === 'open').reduce((t, d) => t + (d.weighted ?? 0), 0) };
   const open = (id: string, page: boolean): void => (page ? go('deals', { id }) : setQuery({ peek: id }));
+  const ids = [...selected];
+  const bulk = (action: string, extra: Record<string, unknown> = {}): void => {
+    void api
+      .bulk('deals', { ids, action, ...extra })
+      .then((r) => {
+        toast.success('Done' + (r.changed !== undefined ? ': ' + r.changed : ''));
+        if (action === 'delete') setSelected(new Set());
+      })
+      .catch((err: unknown) => toast.error(errMessage(err)));
+  };
   return (
     <div className="flex h-full min-h-0">
+      {confirmEl}
       <aside className="hidden w-[220px] shrink-0 flex-col overflow-y-auto border-r border-[var(--cr-line)] py-1.5 lg:flex">
         <p className="px-3 pb-0.5 pt-1 text-[10.5px] font-bold uppercase tracking-[0.05em] text-[var(--cr-muted)]">Pipelines</p>
         {app.pipelines.map((p) => (
@@ -364,7 +381,7 @@ function DealsList({ q }: { q: Record<string, string> }): React.JSX.Element {
           <>
             <p className="mt-3 px-3 pb-0.5 text-[10.5px] font-bold uppercase tracking-[0.05em] text-[var(--cr-muted)]">Show</p>
             {DEAL_PRESETS.map((p) => (
-              <button key={p.id} type="button" onClick={() => setQuery({ preset: p.id || undefined })} className={cn('flex h-7 w-full items-center px-3 text-left text-[12.5px] transition-colors', preset === p.id ? 'bg-[var(--cr-row-hover)] font-semibold' : 'hover:bg-[var(--cr-row)]')}>
+              <button key={p.id} type="button" onClick={() => setQuery({ preset: p.id || undefined })} aria-current={preset === p.id ? 'true' : undefined} className={cn('flex h-7 w-full items-center px-3 text-left text-[12.5px] transition-colors', preset === p.id ? 'bg-[var(--cr-row-hover)] font-semibold' : 'hover:bg-[var(--cr-row)]')}>
                 {p.label}
               </button>
             ))}
@@ -391,7 +408,7 @@ function DealsList({ q }: { q: Record<string, string> }): React.JSX.Element {
           />
           <div className="relative">
             <Search size={13} className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-[var(--cr-muted)]" />
-            <input ref={searchRef} value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search" className={cn(input, 'h-7 w-40 pl-7')} />
+            <input ref={searchRef} value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search" aria-label="Search deals" className={cn(input, 'h-7 w-40 pl-7')} />
           </div>
           <FilterBar fields={filterFields(app, 'deals')} filters={filters} match={match} home={app.home} onChange={setFilters} onMatch={setMatch} />
           <span className="flex-1" />
@@ -399,6 +416,20 @@ function DealsList({ q }: { q: Record<string, string> }): React.JSX.Element {
             Deal
           </Btn>
         </div>
+        {mode === 'table' && selected.size > 0 && (
+          <div className="cr-fade flex h-10 shrink-0 items-center gap-1.5 border-b border-[var(--cr-line)] bg-[var(--cr-accent-soft)] px-3 text-[12.5px]">
+            <span className="mr-1 font-semibold">{selected.size} selected</span>
+            <Menu align="left" trigger={(_, t) => <Btn size="xs" icon={ArrowRight} onClick={t}>Move to stage</Btn>} items={pipeline.stages.filter((s) => s.kind === 'open').map((s) => ({ label: s.name, swatch: stageColor(s.color), onClick: () => bulk('move', { stage: s.id }) }))} />
+            <Btn size="xs" icon={TagIcon} onClick={() => setTagOpen(true)}>
+              Tag
+            </Btn>
+            <Btn size="xs" variant="danger" icon={Trash2} onClick={() => void confirm((selected.size === 1 ? '1 deal goes' : selected.size + ' deals go') + ' to the trash; you can restore them for 90 days.', 'Move to the trash?', 'Move to trash').then((ok) => ok && bulk('delete'))}>
+              Delete
+            </Btn>
+            <span className="flex-1" />
+            <IconBtn icon={X} label="Clear the selection" onClick={() => setSelected(new Set())} />
+          </div>
+        )}
         <div className="min-h-0 flex-1 overflow-auto">
           {live.data === null ? (
             <div className="flex h-40 items-center justify-center">
@@ -435,6 +466,31 @@ function DealsList({ q }: { q: Record<string, string> }): React.JSX.Element {
         </div>
       </section>
       {peek !== '' && <Peek object="deals" id={peek} onClose={() => setQuery({ peek: undefined })} />}
+      {tagOpen && (
+        <Modal
+          open
+          width="sm"
+          onClose={() => setTagOpen(false)}
+          title={'Tag ' + selected.size + (selected.size === 1 ? ' deal' : ' deals')}
+          footer={
+            <>
+              <Btn onClick={() => setTagOpen(false)}>Cancel</Btn>
+              <Btn
+                variant="primary"
+                onClick={() => {
+                  setTagOpen(false);
+                  bulk('tag', { tag });
+                  setTag('');
+                }}
+              >
+                Tag
+              </Btn>
+            </>
+          }
+        >
+          <input autoFocus value={tag} onChange={(e) => setTag(e.target.value)} placeholder="enterprise, renewal, warm" aria-label="Tag" className={input} />
+        </Modal>
+      )}
     </div>
   );
 }

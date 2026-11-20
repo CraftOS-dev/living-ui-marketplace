@@ -1,30 +1,206 @@
 {
-  "id": "{{PROJECT_ID}}",
-  "name": "{{PROJECT_NAME}}",
-  "description": "{{PROJECT_DESCRIPTION}}",
-  "agentAppVersion": 2,
-  "createdAt": "{{CREATED_AT}}",
+  "id": "crm-system",
+  "name": "CRM System",
+  "agentAppVersion": "0.1.0",
+  "adapterVersion": "0.2.0",
+  "appVersion": "2.0.0",
   "authMode": "none",
-  "port": "{{PORT}}",
-  "pbVersion": "0.39.7",
-  "kitVersion": "0.6.0",
-  "craftbotVersion": "1.4.3",
-  "pipeline": {
-    "install": "npm install --ignore-scripts --prefix frontend",
-    "build": "npm run build --prefix frontend",
-    "start": "pocketbase serve --http=127.0.0.1:{{PORT}} --dir pb/pb_data --hooksDir pb/pb_hooks --migrationsDir pb/pb_migrations --publicDir pb/pb_public",
-    "health": "/api/health"
-  },
+  "modules": [
+    {
+      "name": "app",
+      "summary": "guide, context, summary, dashboard, ui",
+      "entities": []
+    },
+    {
+      "name": "search",
+      "summary": "all",
+      "entities": []
+    },
+    {
+      "name": "setup",
+      "summary": "get, apply",
+      "entities": []
+    },
+    {
+      "name": "settings",
+      "summary": "update",
+      "entities": [
+        "settings"
+      ]
+    },
+    {
+      "name": "policy",
+      "summary": "update",
+      "entities": []
+    },
+    {
+      "name": "activity",
+      "summary": "list, undo, redo, runs, revert_run",
+      "entities": [
+        "activity"
+      ]
+    },
+    {
+      "name": "asks",
+      "summary": "create, list, get, start, answer, fail, delete",
+      "entities": [
+        "asks"
+      ]
+    },
+    {
+      "name": "fx",
+      "summary": "list, set, fetch, delete",
+      "entities": [
+        "fx_rates"
+      ]
+    },
+    {
+      "name": "people",
+      "summary": "list, get, create, upsert, update, delete, restore, merge…",
+      "entities": [
+        "people"
+      ]
+    },
+    {
+      "name": "companies",
+      "summary": "list, get, create, upsert, update, delete, restore, merge…",
+      "entities": [
+        "companies"
+      ]
+    },
+    {
+      "name": "deals",
+      "summary": "list, get, create, update, delete, restore, merge, bulk…",
+      "entities": [
+        "deals"
+      ]
+    },
+    {
+      "name": "timeline",
+      "summary": "get",
+      "entities": []
+    },
+    {
+      "name": "dupes",
+      "summary": "list, dismiss",
+      "entities": []
+    },
+    {
+      "name": "trash",
+      "summary": "list",
+      "entities": []
+    },
+    {
+      "name": "pipelines",
+      "summary": "list, create, update, delete",
+      "entities": [
+        "pipelines"
+      ]
+    },
+    {
+      "name": "stages",
+      "summary": "create, update, reorder, delete",
+      "entities": [
+        "stages"
+      ]
+    },
+    {
+      "name": "notes",
+      "summary": "list, create, update, delete",
+      "entities": [
+        "notes"
+      ]
+    },
+    {
+      "name": "interactions",
+      "summary": "list, log, update, delete",
+      "entities": [
+        "interactions"
+      ]
+    },
+    {
+      "name": "todos",
+      "summary": "today, list, create, update, complete, snooze, delete",
+      "entities": [
+        "tasks"
+      ]
+    },
+    {
+      "name": "emails",
+      "summary": "list, draft, update, send, start, sent, fail, delete",
+      "entities": [
+        "emails"
+      ]
+    },
+    {
+      "name": "research",
+      "summary": "queue, done, fail",
+      "entities": []
+    },
+    {
+      "name": "meetings",
+      "summary": "queue, done",
+      "entities": []
+    },
+    {
+      "name": "proposals",
+      "summary": "list, stats, decide, withdraw",
+      "entities": [
+        "proposals"
+      ]
+    },
+    {
+      "name": "lists",
+      "summary": "list, create, update, delete, add, remove",
+      "entities": [
+        "lists"
+      ]
+    },
+    {
+      "name": "views",
+      "summary": "list, save, delete",
+      "entities": [
+        "views"
+      ]
+    },
+    {
+      "name": "fields",
+      "summary": "list, create, update, delete",
+      "entities": [
+        "fields"
+      ]
+    },
+    {
+      "name": "import",
+      "summary": "preview, apply",
+      "entities": []
+    },
+    {
+      "name": "reports",
+      "summary": "pipeline, funnel, forecast, winloss, stage_time, sources…",
+      "entities": []
+    },
+    {
+      "name": "records",
+      "summary": "the app's other stored records",
+      "entities": [
+        "employments",
+        "deal_people",
+        "stage_events",
+        "list_entries",
+        "aliases",
+        "dupe_ignores"
+      ]
+    }
+  ],
+  "modificationLock": false,
   "capabilities": {
-    "external_hosts": [
-      "www.ecb.europa.eu"
-    ],
-    "triggers": [
-      "agent_asked",
-      "emails_queued",
-      "interaction_logged",
-      "research_requested"
-    ]
+    "integrations": []
   },
-  "adapterVersion": "1.9.0"
+  "pipeline": {
+    "install": "node pb-fetch.mjs && npm --prefix frontend install --ignore-scripts --no-audit --no-fund",
+    "build": "node pb-build.mjs",
+    "start": "node pb-serve.mjs",
+    "health": "/api/_a2app"
+  }
 }

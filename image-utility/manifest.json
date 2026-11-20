@@ -1,32 +1,120 @@
 {
-  "id": "{{PROJECT_ID}}",
-  "name": "{{PROJECT_NAME}}",
-  "description": "{{PROJECT_DESCRIPTION}}",
-  "agentAppVersion": 2,
-  "createdAt": "{{CREATED_AT}}",
+  "id": "image-utility",
+  "name": "Image Utility",
+  "agentAppVersion": "0.1.0",
+  "adapterVersion": "0.2.0",
+  "appVersion": "2.0.0",
   "authMode": "none",
-  "port": "{{PORT}}",
-  "pbVersion": "0.39.7",
-  "kitVersion": "0.6.0",
-  "craftbotVersion": "1.4.3",
-  "pipeline": {
-    "install": "npm install --ignore-scripts --prefix frontend",
-    "build": "npm run build --prefix frontend",
-    "start": "pocketbase serve --http=127.0.0.1:{{PORT}} --dir pb/pb_data --hooksDir pb/pb_hooks --migrationsDir pb/pb_migrations --publicDir pb/pb_public",
-    "health": "/api/health"
-  },
+  "modules": [
+    {
+      "name": "app",
+      "summary": "guide, schema, status, context, ui",
+      "entities": []
+    },
+    {
+      "name": "settings",
+      "summary": "get, update",
+      "entities": [
+        "settings"
+      ]
+    },
+    {
+      "name": "engine",
+      "summary": "status, install, test",
+      "entities": []
+    },
+    {
+      "name": "images",
+      "summary": "list, get, info, render, import, update, duplicate, delete",
+      "entities": [
+        "images"
+      ]
+    },
+    {
+      "name": "analyze",
+      "summary": "image",
+      "entities": []
+    },
+    {
+      "name": "filters",
+      "summary": "previews",
+      "entities": []
+    },
+    {
+      "name": "edits",
+      "summary": "add, update, move, remove, apply, copy, reset",
+      "entities": [
+        "edits"
+      ]
+    },
+    {
+      "name": "layers",
+      "summary": "list, add, update, arrange, remove",
+      "entities": []
+    },
+    {
+      "name": "history",
+      "summary": "list, undo, redo, revert",
+      "entities": [
+        "changes"
+      ]
+    },
+    {
+      "name": "proposals",
+      "summary": "list, accept, reject",
+      "entities": [
+        "proposals"
+      ]
+    },
+    {
+      "name": "export",
+      "summary": "estimate, compare, create",
+      "entities": [
+        "exports"
+      ]
+    },
+    {
+      "name": "exports",
+      "summary": "list, delete",
+      "entities": []
+    },
+    {
+      "name": "presets",
+      "summary": "list, save, delete",
+      "entities": [
+        "presets"
+      ]
+    },
+    {
+      "name": "batches",
+      "summary": "list, get, create, preview, run, cancel, retry, delete",
+      "entities": [
+        "batches"
+      ]
+    },
+    {
+      "name": "requests",
+      "summary": "create, list, get, update",
+      "entities": [
+        "requests"
+      ]
+    },
+    {
+      "name": "assets",
+      "summary": "list, add, delete",
+      "entities": [
+        "assets"
+      ]
+    }
+  ],
+  "modificationLock": false,
   "capabilities": {
-    "external_hosts": [
-      "www.python.org",
-      "files.pythonhosted.org",
-      "github.com",
-      "release-assets.githubusercontent.com",
-      "objects.githubusercontent.com"
-    ],
-    "triggers": [
-      "edit_requested",
-      "describe_requested"
-    ]
+    "integrations": []
   },
-  "adapterVersion": "1.9.0"
+  "pipeline": {
+    "install": "node pb-fetch.mjs && npm --prefix frontend install --ignore-scripts --no-audit --no-fund",
+    "build": "node pb-build.mjs",
+    "start": "node pb-serve.mjs",
+    "health": "/api/_a2app"
+  }
 }

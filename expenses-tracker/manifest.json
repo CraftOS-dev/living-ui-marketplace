@@ -1,29 +1,82 @@
 {
-  "id": "{{PROJECT_ID}}",
-  "name": "{{PROJECT_NAME}}",
-  "description": "{{PROJECT_DESCRIPTION}}",
-  "agentAppVersion": 2,
-  "createdAt": "{{CREATED_AT}}",
+  "id": "expenses-tracker",
+  "name": "Expenses Tracker",
+  "agentAppVersion": "0.1.0",
+  "adapterVersion": "0.2.0",
+  "appVersion": "1.0.0",
   "authMode": "none",
-  "port": "{{PORT}}",
-  "pbVersion": "0.39.7",
-  "kitVersion": "0.6.0",
-  "craftbotVersion": "1.4.3",
-  "pipeline": {
-    "install": "npm install --ignore-scripts --prefix frontend",
-    "build": "npm run build --prefix frontend",
-    "start": "pocketbase serve --http=127.0.0.1:{{PORT}} --dir pb/pb_data --hooksDir pb/pb_hooks --migrationsDir pb/pb_migrations --publicDir pb/pb_public",
-    "health": "/api/health"
-  },
+  "modules": [
+    {
+      "name": "app",
+      "summary": "guide",
+      "entities": []
+    },
+    {
+      "name": "settings",
+      "summary": "get, update",
+      "entities": [
+        "settings"
+      ]
+    },
+    {
+      "name": "summary",
+      "summary": "month, trend",
+      "entities": []
+    },
+    {
+      "name": "expenses",
+      "summary": "list, get, add, add-many, update, delete, delete-many…",
+      "entities": [
+        "expenses"
+      ]
+    },
+    {
+      "name": "categories",
+      "summary": "list, add, update, delete",
+      "entities": [
+        "categories"
+      ]
+    },
+    {
+      "name": "receipts",
+      "summary": "list, get, add, start, complete, fail, retry, delete",
+      "entities": [
+        "receipts"
+      ]
+    },
+    {
+      "name": "import",
+      "summary": "preview, run, list, undo",
+      "entities": [
+        "imports"
+      ]
+    },
+    {
+      "name": "export",
+      "summary": "csv",
+      "entities": []
+    },
+    {
+      "name": "recurring",
+      "summary": "list, add, update, delete, run-due",
+      "entities": [
+        "recurring"
+      ]
+    },
+    {
+      "name": "fx",
+      "summary": "rate",
+      "entities": []
+    }
+  ],
+  "modificationLock": false,
   "capabilities": {
-    "external_hosts": [
-      "api.frankfurter.dev",
-      "cdn.jsdelivr.net"
-    ],
-    "triggers": [
-      "categorize_requested",
-      "receipts_waiting"
-    ]
+    "integrations": []
   },
-  "adapterVersion": "1.9.0"
+  "pipeline": {
+    "install": "node pb-fetch.mjs && npm --prefix frontend install --ignore-scripts --no-audit --no-fund",
+    "build": "node pb-build.mjs",
+    "start": "node pb-serve.mjs",
+    "health": "/api/_a2app"
+  }
 }

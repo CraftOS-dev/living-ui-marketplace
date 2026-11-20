@@ -1,0 +1,837 @@
+{
+  "id": "hr-os",
+  "name": "HR OS",
+  "agentAppVersion": "0.1.0",
+  "adapterVersion": "0.2.0",
+  "appVersion": "1.0.0",
+  "authMode": "none",
+  "modules": [
+    {
+      "name": "advances",
+      "summary": "get, list",
+      "entities": [
+        "advances"
+      ]
+    },
+    {
+      "name": "agent",
+      "summary": "triggers",
+      "entities": [
+        "agent_questions"
+      ]
+    },
+    {
+      "name": "app",
+      "summary": "guide, home, status",
+      "entities": []
+    },
+    {
+      "name": "applications",
+      "summary": "add, get, list",
+      "entities": [
+        "applications"
+      ]
+    },
+    {
+      "name": "approval-flows",
+      "summary": "list",
+      "entities": []
+    },
+    {
+      "name": "approvals",
+      "summary": "get, list",
+      "entities": [
+        "approvals"
+      ]
+    },
+    {
+      "name": "assets",
+      "summary": "add, get, import, import-check, issue, list, return, update",
+      "entities": [
+        "assets"
+      ]
+    },
+    {
+      "name": "attendance-requests",
+      "summary": "list",
+      "entities": []
+    },
+    {
+      "name": "attendance",
+      "summary": "board, get, list, mark, mark-bulk, month, process, reset",
+      "entities": [
+        "attendance",
+        "attendance_requests"
+      ]
+    },
+    {
+      "name": "audit",
+      "summary": "list",
+      "entities": [
+        "audit"
+      ]
+    },
+    {
+      "name": "auth",
+      "summary": "me",
+      "entities": []
+    },
+    {
+      "name": "backpay",
+      "summary": "apply, preview",
+      "entities": []
+    },
+    {
+      "name": "bank",
+      "summary": "list",
+      "entities": [
+        "bank_accounts",
+        "bank_files"
+      ]
+    },
+    {
+      "name": "bankfiles",
+      "summary": "list",
+      "entities": []
+    },
+    {
+      "name": "benefits",
+      "summary": "end, enroll, list, plan-save, plans",
+      "entities": []
+    },
+    {
+      "name": "calendars",
+      "summary": "add, get, list, seed, update, working-days",
+      "entities": []
+    },
+    {
+      "name": "calibration",
+      "summary": "view",
+      "entities": []
+    },
+    {
+      "name": "candidates",
+      "summary": "add, check, get, import, list, note, resume, resume-set, update",
+      "entities": [
+        "candidates"
+      ]
+    },
+    {
+      "name": "checkins",
+      "summary": "add, flagged, list, void",
+      "entities": [
+        "checkins"
+      ]
+    },
+    {
+      "name": "checklist-templates",
+      "summary": "copy, get, list, save, seed",
+      "entities": []
+    },
+    {
+      "name": "checklists",
+      "summary": "first-day, get, list, start",
+      "entities": [
+        "checklists"
+      ]
+    },
+    {
+      "name": "claim-lines",
+      "summary": "add, delete, flag, read-failed, read-result, receipt, update…",
+      "entities": []
+    },
+    {
+      "name": "claims",
+      "summary": "create, delete, get, list, reopen, update",
+      "entities": [
+        "claims"
+      ]
+    },
+    {
+      "name": "clock",
+      "summary": "status",
+      "entities": []
+    },
+    {
+      "name": "comp",
+      "summary": "list, request",
+      "entities": [
+        "comp_changes"
+      ]
+    },
+    {
+      "name": "components",
+      "summary": "list, save, seed",
+      "entities": []
+    },
+    {
+      "name": "cost-centers",
+      "summary": "add, list, update",
+      "entities": []
+    },
+    {
+      "name": "countries",
+      "summary": "get, list",
+      "entities": []
+    },
+    {
+      "name": "cycles",
+      "summary": "create, defaults, get, list, preview, update",
+      "entities": []
+    },
+    {
+      "name": "declarations",
+      "summary": "file, get, list, proof, save, types",
+      "entities": []
+    },
+    {
+      "name": "departments",
+      "summary": "add, list, update",
+      "entities": [
+        "departments"
+      ]
+    },
+    {
+      "name": "documents",
+      "summary": "add, file, list, update",
+      "entities": [
+        "documents"
+      ]
+    },
+    {
+      "name": "employee-skills",
+      "summary": "list, remove, set",
+      "entities": [
+        "employees"
+      ]
+    },
+    {
+      "name": "employment-types",
+      "summary": "add, list, update",
+      "entities": []
+    },
+    {
+      "name": "employments",
+      "summary": "update",
+      "entities": [
+        "employments"
+      ]
+    },
+    {
+      "name": "entities",
+      "summary": "add, get, list, update",
+      "entities": [
+        "entities"
+      ]
+    },
+    {
+      "name": "exit-forms",
+      "summary": "list, save",
+      "entities": []
+    },
+    {
+      "name": "expense-categories",
+      "summary": "list, save, seed",
+      "entities": []
+    },
+    {
+      "name": "expenses",
+      "summary": "home, me, policy, policy-save, spend",
+      "entities": []
+    },
+    {
+      "name": "feedback",
+      "summary": "list",
+      "entities": [
+        "feedback"
+      ]
+    },
+    {
+      "name": "filings",
+      "summary": "calendar, generate, get, list, prepare, set-due",
+      "entities": [
+        "filings"
+      ]
+    },
+    {
+      "name": "fx",
+      "summary": "list, refresh",
+      "entities": [
+        "fx_rates"
+      ]
+    },
+    {
+      "name": "goals",
+      "summary": "checkin, create, get, import, import-check, list, tree, update",
+      "entities": [
+        "goals"
+      ]
+    },
+    {
+      "name": "grades",
+      "summary": "add, list, update",
+      "entities": [
+        "grades"
+      ]
+    },
+    {
+      "name": "grievance-types",
+      "summary": "list, save",
+      "entities": []
+    },
+    {
+      "name": "grievances",
+      "summary": "get, list, note",
+      "entities": [
+        "grievances"
+      ]
+    },
+    {
+      "name": "handbook",
+      "summary": "acks, get, list, save, text",
+      "entities": [
+        "handbook",
+        "handbook_versions",
+        "handbook_acks"
+      ]
+    },
+    {
+      "name": "hiring",
+      "summary": "calendar, home, people, retention, settings",
+      "entities": [
+        "hiring_config",
+        "hiring_events"
+      ]
+    },
+    {
+      "name": "holds",
+      "summary": "hold, list",
+      "entities": []
+    },
+    {
+      "name": "holidays",
+      "summary": "add, update",
+      "entities": [
+        "holidays"
+      ]
+    },
+    {
+      "name": "home",
+      "summary": "admin, directory, manager, me",
+      "entities": []
+    },
+    {
+      "name": "ids",
+      "summary": "list",
+      "entities": []
+    },
+    {
+      "name": "imports",
+      "summary": "list",
+      "entities": [
+        "imports"
+      ]
+    },
+    {
+      "name": "inbox",
+      "summary": "route",
+      "entities": []
+    },
+    {
+      "name": "interview-kits",
+      "summary": "list, save",
+      "entities": []
+    },
+    {
+      "name": "interviews",
+      "summary": "get, list, schedule, summary, update",
+      "entities": [
+        "interviews"
+      ]
+    },
+    {
+      "name": "job",
+      "summary": "edit, history, update",
+      "entities": [
+        "job_titles",
+        "job_records"
+      ]
+    },
+    {
+      "name": "journal",
+      "summary": "accounts, accounts-set, preview",
+      "entities": [
+        "journal_exports"
+      ]
+    },
+    {
+      "name": "kiosk",
+      "summary": "devices, pin-status",
+      "entities": [
+        "kiosk_devices",
+        "kiosk_pins"
+      ]
+    },
+    {
+      "name": "leave",
+      "summary": "approval-context, assignments, attachment, attention…",
+      "entities": [
+        "leave_types",
+        "leave_policies",
+        "leave_policy_assignments",
+        "leave_requests",
+        "leave_ledger",
+        "leave_blocks",
+        "leave_encash_requests",
+        "leave_comp_offs",
+        "leave_sync",
+        "leave_attention",
+        "leave_balances"
+      ]
+    },
+    {
+      "name": "leave-edit",
+      "summary": "adjust, assign, assign-bulk, block-save, comp-off-request…",
+      "entities": []
+    },
+    {
+      "name": "letter-templates",
+      "summary": "get, list, save",
+      "entities": []
+    },
+    {
+      "name": "letters",
+      "summary": "draft, get, list, preview, update",
+      "entities": [
+        "letters"
+      ]
+    },
+    {
+      "name": "lifecycle",
+      "summary": "home, profile, welcome",
+      "entities": []
+    },
+    {
+      "name": "loans",
+      "summary": "get, list, request, reschedule",
+      "entities": [
+        "loans"
+      ]
+    },
+    {
+      "name": "locations",
+      "summary": "add, list, update",
+      "entities": [
+        "locations"
+      ]
+    },
+    {
+      "name": "members",
+      "summary": "get, list",
+      "entities": [
+        "members"
+      ]
+    },
+    {
+      "name": "notifications",
+      "summary": "list",
+      "entities": [
+        "notifications"
+      ]
+    },
+    {
+      "name": "offer-templates",
+      "summary": "list, save",
+      "entities": []
+    },
+    {
+      "name": "offer-terms",
+      "summary": "list, save",
+      "entities": []
+    },
+    {
+      "name": "offers",
+      "summary": "get, hire-draft, letter, list",
+      "entities": [
+        "offers"
+      ]
+    },
+    {
+      "name": "openings",
+      "summary": "add, board, get, list, open-roles, stages, update",
+      "entities": [
+        "openings"
+      ]
+    },
+    {
+      "name": "overtime-requests",
+      "summary": "list",
+      "entities": []
+    },
+    {
+      "name": "overtime-rules",
+      "summary": "defaults, list, reset, save, try",
+      "entities": []
+    },
+    {
+      "name": "packs",
+      "summary": "ask-update, check-updates, checked, draft, get, list, test",
+      "entities": []
+    },
+    {
+      "name": "participants",
+      "summary": "get, list",
+      "entities": []
+    },
+    {
+      "name": "pay-inputs",
+      "summary": "add, import, import-check, list, update, void",
+      "entities": []
+    },
+    {
+      "name": "pay-schedules",
+      "summary": "calendar, list, save",
+      "entities": []
+    },
+    {
+      "name": "pay",
+      "summary": "edit, history, update",
+      "entities": [
+        "pay_records",
+        "pay_schedules",
+        "pay_components",
+        "pay_inputs"
+      ]
+    },
+    {
+      "name": "payout",
+      "summary": "formats, list, overview, run, settings",
+      "entities": [
+        "payout_settings",
+        "payout_lists"
+      ]
+    },
+    {
+      "name": "payreports",
+      "summary": "cost, headcount, register, remittance, ytd",
+      "entities": []
+    },
+    {
+      "name": "payroll",
+      "summary": "fields, home, person-set, settings, settings-save",
+      "entities": [
+        "payroll_settings"
+      ]
+    },
+    {
+      "name": "payruns",
+      "summary": "calculate, create, explain, get, issues, list, next, note…",
+      "entities": []
+    },
+    {
+      "name": "payslips",
+      "summary": "get, line, list, mine, recent",
+      "entities": [
+        "payslips"
+      ]
+    },
+    {
+      "name": "people",
+      "summary": "directory, get, hire, import, import-check, org-chart, photo…",
+      "entities": []
+    },
+    {
+      "name": "perf",
+      "summary": "home, inbox, profile, settings",
+      "entities": [
+        "perf_settings",
+        "perf_nudges"
+      ]
+    },
+    {
+      "name": "proposals",
+      "summary": "create, get, list, withdraw",
+      "entities": [
+        "proposals"
+      ]
+    },
+    {
+      "name": "questions",
+      "summary": "answer, get, list",
+      "entities": []
+    },
+    {
+      "name": "recurring",
+      "summary": "end, list, save",
+      "entities": [
+        "recurring_items"
+      ]
+    },
+    {
+      "name": "referrals",
+      "summary": "list, mine",
+      "entities": [
+        "referrals"
+      ]
+    },
+    {
+      "name": "rejection-reasons",
+      "summary": "list, save",
+      "entities": []
+    },
+    {
+      "name": "reports",
+      "summary": "absence, comp-bands, cost, diversity, headcount, hiring…",
+      "entities": []
+    },
+    {
+      "name": "requisitions",
+      "summary": "get, list, save",
+      "entities": [
+        "requisitions"
+      ]
+    },
+    {
+      "name": "review-summaries",
+      "summary": "submit",
+      "entities": [
+        "review_summaries"
+      ]
+    },
+    {
+      "name": "review-templates",
+      "summary": "create, get, list, update",
+      "entities": []
+    },
+    {
+      "name": "reviews",
+      "summary": "context, get, list",
+      "entities": [
+        "reviews"
+      ]
+    },
+    {
+      "name": "roles",
+      "summary": "list",
+      "entities": [
+        "roles"
+      ]
+    },
+    {
+      "name": "schedules",
+      "summary": "add, list, update",
+      "entities": []
+    },
+    {
+      "name": "scorecards",
+      "summary": "get, mine",
+      "entities": []
+    },
+    {
+      "name": "search",
+      "summary": "query",
+      "entities": []
+    },
+    {
+      "name": "separations",
+      "summary": "get, list, settlement",
+      "entities": [
+        "separations"
+      ]
+    },
+    {
+      "name": "settings",
+      "summary": "get",
+      "entities": [
+        "settings"
+      ]
+    },
+    {
+      "name": "setup",
+      "summary": "countries, status",
+      "entities": []
+    },
+    {
+      "name": "shift-patterns",
+      "summary": "list, save",
+      "entities": []
+    },
+    {
+      "name": "shift-requests",
+      "summary": "list",
+      "entities": []
+    },
+    {
+      "name": "shift-types",
+      "summary": "add, list, update",
+      "entities": []
+    },
+    {
+      "name": "shifts",
+      "summary": "assign-pattern, colleagues, copy-week, discard, mine, of…",
+      "entities": [
+        "shift_types"
+      ]
+    },
+    {
+      "name": "skills",
+      "summary": "add, list, matrix, update",
+      "entities": [
+        "skills"
+      ]
+    },
+    {
+      "name": "staffing-plans",
+      "summary": "get, line-save, list, save",
+      "entities": []
+    },
+    {
+      "name": "todos",
+      "summary": "add, complete, list, reopen, update",
+      "entities": [
+        "tasks"
+      ]
+    },
+    {
+      "name": "tax",
+      "summary": "edit, history, update",
+      "entities": [
+        "tax_profiles",
+        "tax_declarations"
+      ]
+    },
+    {
+      "name": "taxprofile",
+      "summary": "get, submit",
+      "entities": []
+    },
+    {
+      "name": "time",
+      "summary": "pay-inputs, payroll-check, review",
+      "entities": []
+    },
+    {
+      "name": "timesheet-reviews",
+      "summary": "done, get, list",
+      "entities": [
+        "timesheet_reviews"
+      ]
+    },
+    {
+      "name": "timesheets",
+      "summary": "get, list, mine, save-entries",
+      "entities": [
+        "timesheets"
+      ]
+    },
+    {
+      "name": "titles",
+      "summary": "add, list, update",
+      "entities": []
+    },
+    {
+      "name": "training-attendees",
+      "summary": "file",
+      "entities": []
+    },
+    {
+      "name": "training-programs",
+      "summary": "add, list, update",
+      "entities": []
+    },
+    {
+      "name": "training-requirements",
+      "summary": "add, list, update",
+      "entities": []
+    },
+    {
+      "name": "trainings",
+      "summary": "add, attendance, compliance, enrol, get, list, update",
+      "entities": [
+        "trainings"
+      ]
+    },
+    {
+      "name": "travel",
+      "summary": "get, list, save",
+      "entities": [
+        "travel_requests"
+      ]
+    },
+    {
+      "name": "yearend",
+      "summary": "document, issued, mine, overview, view",
+      "entities": [
+        "yearend_docs"
+      ]
+    },
+    {
+      "name": "ytd",
+      "summary": "import, import-check, list, set, sheet, sheet-save",
+      "entities": [
+        "ytd_openings"
+      ]
+    },
+    {
+      "name": "records",
+      "summary": "the app's other stored records",
+      "entities": [
+        "counters",
+        "pin_vault",
+        "holiday_calendars",
+        "work_schedules",
+        "cost_centers",
+        "employment_types",
+        "approval_flows",
+        "identity_docs",
+        "employee_skills",
+        "shift_patterns",
+        "shift_assignments",
+        "shift_requests",
+        "timesheet_entries",
+        "overtime_rules",
+        "overtime_requests",
+        "expense_categories",
+        "expense_policies",
+        "claim_lines",
+        "advance_settlements",
+        "benefit_plans",
+        "benefit_enrollments",
+        "rule_packs",
+        "payslip_lines",
+        "loan_repayments",
+        "salary_holds",
+        "payrun_notes",
+        "rejection_reasons",
+        "offer_terms",
+        "offer_templates",
+        "staffing_plans",
+        "staffing_plan_lines",
+        "interview_kits",
+        "interview_feedback",
+        "checklist_templates",
+        "letter_templates",
+        "exit_forms",
+        "grievance_types",
+        "review_templates",
+        "review_cycles",
+        "goal_checkins",
+        "review_participants",
+        "training_programs",
+        "training_attendees",
+        "training_requirements",
+        "report_cache"
+      ]
+    }
+  ],
+  "modificationLock": false,
+  "capabilities": {
+    "integrations": []
+  },
+  "pipeline": {
+    "install": "node pb-fetch.mjs && npm --prefix frontend install --ignore-scripts --no-audit --no-fund",
+    "build": "node pb-build.mjs",
+    "start": "node pb-serve.mjs",
+    "health": "/api/_a2app"
+  }
+}

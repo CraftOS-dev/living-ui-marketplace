@@ -262,6 +262,7 @@ function NoteComposer({ object, id }: { object: Obj; id: string }): React.JSX.El
         }}
         rows={text === '' ? 1 : 3}
         placeholder="Write a note... (Ctrl+Enter to save)"
+        aria-label="Note"
         className="block w-full resize-none rounded-[7px] bg-transparent px-2.5 py-2 text-[12.5px] leading-[18px] outline-none"
         data-note-composer=""
       />
@@ -487,7 +488,7 @@ function Related({ object, d }: { object: Obj; d: RecordDetail<AnyRecord> }): Re
         </ul>
         <div className="flex flex-wrap items-center gap-1.5">
           <RecordPicker object="people" value={add.id} valueLabel={add.name} onChange={(id, name) => setAdd({ id, name })} label="Person" placeholder="Add a person" className="w-56" />
-          <input value={role} onChange={(e) => setRole(e.target.value)} placeholder="Role (Champion, Decision maker ...)" className={cn(input, 'w-56')} />
+          <input value={role} onChange={(e) => setRole(e.target.value)} placeholder="Role (Champion, Decision maker ...)" aria-label="Role" className={cn(input, 'w-56')} />
           <Btn
             size="sm"
             icon={Plus}

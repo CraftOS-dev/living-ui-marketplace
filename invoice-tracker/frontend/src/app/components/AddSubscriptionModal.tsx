@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Modal, Button, Input } from './ui'
 import { Info } from 'lucide-react'
 import { CURRENCY_OPTIONS, ALL_CATEGORIES } from '../types'
@@ -8,19 +8,21 @@ interface AddSubscriptionModalProps {
   onClose: () => void
   activeGroupId?: string | number | null
   activeGroupName?: string
+  /** The shown workspace's currency (the one its totals use): the form opens on it. */
+  defaultCurrency: string
   onCreateSubscription: (data: {
     name: string
     vendor?: string
     amount: number
     currency?: string
-    billing_frequency?: string
+    billingFrequency?: string
     category?: string
     purpose?: string
     status?: string
-    group_id?: string | number | null
-    next_renewal_date?: string
-    auto_renew?: boolean
-    icon_name?: string
+    groupId?: string | number | null
+    nextRenewalDate?: string
+    autoRenew?: boolean
+    iconName?: string
   }) => Promise<void>
 }
 
@@ -31,12 +33,13 @@ export const AddSubscriptionModal: React.FC<AddSubscriptionModalProps> = ({
   onClose,
   activeGroupId,
   activeGroupName: _activeGroupName,
+  defaultCurrency,
   onCreateSubscription,
 }) => {
   const [name, setName] = useState('')
   const [vendor, setVendor] = useState('')
   const [amount, setAmount] = useState('')
-  const [currency, setCurrency] = useState('USD')
+  const [currency, setCurrency] = useState(defaultCurrency)
   const [frequency, setFrequency] = useState('monthly')
   const [category, setCategory] = useState('Software & SaaS')
   const [purpose, setPurpose] = useState('')
@@ -44,6 +47,11 @@ export const AddSubscriptionModal: React.FC<AddSubscriptionModalProps> = ({
   const [autoRenew, setAutoRenew] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // Each time the form opens it starts on the workspace's currency
+  useEffect(() => {
+    if (isOpen) setCurrency(defaultCurrency)
+  }, [isOpen, defaultCurrency])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -60,20 +68,22 @@ export const AddSubscriptionModal: React.FC<AddSubscriptionModalProps> = ({
     setError(null)
     setIsSubmitting(true)
     try {
+      // Field names as the data layer stores them (ApiService.createSubscription)
       const subPayload: any = {
         name: name.trim(),
         vendor: vendor.trim() || name.trim(),
         amount: parsedAmount,
         currency,
-        billing_frequency: frequency,
+        billingFrequency: frequency,
         category,
         purpose: purpose.trim(),
         status: 'active',
-        group_id: activeGroupId || null,
-        auto_renew: autoRenew,
-        icon_name: 'CreditCard',
+        groupId: activeGroupId || null,
+        autoRenew,
+        iconName: 'CreditCard',
       }
-      if (nextRenewal) subPayload.next_renewal_date = nextRenewal
+      // The picked day, at local midnight, as ISO text like every date the app writes
+      if (nextRenewal) subPayload.nextRenewalDate = new Date(`${nextRenewal}T00:00:00`).toISOString()
 
       await onCreateSubscription(subPayload)
       // Reset form

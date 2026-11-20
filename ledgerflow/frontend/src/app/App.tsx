@@ -79,6 +79,11 @@ function Main(): React.JSX.Element {
         e.preventDefault();
         dialogs.openEntry('expense');
       }
+      // E: the New menu's key for Expense (the inbox has no E of its own, so it works there too).
+      if (!mod && !e.altKey && e.key === 'e') {
+        e.preventDefault();
+        dialogs.openEntry('expense');
+      }
       if (!mod && !e.altKey && e.key === 'i' && route.view !== 'inbox') {
         e.preventDefault();
         dialogs.openImport();

@@ -298,6 +298,12 @@ function settingsUpdate(app, e, p) {
 
 /* ------------------------------------------------------- status and screen */
 
+/**
+ * A request the AI agent never got, as askState() decides it: still sent, with
+ * no queue id or with its queue row rejected. For the counts below.
+ */
+const NOT_SENT = "(r.[[status]] = 'sent' AND (COALESCE(r.[[request_id]], '') = '' OR EXISTS (SELECT 1 FROM {{agent_requests}} q WHERE q.[[id]] = r.[[request_id]] AND q.[[status]] = 'rejected')))";
+
 function status(app) {
   const u = U();
   const one = (sql) => u.rows(app, sql, { n: 0 })[0].n;
@@ -307,7 +313,10 @@ function status(app) {
     images: one('SELECT COUNT(*) AS n FROM {{images}}'),
     pending_images: one("SELECT COUNT(*) AS n FROM {{images}} WHERE [[status]] = 'pending'"),
     proposals: one("SELECT COUNT(*) AS n FROM {{proposals}} WHERE [[status]] = 'pending'"),
-    open_requests: one("SELECT COUNT(*) AS n FROM {{requests}} WHERE [[status]] = 'sent' OR [[status]] = 'working'"),
+    // Waiting on the AI agent: it has them (sent or working), not done or failed.
+    open_requests: one("SELECT COUNT(*) AS n FROM {{requests}} r WHERE (r.[[status]] = 'sent' OR r.[[status]] = 'working') AND NOT " + NOT_SENT),
+    // Needing the person (the Requests page's "Needs you"): failed (the agent asks back) or never sent.
+    requests_need_you: one("SELECT COUNT(*) AS n FROM {{requests}} r WHERE r.[[status]] = 'failed' OR " + NOT_SENT),
     batches_running: one("SELECT COUNT(*) AS n FROM {{batches}} WHERE [[status]] = 'running' OR [[status]] = 'queued'"),
     exports: one('SELECT COUNT(*) AS n FROM {{exports}}'),
     now: u.now(),
@@ -350,9 +359,47 @@ function context(app) {
 
 const TRIGGER = { edit: 'edit_requested', describe: 'describe_requested' };
 
+/**
+ * Ask the AI agent about a request. The fire carries no params: the queue
+ * puts its own row id in the task as `request` (a `request` param of ours
+ * is refused as undeclared), and the request keeps that id as request_id.
+ */
+function fireFor(app, rec) {
+  const fired = require(`${__hooks}/_triggers_lib.js`).fire(app, TRIGGER[rec.getString('kind')], {}, 'hook');
+  if (fired.ok) {
+    rec.set('request_id', fired.id);
+    app.save(rec);
+  }
+  return fired;
+}
+
+/** A request by its id, or by the queue id its task carries as `request`. */
+function findRequest(app, id) {
+  const u = U();
+  const r = u.byId(app, 'requests', id) || (id === '' ? null : u.findOne(app, 'requests', 'request_id = {:r}', { r: id }));
+  if (r === null) throw u.fail(404, 'No request with that id; see requests.list');
+  return r;
+}
+
+/**
+ * Did the AI agent get the request? A fire the trigger plane refused
+ * (cooldown, hourly cap) leaves no request_id; a task that failed or was
+ * canceled before the agent took the request leaves its row rejected. Either
+ * way the request still reads "sent", and the person can send it again.
+ */
+function askState(app, r) {
+  if (r.getString('status') !== 'sent') return { asked: true, ask_error: '' };
+  const rid = r.getString('request_id');
+  if (rid === '') return { asked: false, ask_error: '' };
+  const row = U().byId(app, 'agent_requests', rid);
+  if (row === null || row.getString('status') !== 'rejected') return { asked: true, ask_error: '' };
+  return { asked: false, ask_error: row.getString('error') || 'rejected' };
+}
+
 function requestJson(app, r) {
   const u = U();
   const img = u.byId(app, 'images', r.getString('image'));
+  const ask = askState(app, r);
   return {
     id: r.id,
     kind: r.getString('kind'),
@@ -364,6 +411,8 @@ function requestJson(app, r) {
     status: r.getString('status'),
     result: r.getString('result'),
     request_id: r.getString('request_id'),
+    asked: ask.asked,
+    ask_error: ask.ask_error,
     created: r.getString('created'),
     updated: r.getString('updated'),
   };
@@ -372,6 +421,7 @@ function requestJson(app, r) {
 function requestsCreate(app, e, p) {
   const u = U();
   if (u.actor(e) === 'agent') throw u.fail(403, 'Requests are how the person asks you; answer them with requests.update.', { code: 'person_only' });
+  if (u.str(p, 'request', '') !== '') return requestsResend(app, u.str(p, 'request', ''));
   const kind = u.oneOf(p, 'kind', ['edit', 'describe'], 'edit');
   const imageRef = u.str(p, 'image', '');
   const img = imageRef ? I().mustImage(app, imageRef) : null;
@@ -390,12 +440,17 @@ function requestsCreate(app, e, p) {
   rec.set('region', region);
   rec.set('status', 'sent');
   app.save(rec);
-  const fired = require(`${__hooks}/_triggers_lib.js`).fire(app, TRIGGER[kind], { request: rec.id }, 'hook');
-  if (fired.ok) {
-    rec.set('request_id', fired.id);
-    app.save(rec);
-  }
+  const fired = fireFor(app, rec);
   return { ok: true, request: requestJson(app, rec), asked: fired.ok, message: fired.ok ? 'Sent to your AI agent.' : 'Saved, but your AI agent was not asked: ' + fired.message };
+}
+
+/** Send again a request the AI agent was not asked about (requests.create with request). */
+function requestsResend(app, id) {
+  const u = U();
+  const rec = findRequest(app, id);
+  if (askState(app, rec).asked) throw u.fail(409, 'Your AI agent already has this request.', { code: 'already_asked' });
+  const fired = fireFor(app, rec);
+  return { ok: true, request: requestJson(app, rec), asked: fired.ok, message: fired.ok ? 'Sent to your AI agent.' : 'Still not sent: ' + fired.message };
 }
 
 function requestsList(app, p) {
@@ -417,8 +472,7 @@ function requestsList(app, p) {
 
 function requestsGet(app, p) {
   const u = U();
-  const r = u.byId(app, 'requests', u.req(p, 'request', '<request id>'));
-  if (r === null) throw u.fail(404, 'No request with that id; see requests.list');
+  const r = findRequest(app, u.req(p, 'request', '<request id>'));
   const out = requestJson(app, r);
   if (r.getString('image') !== '') out.image_detail = imagesGet(app, { image: r.getString('image') });
   out.images_detail = (u.getJson(r, 'images') || []).slice(0, 100).map((id) => {
@@ -430,8 +484,7 @@ function requestsGet(app, p) {
 
 function requestsUpdate(app, e, p) {
   const u = U();
-  const r = u.byId(app, 'requests', u.req(p, 'request', '<request id>'));
-  if (r === null) throw u.fail(404, 'No request with that id; see requests.list');
+  const r = findRequest(app, u.req(p, 'request', '<request id>'));
   const status = u.oneOf(p, 'status', ['working', 'done', 'failed'], '');
   const order = { sent: 0, working: 1, done: 2, failed: 2 };
   if (status !== '') {

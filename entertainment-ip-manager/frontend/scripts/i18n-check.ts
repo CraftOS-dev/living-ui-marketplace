@@ -81,7 +81,7 @@ const copyFiles = [
   ...walk(join(APP, 'pb', 'pb_hooks'), ['.js']).filter((f) => !/[\\/]_[^\\/]*$/.test(f)),
   ...walk(join(APP, 'pb', 'pb_migrations'), ['.js']),
   join(APP, 'operations.json'),
-  join(APP, 'triggers.json'),
+  join(APP, 'events.json'),
 ];
 for (const file of copyFiles) {
   let src = '';

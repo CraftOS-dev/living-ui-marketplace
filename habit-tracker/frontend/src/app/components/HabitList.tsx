@@ -69,8 +69,8 @@ export function HabitList({
     setOverId(null)
     try {
       await controller.reorderHabits(ordered)
-    } catch (err) {
-      toast.error('Failed to reorder habits')
+    } catch (err: any) {
+      toast.error(err?.message || 'Failed to reorder habits')
     }
   }
 
@@ -110,8 +110,8 @@ export function HabitList({
             onToggle={async () => {
               try {
                 await controller.toggleToday(h)
-              } catch (err) {
-                toast.error('Failed to update habit')
+              } catch (err: any) {
+                toast.error(err?.message || 'Failed to update habit')
               }
             }}
             onIncrement={async (delta) => {
@@ -119,8 +119,8 @@ export function HabitList({
               try {
                 const todayStr = todayLocalIso()
                 await controller.upsertEntry(h.id, todayStr, { value: next })
-              } catch (err) {
-                toast.error('Failed to update habit')
+              } catch (err: any) {
+                toast.error(err?.message || 'Failed to update habit')
               }
             }}
             onSetDuration={async (mins) => {
@@ -129,8 +129,8 @@ export function HabitList({
                 const current = h.todayEntry?.value ?? 0
                 const next = current >= mins ? 0 : mins
                 await controller.upsertEntry(h.id, todayStr, { value: next })
-              } catch (err) {
-                toast.error('Failed to update habit')
+              } catch (err: any) {
+                toast.error(err?.message || 'Failed to update habit')
               }
             }}
             isDragging={draggingId === h.id}

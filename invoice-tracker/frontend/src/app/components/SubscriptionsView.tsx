@@ -1,7 +1,9 @@
 import React, { useState } from 'react'
 import type { Subscription } from '../types'
-import { ALL_CATEGORIES } from '../types'
+import { ALL_CATEGORIES, getCurrencySymbol } from '../types'
+import { monthlyEquivalent, splitByCurrency } from '../services/reports'
 import { Card, Button, Badge, Input } from './ui'
+import { OtherCurrenciesNote } from './OtherCurrenciesNote'
 import {
   Plus,
   Calendar,
@@ -14,6 +16,7 @@ interface Props {
   onOpenAddModal: () => void
   activeGroupName?: string
   currencySymbol?: string
+  currencyCode?: string
 }
 
 export const SubscriptionsView: React.FC<Props> = ({
@@ -23,6 +26,7 @@ export const SubscriptionsView: React.FC<Props> = ({
   onOpenAddModal,
   activeGroupName: _activeGroupName,
   currencySymbol = '$',
+  currencyCode = 'USD',
 }) => {
   const [filterCategory, setFilterCategory] = useState<string>('all')
   const [filterStatus, setFilterStatus] = useState<string>('all')
@@ -30,15 +34,10 @@ export const SubscriptionsView: React.FC<Props> = ({
   const [currentPage, setCurrentPage] = useState<number>(1)
   const pageSize = 12
 
-  // Calculate MRR and totals
+  // Calculate MRR and totals (in the workspace's currency; others are named apart)
   const activeSubs = subscriptions.filter((s) => s.status === 'active')
-  const monthlyBurn = activeSubs.reduce((sum, s) => {
-    if (s.billingFrequency === 'monthly') return sum + s.amount
-    if (s.billingFrequency === 'yearly') return sum + s.amount / 12.0
-    if (s.billingFrequency === 'weekly') return sum + s.amount * 4.33
-    if (s.billingFrequency === 'quarterly') return sum + s.amount / 3.0
-    return sum + s.amount
-  }, 0)
+  const burn = splitByCurrency(activeSubs.map((s) => ({ amount: monthlyEquivalent(s), currency: s.currency })), currencyCode)
+  const monthlyBurn = burn.total
 
   const annualBurn = monthlyBurn * 12
 
@@ -91,6 +90,7 @@ export const SubscriptionsView: React.FC<Props> = ({
           <p className="page-header-subtitle">
             Track recurring services and licenses. Annual run rate: <strong>{currencySymbol}{annualBurn.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}/yr</strong>
           </p>
+          <OtherCurrenciesNote others={burn.others} currencyCode={currencyCode} style={{ marginTop: '2px' }} />
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
@@ -225,7 +225,7 @@ export const SubscriptionsView: React.FC<Props> = ({
                 <div style={{ borderTop: '1px solid var(--border-primary)', paddingTop: '10px', marginTop: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div>
                     <div style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-primary)', fontVariantNumeric: 'tabular-nums' }}>
-                      {currencySymbol}{sub.amount.toFixed(2)}
+                      {getCurrencySymbol(sub.currency)}{sub.amount.toFixed(2)}
                       <span style={{ fontSize: '0.78rem', fontWeight: 500, color: 'var(--text-muted)' }}>
                         /{sub.billingFrequency === 'monthly' ? 'mo' : sub.billingFrequency === 'yearly' ? 'yr' : sub.billingFrequency}
                       </span>
@@ -233,6 +233,7 @@ export const SubscriptionsView: React.FC<Props> = ({
                     {sub.nextRenewalDate && (
                       <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
                         <Calendar size={12} /> Renews {new Date(sub.nextRenewalDate).toLocaleDateString()}
+                        {!sub.autoRenew && <span> &bull; Auto-renew off</span>}
                       </div>
                     )}
                   </div>

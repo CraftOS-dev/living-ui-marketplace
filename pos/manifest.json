@@ -1,26 +1,197 @@
 {
-  "id": "{{PROJECT_ID}}",
-  "name": "{{PROJECT_NAME}}",
-  "description": "{{PROJECT_DESCRIPTION}}",
-  "agentAppVersion": 2,
-  "createdAt": "{{CREATED_AT}}",
+  "id": "pos",
+  "name": "POS",
+  "agentAppVersion": "0.1.0",
+  "adapterVersion": "0.2.0",
+  "appVersion": "1.0.0",
   "authMode": "none",
-  "port": "{{PORT}}",
-  "pbVersion": "0.39.7",
-  "kitVersion": "0.6.0",
-  "craftbotVersion": "1.4.3",
-  "pipeline": {
-    "install": "npm install --ignore-scripts --prefix frontend",
-    "build": "npm run build --prefix frontend",
-    "start": "pocketbase serve --http=127.0.0.1:{{PORT}} --dir pb/pb_data --hooksDir pb/pb_hooks --migrationsDir pb/pb_migrations --publicDir pb/pb_public",
-    "health": "/api/health"
-  },
+  "modules": [
+    {
+      "name": "app",
+      "summary": "guide, status",
+      "entities": []
+    },
+    {
+      "name": "setup",
+      "summary": "regions, complete",
+      "entities": []
+    },
+    {
+      "name": "auth",
+      "summary": "me, login, logout, first-pin, change-pin, approve",
+      "entities": [
+        "counters",
+        "sessions",
+        "approvals"
+      ]
+    },
+    {
+      "name": "staff",
+      "summary": "list, add, update, set-pin, reset-pin",
+      "entities": [
+        "staff",
+        "staff_pins"
+      ]
+    },
+    {
+      "name": "settings",
+      "summary": "get, update",
+      "entities": [
+        "settings"
+      ]
+    },
+    {
+      "name": "tax",
+      "summary": "list, add, update, archive",
+      "entities": [
+        "tax_classes"
+      ]
+    },
+    {
+      "name": "tenders",
+      "summary": "list, add, update",
+      "entities": [
+        "tenders",
+        "payments"
+      ]
+    },
+    {
+      "name": "registers",
+      "summary": "list, add, update",
+      "entities": [
+        "registers"
+      ]
+    },
+    {
+      "name": "catalog",
+      "summary": "register",
+      "entities": []
+    },
+    {
+      "name": "categories",
+      "summary": "list, add, update, delete, reorder",
+      "entities": [
+        "categories"
+      ]
+    },
+    {
+      "name": "products",
+      "summary": "list, get, add, update, set-available, archive, restore…",
+      "entities": [
+        "products",
+        "variants",
+        "codes"
+      ]
+    },
+    {
+      "name": "modifiers",
+      "summary": "list, add-group, update-group, delete-group, set-available",
+      "entities": [
+        "modifiers"
+      ]
+    },
+    {
+      "name": "discounts",
+      "summary": "list, add, update, delete",
+      "entities": [
+        "discounts"
+      ]
+    },
+    {
+      "name": "lookup",
+      "summary": "code",
+      "entities": []
+    },
+    {
+      "name": "stock",
+      "summary": "list, history, receive, adjust, count",
+      "entities": [
+        "stock",
+        "stock_moves"
+      ]
+    },
+    {
+      "name": "imports",
+      "summary": "list, add, start, complete, fail, retry, delete",
+      "entities": [
+        "imports"
+      ]
+    },
+    {
+      "name": "tickets",
+      "summary": "list, get, park, resume, release, void, draft",
+      "entities": [
+        "carts",
+        "tickets"
+      ]
+    },
+    {
+      "name": "sales",
+      "summary": "finalize, preview, list, get, refundable, receipt-text",
+      "entities": [
+        "sales"
+      ]
+    },
+    {
+      "name": "receipts",
+      "summary": "email, reprint",
+      "entities": []
+    },
+    {
+      "name": "shifts",
+      "summary": "current, list, report, open, close",
+      "entities": [
+        "shifts"
+      ]
+    },
+    {
+      "name": "cash",
+      "summary": "move",
+      "entities": [
+        "cash_moves"
+      ]
+    },
+    {
+      "name": "kitchen",
+      "summary": "list, board, bump, recall",
+      "entities": []
+    },
+    {
+      "name": "customers",
+      "summary": "list, get, add, update, archive",
+      "entities": [
+        "customers"
+      ]
+    },
+    {
+      "name": "reports",
+      "summary": "summary, export",
+      "entities": []
+    },
+    {
+      "name": "audit",
+      "summary": "list",
+      "entities": [
+        "audit"
+      ]
+    },
+    {
+      "name": "records",
+      "summary": "the app's other stored records",
+      "entities": [
+        "modifier_groups",
+        "sale_lines"
+      ]
+    }
+  ],
+  "modificationLock": false,
   "capabilities": {
-    "triggers": [
-      "day_closed",
-      "menu_import_waiting",
-      "receipt_email_requested"
-    ]
+    "integrations": []
   },
-  "adapterVersion": "1.9.0"
+  "pipeline": {
+    "install": "node pb-fetch.mjs && npm --prefix frontend install --ignore-scripts --no-audit --no-fund",
+    "build": "node pb-build.mjs",
+    "start": "node pb-serve.mjs",
+    "health": "/api/_a2app"
+  }
 }

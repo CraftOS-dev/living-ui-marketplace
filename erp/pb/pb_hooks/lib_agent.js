@@ -710,6 +710,20 @@ function request(ctx, p) {
     if (doc.getString('state') === 'draft' || doc.getString('state') === 'void') throw util.fail(409, 'Only a confirmed or posted document is sent.', 'invalid_state');
     params.doc_id = doc.id;
   } else auth.need(ctx, rule.module, rule.level);
+  if (kind === 'collections_requested') {
+    // Invoices picked in the list: the reminders cover exactly these.
+    const picked = util.list(p, 'invoices') || [];
+    if (picked.length > 100) throw util.fail(400, 'Ask about at most 100 invoices at a time.', 'invalid_param', { param: 'invoices' });
+    const ids = [];
+    const settled = [];
+    for (const ref of picked) {
+      const doc = core.resolveDoc(app, String(ref), 'invoice');
+      if (doc.getString('state') !== 'posted' || doc.getInt('balance') <= 0) settled.push(doc.getString('number'));
+      else if (ids.indexOf(doc.id) < 0) ids.push(doc.id);
+    }
+    if (settled.length > 0) throw util.fail(409, settled.join(', ') + (settled.length === 1 ? ' has' : ' have') + ' nothing left to pay, so no reminder goes out. Leave ' + (settled.length === 1 ? 'it' : 'them') + ' out.', 'invalid_state');
+    if (ids.length > 0) params.invoices = ids.join(',');
+  }
   if (kind === 'close_review_requested') params.month = util.monthParam(p, 'month', util.today().slice(0, 7));
   if (kind === 'bank_lines_waiting') params.bank_id = core.resolve(app, 'banks', util.req(p, 'bank')).id;
   const fired = require(`${__hooks}/_triggers_lib.js`).fire(app, kind, params, 'hook');

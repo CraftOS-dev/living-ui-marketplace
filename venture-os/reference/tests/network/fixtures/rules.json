@@ -1,0 +1,1 @@
+{ "send_error_to": ["bounce@example.com"], "send_error_message": "Failed to send email: invalid To header." }

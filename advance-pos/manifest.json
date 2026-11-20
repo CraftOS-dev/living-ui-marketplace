@@ -1,27 +1,182 @@
 {
-  "id": "{{PROJECT_ID}}",
-  "name": "{{PROJECT_NAME}}",
-  "description": "{{PROJECT_DESCRIPTION}}",
-  "agentAppVersion": 2,
-  "createdAt": "{{CREATED_AT}}",
+  "id": "advance-pos",
+  "name": "Advance POS",
+  "agentAppVersion": "0.1.0",
+  "adapterVersion": "0.2.0",
+  "appVersion": "1.0.0",
   "authMode": "none",
-  "port": "{{PORT}}",
-  "pbVersion": "0.39.7",
-  "kitVersion": "0.6.0",
-  "craftbotVersion": "1.4.3",
-  "pipeline": {
-    "install": "npm install --ignore-scripts --prefix frontend",
-    "build": "npm run build --prefix frontend",
-    "start": "pocketbase serve --http=127.0.0.1:{{PORT}} --dir pb/pb_data --hooksDir pb/pb_hooks --migrationsDir pb/pb_migrations --publicDir pb/pb_public",
-    "health": "/api/health"
-  },
+  "modules": [
+    {
+      "name": "app",
+      "summary": "guide, status",
+      "entities": []
+    },
+    {
+      "name": "setup",
+      "summary": "status, complete",
+      "entities": []
+    },
+    {
+      "name": "auth",
+      "summary": "unlock, session",
+      "entities": []
+    },
+    {
+      "name": "settings",
+      "summary": "get, update",
+      "entities": [
+        "settings"
+      ]
+    },
+    {
+      "name": "permissions",
+      "summary": "update",
+      "entities": []
+    },
+    {
+      "name": "registers",
+      "summary": "list, save, focus",
+      "entities": [
+        "registers"
+      ]
+    },
+    {
+      "name": "display",
+      "summary": "get",
+      "entities": []
+    },
+    {
+      "name": "staff",
+      "summary": "list, save, clock",
+      "entities": [
+        "staff"
+      ]
+    },
+    {
+      "name": "timeclock",
+      "summary": "list, save",
+      "entities": [
+        "timeclock"
+      ]
+    },
+    {
+      "name": "catalog",
+      "summary": "register",
+      "entities": []
+    },
+    {
+      "name": "categories",
+      "summary": "list, save",
+      "entities": [
+        "categories"
+      ]
+    },
+    {
+      "name": "taxes",
+      "summary": "list, save",
+      "entities": [
+        "taxes"
+      ]
+    },
+    {
+      "name": "modifiers",
+      "summary": "list, save",
+      "entities": []
+    },
+    {
+      "name": "products",
+      "summary": "list, get, lookup, save, import, export",
+      "entities": [
+        "modifier_groups",
+        "products",
+        "variants"
+      ]
+    },
+    {
+      "name": "stock",
+      "summary": "levels, change, moves",
+      "entities": [
+        "stock_moves"
+      ]
+    },
+    {
+      "name": "customers",
+      "summary": "list, get, save, adjust, import, export",
+      "entities": [
+        "customers"
+      ]
+    },
+    {
+      "name": "giftcards",
+      "summary": "list, get, save, adjust",
+      "entities": []
+    },
+    {
+      "name": "discounts",
+      "summary": "list, save",
+      "entities": [
+        "discounts"
+      ]
+    },
+    {
+      "name": "orders",
+      "summary": "list, get, add, line, remove, update, return, void, complete…",
+      "entities": [
+        "gift_cards",
+        "orders"
+      ]
+    },
+    {
+      "name": "payments",
+      "summary": "add, void",
+      "entities": [
+        "payments"
+      ]
+    },
+    {
+      "name": "shifts",
+      "summary": "current, open, cash, close, list, get",
+      "entities": [
+        "shifts"
+      ]
+    },
+    {
+      "name": "reports",
+      "summary": "summary, breakdown, export",
+      "entities": []
+    },
+    {
+      "name": "calendar",
+      "summary": "list",
+      "entities": [
+        "events"
+      ]
+    },
+    {
+      "name": "requests",
+      "summary": "create, list, get, update",
+      "entities": [
+        "requests"
+      ]
+    },
+    {
+      "name": "records",
+      "summary": "delete",
+      "entities": [
+        "cash_moves",
+        "order_lines",
+        "account_moves"
+      ]
+    }
+  ],
+  "modificationLock": false,
   "capabilities": {
-    "triggers": [
-      "question_asked",
-      "receipt_requested",
-      "restock_requested",
-      "shift_review_requested"
-    ]
+    "integrations": []
   },
-  "adapterVersion": "1.9.0"
+  "pipeline": {
+    "install": "node pb-fetch.mjs && npm --prefix frontend install --ignore-scripts --no-audit --no-fund",
+    "build": "node pb-build.mjs",
+    "start": "node pb-serve.mjs",
+    "health": "/api/_a2app"
+  }
 }

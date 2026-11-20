@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, useSyncExternalStore } from 'react'
 import type { AppController, ControllerSnapshot } from '../AppController'
+import { todayIso } from './dates'
 
 const MOBILE_MAX = 767
 const TABLET_MAX = 1023
@@ -45,6 +46,41 @@ export function useViewport(): Viewport {
     }),
     [width],
   )
+}
+
+/**
+ * Today's local date (YYYY-MM-DD), kept current: it is re-read just after
+ * local midnight, and whenever the page is shown or focused again (timers can
+ * stall while the machine sleeps).
+ */
+export function useToday(): string {
+  const [today, setToday] = useState<string>(() => todayIso())
+
+  useEffect(() => {
+    const check = () => setToday(todayIso())
+    let timer: number | undefined
+    const schedule = () => {
+      const now = new Date()
+      const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1)
+      timer = window.setTimeout(() => {
+        check()
+        schedule()
+      }, midnight.getTime() - now.getTime() + 1000)
+    }
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') check()
+    }
+    schedule()
+    document.addEventListener('visibilitychange', onVisible)
+    window.addEventListener('focus', check)
+    return () => {
+      window.clearTimeout(timer)
+      document.removeEventListener('visibilitychange', onVisible)
+      window.removeEventListener('focus', check)
+    }
+  }, [])
+
+  return today
 }
 
 /**

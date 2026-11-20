@@ -231,7 +231,7 @@ export function RecordActivity({ entity, refId, title = 'Activity', className }:
           >
             {uploading ? <span className="size-5 animate-spin rounded-full border-2 border-[var(--erp-ink)] border-t-transparent" /> : <Upload size={20} aria-hidden />}
             <span className="text-[13px] font-semibold">Drop files or choose them</span>
-            <span className="text-[12px] text-[var(--erp-muted)]">PDF, images, spreadsheets, up to 20 MB each</span>
+            <span className="text-[12px] text-[var(--erp-muted)]">PDF, images, spreadsheets, up to 25 MB each</span>
           </button>
           <input
             ref={fileInput}

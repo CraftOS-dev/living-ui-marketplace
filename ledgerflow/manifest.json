@@ -1,30 +1,182 @@
 {
-  "id": "{{PROJECT_ID}}",
-  "name": "{{PROJECT_NAME}}",
-  "description": "{{PROJECT_DESCRIPTION}}",
-  "agentAppVersion": 2,
-  "createdAt": "{{CREATED_AT}}",
+  "id": "ledgerflow",
+  "name": "Ledgerflow",
+  "agentAppVersion": "0.1.0",
+  "adapterVersion": "0.2.0",
+  "appVersion": "2.0.0",
   "authMode": "none",
-  "port": "{{PORT}}",
-  "pbVersion": "0.39.7",
-  "kitVersion": "0.6.0",
-  "craftbotVersion": "1.4.3",
-  "pipeline": {
-    "install": "npm install --ignore-scripts --prefix frontend",
-    "build": "npm run build --prefix frontend",
-    "start": "pocketbase serve --http=127.0.0.1:{{PORT}} --dir pb/pb_data --hooksDir pb/pb_hooks --migrationsDir pb/pb_migrations --publicDir pb/pb_public",
-    "health": "/api/health"
-  },
+  "modules": [
+    {
+      "name": "app",
+      "summary": "guide, context, summary, dashboard, ui",
+      "entities": []
+    },
+    {
+      "name": "setup",
+      "summary": "get, apply",
+      "entities": []
+    },
+    {
+      "name": "settings",
+      "summary": "update",
+      "entities": [
+        "settings"
+      ]
+    },
+    {
+      "name": "policy",
+      "summary": "update",
+      "entities": []
+    },
+    {
+      "name": "locks",
+      "summary": "set",
+      "entities": []
+    },
+    {
+      "name": "accounts",
+      "summary": "list, get, create, update, archive, delete, opening",
+      "entities": [
+        "accounts"
+      ]
+    },
+    {
+      "name": "contacts",
+      "summary": "list, get, create, update, archive, merge",
+      "entities": [
+        "contacts"
+      ]
+    },
+    {
+      "name": "tax",
+      "summary": "list, create, update",
+      "entities": [
+        "tax_codes"
+      ]
+    },
+    {
+      "name": "transactions",
+      "summary": "list, get, create, update, void, approve, reject, reverse",
+      "entities": [
+        "transactions",
+        "postings"
+      ]
+    },
+    {
+      "name": "ledger",
+      "summary": "register",
+      "entities": []
+    },
+    {
+      "name": "inbox",
+      "summary": "list, get, preview, import, add_lines, imports, undo_import…",
+      "entities": [
+        "periods"
+      ]
+    },
+    {
+      "name": "rules",
+      "summary": "list, create, update, delete, reorder, test",
+      "entities": [
+        "rules"
+      ]
+    },
+    {
+      "name": "profiles",
+      "summary": "list, delete",
+      "entities": []
+    },
+    {
+      "name": "files",
+      "summary": "list, get, download, upload, update, link, candidates…",
+      "entities": [
+        "files"
+      ]
+    },
+    {
+      "name": "docs",
+      "summary": "list, get, summary, create, update, approve, void, pay…",
+      "entities": [
+        "documents",
+        "allocations"
+      ]
+    },
+    {
+      "name": "reconcile",
+      "summary": "overview, list, start, get, toggle, finish, undo, cancel",
+      "entities": [
+        "reconciliations"
+      ]
+    },
+    {
+      "name": "reports",
+      "summary": "pnl, balance, cashflow, trial, aged, tax, networth, spending…",
+      "entities": []
+    },
+    {
+      "name": "budgets",
+      "summary": "get, set",
+      "entities": [
+        "budgets"
+      ]
+    },
+    {
+      "name": "close",
+      "summary": "list, get, checks, tick, sign_off, reopen, request_review…",
+      "entities": []
+    },
+    {
+      "name": "fx",
+      "summary": "list, set, delete, fetch, revalue",
+      "entities": [
+        "fx_rates"
+      ]
+    },
+    {
+      "name": "recurring",
+      "summary": "list, create, update, delete, run, from",
+      "entities": [
+        "recurring"
+      ]
+    },
+    {
+      "name": "asks",
+      "summary": "create, list, get, start, answer, fail, delete",
+      "entities": [
+        "asks"
+      ]
+    },
+    {
+      "name": "activity",
+      "summary": "list, undo, redo, runs, revert_run",
+      "entities": [
+        "activity"
+      ]
+    },
+    {
+      "name": "export",
+      "summary": "books",
+      "entities": []
+    },
+    {
+      "name": "records",
+      "summary": "the app's other stored records",
+      "entities": [
+        "doc_lines",
+        "statement_imports",
+        "statement_lines",
+        "csv_profiles"
+      ]
+    }
+  ],
+  "modificationLock": false,
   "capabilities": {
-    "external_hosts": [
-      "www.ecb.europa.eu"
-    ],
-    "triggers": [
-      "agent_asked",
-      "close_requested",
-      "documents_received",
-      "lines_imported"
-    ]
+    "integrations": []
   },
-  "adapterVersion": "1.9.0"
+  "pipeline": {
+    "install": "node pb-fetch.mjs && npm --prefix frontend install --ignore-scripts --no-audit --no-fund",
+    "build": "node pb-build.mjs",
+    "start": "node pb-serve.mjs",
+    "health": "/api/_a2app"
+  }
 }

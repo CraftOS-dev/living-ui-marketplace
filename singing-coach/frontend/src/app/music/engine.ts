@@ -67,6 +67,7 @@ export interface PassResult {
   to: number;
   tempo: number;
   shift: number;
+  /** This pass's own time (its count-in included, pauses not): looped passes never repeat an earlier pass's time. */
   durationMs: number;
   complete: boolean;
   summary: TakeSummary;
@@ -142,6 +143,9 @@ export class Engine {
   private echoEnd = 0;
   private echoAttempt: NoteResult[] = [];
   private echoAll = new Map<number, NoteResult>();
+  /** Echo: the voice of the attempts already over (each attempt's frames are cleared for the next one), counted once each. */
+  private echoUse = { voicedMs: 0, cycles: 0, cells: new Map<string, number>() };
+  /** When the pass under way began (the take's start, or the end of the pass before it on a loop). */
   private startedAt = 0;
 
   constructor(model: Model, cfg: EngineConfig) {
@@ -227,6 +231,7 @@ export class Engine {
     this.echoIndex = 0;
     this.echoTries = [];
     this.echoAll.clear();
+    this.echoUse = { voicedMs: 0, cycles: 0, cells: new Map() };
     this.startedAt = performance.now();
     const meter = this.model.meter;
     const beatsPerBar = meter.q > 0 ? Math.max(1, Math.round(meter.q / (this.model.beat || 1))) : 4;
@@ -611,6 +616,8 @@ export class Engine {
     this.pass += 1;
     this.emit({ type: 'pass', result });
     if (this.cfg.loop && this.cfg.mode !== 'listen') {
+      // The next pass's time starts now: each pass is saved on its own, so its length is its own.
+      this.startedAt = performance.now();
       // The next pass after one bar's rest with a count-in.
       const meter = this.model.meter;
       const beatsPerBar = meter.q > 0 ? Math.max(1, Math.round(meter.q / (this.model.beat || 1))) : 4;
@@ -636,7 +643,7 @@ export class Engine {
     });
     const offset = this.cfg.mode === 'solo' ? applyOffset(results, bands) : 0;
     const summary = summarize(results, bands, this.cfg.strictness);
-    const use = voiceUse(this.frames, midiToHz);
+    const use = this.voiceOfTake();
     return {
       mode: this.cfg.mode,
       from: this.cfg.from,
@@ -654,6 +661,31 @@ export class Engine {
       frames: this.frames.slice(),
       pass: this.pass,
     };
+  }
+
+  /** The take's voiced time, cycles and voice map: its frames, and in Echo the attempts already over too. */
+  private voiceOfTake(): { voicedMs: number; cycles: number; map: number[][] } {
+    const use = voiceUse(this.frames, midiToHz);
+    if (this.cfg.mode !== 'echo') return use;
+    const cells = new Map(this.echoUse.cells);
+    for (const [m = 0, b = 0, n = 0] of use.map) cells.set(m + ':' + b, (cells.get(m + ':' + b) ?? 0) + n);
+    return {
+      voicedMs: this.echoUse.voicedMs + use.voicedMs,
+      cycles: this.echoUse.cycles + use.cycles,
+      map: [...cells.entries()].map(([k, n]) => {
+        const [m, b] = k.split(':');
+        return [Number(m), Number(b), n];
+      }),
+    };
+  }
+
+  /** Echo: an attempt is over (judged or skipped): its voice joins the take's, once, and its frames are cleared for the next. */
+  private closeAttempt(): void {
+    const use = voiceUse(this.frames, midiToHz);
+    this.echoUse.voicedMs += use.voicedMs;
+    this.echoUse.cycles += use.cycles;
+    for (const [m = 0, b = 0, n = 0] of use.map) this.echoUse.cells.set(m + ':' + b, (this.echoUse.cells.get(m + ':' + b) ?? 0) + n);
+    this.frames = [];
   }
 
   private echoFrame(ctxNow: number): void {
@@ -695,24 +727,35 @@ export class Engine {
       const last3 = this.echoTries.slice(-3);
       const passed = last3.filter((x) => x).length >= 2;
       this.emit({ type: 'phrase', phrase: this.echoIndex, clean: ok, tries: this.echoTries.slice() });
-      this.frames = [];
+      this.closeAttempt();
       const nextAt = ctxNow + 0.6;
       if (passed) {
         this.echoIndex += 1;
         this.echoTries = [];
         if (this.echoIndex >= this.phrases.length) {
-          const result = this.makeResult(this.notes, true);
-          this.lastResult = result;
-          this.pass += 1;
-          this.emit({ type: 'pass', result });
-          this.state = 'done';
-          this.echoPhase = 'between';
-          this.emit({ type: 'state' });
+          this.finishEcho();
           return;
         }
       }
       this.startPhrase(nextAt);
     }
+  }
+
+  /**
+   * Echo: the last phrase is over, sung or skipped. The take ends once, as one
+   * pass, like a take that is not looped: it is done before the result goes
+   * out (so Loop never keeps the recorder going, Echo does not loop) and the
+   * drone stops.
+   */
+  private finishEcho(): void {
+    const result = this.makeResult(this.notes, true);
+    this.lastResult = result;
+    this.pass += 1;
+    this.state = 'done';
+    this.echoPhase = 'between';
+    if (this.cfg.drone) audio.drone(null);
+    this.emit({ type: 'pass', result });
+    this.emit({ type: 'state' });
   }
 
   /** Move on to the next echo phrase without waiting (the person chooses to). */
@@ -721,13 +764,9 @@ export class Engine {
     audio.stopAll(true);
     this.echoIndex += 1;
     this.echoTries = [];
-    this.frames = [];
+    this.closeAttempt();
     if (this.echoIndex >= this.phrases.length) {
-      const result = this.makeResult(this.notes, true);
-      this.lastResult = result;
-      this.emit({ type: 'pass', result });
-      this.state = 'done';
-      this.emit({ type: 'state' });
+      this.finishEcho();
       return;
     }
     this.startPhrase(audio.now() + 0.4);

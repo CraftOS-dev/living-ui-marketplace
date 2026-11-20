@@ -13,7 +13,7 @@ import type { LucideIcon } from 'lucide-react';
 import { cn } from '../../kit/index.ts';
 import { reducedMotion } from '../lib/motion.tsx';
 import type { TaskBrief } from '../lib/types.ts';
-import { TASK_STATE_LABEL } from '../lib/format.ts';
+import { TASK_STALE_LABEL, TASK_STATE_LABEL } from '../lib/format.ts';
 
 /* ------------------------------------------------------------- surfaces */
 
@@ -233,6 +233,15 @@ export function TaskBadge({ task, className }: { task: TaskBrief | null | undefi
   if (!task) return null;
   const working = task.state === 'working';
   const open = task.state === 'queued' || task.state === 'asked' || working;
+  const stale = open && task.stale ? TASK_STALE_LABEL[task.stale] : undefined;
+  if (stale !== undefined) {
+    return (
+      <span title={task.label} className={cn('inline-flex h-6 items-center gap-1.5 whitespace-nowrap rounded-full bg-[var(--so-amber-soft)] px-2.5 text-[12px] font-semibold text-[var(--so-amber-text)]', className)}>
+        <span aria-hidden className="size-1.5 rounded-full bg-[var(--so-amber)]" />
+        {'Your AI agent: ' + stale.toLowerCase()}
+      </span>
+    );
+  }
   return (
     <span title={task.label} className={cn('inline-flex h-6 items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 text-[12px] font-semibold', open ? 'bg-[var(--so-accent-soft)] text-[var(--so-accent-text)]' : task.state === 'failed' ? 'bg-[var(--so-red-soft)] text-[var(--so-red-text)]' : 'bg-[var(--so-tile)] text-[var(--so-ink-2)]', className)}>
       <span aria-hidden className={cn('size-1.5 rounded-full', open ? 'bg-[var(--so-accent)]' : task.state === 'failed' ? 'bg-[var(--so-red)]' : 'bg-[var(--so-faint)]', working && 'so-breathe')} />

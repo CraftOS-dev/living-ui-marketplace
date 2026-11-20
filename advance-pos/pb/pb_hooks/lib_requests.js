@@ -49,12 +49,26 @@ function fireFor(app, c, f) {
     if (c && c.staffId) rec.set('staff', c.staffId);
     tx.save(rec);
   });
-  const fired = require(`${__hooks}/_triggers_lib.js`).fire(app, TRIGGER[f.kind], { request: rec.id }, 'hook');
+  // The queue puts its own row id in the task as `request` (it refuses one from
+  // the app); the request keeps it as request_id, and byRequest finds it by either.
+  const fired = require(`${__hooks}/_triggers_lib.js`).fire(app, TRIGGER[f.kind], {}, 'hook');
   if (fired.ok) {
     rec.set('request_id', fired.id);
     app.save(rec);
   }
   return { request: json(app, rec), asked: fired.ok, message: fired.ok ? 'Sent to your AI agent.' : 'Saved, but your AI agent was not asked: ' + fired.message };
+}
+
+/** A request by its own id, or by the queue id its task carries as `request`. */
+function byRequest(app, id) {
+  const util = u();
+  const r = util.byId(app, 'requests', id);
+  if (r !== null || typeof id !== 'string' || id === '') return r;
+  try {
+    return app.findFirstRecordByFilter('requests', 'request_id = {:id}', { id: id });
+  } catch {
+    return null;
+  }
 }
 
 function create(app, e, p) {
@@ -118,7 +132,7 @@ function list(app, e, p) {
 function get(app, e, p) {
   const util = u();
   auth().context(app, e, p);
-  const r = util.byId(app, 'requests', util.req(p, 'request', '<request id>'));
+  const r = byRequest(app, util.req(p, 'request', '<request id>'));
   if (r === null) throw util.fail(404, 'No such request');
   const out = { request: json(app, r) };
   const kind = r.getString('kind');
@@ -160,7 +174,7 @@ function restockPicture(app) {
 
 function update(app, e, p) {
   const util = u();
-  const r = util.byId(app, 'requests', util.req(p, 'request', '<request id>'));
+  const r = byRequest(app, util.req(p, 'request', '<request id>'));
   if (r === null) throw util.fail(404, 'No such request');
   const status = util.oneOf(p, 'status', ['working', 'done', 'failed'], '');
   const order = ['sent', 'working', 'done', 'failed'];

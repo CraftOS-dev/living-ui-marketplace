@@ -172,7 +172,8 @@ function Desk({ project, msId }: { project: Project; msId: string }): React.JSX.
           PDF
         </Button>
         <ExportMenu ms={m} pdf={build.state} onBuild={buildNow} />
-        <ReadyButton m={m} blocking={blocking} onShowChecks={() => setTab('check')} />
+        {/* A retracted source blocks too, but can be cited knowingly: Mark ready asks about it. */}
+        <ReadyButton m={m} blocking={d.checks.filter((c) => c.blocking && c.acknowledgeable !== true).length} onShowChecks={() => setTab('check')} />
       </div>
       <div className="relative flex min-h-0 flex-1">
         {outline && (

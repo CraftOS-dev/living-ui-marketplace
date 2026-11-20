@@ -1,31 +1,517 @@
 {
-  "opsVersion": 1,
   "operations": [
     {
-      "name": "health",
-      "description": "Liveness check (PocketBase built-in).",
-      "system": true,
-      "params": {},
-      "executor": { "type": "http", "method": "GET", "path": "/api/health" }
-    },
-    {
-      "name": "ops.list",
-      "description": "Return this operations manifest.",
-      "system": true,
-      "params": {},
-      "executor": { "type": "http", "method": "GET", "path": "/api/_ops" }
-    },
-    {
       "name": "invoices.simulate-bill",
-      "description": "Simulate an incoming email invoice/bill and process its line items and subscription link.",
+      "description": "Simulate an incoming emailed bill (the feed's Refresh Feed: preset aws): an invoice, its subscription link and a feed row, in the workspace.",
+      "destructive": false,
+      "module": "invoices",
       "params": {
         "preset": {
           "type": "string",
-          "description": "Preset to simulate (aws, openai, or figma)",
-          "default": "aws"
+          "description": "Preset to simulate (aws, openai, or figma)"
+        },
+        "group": {
+          "type": "string",
+          "description": "Workspace id or exact name, or 'all' to file it under no workspace (as the app does under All Workspaces). Default: the workspace the app opens on (the newest one)."
         }
-      },
-      "executor": { "type": "http", "method": "POST", "path": "/api/ops/invoices/simulate-bill" }
+      }
+    },
+    {
+      "name": "dashboard.overview",
+      "description": "The Overview Dashboard for a workspace: total spent, monthly burn and run rate, counts, this month's spend summary and vendors, latest feed.",
+      "destructive": false,
+      "readOnly": true,
+      "module": "dashboard",
+      "params": {
+        "group": {
+          "type": "string",
+          "description": "Workspace id or exact name, or 'all' for All Workspaces. Default: the workspace the app opens on (the newest one)."
+        }
+      }
+    },
+    {
+      "name": "subscriptions.list",
+      "description": "The Active Subscriptions tab: subscriptions with the monthly burn and annual run rate, filtered like the screen (status, category, search…",
+      "destructive": false,
+      "readOnly": true,
+      "module": "subscriptions",
+      "params": {
+        "group": {
+          "type": "string",
+          "description": "Workspace id or exact name, or 'all' for All Workspaces. Default: the workspace the app opens on (the newest one)."
+        },
+        "status": {
+          "type": "enum",
+          "values": [
+            "all",
+            "active",
+            "paused",
+            "cancelled"
+          ],
+          "description": "Status filter (default all)."
+        },
+        "category": {
+          "type": "string",
+          "description": "Only this category (exact name), or 'all' (default)."
+        },
+        "q": {
+          "type": "string",
+          "description": "Search text, matched like the screen's search box."
+        }
+      }
+    },
+    {
+      "name": "invoices.list",
+      "description": "The Invoices & Receipts ledger: invoices with their count and total, filtered like the screen (category, payment type, search).",
+      "destructive": false,
+      "readOnly": true,
+      "module": "invoices",
+      "params": {
+        "group": {
+          "type": "string",
+          "description": "Workspace id or exact name, or 'all' for All Workspaces. Default: the workspace the app opens on (the newest one)."
+        },
+        "category": {
+          "type": "string",
+          "description": "Only this category (exact name), or 'all' (default)."
+        },
+        "payment_type": {
+          "type": "enum",
+          "values": [
+            "all",
+            "one_time",
+            "subscription"
+          ],
+          "description": "Payment type filter (default all)."
+        },
+        "q": {
+          "type": "string",
+          "description": "Search text, matched like the screen's search box."
+        }
+      }
+    },
+    {
+      "name": "invoices.get",
+      "description": "One invoice as the inspector shows it: vendor, purpose, amount, date, category, reference, verified %, attached PDF and text preview.",
+      "destructive": false,
+      "readOnly": true,
+      "module": "invoices",
+      "params": {
+        "invoice": {
+          "type": "string",
+          "required": true,
+          "description": "Invoice id."
+        },
+        "group": {
+          "type": "string",
+          "description": "Workspace reported with the answer (id, exact name or 'all'); the amount carries its own currency. Default: the workspace the app opens on."
+        }
+      }
+    },
+    {
+      "name": "reports.monthly",
+      "description": "The Monthly Costs screen for one month: the months it lists, total, change vs the previous month, recurring vs one-time, transactions…",
+      "destructive": false,
+      "readOnly": true,
+      "module": "reports",
+      "params": {
+        "group": {
+          "type": "string",
+          "description": "Workspace id or exact name, or 'all' for All Workspaces. Default: the workspace the app opens on (the newest one)."
+        },
+        "month": {
+          "type": "string",
+          "description": "YYYY-MM. Default: the newest month the screen lists."
+        },
+        "category": {
+          "type": "string",
+          "description": "Only this category (exact name), or 'all' (default)."
+        },
+        "q": {
+          "type": "string",
+          "description": "Search text, matched like the screen's search box."
+        }
+      }
+    },
+    {
+      "name": "reports.monthly-csv",
+      "description": "The Monthly Costs 'Download Report' CSV for one month: same layout as the app's file (UTF-8 with BOM), except that dates are ISO…",
+      "destructive": false,
+      "readOnly": true,
+      "module": "reports",
+      "params": {
+        "group": {
+          "type": "string",
+          "description": "Workspace id or exact name, or 'all' for All Workspaces. Default: the workspace the app opens on (the newest one)."
+        },
+        "month": {
+          "type": "string",
+          "description": "YYYY-MM. Default: the newest month the screen lists."
+        }
+      }
+    },
+    {
+      "name": "reports.yearly",
+      "description": "The Multi-Year History screen: grand total, per-year totals, invoice counts, monthly average, top vendor, quarterly and category splits…",
+      "destructive": false,
+      "readOnly": true,
+      "module": "reports",
+      "params": {
+        "group": {
+          "type": "string",
+          "description": "Workspace id or exact name, or 'all' for All Workspaces. Default: the workspace the app opens on (the newest one)."
+        },
+        "year": {
+          "type": "string",
+          "description": "This year or one of the three before it (e.g. 2026), or 'all' (default)."
+        },
+        "category": {
+          "type": "string",
+          "description": "Only this category (exact name), or 'all' (default)."
+        },
+        "q": {
+          "type": "string",
+          "description": "Search text, matched like the screen's search box."
+        }
+      }
+    },
+    {
+      "name": "invoices.add",
+      "description": "Add a receipt or invoice like the Add Invoice form: a one-time bill dated today, optionally with its PDF; logs 'Invoice Added' in the feed.",
+      "destructive": false,
+      "module": "invoices",
+      "params": {
+        "vendor": {
+          "type": "string",
+          "description": "Merchant / vendor name. Required unless pdf_filename names a known vendor (AWS, OpenAI, Cursor, Figma, Vercel, Stripe, Google)."
+        },
+        "amount": {
+          "type": "number",
+          "required": true,
+          "description": "Amount, e.g. 25.00."
+        },
+        "currency": {
+          "type": "enum",
+          "values": [
+            "USD",
+            "EUR",
+            "GBP",
+            "PKR",
+            "KRW",
+            "JPY",
+            "INR",
+            "CAD",
+            "AUD",
+            "AED",
+            "BRL",
+            "CHF",
+            "CNY",
+            "NZD",
+            "SAR",
+            "SEK",
+            "SGD",
+            "TRY"
+          ],
+          "description": "Currency code (default: the workspace's currency, as the form opens on it)."
+        },
+        "category": {
+          "type": "enum",
+          "values": [
+            "Cloud Infrastructure",
+            "Software & SaaS",
+            "Developer Tools & DevOps",
+            "Productivity & AI",
+            "Design & Creative",
+            "Marketing & Growth",
+            "Security & Compliance",
+            "Communications & Collaboration",
+            "Finance & Operations",
+            "Customer Support",
+            "Other Services"
+          ],
+          "description": "Category (default Software & SaaS)."
+        },
+        "purpose": {
+          "type": "string",
+          "description": "Purpose / description."
+        },
+        "invoice_number": {
+          "type": "string",
+          "description": "Invoice / reference number. Default: taken from pdf_filename (INV-, REC- or BILL-), else INV-<6 digits>."
+        },
+        "pdf_filename": {
+          "type": "string",
+          "description": "Name of the attached PDF (must end in .pdf); goes with pdf_base64."
+        },
+        "pdf_base64": {
+          "type": "string",
+          "description": "The PDF file as base64 (e.g. @file.b64); stored on the invoice. Needs pdf_filename."
+        },
+        "group": {
+          "type": "string",
+          "description": "Workspace id or exact name, or 'all' to file it under no workspace (as the app does under All Workspaces). Default: the workspace the app opens on (the newest one)."
+        }
+      }
+    },
+    {
+      "name": "invoices.delete",
+      "description": "Delete an invoice or receipt; also logs 'Invoice Removed' in the feed.",
+      "destructive": true,
+      "module": "invoices",
+      "params": {
+        "invoice": {
+          "type": "string",
+          "required": true,
+          "description": "Invoice id."
+        }
+      }
+    },
+    {
+      "name": "subscriptions.add",
+      "description": "Add a recurring subscription like the Add Subscription form; also logs 'New Subscription' in the feed.",
+      "destructive": false,
+      "module": "subscriptions",
+      "params": {
+        "name": {
+          "type": "string",
+          "required": true,
+          "description": "Subscription name."
+        },
+        "vendor": {
+          "type": "string",
+          "description": "Vendor / service (default: the name)."
+        },
+        "amount": {
+          "type": "number",
+          "required": true,
+          "description": "Amount, 0 or more, e.g. 20.00."
+        },
+        "billing_frequency": {
+          "type": "enum",
+          "values": [
+            "monthly",
+            "yearly",
+            "weekly",
+            "quarterly"
+          ],
+          "description": "Billing frequency (default monthly)."
+        },
+        "currency": {
+          "type": "enum",
+          "values": [
+            "USD",
+            "EUR",
+            "GBP",
+            "PKR",
+            "KRW",
+            "JPY",
+            "INR",
+            "CAD",
+            "AUD",
+            "AED",
+            "BRL",
+            "CHF",
+            "CNY",
+            "NZD",
+            "SAR",
+            "SEK",
+            "SGD",
+            "TRY"
+          ],
+          "description": "Currency code (default: the workspace's currency, as the form opens on it)."
+        },
+        "category": {
+          "type": "enum",
+          "values": [
+            "Cloud Infrastructure",
+            "Software & SaaS",
+            "Developer Tools & DevOps",
+            "Productivity & AI",
+            "Design & Creative",
+            "Marketing & Growth",
+            "Security & Compliance",
+            "Communications & Collaboration",
+            "Finance & Operations",
+            "Customer Support",
+            "Other Services"
+          ],
+          "description": "Category (default Software & SaaS)."
+        },
+        "next_renewal_date": {
+          "type": "string",
+          "description": "Next renewal date, YYYY-MM-DD (default 30 days from now)."
+        },
+        "purpose": {
+          "type": "string",
+          "description": "Purpose / description."
+        },
+        "auto_renew": {
+          "type": "boolean",
+          "description": "Renews automatically (default true)."
+        },
+        "group": {
+          "type": "string",
+          "description": "Workspace id or exact name, or 'all' to file it under no workspace (as the app does under All Workspaces). Default: the workspace the app opens on (the newest one)."
+        }
+      }
+    },
+    {
+      "name": "subscriptions.set-status",
+      "description": "Pause or re-activate a subscription (the Pause / Activate buttons).",
+      "destructive": false,
+      "module": "subscriptions",
+      "params": {
+        "subscription": {
+          "type": "string",
+          "required": true,
+          "description": "Subscription id."
+        },
+        "status": {
+          "type": "enum",
+          "values": [
+            "active",
+            "paused"
+          ],
+          "required": true,
+          "description": "paused to pause, active to activate."
+        }
+      }
+    },
+    {
+      "name": "subscriptions.delete",
+      "description": "Delete a subscription; also logs 'Subscription Removed' in the feed.",
+      "destructive": true,
+      "module": "subscriptions",
+      "params": {
+        "subscription": {
+          "type": "string",
+          "required": true,
+          "description": "Subscription id."
+        }
+      }
+    },
+    {
+      "name": "groups.add",
+      "description": "Create a workspace like the Create New Workspace form: name, description, one of the six theme colors and a default currency.",
+      "destructive": false,
+      "module": "groups",
+      "params": {
+        "name": {
+          "type": "string",
+          "required": true,
+          "description": "Workspace name."
+        },
+        "description": {
+          "type": "string",
+          "description": "Description (optional)."
+        },
+        "color": {
+          "type": "enum",
+          "values": [
+            "#FF9900",
+            "#00A67E",
+            "#635BFF",
+            "#3B82F6",
+            "#8B5CF6",
+            "#EF4444"
+          ],
+          "description": "Theme color (default #FF9900)."
+        },
+        "currency": {
+          "type": "enum",
+          "values": [
+            "USD",
+            "EUR",
+            "GBP",
+            "PKR",
+            "KRW",
+            "JPY",
+            "INR",
+            "CAD",
+            "AUD",
+            "AED",
+            "BRL",
+            "CHF",
+            "CNY",
+            "NZD",
+            "SAR",
+            "SEK",
+            "SGD",
+            "TRY"
+          ],
+          "description": "Currency code (default USD)."
+        }
+      }
+    },
+    {
+      "name": "groups.update",
+      "description": "Change a workspace's name, description, theme color or default currency (the Edit form and the header currency switch).",
+      "destructive": false,
+      "module": "groups",
+      "params": {
+        "group": {
+          "type": "string",
+          "required": true,
+          "description": "Workspace id or exact name."
+        },
+        "name": {
+          "type": "string",
+          "description": "New name."
+        },
+        "description": {
+          "type": "string",
+          "description": "New description."
+        },
+        "color": {
+          "type": "enum",
+          "values": [
+            "#FF9900",
+            "#00A67E",
+            "#635BFF",
+            "#3B82F6",
+            "#8B5CF6",
+            "#EF4444"
+          ],
+          "description": "New theme color."
+        },
+        "currency": {
+          "type": "enum",
+          "values": [
+            "USD",
+            "EUR",
+            "GBP",
+            "PKR",
+            "KRW",
+            "JPY",
+            "INR",
+            "CAD",
+            "AUD",
+            "AED",
+            "BRL",
+            "CHF",
+            "CNY",
+            "NZD",
+            "SAR",
+            "SEK",
+            "SGD",
+            "TRY"
+          ],
+          "description": "New default currency."
+        }
+      }
+    },
+    {
+      "name": "groups.delete",
+      "description": "Delete a workspace (refused for the last one) together with its invoices, subscriptions and feed rows.",
+      "destructive": true,
+      "module": "groups",
+      "params": {
+        "group": {
+          "type": "string",
+          "required": true,
+          "description": "Workspace id or exact name."
+        }
+      }
     }
   ]
 }

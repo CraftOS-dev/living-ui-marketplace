@@ -1,24 +1,137 @@
 {
-  "id": "{{PROJECT_ID}}",
-  "name": "{{PROJECT_NAME}}",
-  "description": "{{PROJECT_DESCRIPTION}}",
-  "livingUIVersion": 2,
-  "createdAt": "{{CREATED_AT}}",
+  "id": "company-os",
+  "name": "Company OS",
+  "agentAppVersion": "0.1.0",
+  "adapterVersion": "0.2.0",
+  "appVersion": "1.0.0",
   "authMode": "multi-user",
-  "port": "{{PORT}}",
-  "pbVersion": "0.39.7",
-  "kitVersion": "0.5.0",
-  "craftbotVersion": "1.4.1",
-  "adapterVersion": "1.8.0",
-  "pipeline": {
-    "install": "npm install --ignore-scripts --prefix frontend",
-    "build": "npm run build --prefix frontend",
-    "start": "pocketbase serve --http=127.0.0.1:{{PORT}} --dir pb/pb_data --hooksDir pb/pb_hooks --migrationsDir pb/pb_migrations --publicDir pb/pb_public",
-    "health": "/api/health"
-  },
+  "modules": [
+    {
+      "name": "journey",
+      "summary": "autocheck, status, set_step",
+      "entities": [
+        "journey_steps"
+      ]
+    },
+    {
+      "name": "stage",
+      "summary": "recompute, advance",
+      "entities": [
+        "modules",
+        "suggestions"
+      ]
+    },
+    {
+      "name": "workflows",
+      "summary": "run",
+      "entities": [
+        "notes",
+        "workflow_runs"
+      ]
+    },
+    {
+      "name": "ai",
+      "summary": "draft-plan",
+      "entities": []
+    },
+    {
+      "name": "marketing",
+      "summary": "ai_campaign_ideas, ai_content_draft, dashboard, record_spend",
+      "entities": [
+        "channels",
+        "promos",
+        "campaigns"
+      ]
+    },
+    {
+      "name": "company",
+      "summary": "overview, update",
+      "entities": [
+        "company"
+      ]
+    },
+    {
+      "name": "customers",
+      "summary": "pipeline, save",
+      "entities": [
+        "customers"
+      ]
+    },
+    {
+      "name": "money",
+      "summary": "summary, record_invoice_income",
+      "entities": [
+        "invoices",
+        "money_entries"
+      ]
+    },
+    {
+      "name": "goals",
+      "summary": "scorecard, set_number",
+      "entities": [
+        "metrics",
+        "goals"
+      ]
+    },
+    {
+      "name": "team",
+      "summary": "list",
+      "entities": [
+        "team_members",
+        "seats"
+      ]
+    },
+    {
+      "name": "files",
+      "summary": "download, upload",
+      "entities": [
+        "files",
+        "folders"
+      ]
+    },
+    {
+      "name": "roadmap",
+      "summary": "link, auto_layout",
+      "entities": [
+        "roadmap_items",
+        "roadmap_dividers"
+      ]
+    },
+    {
+      "name": "processes",
+      "summary": "use_template",
+      "entities": [
+        "processes"
+      ]
+    },
+    {
+      "name": "kanban",
+      "summary": "attach, detach",
+      "entities": [
+        "kanban_cards"
+      ]
+    },
+    {
+      "name": "records",
+      "summary": "the app's other stored records",
+      "entities": [
+        "meetings",
+        "candidates",
+        "priorities",
+        "metric_entries",
+        "meeting_notes",
+        "issues"
+      ]
+    }
+  ],
+  "modificationLock": false,
   "capabilities": {
-    "triggers": [
-      "company_checkup_requested"
-    ]
+    "integrations": []
+  },
+  "pipeline": {
+    "install": "node pb-fetch.mjs && npm --prefix frontend install --ignore-scripts --no-audit --no-fund",
+    "build": "node pb-build.mjs",
+    "start": "node pb-serve.mjs",
+    "health": "/api/_a2app"
   }
 }

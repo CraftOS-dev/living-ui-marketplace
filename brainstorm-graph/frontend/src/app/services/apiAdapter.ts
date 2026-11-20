@@ -33,9 +33,10 @@
  *     stored as "insight" and read back as "answer"; "task" reads back as
  *     "idea". question/idea pass through.
  *   - `depth` is NOT a V2 column — it is recomputed by walking the parent chain.
- *   - `createdBy` (user | agent) is NOT a V2 column. Nodes created through the
- *     AI ops are remembered in-memory as "agent"; everything else is "user".
- *     This resets on reload (best-effort parity for the Bot/User badge).
+ *   - `createdBy` (user | agent) is the `created_by` column. The AI ops store
+ *     "agent" on the nodes they create, the dialogs store "user", and an empty
+ *     value (older rows, the seed) reads as "user", so the Bot/User badge
+ *     survives a reload.
  *   - `x`/`y` canvas positions: V2 stores them but AI-op-created nodes and the
  *     seed land at 0/0. We reproduce V1's `_child_positions` collision layout so
  *     the graph renders as a tree, and persist computed positions back to PB so
@@ -75,6 +76,7 @@ interface RawItem {
   parentPb: string
   content: string
   kind: string
+  createdBy: string
   storedX: number
   storedY: number
   created: unknown
@@ -86,6 +88,7 @@ interface Resolved {
   parentPb: string
   content: string
   kind: string
+  createdBy: string
   x: number
   y: number
   depth: number
@@ -171,9 +174,6 @@ function pbId(synth: unknown): string {
   if (!Number.isNaN(n) && idToPb.has(n)) return idToPb.get(n) as string
   return String(synth)
 }
-
-// AI-op-created nodes remembered as "agent" for the createdBy badge.
-const agentPbIds = new Set<string>()
 
 // ---------------------------------------------------------------------------
 // nodeType (V1) <-> kind (V2 select) mapping
@@ -308,6 +308,7 @@ async function resolveNodes(pbSessionId: string): Promise<Resolved[]> {
       parentPb: relId(r.parent),
       content: String(r.content ?? ''),
       kind: String(r.kind || 'idea'),
+      createdBy: String(r.created_by ?? ''),
       storedX: num(r.x),
       storedY: num(r.y),
       created: r.created,
@@ -377,6 +378,7 @@ async function resolveNodes(pbSessionId: string): Promise<Resolved[]> {
       parentPb: it.parentPb,
       content: it.content,
       kind: it.kind,
+      createdBy: it.createdBy,
       x: pos.x,
       y: pos.y,
       depth: depthMap.get(it.pb) ?? 0,
@@ -407,7 +409,7 @@ function nodeDict(r: Resolved, pbSessionId: string): Record<string, unknown> {
     parentId: r.parentPb ? synthId(r.parentPb) : null,
     content: r.content,
     nodeType: toV1Type(r.kind),
-    createdBy: agentPbIds.has(r.pb) ? 'agent' : 'user',
+    createdBy: r.createdBy === 'agent' ? 'agent' : 'user',
     x: r.x,
     y: r.y,
     depth: r.depth,
@@ -457,6 +459,7 @@ async function handleSessionCreate(init?: RequestInit): Promise<Response> {
     session: pbSessionId,
     content: topic,
     kind: 'idea',
+    created_by: 'user',
     x: CANVAS_CENTER_X,
     y: CANVAS_CENTER_Y,
   })
@@ -532,6 +535,7 @@ async function handleNodeCreate(init?: RequestInit): Promise<Response> {
     session: pbSessionId,
     content,
     kind: toPbKind(nodeType),
+    created_by: 'user',
     x,
     y,
   }
@@ -591,7 +595,6 @@ async function handleNodeExpand(synthNodeId: string): Promise<Response> {
   const fresh = resolved.filter((r) => !before.has(r.pb) && r.parentPb === pbNodeId)
   const newNodes: Record<string, unknown>[] = []
   for (const r of fresh) {
-    agentPbIds.add(r.pb)
     // V1 expand creates answerable "question" children; persist that + position.
     await pbPatch('nodes', r.pb, { kind: 'question', x: r.x, y: r.y })
     newNodes.push({ ...nodeDict(r, pbSessionId), nodeType: 'question' })
@@ -617,14 +620,37 @@ async function handleNodeAnswer(synthNodeId: string): Promise<Response> {
   const fresh = resolved.filter((r) => !before.has(r.pb) && r.parentPb === pbNodeId)
   const answer = fresh[0]
   if (!answer) return json({ status: 'ok', nodeId: sid, node: null })
-  agentPbIds.add(answer.pb)
   await pbPatch('nodes', answer.pb, { x: answer.x, y: answer.y })
   return json({ status: 'ok', nodeId: sid, node: nodeDict(answer, pbSessionId) })
 }
 
+// Where AI Explore starts: the chosen start node alone; otherwise (Auto) every
+// branch tip — a node with no children — shallowest first, oldest first within
+// a depth. An empty session starts from '' (a step with no branch adds new
+// top-level angles).
+function exploreFrontier(resolved: Resolved[], startPb: string): string[] {
+  if (startPb) return [startPb]
+  const parents = new Set(resolved.filter((r) => r.parentPb).map((r) => r.parentPb))
+  const tips = resolved
+    .map((r, index) => ({ r, index }))
+    .filter((t) => !parents.has(t.r.pb))
+    .sort((a, b) => a.r.depth - b.r.depth || a.index - b.index)
+    .map((t) => t.r.pb)
+  return tips.length > 0 ? tips : ['']
+}
+
+// The explore request answers once, after its last step. Each finished step
+// is announced on `window` meanwhile ({ done }: steps finished so far), so
+// the "AI Explore running" dialog counts the real steps.
+export const EXPLORE_STEP_EVENT = 'brainstorm:explore-step'
+
+// AI Explore: `effort` steps, one `sessions.explore` call (one model call)
+// each. Breadth-first takes the oldest frontier entry next, depth-first the
+// newest; each step's new nodes join the frontier and have their computed
+// position stored. A later step that gets no answer ends the run early.
 async function handleSessionExplore(synthSessionId: string, init?: RequestInit): Promise<Response> {
   const body = readBody(init)
-  const strategy = String(body.strategy ?? 'bfs')
+  const strategy = String(body.strategy ?? 'bfs') === 'dfs' ? 'dfs' : 'bfs'
   const effort = Math.max(1, Math.min(6, num(body.effort) || 1))
   const pbSessionId = pbId(synthSessionId)
 
@@ -633,35 +659,50 @@ async function handleSessionExplore(synthSessionId: string, init?: RequestInit):
     strategy, effort, stepsRun: 0, steps: [] as unknown[], newNodes: [] as unknown[], node: null,
   }
 
-  const before = await sessionNodeIdSet(pbSessionId)
-  const { ok } = await pbOp('/api/ops/sessions/explore', { session_id: pbSessionId })
-  if (!ok) return json({ detail: 'AI is unavailable (app not running inside CraftBot)' }, 503)
+  let resolved = await resolveNodes(pbSessionId)
+  // A start node from another session (a stale pick) falls back to Auto.
+  const picked = body.startNodeId != null ? pbId(body.startNodeId) : ''
+  const startPb = resolved.some((r) => r.pb === picked) ? picked : ''
+  const frontier = exploreFrontier(resolved, startPb)
 
-  const resolved = await resolveNodes(pbSessionId)
-  const fresh = resolved.filter((r) => !before.has(r.pb))
+  const reason = strategy === 'dfs' ? 'Drilling into the newest branch' : 'Exploring every branch tip'
+  const steps: Array<{ action: string; targetNodeId: number; reason: string }> = []
   const newNodes: Record<string, unknown>[] = []
-  for (const r of fresh) {
-    agentPbIds.add(r.pb)
-    await pbPatch('nodes', r.pb, { x: r.x, y: r.y })
-    newNodes.push(nodeDict(r, pbSessionId))
+  for (let i = 0; i < effort && frontier.length > 0; i++) {
+    const target = (strategy === 'bfs' ? frontier.shift() : frontier.pop()) ?? ''
+    const before = await sessionNodeIdSet(pbSessionId)
+    const { ok } = await pbOp('/api/ops/sessions/explore', { session_id: pbSessionId, node_id: target, strategy })
+    if (!ok) {
+      if (steps.length === 0) return json({ detail: 'AI is unavailable (app not running inside CraftBot)' }, 503)
+      break
+    }
+    resolved = await resolveNodes(pbSessionId)
+    const fresh = resolved.filter((r) => !before.has(r.pb))
+    for (const r of fresh) {
+      await pbPatch('nodes', r.pb, { x: r.x, y: r.y })
+      newNodes.push(nodeDict(r, pbSessionId))
+      frontier.push(r.pb)
+    }
+    // A step with no branch grew the first root, or added new roots.
+    const first = fresh[0]
+    const targetPb = target || (first ? first.parentPb || first.pb : '')
+    steps.push({ action: 'expand', targetNodeId: targetPb ? synthId(targetPb) : 0, reason })
+    window.dispatchEvent(new CustomEvent(EXPLORE_STEP_EVENT, { detail: { done: steps.length } }))
   }
   if (newNodes.length === 0) return json(emptyResult)
 
-  // The V2 explore op attaches new angles under the first root node.
-  const firstFresh = fresh[0]!
-  const targetNodeId = firstFresh.parentPb ? synthId(firstFresh.parentPb) : synthId(firstFresh.pb)
-  const reason = 'Expanding into new sub-questions'
+  const last = steps[steps.length - 1]!
   return json({
     status: 'ok',
     action: 'expand',
-    targetNodeId,
+    targetNodeId: last.targetNodeId,
     reason,
     node: null,
     newNodes,
     strategy,
     effort,
-    stepsRun: newNodes.length,
-    steps: [{ action: 'expand', targetNodeId, reason }],
+    stepsRun: steps.length,
+    steps,
   })
 }
 

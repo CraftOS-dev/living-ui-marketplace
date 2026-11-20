@@ -1,19 +1,19 @@
 /**
  * The register's smaller surfaces: a custom amount on the keypad (Square's
  * "Amount"), opening the register with a counted float, and the open
- * tickets.
+ * tickets (open, release or void each).
  */
 import { useCallback, useEffect, useState } from 'react';
-import { Clock, Lock, Plus, Sparkles, Wallet } from 'lucide-react';
+import { Ban, Clock, Lock, Plus, Sparkles, Undo2, Wallet } from 'lucide-react';
 import { cn, toast } from '../../../kit/index.ts';
-import { api } from '../../lib/api.ts';
+import { Cancelled, OpError, api, withApproval } from '../../lib/api.ts';
 import { useApp } from '../../lib/context.tsx';
 import { denominations } from '../../lib/denominations.ts';
-import { ORDER_TYPE_LABEL, ago, money } from '../../lib/format.ts';
+import { ORDER_TYPE_LABEL, ago, money, plural } from '../../lib/format.ts';
 import type { Ticket } from '../../lib/types.ts';
 import { Keypad, pressAmount } from '../Keypad.tsx';
 import type { KeypadKey } from '../Keypad.tsx';
-import { Badge, Button, Card, Empty, IconBadge, Modal, Select, Spinner, inputCls } from '../ui.tsx';
+import { Badge, Button, Card, Empty, IconBadge, Modal, Select, Spinner, TextField, inputCls, useConfirm } from '../ui.tsx';
 
 /* ------------------------------------------------------------ custom amount */
 
@@ -124,9 +124,78 @@ export function OpenRegister({ register, name, onOpened }: { register: string; n
 
 /* ------------------------------------------------------------ tickets */
 
-export function TicketsDialog({ current, onOpen, onClose }: { current: string; onOpen: (t: Ticket) => void; onClose: () => void }): React.JSX.Element {
+const VOID_REASONS = ['Customer left', 'Entered by mistake', 'Duplicate ticket'];
+
+/** Void a ticket with a reason; a cashier needs a manager's approval (asked here, with their PIN). */
+function VoidTicket({ ticket, onVoided, onClose }: { ticket: Ticket; onVoided: () => void; onClose: () => void }): React.JSX.Element {
+  const { currency, exp } = useApp();
+  const [reason, setReason] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const label = ticket.name !== '' ? ticket.name : 'Ticket';
+  const save = async (): Promise<void> => {
+    if (reason.trim() === '' || busy) return;
+    setBusy(true);
+    setError('');
+    try {
+      await withApproval((approvals) => api.voidTicket(ticket.ref, reason.trim(), approvals[0] ?? ''), `Void ${label}`);
+      toast.success(`Voided ${label}`);
+      onVoided();
+    } catch (err) {
+      if (!(err instanceof Cancelled)) setError(err instanceof OpError ? err.message : 'Could not void it');
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <Modal
+      open
+      onClose={onClose}
+      title={`Void ${label}?`}
+      description={`${money(ticket.total, currency, exp)} · ${plural(ticket.items, 'item')}. It is cancelled, and the reason goes in the audit trail.`}
+      footer={
+        <>
+          <Button variant="light" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button variant="primary" disabled={reason.trim() === ''} loading={busy} onClick={() => void save()}>
+            Void ticket
+          </Button>
+        </>
+      }
+    >
+      <div className="flex flex-col gap-3">
+        <TextField label="Reason" value={reason} onChange={setReason} autoFocus maxLength={200} placeholder="Why it is voided" onEnter={() => void save()} tone="card" />
+        <div className="flex flex-wrap gap-2">
+          {VOID_REASONS.map((q) => (
+            <button key={q} type="button" onClick={() => setReason(q)} className="ps-press h-10 rounded-full bg-[var(--ps-card)] px-4 text-[13px] font-semibold hover:bg-[var(--ps-row)]">
+              {q}
+            </button>
+          ))}
+        </div>
+        {error !== '' && (
+          <p className="px-1 text-[12px] font-semibold text-[var(--ps-red-text)]" role="alert">
+            {error}
+          </p>
+        )}
+      </div>
+    </Modal>
+  );
+}
+
+/**
+ * The open tickets. Each opens on this register; one open on a register can
+ * be released (back to waiting, as last saved), and any can be voided.
+ * `onChanged` hears of a release or void, so the register can clear its sale
+ * when the ticket was the one open here.
+ */
+export function TicketsDialog({ current, onOpen, onChanged, onClose }: { current: string; onOpen: (t: Ticket) => void; onChanged: (t: Ticket) => void; onClose: () => void }): React.JSX.Element {
   const { currency, exp } = useApp();
   const [tickets, setTickets] = useState<Ticket[] | null>(null);
+  const [voiding, setVoiding] = useState<Ticket | null>(null);
+  const [releasing, setReleasing] = useState('');
+  const [round, setRound] = useState(0);
+  const [confirmEl, confirm] = useConfirm();
   useEffect(() => {
     let live = true;
     api
@@ -140,7 +209,29 @@ export function TicketsDialog({ current, onOpen, onClose }: { current: string; o
     return () => {
       live = false;
     };
-  }, []);
+  }, [round]);
+  const release = async (t: Ticket): Promise<void> => {
+    const label = t.name !== '' ? t.name : 'this ticket';
+    const ok = await confirm(
+      t.ref === current
+        ? 'It goes back to the open tickets as it was last saved. Changes made since you opened it are not kept.'
+        : `It is open on ${t.register_code || 'another register'}. It goes back to the open tickets as it was last saved, so any register can open it.`,
+      `Release ${label}?`,
+      'Release',
+    );
+    if (!ok) return;
+    setReleasing(t.id);
+    try {
+      await api.release(t.ref);
+      toast.success(`Released ${label}`);
+      onChanged(t);
+      setRound((n) => n + 1);
+    } catch (err) {
+      toast.error(err instanceof OpError ? err.message : 'Could not release it');
+    } finally {
+      setReleasing('');
+    }
+  };
   const now = Date.now();
   return (
     <Modal open onClose={onClose} title="Open tickets" description="Saved sales waiting to be paid" xl>
@@ -159,35 +250,53 @@ export function TicketsDialog({ current, onOpen, onClose }: { current: string; o
           {tickets.map((t) => {
             const mine = t.ref === current;
             return (
-              <button
-                key={t.id}
-                type="button"
-                disabled={mine}
-                onClick={() => onOpen(t)}
-                className={cn('ps-press ps-on-card flex flex-col gap-2 rounded-[22px] bg-[var(--ps-card)] p-4 text-left hover:bg-[var(--ps-row)] disabled:cursor-default', mine && 'ring-2 ring-[var(--ps-ink)]')}
-              >
-                <span className="flex items-center justify-between gap-2">
-                  <span className="truncate text-[15px] font-bold">{t.name || 'Ticket'}</span>
-                  <span className="num text-[14px] font-bold">{money(t.total, currency, exp)}</span>
+              <div key={t.id} className={cn('ps-on-card flex flex-col rounded-[22px] bg-[var(--ps-card)]', !mine && 'hover:bg-[var(--ps-row)]', mine && 'ring-2 ring-[var(--ps-ink)]')}>
+                <button type="button" disabled={mine} onClick={() => onOpen(t)} className="ps-press flex flex-1 flex-col gap-2 rounded-[22px] p-4 pb-3 text-left disabled:cursor-default">
+                  <span className="flex items-center justify-between gap-2">
+                    <span className="truncate text-[15px] font-bold">{t.name || 'Ticket'}</span>
+                    <span className="num text-[14px] font-bold">{money(t.total, currency, exp)}</span>
+                  </span>
+                  <span className="line-clamp-2 text-[13px] text-[var(--ps-ink-2)]">{t.lines.map((l) => `${l.qty} ${l.label}`).join(', ')}</span>
+                  {t.source === 'agent' && (
+                    <Badge tone="agent" className="self-start">
+                      <Sparkles size={13} aria-hidden /> From your AI agent
+                    </Badge>
+                  )}
+                  <span className="flex flex-wrap items-center gap-x-1.5 text-[12px] text-[var(--ps-muted)]">
+                    {t.order_type !== '' && <span>{ORDER_TYPE_LABEL[t.order_type]}</span>}
+                    <span>{ago(t.updated, now)} ago</span>
+                    {t.staff_name !== '' && <span>· {t.staff_name}</span>}
+                    {t.status === 'resumed' && <span className="font-semibold text-[var(--ps-amber-text)]">· {mine ? 'open here' : `open on ${t.register_code || 'a register'}`}</span>}
+                  </span>
+                  {t.note !== '' && <span className="truncate text-[12px] italic text-[var(--ps-ink-2)]">{t.note}</span>}
+                </button>
+                <span className="flex flex-wrap gap-2 px-4 pb-4">
+                  {t.status === 'resumed' && (
+                    <Button size="sm" icon={Undo2} loading={releasing === t.id} onClick={() => void release(t)}>
+                      Release
+                    </Button>
+                  )}
+                  <Button size="sm" variant="danger" icon={Ban} onClick={() => setVoiding(t)}>
+                    Void
+                  </Button>
                 </span>
-                <span className="line-clamp-2 text-[13px] text-[var(--ps-ink-2)]">{t.lines.map((l) => `${l.qty} ${l.label}`).join(', ')}</span>
-                {t.source === 'agent' && (
-                  <Badge tone="agent" className="self-start">
-                    <Sparkles size={13} aria-hidden /> From your AI agent
-                  </Badge>
-                )}
-                <span className="flex flex-wrap items-center gap-x-1.5 text-[12px] text-[var(--ps-muted)]">
-                  {t.order_type !== '' && <span>{ORDER_TYPE_LABEL[t.order_type]}</span>}
-                  <span>{ago(t.updated, now)} ago</span>
-                  {t.staff_name !== '' && <span>· {t.staff_name}</span>}
-                  {t.status === 'resumed' && <span className="font-semibold text-[var(--ps-amber-text)]">· {mine ? 'open here' : `open on ${t.register_code || 'a register'}`}</span>}
-                </span>
-                {t.note !== '' && <span className="truncate text-[12px] italic text-[var(--ps-ink-2)]">{t.note}</span>}
-              </button>
+              </div>
             );
           })}
         </div>
       )}
+      {voiding !== null && (
+        <VoidTicket
+          ticket={voiding}
+          onClose={() => setVoiding(null)}
+          onVoided={() => {
+            onChanged(voiding);
+            setVoiding(null);
+            setRound((n) => n + 1);
+          }}
+        />
+      )}
+      {confirmEl}
     </Modal>
   );
 }

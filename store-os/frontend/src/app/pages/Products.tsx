@@ -15,8 +15,9 @@ import { useBase, useStore } from '../lib/store.tsx';
 import { money, num, plural } from '../lib/format.ts';
 import { go, href } from '../lib/router.ts';
 import type { Route } from '../lib/router.ts';
+import { askNotice } from '../lib/ask.ts';
 import { notify } from '../lib/toast.tsx';
-import type { PlanRow, ProductList, ProductRow, Shop, ShopRef, StockOverview, StockRow, TaskBrief } from '../lib/types.ts';
+import type { AskResult, PlanRow, ProductList, ProductRow, Shop, ShopRef, StockOverview, StockRow, TaskBrief } from '../lib/types.ts';
 import { ImportDialog } from '../components/ImportDialog.tsx';
 import { PlatformMark } from '../components/PlatformMark.tsx';
 import { ShopFilter, StockPill } from '../components/badges.tsx';
@@ -694,9 +695,10 @@ function PushShop({ shopRef, rows }: { shopRef: ShopRef; rows: PlanRow[] }): Rea
   const askAgent = async (): Promise<void> => {
     setBusy('ask');
     try {
-      const r = await op<{ task: TaskBrief | null; rows: number }>('stock.push', { shop: shopRef.id });
+      const r = await op<AskResult & { rows: number }>('stock.push', { shop: shopRef.id });
       changed('tasks', 'shops');
-      notify.info(r.task !== null ? 'Asked your AI agent' : 'Nothing left to set');
+      if (r.task === null) notify.info('Nothing left to set');
+      else askNotice(r);
     } catch {
       /* op showed why */
     } finally {

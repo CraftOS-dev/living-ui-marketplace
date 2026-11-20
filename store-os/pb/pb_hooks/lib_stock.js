@@ -274,8 +274,8 @@ function requestPush(ctx, p) {
   const shop = L('lib_shops').ref(app, p.shop);
   const rows = plan(app, shop.id);
   if (rows.length === 0) return { task: null, rows: 0 };
-  const t = L('lib_tasks').queue(app, 'push_stock', 'shop:' + shop.id, 'Set stock on ' + shop.getString('name') + ' for ' + rows.length + ' SKU' + (rows.length === 1 ? '' : 's'), { shop: shop.id }, ctx.actor);
-  return { task: t, rows: rows.length };
+  const out = L('lib_tasks').ask(app, 'push_stock', [{ target: 'shop:' + shop.id, label: 'Set stock on ' + shop.getString('name') + ' for ' + rows.length + ' SKU' + (rows.length === 1 ? '' : 's'), params: { shop: shop.id } }], ctx.actor);
+  return Object.assign(out, { rows: rows.length });
 }
 
 module.exports = {

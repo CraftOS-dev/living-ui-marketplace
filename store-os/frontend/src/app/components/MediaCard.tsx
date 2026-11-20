@@ -36,7 +36,7 @@ export function localPictures(files: File[]): LocalPicture[] {
 export function acceptPictures(files: File[], have: number): File[] {
   const ok: File[] = [];
   for (const f of files) {
-    if (!IMAGE_TYPES.includes(f.type)) notify.error(f.name + ' is not a JPG, PNG or WebP picture');
+    if (!IMAGE_TYPES.includes(f.type)) notify.error(f.name + ' is not a JPG, PNG, WebP, GIF or AVIF picture');
     else if (f.size > MAX_BYTES) notify.error(f.name + ' is over 10 MB');
     else ok.push(f);
   }
@@ -127,7 +127,7 @@ function MediaView({ tiles, onFiles, onCover, onRemove }: { tiles: MediaTile[]; 
             </Button>
             <span className="text-[13px] font-medium text-[var(--so-ink-2)]">or drop them here</span>
           </div>
-          <p className="max-w-[440px] text-[12px] leading-[18px] text-[var(--so-muted)]">JPG, PNG or WebP, up to 10 MB each, 12 at most. The first is the cover.</p>
+          <p className="max-w-[440px] text-[12px] leading-[18px] text-[var(--so-muted)]">JPG, PNG, WebP, GIF or AVIF, up to 10 MB each, 12 at most. The first is the cover.</p>
         </div>
       ) : (
         <div {...drag} className={cn('rounded-[16px] transition-shadow', over && 'ring-2 ring-[var(--so-ink)] ring-offset-4 ring-offset-[var(--so-card)]')}>

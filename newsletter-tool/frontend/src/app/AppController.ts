@@ -359,7 +359,7 @@ export class AppController {
     try {
       const { campaign } = await ApiService.sendCampaign(id)
       if (campaign.status === 'sent') {
-        toast.success(`Sent to ${campaign.sentCount} subscribers`)
+        toast.success(`Send recorded for ${campaign.sentCount} subscribers (no email delivered)`)
       } else if (campaign.status === 'failed') {
         toast.error(campaign.errorMessage || 'Send failed')
       } else {
@@ -440,24 +440,12 @@ export class AppController {
     }
   }
 
-  async rotateSubscribeKey(): Promise<SenderIdentity | null> {
-    try {
-      const saved = await ApiService.rotateSubscribeKey()
-      this.set({ senderIdentity: saved })
-      toast.success('New subscribe key generated. Re-copy the embed snippet.')
-      return saved
-    } catch (e) {
-      toast.error(`Rotate failed: ${errorMessage(e)}`)
-      return null
-    }
-  }
-
   async refreshIntegrations(): Promise<void> {
     try {
       const integrations = await ApiService.getIntegrationsStatus()
       this.set({ integrations })
     } catch {
-      this.set({ integrations: { llm: { connected: false }, gmail: { bridge: false, connected: false } } })
+      this.set({ integrations: { llm: { connected: false } } })
     }
   }
 

@@ -9,7 +9,7 @@ A production-grade, multi-workspace financial tracker for recurring SaaS subscri
 - **Workspace Groups**: Multi-workspace organization (Engineering & Cloud Stack, AI Tools, Operations, etc.) with custom colors, icons, and currency definitions.
 - **Overview Dashboard**:
   - Top KPI cards: Total Money Spent (strictly YTD elapsed spend across invoices & subscriptions, totaling $1,526.00), Monthly Subscription Burn ($838.00/mo), Active Subscriptions (2), Total Invoices (5).
-  - Spend Summary interactive month-by-month chart (March through August 2026) with auto-scaling dynamic Y-axis and hover breakdown tooltips.
+  - Spend Summary interactive month-by-month chart (the six months up to the current one) with auto-scaling dynamic Y-axis and hover breakdown tooltips.
   - Spend by Service & Vendor donut breakdown chart with distinct palette indicators.
   - Live Ingestion Feed with real-time bill ingestion updates.
 - **Active Subscriptions**:
@@ -22,7 +22,7 @@ A production-grade, multi-workspace financial tracker for recurring SaaS subscri
   - Historical monthly ledger and category breakdowns.
   - "Download Report" button generating clean UTF-8 CSV reports with BOM.
 - **Multi-Year History**:
-  - Multi-year financial comparison (2026, 2025, 2024, 2023) with strictly YTD subscription calculation and quarterly spend maps.
+  - Multi-year financial comparison (this year and the three before it) with strictly YTD subscription calculation and quarterly spend maps.
 
 ---
 
@@ -30,7 +30,7 @@ A production-grade, multi-workspace financial tracker for recurring SaaS subscri
 
 1. **`groups`**: Workspace groups (`name`, `description`, `color`, `icon`, `currency`).
 2. **`subscriptions`**: Recurring subscriptions (`name`, `vendor`, `amount`, `currency`, `billing_frequency`, `category`, `purpose`, `status`, `group_id`, `last_billed_date`, `next_renewal_date`, `auto_renew`, `icon_name`).
-3. **`invoices`**: One-time & recurring invoices (`vendor`, `amount`, `currency`, `payment_type`, `billing_frequency`, `category`, `purpose`, `invoice_date`, `invoice_number`, `group_id`, `has_pdf_attachment`, `pdf_filename`, `pdf_text_preview`, `pdf_data_base64`, `line_items`, `notes`, `subscription_id`, `confidence_score`, `is_verified`).
+3. **`invoices`**: One-time & recurring invoices (`vendor`, `amount`, `currency`, `payment_type`, `billing_frequency`, `category`, `purpose`, `invoice_date`, `invoice_number`, `group_id`, `has_pdf_attachment`, `pdf_filename`, `pdf_text_preview`, `pdf_data_base64`, `pdf_file`, `line_items`, `notes`, `subscription_id`, `confidence_score`, `is_verified`).
 4. **`activities`**: Event stream (`event_type`, `title`, `description`, `amount`, `currency`, `vendor`, `group_id`).
 
 ---

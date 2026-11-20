@@ -294,7 +294,7 @@ function reset(ctx, p) {
   const S = L('lib_store');
   const A = L('lib_answers');
   const app = ctx.app;
-  if (p.confirm !== true) throw U.fail(400, 'confirm must be true to reset demo data.', 'confirm_required');
+  // confirm=true is checked by the dispatcher (lib_ops.js), like every destructive operation.
   S.assertPreparing(app);
   // Clear all answers (demo only; agent-written answers can be cleared)
   const recs = S.answerRecords(app);

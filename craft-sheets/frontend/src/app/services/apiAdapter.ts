@@ -289,14 +289,19 @@ async function handleUpdateSheet(sid: number, init?: RequestInit): Promise<Respo
     frozen_rows: Number(body.frozenRows ?? 0) || 0,
     frozen_cols: Number(body.frozenCols ?? 0) || 0,
   })
-  return json(withValues(updated ?? rec))
+  // A refused save must fail the request, so the View toasts it instead of
+  // showing the old record as if the change had been saved.
+  if (!updated) return json({ detail: 'Failed to update sheet' }, 500)
+  return json(withValues(updated))
 }
 
 async function handleDeleteSheet(sid: number): Promise<Response> {
   const rows = await allSheets()
   const rec = bySid(rows, sid)
   if (!rec) return json({ status: 'not_found', id: String(sid) })
-  await pbDelete('sheets', String(rec.id))
+  // A refused delete must fail the request, so the View toasts it instead of
+  // reporting the sheet deleted while it is still there.
+  if (!(await pbDelete('sheets', String(rec.id)))) return json({ detail: 'Failed to delete sheet' }, 500)
   return json({ status: 'deleted', id: String(sid) })
 }
 

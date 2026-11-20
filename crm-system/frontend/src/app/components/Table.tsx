@@ -128,6 +128,21 @@ export function RecordTable<T extends AnyRecord>({
                       <div className="cr-cell-editor" onClick={(e) => e.stopPropagation()}>
                         <Editor object={object} rec={r} spec={c.spec} app={app} onDone={() => setEditing(null)} />
                       </div>
+                    ) : ci === 0 ? (
+                      // The name opens the peek from the keyboard too: Tab to it, Enter (Shift or Ctrl+Enter for the page).
+                      <div
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                          if (e.key !== 'Enter' && e.key !== ' ') return;
+                          e.preventDefault();
+                          e.stopPropagation();
+                          onActivate(r.id, e.shiftKey || e.ctrlKey || e.metaKey);
+                        }}
+                        className="flex min-w-0 items-center gap-1.5"
+                      >
+                        {c.render(r)}
+                      </div>
                     ) : (
                       <div className={cn('flex min-w-0 items-center gap-1.5', c.align === 'right' && 'justify-end')}>{c.render(r)}</div>
                     )}
@@ -277,6 +292,7 @@ function FilterEditor({ fields, initial, home, onDone }: { fields: FilterField[]
               type={realOp === 'before' || realOp === 'after' ? 'date' : 'text'}
               inputMode={field.kind === 'number' || field.kind === 'money' || realOp.endsWith('_days') ? 'decimal' : undefined}
               value={value}
+              aria-label="Value"
               onChange={(e) => setValue(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && apply()}
               className={cn(input, 'h-6 text-[12px]')}

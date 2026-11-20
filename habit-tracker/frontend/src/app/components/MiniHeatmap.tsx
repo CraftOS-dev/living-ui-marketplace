@@ -29,20 +29,28 @@ export function MiniHeatmap({
 }: MiniHeatmapProps) {
   const [cells, setCells] = useState<HeatmapCell[] | null>(null)
 
+  // Another habit or window starts from the placeholder.
+  useEffect(() => {
+    setCells(null)
+  }, [habit.id, days])
+
+  // Reload whenever the row's habit changes: the controller replaces every
+  // habit on each refresh (after a check-in, an edit or a new day), so the
+  // strip follows the data and today's date. The current cells stay on screen
+  // until the new ones arrive.
   useEffect(() => {
     let mounted = true
-    setCells(null)
     loadCells(habit.id, days)
       .then((c) => {
         if (mounted) setCells(c)
       })
       .catch(() => {
-        if (mounted) setCells([])
+        if (mounted) setCells((prev) => prev ?? [])
       })
     return () => {
       mounted = false
     }
-  }, [habit.id, days, loadCells])
+  }, [habit, days, loadCells])
 
   if (cells === null) {
     return (

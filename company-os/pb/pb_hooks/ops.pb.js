@@ -3,7 +3,9 @@
  * Company OS custom verbs. Every route has a matching operations.json entry.
  * GOJA RULE: each handler runs in an isolated VM, require() everything
  * INSIDE the callback; never reference file-scope helpers.
- * All verbs require an authenticated caller (multi-user app).
+ * All verbs require a signed-in, approved caller, as the collection rules do
+ * (`@request.auth.approved = true`), or the app's operator (the agent, which
+ * runs as the superuser). A waiting account gets 403.
  */
 
 // onboarding.complete, create the company from the wizard answers and seed
@@ -11,6 +13,9 @@
 routerAdd('POST', '/api/ops/onboarding-complete', (e) => {
   const lib = require(`${__hooks}/lib_company.js`);
   if (!e.auth) return e.json(401, { error: 'Sign in required' });
+  if (!e.auth.isSuperuser() && !e.auth.getBool('approved')) {
+    return e.json(403, { error: 'This account is not approved yet. An owner or admin grants access on the Team page.' });
+  }
   try {
     if (lib.getCompany(e.app) !== null) {
       return e.json(409, { error: 'Company already exists, onboarding already completed' });
@@ -41,6 +46,9 @@ routerAdd('POST', '/api/ops/onboarding-complete', (e) => {
 // never set on themselves (role, approved). Authorization is enforced here.
 routerAdd('POST', '/api/ops/member-access', (e) => {
   if (!e.auth) return e.json(401, { error: 'Sign in required' });
+  if (!e.auth.isSuperuser() && !e.auth.getBool('approved')) {
+    return e.json(403, { error: 'This account is not approved yet. An owner or admin grants access on the Team page.' });
+  }
   const myRole = e.auth.get('role');
   if (myRole !== 'owner' && myRole !== 'admin') {
     return e.json(403, { error: 'Only the owner or an admin can manage access.' });
@@ -94,6 +102,9 @@ routerAdd('POST', '/api/ops/member-access', (e) => {
 routerAdd('POST', '/api/ops/journey-autocheck', (e) => {
   const lib = require(`${__hooks}/lib_company.js`);
   if (!e.auth) return e.json(401, { error: 'Sign in required' });
+  if (!e.auth.isSuperuser() && !e.auth.getBool('approved')) {
+    return e.json(403, { error: 'This account is not approved yet. An owner or admin grants access on the Team page.' });
+  }
   try {
     return e.json(200, lib.runAutocheck(e.app));
   } catch (err) {
@@ -107,6 +118,9 @@ routerAdd('POST', '/api/ops/journey-autocheck', (e) => {
 routerAdd('POST', '/api/ops/stage-recompute', (e) => {
   const lib = require(`${__hooks}/lib_company.js`);
   if (!e.auth) return e.json(401, { error: 'Sign in required' });
+  if (!e.auth.isSuperuser() && !e.auth.getBool('approved')) {
+    return e.json(403, { error: 'This account is not approved yet. An owner or admin grants access on the Team page.' });
+  }
   try {
     return e.json(200, lib.runStageCheck(e.app));
   } catch (err) {
@@ -119,6 +133,9 @@ routerAdd('POST', '/api/ops/stage-recompute', (e) => {
 routerAdd('POST', '/api/ops/stage-advance', (e) => {
   const lib = require(`${__hooks}/lib_company.js`);
   if (!e.auth) return e.json(401, { error: 'Sign in required' });
+  if (!e.auth.isSuperuser() && !e.auth.getBool('approved')) {
+    return e.json(403, { error: 'This account is not approved yet. An owner or admin grants access on the Team page.' });
+  }
   try {
     const body = e.requestInfo().body || {};
     if (!body.stage) return e.json(400, { error: 'stage is required' });
@@ -134,6 +151,9 @@ routerAdd('POST', '/api/ops/workflows-run', (e) => {
   const lib = require(`${__hooks}/lib_company.js`);
   const bridge = require(`${__hooks}/_craftbot_bridge.js`);
   if (!e.auth) return e.json(401, { error: 'Sign in required' });
+  if (!e.auth.isSuperuser() && !e.auth.getBool('approved')) {
+    return e.json(403, { error: 'This account is not approved yet. An owner or admin grants access on the Team page.' });
+  }
   const body = e.requestInfo().body || {};
   const workflow = String(body.workflow || '');
   try {
@@ -187,6 +207,9 @@ routerAdd('POST', '/api/ops/ai-draft-plan', (e) => {
   const lib = require(`${__hooks}/lib_company.js`);
   const bridge = require(`${__hooks}/_craftbot_bridge.js`);
   if (!e.auth) return e.json(401, { error: 'Sign in required' });
+  if (!e.auth.isSuperuser() && !e.auth.getBool('approved')) {
+    return e.json(403, { error: 'This account is not approved yet. An owner or admin grants access on the Team page.' });
+  }
   try {
     const company = lib.getCompany(e.app);
     if (company === null) return e.json(400, { error: 'No company yet' });
@@ -235,6 +258,9 @@ routerAdd('POST', '/api/ops/ai-campaign-ideas', (e) => {
   const lib = require(`${__hooks}/lib_company.js`);
   const bridge = require(`${__hooks}/_craftbot_bridge.js`);
   if (!e.auth) return e.json(401, { error: 'Sign in required' });
+  if (!e.auth.isSuperuser() && !e.auth.getBool('approved')) {
+    return e.json(403, { error: 'This account is not approved yet. An owner or admin grants access on the Team page.' });
+  }
   try {
     const company = lib.getCompany(e.app);
     if (company === null) return e.json(400, { error: 'No company yet' });
@@ -289,6 +315,9 @@ routerAdd('POST', '/api/ops/ai-content-draft', (e) => {
   const lib = require(`${__hooks}/lib_company.js`);
   const bridge = require(`${__hooks}/_craftbot_bridge.js`);
   if (!e.auth) return e.json(401, { error: 'Sign in required' });
+  if (!e.auth.isSuperuser() && !e.auth.getBool('approved')) {
+    return e.json(403, { error: 'This account is not approved yet. An owner or admin grants access on the Team page.' });
+  }
   try {
     const company = lib.getCompany(e.app);
     if (company === null) return e.json(400, { error: 'No company yet' });

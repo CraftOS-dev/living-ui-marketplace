@@ -82,8 +82,9 @@ export class AppController {
       })
       return
     }
+    // refresh() sets (or clears) the load error; keep what it set.
     await this.refresh()
-    this.update({ initialized: true, loading: false, error: null })
+    this.update({ initialized: true, loading: false })
   }
 
   cleanup(): void {
@@ -248,7 +249,9 @@ export class AppController {
       await this.fetchJson('POST', '/api/habits/reorder', { habitIds: orderedIds })
     } catch (err) {
       console.error('[Controller] reorder failed', err)
+      // Show the order that was saved, then let the caller's toast say it failed.
       await this.refresh()
+      throw err
     }
   }
 

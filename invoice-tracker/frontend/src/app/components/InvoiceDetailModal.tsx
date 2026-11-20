@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react'
 import type { InvoiceReceipt } from '../types'
+import { getCurrencySymbol } from '../types'
 import { Modal, Button } from './ui'
 import {
   FileText,
@@ -21,13 +22,15 @@ interface Props {
   currencySymbol?: string
 }
 
-export const InvoiceDetailModal: React.FC<Props> = ({ invoice, onClose, onDelete, onUpdateInvoice, currencySymbol = '$' }) => {
+export const InvoiceDetailModal: React.FC<Props> = ({ invoice, onClose, onDelete, onUpdateInvoice, currencySymbol: _currencySymbol = '$' }) => {
   const [showFullPdfPreview, setShowFullPdfPreview] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   if (!invoice) return null
 
-  const hasPdf = Boolean(invoice.hasPdfAttachment || invoice.pdfFilename)
+  // A PDF is attached only when its file is stored on the invoice
+  const hasPdf = Boolean(invoice.hasPdfAttachment)
+  const amountSymbol = getCurrencySymbol(invoice.currency)
   const pdfName = invoice.pdfFilename || `${invoice.vendor.replace(/\s+/g, '_')}_Invoice_${invoice.invoiceNumber || invoice.id}.pdf`
 
   const handleDownloadPdf = () => {
@@ -52,21 +55,21 @@ export const InvoiceDetailModal: React.FC<Props> = ({ invoice, onClose, onDelete
     const file = e.target.files?.[0]
     if (!file || !onUpdateInvoice) return
 
-    const reader = new FileReader()
-    reader.onload = async () => {
-      const base64 = reader.result as string
+    const attach = async () => {
       try {
+        // The PDF itself is stored on the invoice
         await onUpdateInvoice(invoice.id, {
-          hasPdfAttachment: true,
+          pdfUpload: file,
           pdfFilename: file.name,
-          pdfDataBase64: base64,
           pdfTextPreview: `Attached PDF document ${file.name} (${(file.size / 1024).toFixed(1)} KB)`
         })
       } catch (err) {
         console.error('Failed to attach PDF:', err)
+      } finally {
+        if (fileInputRef.current) fileInputRef.current.value = ''
       }
     }
-    reader.readAsDataURL(file)
+    attach()
   }
 
   return (
@@ -149,7 +152,7 @@ export const InvoiceDetailModal: React.FC<Props> = ({ invoice, onClose, onDelete
 
           <div style={{ textAlign: 'right' }}>
             <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--color-primary)' }}>
-              {currencySymbol}{invoice.amount.toFixed(2)} <span style={{ fontSize: '0.9rem', fontWeight: 500, color: 'var(--text-muted)' }}>{invoice.currency}</span>
+              {amountSymbol}{invoice.amount.toFixed(2)} <span style={{ fontSize: '0.9rem', fontWeight: 500, color: 'var(--text-muted)' }}>{invoice.currency}</span>
             </div>
             <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
               {new Date(invoice.invoiceDate || Date.now()).toLocaleDateString(undefined, {
@@ -305,15 +308,17 @@ export const InvoiceDetailModal: React.FC<Props> = ({ invoice, onClose, onDelete
               <div style={{ fontSize: '0.84rem', color: 'var(--text-muted)' }}>
                 No PDF document attached to this invoice record yet.
               </div>
-              <Button
-                variant="secondary"
-                size="sm"
-                icon={<Paperclip size={13} />}
-                onClick={() => fileInputRef.current?.click()}
-                style={{ fontSize: '0.78rem' }}
-              >
-                Attach PDF File
-              </Button>
+              {!invoice.estimated && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  icon={<Paperclip size={13} />}
+                  onClick={() => fileInputRef.current?.click()}
+                  style={{ fontSize: '0.78rem' }}
+                >
+                  Attach PDF File
+                </Button>
+              )}
             </div>
           )}
 
@@ -333,7 +338,7 @@ export const InvoiceDetailModal: React.FC<Props> = ({ invoice, onClose, onDelete
                 border: '1px solid var(--border-secondary)',
               }}
             >
-              {invoice.pdfTextPreview || `--- PDF Extracted Text ---\nVendor: ${invoice.vendor}\nAmount: ${currencySymbol}${invoice.amount.toFixed(2)}\nDate: ${invoice.invoiceDate}\nReference: ${invoice.invoiceNumber || invoice.id}\nStatus: Verified`}
+              {invoice.pdfTextPreview || `--- PDF Extracted Text ---\nVendor: ${invoice.vendor}\nAmount: ${amountSymbol}${invoice.amount.toFixed(2)}\nDate: ${invoice.invoiceDate}\nReference: ${invoice.invoiceNumber || invoice.id}\nStatus: Verified`}
             </pre>
           )}
         </div>

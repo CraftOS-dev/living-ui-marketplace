@@ -94,6 +94,7 @@ export function Seg<T extends string>({ value, options, onChange, size = 'sm', c
           type="button"
           role="radio"
           aria-checked={o.value === value}
+          aria-label={typeof o.label === 'string' ? undefined : o.title}
           title={o.title}
           onClick={() => onChange(o.value)}
           className={cn(

@@ -97,7 +97,7 @@ function lastWeeks(n: number): string[] {
   const now = new Date();
   for (let i = n - 1; i >= 0; i--) {
     const d = new Date(now);
-    d.setDate(d.getDate() - i * 7);
+    d.setUTCDate(d.getUTCDate() - i * 7);
     weeks.push(weekStart(d));
   }
   return weeks;

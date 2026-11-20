@@ -8,7 +8,7 @@ import type { ReactNode } from 'react';
 import { Boxes, Building2, Clock, Coins, Database, Download, History, Lock, RefreshCw, ShieldCheck, Sparkles, User } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { cn } from '../../kit/index.ts';
-import { Button, Card, CardHeader, Empty, Field, IconBadge, LinkButton, PageHeader, Segmented, Select, Skeleton, Tabs, Tip } from '../components/ui.tsx';
+import { Button, Card, CardHeader, Empty, Field, IconBadge, LinkButton, PageHeader, Segmented, Select, Skeleton, Tabs, Tip, Toggle } from '../components/ui.tsx';
 import { download, op } from '../lib/api.ts';
 import { ago, day, dayTime, num } from '../lib/format.ts';
 import { changed, useLive } from '../lib/live.ts';
@@ -16,7 +16,7 @@ import { go, href, targetHref } from '../lib/router.ts';
 import type { Route } from '../lib/router.ts';
 import { useStore } from '../lib/store.tsx';
 import { notify } from '../lib/toast.tsx';
-import type { Activity, Autonomy, AutonomyKind, Catalog, ProductList, Settings } from '../lib/types.ts';
+import type { Activity, Automation, Autonomy, AutonomyKind, Catalog, ProductList, Settings } from '../lib/types.ts';
 import { SaveNumber, SaveText } from './Shop.tsx';
 
 type Section = 'business' | 'agent' | 'guards' | 'stock' | 'buyers' | 'fx' | 'data' | 'activity';
@@ -206,13 +206,46 @@ function AgentSection({ settings: st }: { settings: Settings }): React.JSX.Eleme
       );
   };
   return (
+    <div className="space-y-4">
+      <Card>
+        <CardHeader title="Your AI agent" subtitle="Ask me: changes wait in Approvals." />
+        <ul>
+          {KINDS.map((k) => (
+            <li key={k.key} className="flex flex-wrap items-center justify-between gap-3 border-t border-[var(--so-line)] py-3 first:border-t-0">
+              <span className="text-[14px] font-medium">{k.label}</span>
+              <Segmented items={LEVELS} value={local[k.key] ?? st.autonomy[k.key] ?? 'ask'} onChange={(v) => set(k.key, v)} />
+            </li>
+          ))}
+        </ul>
+      </Card>
+      <AutomationCard settings={st} />
+    </div>
+  );
+}
+
+const AUTOMATIONS: { key: Automation; label: string; hint: string }[] = [
+  { key: 'draft_replies', label: 'Draft a reply when a buyer message comes in', hint: 'Your AI agent writes the draft; you read and send it.' },
+  { key: 'exceptions', label: 'Sort out a parcel whose tracking turns to a problem', hint: 'A failed delivery, a carrier problem or a return.' },
+];
+
+/** Requests your AI agent gets without a click, each off until you turn it on. */
+function AutomationCard({ settings: st }: { settings: Settings }): React.JSX.Element {
+  const set = async (k: Automation, v: boolean): Promise<void> => {
+    await op('settings.automation', { [k]: v });
+    changed('settings', 'activity');
+    notify.info('Saved');
+  };
+  return (
     <Card>
-      <CardHeader title="Your AI agent" subtitle="Ask me: changes wait in Approvals." />
+      <CardHeader title="Ask on its own" subtitle="Otherwise your AI agent works only when you ask." />
       <ul>
-        {KINDS.map((k) => (
-          <li key={k.key} className="flex flex-wrap items-center justify-between gap-3 border-t border-[var(--so-line)] py-3 first:border-t-0">
-            <span className="text-[14px] font-medium">{k.label}</span>
-            <Segmented items={LEVELS} value={local[k.key] ?? st.autonomy[k.key] ?? 'ask'} onChange={(v) => set(k.key, v)} />
+        {AUTOMATIONS.map((a) => (
+          <li key={a.key} className="flex items-center justify-between gap-3 border-t border-[var(--so-line)] py-3 first:border-t-0">
+            <span className="min-w-0">
+              <span className="block text-[14px] font-medium">{a.label}</span>
+              <span className="block text-[12px] leading-[18px] text-[var(--so-muted)]">{a.hint}</span>
+            </span>
+            <Toggle checked={st.automation?.[a.key] === true} onChange={(v) => set(a.key, v)} label={a.label} />
           </li>
         ))}
       </ul>

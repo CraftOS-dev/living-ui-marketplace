@@ -1,48 +1,281 @@
 {
-  "id": "{{PROJECT_ID}}",
-  "name": "{{PROJECT_NAME}}",
-  "description": "{{PROJECT_DESCRIPTION}}",
-  "agentAppVersion": 2,
-  "createdAt": "{{CREATED_AT}}",
+  "id": "research-os",
+  "name": "Research OS",
+  "agentAppVersion": "0.1.0",
+  "adapterVersion": "0.2.0",
+  "appVersion": "1.0.0",
   "authMode": "none",
-  "port": "{{PORT}}",
-  "pbVersion": "0.39.7",
-  "kitVersion": "0.6.0",
-  "craftbotVersion": "1.4.4",
-  "pipeline": {
-    "install": "npm install --ignore-scripts --prefix frontend",
-    "build": "npm run build --prefix frontend",
-    "start": "pocketbase serve --http=127.0.0.1:{{PORT}} --dir pb/pb_data --hooksDir pb/pb_hooks --migrationsDir pb/pb_migrations --publicDir pb/pb_public",
-    "health": "/api/health"
-  },
+  "modules": [
+    {
+      "name": "demo",
+      "summary": "preview, reset",
+      "entities": []
+    },
+    {
+      "name": "app",
+      "summary": "guide, status",
+      "entities": []
+    },
+    {
+      "name": "home",
+      "summary": "summary",
+      "entities": []
+    },
+    {
+      "name": "find",
+      "summary": "all",
+      "entities": []
+    },
+    {
+      "name": "settings",
+      "summary": "get",
+      "entities": [
+        "settings"
+      ]
+    },
+    {
+      "name": "activity",
+      "summary": "list, undo",
+      "entities": [
+        "activity"
+      ]
+    },
+    {
+      "name": "files",
+      "summary": "engine-test, upload, fetch-oa, content, thumb, get, delete…",
+      "entities": [
+        "files"
+      ]
+    },
+    {
+      "name": "works",
+      "summary": "add, identify, identify-start, identify-fail, update…",
+      "entities": []
+    },
+    {
+      "name": "collections",
+      "summary": "list, create, update, add, remove",
+      "entities": [
+        "collections"
+      ]
+    },
+    {
+      "name": "tags",
+      "summary": "list, create, update, apply",
+      "entities": [
+        "tags"
+      ]
+    },
+    {
+      "name": "import",
+      "summary": "preview, run, undo, list",
+      "entities": [
+        "import_batches",
+        "import_logs"
+      ]
+    },
+    {
+      "name": "export",
+      "summary": "works, notes",
+      "entities": []
+    },
+    {
+      "name": "cite",
+      "summary": "format",
+      "entities": []
+    },
+    {
+      "name": "pages",
+      "summary": "text, get, find, set-ocr, ocr-list",
+      "entities": [
+        "pages"
+      ]
+    },
+    {
+      "name": "anchors",
+      "summary": "create, get",
+      "entities": [
+        "anchors"
+      ]
+    },
+    {
+      "name": "annotations",
+      "summary": "list",
+      "entities": [
+        "annotations"
+      ]
+    },
+    {
+      "name": "projects",
+      "summary": "list, get, create, update, works, add-works, remove-works…",
+      "entities": [
+        "projects"
+      ]
+    },
+    {
+      "name": "nodes",
+      "summary": "create, create-many, update, move, delete, add-passage…",
+      "entities": [
+        "nodes"
+      ]
+    },
+    {
+      "name": "graph",
+      "summary": "tidy, map",
+      "entities": []
+    },
+    {
+      "name": "relations",
+      "summary": "create, update, delete",
+      "entities": [
+        "relations"
+      ]
+    },
+    {
+      "name": "boards",
+      "summary": "list, get, create, update, place, update-item, move…",
+      "entities": [
+        "boards"
+      ]
+    },
+    {
+      "name": "notes",
+      "summary": "list, get, create, for-work, update, append, add-image…",
+      "entities": [
+        "notes"
+      ]
+    },
+    {
+      "name": "agent",
+      "summary": "needs-you, scorecard",
+      "entities": []
+    },
+    {
+      "name": "asks",
+      "summary": "list, get, working, answer, fail",
+      "entities": [
+        "asks"
+      ]
+    },
+    {
+      "name": "proposals",
+      "summary": "list, withdraw",
+      "entities": [
+        "proposals"
+      ]
+    },
+    {
+      "name": "marks",
+      "summary": "set, clear",
+      "entities": []
+    },
+    {
+      "name": "search",
+      "summary": "run, list, get, update",
+      "entities": [
+        "searches",
+        "search_runs"
+      ]
+    },
+    {
+      "name": "candidates",
+      "summary": "list, file, assess",
+      "entities": [
+        "candidates"
+      ]
+    },
+    {
+      "name": "citations",
+      "summary": "map, citing",
+      "entities": []
+    },
+    {
+      "name": "references",
+      "summary": "list",
+      "entities": []
+    },
+    {
+      "name": "ms",
+      "summary": "list, get, text, latex, build, build-status, pdf, create…",
+      "entities": [
+        "manuscripts",
+        "ms_blocks",
+        "ms_changes",
+        "ms_snapshots",
+        "ms_builds"
+      ]
+    },
+    {
+      "name": "responses",
+      "summary": "list, add-items, update, delete-item, letter",
+      "entities": []
+    },
+    {
+      "name": "screen",
+      "summary": "list, summary, import, records, next, decide, undo-decision…",
+      "entities": [
+        "reviews",
+        "decisions"
+      ]
+    },
+    {
+      "name": "todos",
+      "summary": "list, get, summary, create, update, complete, move, check…",
+      "entities": [
+        "tasks"
+      ]
+    },
+    {
+      "name": "exp",
+      "summary": "list, get, runs, entries, results, export, file, templates",
+      "entities": [
+        "experiments",
+        "exp_runs",
+        "exp_log",
+        "exp_templates"
+      ]
+    },
+    {
+      "name": "exp-edit",
+      "summary": "create, repeat, update, step, add-runs, plan-runs…",
+      "entities": []
+    },
+    {
+      "name": "repo",
+      "summary": "list, get, versions, read, file, init, mkdir, upload, write…",
+      "entities": [
+        "repo_items",
+        "repo_versions"
+      ]
+    },
+    {
+      "name": "records",
+      "summary": "the app's other stored records",
+      "entities": [
+        "collection_items",
+        "work_tags",
+        "project_works",
+        "node_anchors",
+        "board_items",
+        "field_marks",
+        "saved_views",
+        "oa_cache",
+        "work_refs",
+        "reviews_received",
+        "response_items",
+        "review_records",
+        "note_files"
+      ]
+    }
+  ],
+  "modificationLock": false,
   "capabilities": {
-    "external_hosts": [
-      "api.crossref.org",
-      "api.openalex.org",
-      "arxiv.org",
-      "doi.org",
-      "eutils.ncbi.nlm.nih.gov",
-      "export.arxiv.org",
-      "openlibrary.org",
-      "pubmed.ncbi.nlm.nih.gov"
-    ],
-    "triggers": [
-      "access_requested",
-      "claims_requested",
-      "draft_requested",
-      "experiment_requested",
-      "feed_review",
-      "ocr_requested",
-      "papers_waiting",
-      "proposal_returned",
-      "question_asked",
-      "references_requested",
-      "responses_requested",
-      "screening_requested",
-      "search_requested",
-      "support_check_requested",
-      "task_assigned"
-    ]
+    "integrations": []
   },
-  "adapterVersion": "1.9.0"
+  "pipeline": {
+    "install": "node pb-fetch.mjs && npm --prefix frontend install --ignore-scripts --no-audit --no-fund",
+    "build": "node pb-build.mjs",
+    "start": "node pb-serve.mjs",
+    "health": "/api/_a2app"
+  }
 }

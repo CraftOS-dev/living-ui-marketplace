@@ -28,7 +28,7 @@ function handle(e, fn) {
     return e.json(200, out === undefined ? { ok: true } : out);
   } catch (err) {
     const status = statusOf(err);
-    if (status >= 500) console.error('[pos] op failed:', err);
+    if (status >= 500) console.error('[advance-pos] op failed:', err);
     // PocketBase's own error shape, so SDK clients surface the message; the
     // typed details ride along in `data` for callers that read them.
     const message = String((err && err.message) || err);

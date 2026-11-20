@@ -13,8 +13,9 @@ import { errMessage, op } from '../lib/api.ts';
 import { changed, useLive } from '../lib/live.ts';
 import { useStore } from '../lib/store.tsx';
 import { dayTime, num, plural } from '../lib/format.ts';
+import { askNotice } from '../lib/ask.ts';
 import { notify } from '../lib/toast.tsx';
-import type { Listing, ProductDetail, StockMove, TaskBrief } from '../lib/types.ts';
+import type { AskResult, Listing, ProductDetail, StockMove, TaskBrief } from '../lib/types.ts';
 import { openAddShop } from './Shell.tsx';
 import { PlatformMark, PLATFORM_NAME } from './PlatformMark.tsx';
 import { ListingPill } from './badges.tsx';
@@ -294,9 +295,8 @@ function PrepareForm({ onClose, product }: { onClose: () => void; product: Produ
     if (chosen.length === 0 || busy) return;
     setBusy(true);
     try {
-      await op<{ task: TaskBrief }>('products.prepare', { product: product.id, shops: chosen, note: note.trim() || undefined });
+      askNotice(await op<AskResult>('products.prepare', { product: product.id, shops: chosen, note: note.trim() || undefined }));
       changed('tasks', 'products');
-      notify.info('Asked your AI agent');
       onClose();
     } catch {
       /* op showed why */

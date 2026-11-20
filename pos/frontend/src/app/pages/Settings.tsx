@@ -8,14 +8,14 @@
 import { useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import type { LucideIcon } from 'lucide-react';
-import { Banknote, Building2, Check, CreditCard, ImagePlus, KeyRound, Mail, MonitorSmartphone, NotebookPen, Percent, Plus, QrCode, ScanLine, ShoppingCart, Sparkles, Trash2, UserCog, Users, Wallet } from 'lucide-react';
+import { Banknote, Building2, Check, CreditCard, ImagePlus, KeyRound, Mail, MonitorSmartphone, NotebookPen, Pencil, Percent, Plus, QrCode, ScanLine, ShoppingCart, Sparkles, Trash2, UserCog, Users, Wallet } from 'lucide-react';
 import { cn, toast } from '../../kit/index.ts';
 import { api } from '../lib/api.ts';
 import { useApp } from '../lib/context.tsx';
 import { ROLE_LABEL, majorText, parseMoney, parsePercent, percent, plural, symbolOf } from '../lib/format.ts';
 import { replaceQuery } from '../lib/router.ts';
 import { can, session, useSession } from '../lib/session.ts';
-import type { OrderType, Role, Settings, Staff, TaxClass, Tender, TenderKind } from '../lib/types.ts';
+import type { OrderType, Register, Role, Settings, Staff, TaxClass, Tender, TenderKind } from '../lib/types.ts';
 import { ColorPicker } from '../components/products/ProductEditor.tsx';
 import { Avatar, Badge, Button, Card, CardHeader, Field, IconBadge, IconButton, Modal, PageHeader, Segmented, Select, Spinner, Tabs, TextField, Toggle, pillInput, rowCls, textareaCls, useConfirm } from '../components/ui.tsx';
 
@@ -642,12 +642,23 @@ function Registers(): React.JSX.Element {
   const { registers } = useApp();
   const { register: mine } = useSession();
   const [name, setName] = useState('');
-  const [adding, setAdding] = useState(false);
-  const add = async (): Promise<void> => {
+  const [edit, setEdit] = useState<Register | 'new' | null>(null);
+  const open = (r: Register | 'new'): void => {
+    setName(r === 'new' ? '' : r.name);
+    setEdit(r);
+  };
+  const save = async (): Promise<void> => {
+    const n = name.trim();
+    if (n === '' || edit === null) return;
     try {
-      await api.addRegister(name.trim());
-      toast.success(`Added ${name.trim()}`);
-      setAdding(false);
+      if (edit === 'new') {
+        await api.addRegister(n);
+        toast.success(`Added ${n}`);
+      } else {
+        await api.updateRegister({ register: edit.id, name: n });
+        toast.success(`Renamed ${edit.code} to ${n}`);
+      }
+      setEdit(null);
       setName('');
     } catch {
       /* toasted */
@@ -659,7 +670,7 @@ function Registers(): React.JSX.Element {
         title="Registers"
         subtitle="Each counter device is one register, with its own receipt numbers and cash drawer"
         action={
-          <Button variant="primary" icon={Plus} dot onClick={() => setAdding(true)}>
+          <Button variant="primary" icon={Plus} dot onClick={() => open('new')}>
             New register
           </Button>
         }
@@ -685,6 +696,7 @@ function Registers(): React.JSX.Element {
                 Use on this device
               </Button>
             )}
+            <IconButton icon={Pencil} label={`Rename ${r.name}`} variant="light" className="hover:bg-[var(--ps-row-hover)]" onClick={() => open(r)} />
             {registers.length > 1 && r.shift === null && (
               <IconButton
                 icon={Trash2}
@@ -701,24 +713,25 @@ function Registers(): React.JSX.Element {
           </div>
         ))}
       </div>
-      {adding && (
+      {edit !== null && (
         <Modal
           open
-          onClose={() => setAdding(false)}
-          title="New register"
+          onClose={() => setEdit(null)}
+          title={edit === 'new' ? 'New register' : `Rename ${edit.name}`}
+          description={edit === 'new' ? undefined : `Its code ${edit.code} and its receipt numbers stay the same`}
           footer={
             <>
-              <Button variant="light" onClick={() => setAdding(false)}>
+              <Button variant="light" onClick={() => setEdit(null)}>
                 Cancel
               </Button>
-              <Button variant="primary" disabled={name.trim() === ''} onClick={() => void add()}>
-                Add
+              <Button variant="primary" disabled={name.trim() === ''} onClick={() => void save()}>
+                {edit === 'new' ? 'Add' : 'Save'}
               </Button>
             </>
           }
         >
           <DialogCard>
-            <TextField label="Name" value={name} onChange={setName} autoFocus maxLength={40} placeholder="Bar" onEnter={() => void add()} />
+            <TextField label="Name" value={name} onChange={setName} autoFocus maxLength={40} placeholder="Bar" onEnter={() => void save()} />
           </DialogCard>
         </Modal>
       )}

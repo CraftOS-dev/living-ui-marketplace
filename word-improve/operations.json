@@ -1,34 +1,158 @@
 {
-  "opsVersion": 1,
   "operations": [
     {
-      "name": "health",
-      "description": "Liveness check (PocketBase built-in).",
-      "system": true,
-      "params": {},
-      "executor": { "type": "http", "method": "GET", "path": "/api/health" }
-    },
-    {
-      "name": "ops.list",
-      "description": "Return this operations manifest.",
-      "system": true,
-      "params": {},
-      "executor": { "type": "http", "method": "GET", "path": "/api/_ops" }
-    },
-    {
       "name": "ai.generate",
-      "description": "Run one prompt through the CraftBot LLM bridge and return the raw text (empty string when the app runs outside CraftBot). Used to produce the whole-text rewrite variants.",
+      "description": "Run one prompt through the host's language model and return the raw text (empty string when no language model is connected).",
+      "destructive": false,
+      "module": "ai",
       "params": {
-        "system": { "type": "string", "required": false, "description": "System prompt." },
-        "prompt": { "type": "string", "required": true, "description": "User prompt." }
-      },
-      "executor": { "type": "http", "method": "POST", "path": "/api/ops/ai/generate" }
+        "system": {
+          "type": "string",
+          "description": "System prompt."
+        },
+        "prompt": {
+          "type": "string",
+          "required": true,
+          "description": "User prompt."
+        }
+      }
     },
     {
       "name": "integrations.status",
-      "description": "Whether the CraftBot LLM bridge is configured, so the frontend can show an honest LLM-available banner.",
-      "params": {},
-      "executor": { "type": "http", "method": "GET", "path": "/api/ops/integrations/status" }
+      "description": "Whether a language model is connected (CraftBot's bridge or a running framework bridge), so the screen can show an honest LLM-available banner.",
+      "destructive": false,
+      "readOnly": true,
+      "module": "integrations",
+      "params": {}
+    },
+    {
+      "name": "sessions.list",
+      "description": "Your improvement sessions, newest first: id, title, status, mode, tone and variant count, as the sidebar lists them.",
+      "destructive": false,
+      "readOnly": true,
+      "module": "sessions",
+      "params": {}
+    },
+    {
+      "name": "sessions.get",
+      "description": "One session as the merge view shows it: numbered conflicts with their choices (original, A, B...), additions, picks left, and the compiled…",
+      "destructive": false,
+      "readOnly": true,
+      "module": "sessions",
+      "params": {
+        "session_id": {
+          "type": "string",
+          "required": true,
+          "description": "Session id from sessions.list"
+        }
+      }
+    },
+    {
+      "name": "sessions.result",
+      "description": "The compiled result: the final text (what Copy copies), the word diff against the original, words added and removed.",
+      "destructive": false,
+      "readOnly": true,
+      "module": "sessions",
+      "params": {
+        "session_id": {
+          "type": "string",
+          "required": true,
+          "description": "Session id from sessions.list"
+        }
+      }
+    },
+    {
+      "name": "sessions.create",
+      "description": "Start a session: the text, a mode and 2-5 variants; the LLM writes the variants, which can take minutes.",
+      "destructive": false,
+      "module": "sessions",
+      "params": {
+        "text": {
+          "type": "string",
+          "required": true,
+          "description": "The text to improve; separate paragraphs with a blank line"
+        },
+        "mode": {
+          "type": "enum",
+          "values": [
+            "improve",
+            "tone_shift",
+            "custom"
+          ],
+          "description": "improve (default), tone_shift or custom"
+        },
+        "tone": {
+          "type": "enum",
+          "values": [
+            "Formal",
+            "Casual",
+            "Persuasive",
+            "Concise",
+            "Friendly",
+            "Academic"
+          ],
+          "description": "Only with mode tone_shift (default Formal)"
+        },
+        "instruction": {
+          "type": "string",
+          "description": "Required with mode custom: the free-form instruction"
+        },
+        "variants": {
+          "type": "number",
+          "description": "How many variants: 2, 3, 4 or 5 (default 3)"
+        }
+      }
+    },
+    {
+      "name": "sessions.regenerate",
+      "description": "Ask the LLM for fresh variants of a session; replaces every pick and the compiled result.",
+      "destructive": true,
+      "module": "sessions",
+      "params": {
+        "session_id": {
+          "type": "string",
+          "required": true,
+          "description": "Session id from sessions.list"
+        }
+      }
+    },
+    {
+      "name": "sessions.pick",
+      "description": "Pick a version for a conflict (original, A-E, or none to unpick) or include/skip an addition; the compiled text updates.",
+      "destructive": false,
+      "module": "sessions",
+      "params": {
+        "session_id": {
+          "type": "string",
+          "required": true,
+          "description": "Session id from sessions.list"
+        },
+        "position": {
+          "type": "number",
+          "description": "Segment position from sessions.get (with choice)"
+        },
+        "choice": {
+          "type": "string",
+          "description": "Conflict: original, A-E or none. Addition: include or skip"
+        },
+        "picks": {
+          "type": "json",
+          "description": "Several picks at once instead: [{\"position\":3,\"choice\":\"B\"}]"
+        }
+      }
+    },
+    {
+      "name": "sessions.delete",
+      "description": "Delete a session for good.",
+      "destructive": true,
+      "module": "sessions",
+      "params": {
+        "session_id": {
+          "type": "string",
+          "required": true,
+          "description": "Session id from sessions.list"
+        }
+      }
     }
   ]
 }

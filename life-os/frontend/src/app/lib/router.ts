@@ -7,9 +7,9 @@
  *   #/life                  the life map and every goal
  *   #/area?kind=            one area of life, with its own tools
  *   #/projects              #/project?id=
- *   #/journal?tab=&entry=
- *   #/agent?tab=
- *   #/settings?tab=
+ *   #/journal?tab=&entry=   the page, or the tab timeline or recap
+ *   #/agent
+ *   #/settings
  *   #/welcome               the first run
  *
  * Back buttons follow the app's own trail: history.back() could leave the

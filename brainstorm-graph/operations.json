@@ -1,59 +1,189 @@
 {
-  "opsVersion": 1,
   "operations": [
     {
-      "name": "health",
-      "description": "Liveness check (PocketBase built-in).",
-      "system": true,
-      "params": {},
-      "executor": { "type": "http", "method": "GET", "path": "/api/health" }
-    },
-    {
-      "name": "ops.list",
-      "description": "Return this operations manifest.",
-      "system": true,
-      "params": {},
-      "executor": { "type": "http", "method": "GET", "path": "/api/_ops" }
-    },
-    {
       "name": "sessions.summarize",
-      "description": "AI summary of a brainstorm session (CraftBot LLM bridge; 503 outside CraftBot).",
+      "description": "AI summary of a brainstorm session (the host's language model; 503 when none is connected).",
+      "destructive": false,
+      "module": "sessions",
       "params": {
-        "session_id": { "type": "string", "required": true, "description": "The session record id." }
-      },
-      "executor": { "type": "http", "method": "POST", "path": "/api/ops/sessions/summarize" }
-    },
-    {
-      "name": "nodes.suggest",
-      "description": "Create 3 AI-suggested child ideas under a node (CraftBot LLM bridge; 503 outside CraftBot).",
-      "params": {
-        "node_id": { "type": "string", "required": true, "description": "The parent node record id." }
-      },
-      "executor": { "type": "http", "method": "POST", "path": "/api/ops/nodes/suggest" }
-    },
-    {
-      "name": "nodes.answer",
-      "description": "AI answers a question node and attaches the answer as an insight child (CraftBot LLM bridge; 503 outside CraftBot).",
-      "params": {
-        "node_id": { "type": "string", "required": true, "description": "The question node record id." }
-      },
-      "executor": { "type": "http", "method": "POST", "path": "/api/ops/nodes/answer" }
-    },
-    {
-      "name": "sessions.explore",
-      "description": "AI proposes 4 new angles for a session and adds them as nodes (CraftBot LLM bridge; 503 outside CraftBot).",
-      "params": {
-        "session_id": { "type": "string", "required": true, "description": "The session record id." }
-      },
-      "executor": { "type": "http", "method": "POST", "path": "/api/ops/sessions/explore" }
+        "session_id": {
+          "type": "string",
+          "required": true,
+          "description": "The session record id."
+        }
+      }
     },
     {
       "name": "sessions.outline",
       "description": "Return a brainstorm session's full node tree as an indented text outline.",
+      "destructive": false,
+      "readOnly": true,
+      "module": "sessions",
       "params": {
-        "session_id": { "type": "string", "required": true, "description": "The session record id." }
-      },
-      "executor": { "type": "http", "method": "GET", "path": "/api/ops/sessions/outline" }
+        "session_id": {
+          "type": "string",
+          "required": true,
+          "description": "The session record id."
+        }
+      }
+    },
+    {
+      "name": "sessions.get",
+      "description": "One session as the person sees it: title, topic, counts, and every node with its type (question/answer/idea), parent, depth and canvas x/y.",
+      "destructive": false,
+      "readOnly": true,
+      "module": "sessions",
+      "params": {
+        "session_id": {
+          "type": "string",
+          "required": true,
+          "description": "The session record id."
+        }
+      }
+    },
+    {
+      "name": "sessions.create",
+      "description": "Create a session with its root idea node on the canvas, as the New Session dialog does.",
+      "destructive": false,
+      "module": "sessions",
+      "params": {
+        "title": {
+          "type": "string",
+          "required": true,
+          "description": "Session title, max 255 chars."
+        },
+        "topic": {
+          "type": "string",
+          "required": true,
+          "description": "Topic to explore, max 2000 chars; it becomes the root node's text."
+        }
+      }
+    },
+    {
+      "name": "sessions.ai-explore",
+      "description": "The AI Explore dialog: `effort` steps, each one model call adding up to 4 idea nodes under the next branch of a breadth- or depth-first walk, placed on the canvas (the host's language model; 503 when none is connected).",
+      "destructive": false,
+      "module": "sessions",
+      "params": {
+        "session_id": {
+          "type": "string",
+          "required": true,
+          "description": "The session record id."
+        },
+        "strategy": {
+          "type": "enum",
+          "values": [
+            "bfs",
+            "dfs"
+          ],
+          "description": "bfs (default): every branch tip before going deeper; dfs: keep drilling into the newest branch."
+        },
+        "effort": {
+          "type": "enum",
+          "values": [
+            "2",
+            "3",
+            "5"
+          ],
+          "description": "Steps, one model call each: 2, 3 (default) or 5."
+        },
+        "start_node_id": {
+          "type": "string",
+          "description": "Node record id to start from; omitted = Auto (the session's branch tips)."
+        }
+      }
+    },
+    {
+      "name": "nodes.add",
+      "description": "Add a child node under a node, placed on the canvas like the Add node dialog.",
+      "destructive": false,
+      "module": "nodes",
+      "params": {
+        "parent_id": {
+          "type": "string",
+          "required": true,
+          "description": "The parent node record id."
+        },
+        "content": {
+          "type": "string",
+          "required": true,
+          "description": "The node's text, max 2000 chars."
+        },
+        "type": {
+          "type": "enum",
+          "values": [
+            "question",
+            "answer",
+            "idea"
+          ],
+          "description": "Node type; default question."
+        }
+      }
+    },
+    {
+      "name": "nodes.edit",
+      "description": "Change a node's text and/or type, as the node editor's Save does.",
+      "destructive": false,
+      "module": "nodes",
+      "params": {
+        "node_id": {
+          "type": "string",
+          "required": true,
+          "description": "The node record id."
+        },
+        "content": {
+          "type": "string",
+          "description": "New text, max 2000 chars."
+        },
+        "type": {
+          "type": "enum",
+          "values": [
+            "question",
+            "answer",
+            "idea"
+          ],
+          "description": "New node type."
+        }
+      }
+    },
+    {
+      "name": "nodes.expand",
+      "description": "The Expand button: AI adds up to 3 question children under a node, placed on the canvas (the host's language model; 503 when none is connected).",
+      "destructive": false,
+      "module": "nodes",
+      "params": {
+        "node_id": {
+          "type": "string",
+          "required": true,
+          "description": "The node record id."
+        }
+      }
+    },
+    {
+      "name": "nodes.ai-answer",
+      "description": "The Answer button: AI answers a question node and adds the answer as a child (the host's language model; 503 when none is connected).",
+      "destructive": false,
+      "module": "nodes",
+      "params": {
+        "node_id": {
+          "type": "string",
+          "required": true,
+          "description": "The question node record id."
+        }
+      }
+    },
+    {
+      "name": "nodes.delete",
+      "description": "Delete a node and all its descendants, as the delete dialog does.",
+      "destructive": true,
+      "module": "nodes",
+      "params": {
+        "node_id": {
+          "type": "string",
+          "required": true,
+          "description": "The node record id."
+        }
+      }
     }
   ]
 }

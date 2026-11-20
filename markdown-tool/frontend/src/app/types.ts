@@ -19,8 +19,13 @@ export interface OpenTab {
   savedContent: string
 }
 
+/** A tab as the session stores it: the path only, since the text is in the file. */
+export interface SessionTab {
+  path: string
+}
+
 export interface EditorSession {
-  openTabs: OpenTab[]
+  openTabs: SessionTab[]
   activeTab: string | null
   folderPanelWidth: number
   previewPanelWidth: number

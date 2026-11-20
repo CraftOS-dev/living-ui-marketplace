@@ -104,6 +104,7 @@ export function Palette({ open, onClose }: { open: boolean; onClose: () => void 
         <input
           autoFocus
           value={q}
+          aria-label="Search or type a command"
           onChange={(e) => setQ(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === 'ArrowDown') {

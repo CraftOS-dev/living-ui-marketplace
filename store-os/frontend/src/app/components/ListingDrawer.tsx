@@ -12,8 +12,9 @@ import { op } from '../lib/api.ts';
 import { changed } from '../lib/live.ts';
 import { useStore } from '../lib/store.tsx';
 import { currencySign, money, num } from '../lib/format.ts';
+import { askNotice } from '../lib/ask.ts';
 import { notify } from '../lib/toast.tsx';
-import type { Listing, ProductDetail } from '../lib/types.ts';
+import type { AskResult, Listing, ProductDetail } from '../lib/types.ts';
 import { ListingPill } from './badges.tsx';
 import { PlatformMark, PLATFORM_NAME } from './PlatformMark.tsx';
 import { MarkLiveDialog, amountText, parseAmount } from './ProductDialogs.tsx';
@@ -105,9 +106,8 @@ function ListingPanel({ product: p, l, onClose, onMarkLive }: { product: Product
     if (dirty && !(await save())) return;
     setBusy('publish');
     try {
-      await op('listings.publish', { shop: l.shop.id, listings: [l.id] });
+      askNotice(await op<AskResult>('listings.publish', { shop: l.shop.id, listings: [l.id] }), 'Asked your AI agent to publish');
       changed('tasks', 'shops', 'listings');
-      notify.info('Asked your AI agent to publish');
     } catch {
       /* op showed why */
     } finally {

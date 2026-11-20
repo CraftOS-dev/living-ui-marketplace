@@ -123,6 +123,9 @@ export interface RequestRec {
   status: 'sent' | 'working' | 'done' | 'failed';
   result: string;
   request_id: string;
+  /** False when the AI agent never got it (the fire was refused, or its task failed or was canceled first). */
+  asked: boolean;
+  ask_error: string;
   created: string;
   updated: string;
 }
@@ -345,7 +348,10 @@ export interface AppStatus {
   images: number;
   pending_images: number;
   proposals: number;
+  /** Requests waiting on the AI agent: it has them (sent or working). */
   open_requests: number;
+  /** Requests needing the person ("Needs you"): failed, or never sent. */
+  requests_need_you: number;
   batches_running: number;
   exports: number;
   now: string;

@@ -20,7 +20,7 @@ const Ctx = createContext<AppData | null>(null);
 export function AppDataProvider({ children }: { children: ReactNode }): React.JSX.Element {
   const settings = useLive(() => api.settings(), ['settings'], []);
   const presets = useLive(() => api.presets(), ['presets'], []);
-  const status = useLive(() => api.status(), ['images', 'proposals', 'requests', 'batches', 'exports'], [], 400);
+  const status = useLive(() => api.status(), ['images', 'proposals', 'requests', 'agent_requests', 'batches', 'exports'], [], 400);
   const [schema, setSchema] = useState<Schema | null>(null);
   useEffect(() => {
     api

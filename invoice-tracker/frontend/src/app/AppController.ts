@@ -4,6 +4,7 @@
 
 import { toast } from '../kit/index.ts'
 import type { InvoiceReceipt, Subscription, DashboardStats, ActivityEvent, TrackerGroup } from './types.ts'
+import { getCurrencySymbol } from './types.ts'
 import { ApiService } from './services/ApiService.ts'
 
 export interface ControllerState {
@@ -134,7 +135,9 @@ export class AppController {
         ApiService.fetchGroups(),
       ])
 
-      const stats = ApiService.computeDashboardStatsFromData(invoices, subscriptions)
+      // Totals are in the shown workspace's currency (the newest workspace's under All Workspaces)
+      const shownGroup = groups.find((g) => g.id === grpId) || groups[0]
+      const stats = ApiService.computeDashboardStatsFromData(invoices, subscriptions, shownGroup?.currency || 'USD')
       stats.recentActivities = activities
       this.state.stats = stats
       this.state.invoices = invoices
@@ -196,7 +199,12 @@ export class AppController {
     try {
       await ApiService.deleteGroup(groupId)
       toast.info('Workspace group deleted.')
-      this.state.activeGroupId = null
+      // Deleting the shown workspace shows the newest remaining one, as on open
+      if (this.state.activeGroupId === groupId) {
+        const next = this.state.groups.find((g) => g.id !== groupId)
+        this.state.activeGroupId = next ? next.id : null
+        this.state.activeGroupName = next ? next.name : 'All Workspaces'
+      }
       await this.refreshData(false)
     } catch (err: any) {
       toast.error('Failed to delete workspace group: ' + err.message)
@@ -212,7 +220,9 @@ export class AppController {
         ...data,
         groupId: grpId,
       })
-      toast.success(`✨ Added Subscription: ${data.name} ($${Number(data.amount).toFixed(2)}/${data.billingFrequency || 'mo'})!`)
+      const freq = data.billingFrequency || 'monthly'
+      const per = freq === 'monthly' ? 'mo' : freq === 'yearly' ? 'yr' : freq
+      toast.success(`✨ Added Subscription: ${data.name} (${getCurrencySymbol(data.currency)}${Number(data.amount).toFixed(2)}/${per})!`)
       this.state.livePulseActive = true
       this.notifyListeners()
       await this.refreshData(false)
@@ -268,7 +278,7 @@ export class AppController {
         ...data,
         groupId: grpId,
       })
-      toast.success(`✨ Added Invoice: ${newInv.vendor} ($${newInv.amount.toFixed(2)})!`)
+      toast.success(`✨ Added Invoice: ${newInv.vendor} (${getCurrencySymbol(newInv.currency)}${newInv.amount.toFixed(2)})!`)
       this.state.livePulseActive = true
       this.notifyListeners()
       await this.refreshData(false)
@@ -287,6 +297,11 @@ export class AppController {
       await ApiService.updateInvoice(id, data)
       toast.success('Invoice updated.')
       await this.refreshData(false)
+      // An open inspector shows the updated invoice (e.g. its newly attached PDF)
+      if (this.state.selectedInvoice && this.state.selectedInvoice.id === id) {
+        this.state.selectedInvoice = this.state.invoices.find((i) => i.id === id) || this.state.selectedInvoice
+        this.notifyListeners()
+      }
     } catch (err: any) {
       toast.error('Failed to update invoice: ' + err.message)
     }
@@ -305,13 +320,15 @@ export class AppController {
   // Simulation & Manual Ingestion
   async createManualIngestionEvent(data: any): Promise<void> {
     try {
+      // The Log Event form sends the stored field names (event_type, currency, group_id)
       await ApiService.logActivity({
-        eventType: data.eventType || 'manual_event',
+        eventType: data.event_type || data.eventType || 'manual_event',
         title: data.title || 'Manual Event',
         description: data.description,
         amount: Number(data.amount) || 0,
+        currency: data.currency || 'USD',
         vendor: data.vendor,
-        groupId: this.state.activeGroupId,
+        groupId: data.group_id || this.state.activeGroupId,
       })
       toast.success('Activity event logged.')
       await this.refreshData(false)
@@ -324,7 +341,7 @@ export class AppController {
     this.state.isSimulating = true
     this.notifyListeners()
     try {
-      const res = await ApiService.simulateEmail(preset)
+      const res = await ApiService.simulateEmail(preset, this.state.activeGroupId)
       toast.success(`⚡ Simulated email ingestion: ${preset.toUpperCase()} received!`)
       this.state.livePulseActive = true
       this.state.lastSimulatedInvoice = res.invoice

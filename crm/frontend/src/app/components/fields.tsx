@@ -280,7 +280,7 @@ export function Editor({ object, rec, spec, app, onDone }: { object: Obj; rec: A
   const box = 'h-7 w-full';
   switch (spec.type) {
     case 'longtext':
-      return <textarea autoFocus value={text} onChange={(e) => setText(e.target.value)} onBlur={() => void commit()} rows={3} className={area} {...keys} />;
+      return <textarea autoFocus value={text} onChange={(e) => setText(e.target.value)} onBlur={() => void commit()} rows={3} aria-label={spec.label} className={area} {...keys} />;
     case 'tags':
     case 'custom_multi_select':
       if (spec.type === 'custom_multi_select')
@@ -345,7 +345,7 @@ export function Editor({ object, rec, spec, app, onDone }: { object: Obj; rec: A
         </span>
       );
     default:
-      return <input autoFocus value={text} onChange={(e) => setText(e.target.value)} onBlur={() => void commit()} className={cn(input, box)} placeholder={spec.type === 'birthday' ? 'MM-DD or YYYY-MM-DD' : spec.type === 'percent' ? 'Empty for the stage probability' : spec.type === 'emails' ? 'a@x.com, b@y.com' : ''} {...keys} />;
+      return <input autoFocus value={text} onChange={(e) => setText(e.target.value)} onBlur={() => void commit()} aria-label={spec.label} className={cn(input, box)} placeholder={spec.type === 'birthday' ? 'MM-DD or YYYY-MM-DD' : spec.type === 'percent' ? 'Empty for the stage probability' : spec.type === 'emails' ? 'a@x.com, b@y.com' : ''} {...keys} />;
   }
 }
 

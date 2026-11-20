@@ -26,7 +26,7 @@
  * The backend only STORES the uploaded source PDF (`pdfs.source` file field) and
  * the split-job history (`split_jobs`). Split OUTPUTS are never persisted — they
  * are regenerated client-side on download from source + stored config, exactly
- * reproducing routes.py's page-group/label/sort logic.
+ * reproducing routes.py's page-group/label logic.
  *
  * SHAPE SYNTHESIS NOTES (where PocketBase can't reproduce V1 exactly)
  * ------------------------------------------------------------------
@@ -38,16 +38,19 @@
  *   - `file_path` (V1 disk path) and `output_dir` (V1 split folder) do not exist
  *     in V2; we synthesize stable strings (`/api/files/...`, `splits/<id>`). The
  *     frontend never parses them.
- *   - Split output files are indexed by their filename-sorted order to match V1's
- *     `sorted(output_dir.glob("*.pdf"))`, computed on the `{label}.pdf` names.
+ *   - Split output files are indexed in plan order, the order the Split Complete
+ *     panel lists them, and a repeated `{label}.pdf` name gets " (2)", " (3)"…
+ *     (outputFiles), so every part downloads and the ZIP keeps them all.
  */
 
 import * as pdfjsLib from 'pdfjs-dist'
-import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url'
+// Bundled by Vite and emitted as .js: a .mjs asset can be served as text/plain
+// (Windows maps .mjs that way), and a worker served so never loads.
+import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?worker&url'
 import { PDFDocument as PDFLibDocument } from 'pdf-lib'
 import JSZip from 'jszip'
 
-// pdf.js worker (Vite-friendly: bundler rewrites the ?url import to an asset url)
+// pdf.js worker (Vite-friendly: the bundler rewrites the import to the worker's url)
 pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl
 
 const SENTINEL = 'http://living-ui.local'
@@ -271,11 +274,31 @@ function buildPageGroups(splitType: string, config: Record<string, unknown>, tot
   return groups
 }
 
-// Filename-sorted view matching V1's sorted(output_dir.glob("*.pdf")).
-function sortedFiles(groups: PageGroup[]): { name: string; indices: number[] }[] {
-  return groups
-    .map((g) => ({ name: `${g.label}.pdf`, indices: g.indices }))
-    .sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0))
+// The part files in plan order: the order the Split Complete panel lists them,
+// which every download ("Part i", the panel's i-th button, the ZIP) follows.
+// A repeated name (a range typed twice) gets " (2)", " (3)"… so no part is lost.
+function outputFiles(groups: PageGroup[]): { name: string; indices: number[] }[] {
+  const used = new Set<string>()
+  return groups.map((g) => {
+    let name = `${g.label}.pdf`
+    for (let k = 2; used.has(name); k++) name = `${g.label} (${k}).pdf`
+    used.add(name)
+    return { name, indices: g.indices }
+  })
+}
+
+// Open a source PDF with pdf-lib for splitting. pdf-lib cannot decrypt, so an
+// encrypted PDF (even one with only an owner password) would give blank parts:
+// it is refused with a plain message. Uploads refuse such files up front.
+async function openSource(bytes: Uint8Array): Promise<PDFLibDocument | Response> {
+  let srcDoc: PDFLibDocument
+  try {
+    srcDoc = await PDFLibDocument.load(bytes.slice(), { ignoreEncryption: true })
+  } catch (e) {
+    return json({ detail: `Failed to open PDF: ${String((e as Error)?.message ?? e)}` }, 500)
+  }
+  if (srcDoc.isEncrypted) return json({ detail: 'Failed to open PDF: the file is encrypted' }, 500)
+  return srcDoc
 }
 
 async function buildPdfBlob(srcDoc: PDFLibDocument, indices: number[]): Promise<Blob> {
@@ -310,12 +333,23 @@ async function handleUpload(init?: RequestInit): Promise<Response> {
   }
 
   let pageCount = 0
+  let encrypted = false
   try {
     const doc = await pdfjsLib.getDocument({ data: bytes.slice() }).promise
     pageCount = doc.numPages
+    // pdf.js opens a PDF that has only an owner password, but pdf-lib can never
+    // split it (openSource), so it is refused here rather than at split time.
+    const { info } = await doc.getMetadata()
+    encrypted = Boolean((info as { EncryptFilterName?: string | null }).EncryptFilterName)
     try { doc.destroy() } catch { /* ignore */ }
   } catch (e) {
+    if ((e as Error)?.name === 'PasswordException') {
+      return json({ detail: 'This PDF needs a password to open. PDF Splitter cannot split password-protected PDFs: remove the password and upload it again.' }, 400)
+    }
     return json({ detail: `Failed to process PDF: ${String((e as Error)?.message ?? e)}` }, 400)
+  }
+  if (encrypted) {
+    return json({ detail: 'This PDF is password-protected (it has an owner password). PDF Splitter cannot split password-protected PDFs: remove the password and upload it again.' }, 400)
   }
 
   // Create the pdfs record via multipart (the source is a file field).
@@ -400,20 +434,17 @@ async function handleSplit(pdfId: string, init?: RequestInit): Promise<Response>
 
   const bytes = await getSourceBytes(pdfId)
   if (!bytes) return json({ detail: 'Failed to open PDF' }, 500)
-  let srcDoc: PDFLibDocument
-  try {
-    srcDoc = await PDFLibDocument.load(bytes.slice())
-  } catch (e) {
-    return json({ detail: `Failed to open PDF: ${String((e as Error)?.message ?? e)}` }, 500)
-  }
+  const srcDoc = await openSource(bytes)
+  if (srcDoc instanceof Response) return srcDoc
 
   const total = srcDoc.getPageCount()
   const groups = buildPageGroups(splitType, config, total)
   if (groups.length === 0) return json({ detail: 'No valid pages to split' }, 400)
 
-  // files[] is in page-group iteration order (as V1 builds output_files); pages
-  // are 1-indexed. Output PDFs are NOT persisted — regenerated on download.
-  const files = groups.map((g) => ({ filename: `${g.label}.pdf`, pages: g.indices.map((i) => i + 1) }))
+  // files[] is in page-group iteration order (as V1 builds output_files), the
+  // order the downloads use, with unique names; pages are 1-indexed. Output
+  // PDFs are NOT persisted — regenerated on download.
+  const files = outputFiles(groups).map((f) => ({ filename: f.name, pages: f.indices.map((i) => i + 1) }))
 
   const created = await pbCreate('split_jobs', {
     document: pdfId,
@@ -440,10 +471,10 @@ async function handlePdfSplits(pdfId: string): Promise<Response> {
   return json(rows.map(toSplitJob))
 }
 
-// Load a split job + its source and return the filename-sorted page groups.
+// Load a split job + its source and return its part files in plan order.
 async function loadSplitContext(
   splitId: string,
-): Promise<{ srcDoc: PDFLibDocument; sorted: { name: string; indices: number[] }[] } | Response> {
+): Promise<{ srcDoc: PDFLibDocument; files: { name: string; indices: number[] }[] } | Response> {
   const job = await pbGet('split_jobs', splitId)
   if (!job) return json({ detail: 'Split job not found' }, 404)
   const docId = String(job.document ?? '')
@@ -452,24 +483,20 @@ async function loadSplitContext(
 
   const bytes = await getSourceBytes(docId)
   if (!bytes) return json({ detail: 'Split output not found' }, 404)
-  let srcDoc: PDFLibDocument
-  try {
-    srcDoc = await PDFLibDocument.load(bytes.slice())
-  } catch (e) {
-    return json({ detail: `Failed to open PDF: ${String((e as Error)?.message ?? e)}` }, 500)
-  }
+  const srcDoc = await openSource(bytes)
+  if (srcDoc instanceof Response) return srcDoc
   const groups = buildPageGroups(splitType, config, srcDoc.getPageCount())
-  return { srcDoc, sorted: sortedFiles(groups) }
+  return { srcDoc, files: outputFiles(groups) }
 }
 
 async function handleDownloadFile(splitId: string, fileIndex: number): Promise<Response> {
   const ctx = await loadSplitContext(splitId)
   if (ctx instanceof Response) return ctx
-  const { srcDoc, sorted } = ctx
-  if (!Number.isInteger(fileIndex) || fileIndex < 0 || fileIndex >= sorted.length) {
+  const { srcDoc, files } = ctx
+  if (!Number.isInteger(fileIndex) || fileIndex < 0 || fileIndex >= files.length) {
     return json({ detail: 'File index out of range' }, 404)
   }
-  const target = sorted[fileIndex]!
+  const target = files[fileIndex]!
   try {
     const blob = await buildPdfBlob(srcDoc, target.indices)
     return new Response(blob, {
@@ -487,11 +514,11 @@ async function handleDownloadFile(splitId: string, fileIndex: number): Promise<R
 async function handleDownloadZip(splitId: string): Promise<Response> {
   const ctx = await loadSplitContext(splitId)
   if (ctx instanceof Response) return ctx
-  const { srcDoc, sorted } = ctx
-  if (sorted.length === 0) return json({ detail: 'No split files found' }, 404)
+  const { srcDoc, files } = ctx
+  if (files.length === 0) return json({ detail: 'No split files found' }, 404)
   try {
     const zip = new JSZip()
-    for (const f of sorted) {
+    for (const f of files) {
       const out = await PDFLibDocument.create()
       const copied = await out.copyPages(srcDoc, f.indices)
       for (const p of copied) out.addPage(p)

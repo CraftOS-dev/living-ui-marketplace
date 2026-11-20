@@ -1,0 +1,500 @@
+{
+  "events": [
+    {
+      "type": "memo_sections",
+      "capability": "memo_sections",
+      "description": "Your AI agent drafts the objective sections of an investment memo as tracked changes, every figure cited; never the thesis or the recommendation",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "memo_id": {
+          "type": "string",
+          "required": true,
+          "description": "The memo (its id)"
+        },
+        "sections": {
+          "type": "string",
+          "description": "Comma-separated section keys to draft"
+        }
+      },
+      "cooldownSeconds": 10
+    },
+    {
+      "type": "bear_case",
+      "capability": "bear_case",
+      "description": "Your AI agent writes the bear case of a committee agenda item: risks and contrary evidence, cited, with no recommendation",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "item_id": {
+          "type": "string",
+          "required": true,
+          "description": "The agenda item (its id)"
+        }
+      },
+      "cooldownSeconds": 10
+    },
+    {
+      "type": "anti_portfolio",
+      "capability": "anti_portfolio",
+      "description": "Your AI agent looks up what happened later to the companies the firm passed on (public outcomes with their sources)",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        }
+      },
+      "cooldownSeconds": 72000
+    },
+    {
+      "type": "note_review",
+      "capability": "note_review",
+      "description": "Your AI agent reviews a saved meeting note: a summary, deal field changes for a person to accept, tasks for stated next steps and reference calls",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "note_id": {
+          "type": "string",
+          "required": true,
+          "description": "The note (its id)"
+        }
+      },
+      "cooldownSeconds": 10
+    },
+    {
+      "type": "diligence_answers",
+      "capability": "diligence_answers",
+      "description": "Your AI agent answers a deal's open diligence questions from its data room and public sources, every answer cited, for a person to confirm",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "deal_id": {
+          "type": "string",
+          "required": true,
+          "description": "The deal (its id)"
+        }
+      },
+      "cooldownSeconds": 10
+    },
+    {
+      "type": "refs_suggest",
+      "capability": "refs_suggest",
+      "description": "Your AI agent suggests back-channel references from the firm's own records: people who worked with a founder before",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "deal_id": {
+          "type": "string",
+          "required": true,
+          "description": "The deal (its id)"
+        }
+      },
+      "cooldownSeconds": 10
+    },
+    {
+      "type": "page_ocr",
+      "capability": "page_ocr",
+      "description": "Your AI agent reads the scanned pages of a file into its text layer, so they can be searched and cited",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "file_id": {
+          "type": "string",
+          "required": true,
+          "description": "The file (its id)"
+        }
+      },
+      "cooldownSeconds": 10
+    },
+    {
+      "type": "grid_answers",
+      "capability": "grid_answers",
+      "description": "Your AI agent answers the empty cells of a comparison grid for the companies without a data room, from public sources with links",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "grid_id": {
+          "type": "string",
+          "required": true,
+          "description": "The compare grid (its id)"
+        }
+      },
+      "cooldownSeconds": 10
+    },
+    {
+      "type": "mark_notes",
+      "capability": "mark_notes",
+      "description": "Your AI agent drafts a calibrated mark for every holding of a quarter, each input with its source; a person approves them with the PIN",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "quarter_id": {
+          "type": "string",
+          "required": true,
+          "description": "The quarter (its id)"
+        }
+      },
+      "cooldownSeconds": 10
+    },
+    {
+      "type": "notice_review",
+      "capability": "notice_review",
+      "description": "Your AI agent reviews a previewed capital call or distribution against the ILPA content list and the previous notice, before a person issues it",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "event_id": {
+          "type": "string",
+          "required": true,
+          "description": "The capital event (its id)"
+        }
+      },
+      "cooldownSeconds": 10
+    },
+    {
+      "type": "reconcile",
+      "capability": "reconcile",
+      "description": "Your AI agent matches the receipts of a bank statement to LP lines (proposals) and explains the differences of an administrator statement",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "statement_id": {
+          "type": "string",
+          "required": true,
+          "description": "The statement (its id)"
+        }
+      },
+      "cooldownSeconds": 10
+    },
+    {
+      "type": "lp_letter",
+      "capability": "lp_letter",
+      "description": "Your AI agent drafts the quarterly LP letter from the frozen numbers and verified facts, net beside gross; a person keeps or edits each paragraph",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "quarter_id": {
+          "type": "string",
+          "required": true,
+          "description": "The quarter (its id)"
+        }
+      },
+      "cooldownSeconds": 10
+    },
+    {
+      "type": "lp_answer",
+      "capability": "lp_answer",
+      "description": "Your AI agent drafts a factual answer to a question an LP asked, from the fund's records, for a person to send",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "question_id": {
+          "type": "string",
+          "required": true,
+          "description": "The lp question (its id)"
+        }
+      },
+      "cooldownSeconds": 10
+    },
+    {
+      "type": "deck_triage",
+      "capability": "deck_triage",
+      "description": "Your AI agent reads an inbound deck into facts with grades and page anchors (a person decides)",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "item_id": {
+          "type": "string",
+          "required": true,
+          "description": "The intake item (its id)"
+        }
+      },
+      "cooldownSeconds": 10
+    },
+    {
+      "type": "deck_fetch",
+      "capability": "deck_fetch",
+      "description": "Your AI agent opens a DocSend, Papermark or Drive deck link, attaches the deck and reads it (never accepts an NDA or terms)",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "item_id": {
+          "type": "string",
+          "required": true,
+          "description": "The intake item (its id)"
+        }
+      },
+      "cooldownSeconds": 10
+    },
+    {
+      "type": "pass_draft",
+      "capability": "pass_draft",
+      "description": "Your AI agent drafts the pass email for a deal a person passed on; the person approves and sends it",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "pass_id": {
+          "type": "string",
+          "required": true,
+          "description": "The passe (its id)"
+        }
+      },
+      "cooldownSeconds": 10
+    },
+    {
+      "type": "question_asked",
+      "capability": "question_asked",
+      "description": "Your AI agent answers a question or does what a person told it in the app; the answer shows under the ask",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "ask_id": {
+          "type": "string",
+          "required": true,
+          "description": "The agent ask (its id)"
+        }
+      },
+      "cooldownSeconds": 10
+    },
+    {
+      "type": "radar_sweep",
+      "capability": "radar_sweep",
+      "description": "Your AI agent screens a radar run's new signals against its thesis and adds net-new candidates from its own research, each with its source",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "radar_id": {
+          "type": "string",
+          "required": true,
+          "description": "The radar (its id)"
+        }
+      },
+      "cooldownSeconds": 300
+    },
+    {
+      "type": "map_refresh",
+      "capability": "map_refresh",
+      "description": "Your AI agent proposes new tiles and moves for a market map, each with a source link; people accept them",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "map_id": {
+          "type": "string",
+          "required": true,
+          "description": "The map (its id)"
+        }
+      },
+      "cooldownSeconds": 300
+    },
+    {
+      "type": "news_digest",
+      "capability": "news_digest",
+      "description": "Your AI agent picks the news that matters for the firm and summarizes each item in one sentence",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        }
+      },
+      "cooldownSeconds": 72000
+    },
+    {
+      "type": "news_insights",
+      "capability": "news_insights",
+      "description": "Your AI agent writes 3 to 6 insights on the week's news for the firm, each citing the items it rests on",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        }
+      },
+      "cooldownSeconds": 72000
+    },
+    {
+      "type": "market_brief",
+      "capability": "market_brief",
+      "description": "Your AI agent researches a market from public sources and writes a seven-section brief with numbered citations",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "report_id": {
+          "type": "string",
+          "required": true,
+          "description": "The research report (its id)"
+        }
+      },
+      "cooldownSeconds": 10
+    },
+    {
+      "type": "meeting_brief",
+      "capability": "meeting_brief",
+      "description": "Your AI agent writes the brief of an external meeting: who they are, the firm's history with them, the deal, questions to ask and recent news with links",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "event_id": {
+          "type": "string",
+          "required": true,
+          "description": "The cal event (its id)"
+        }
+      },
+      "cooldownSeconds": 10
+    },
+    {
+      "type": "company_research",
+      "capability": "company_research",
+      "description": "Your AI agent fills a company's empty facts and its founders' work history from public sources, each with its link, and adds sourced competitors",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "company_id": {
+          "type": "string",
+          "required": true,
+          "description": "The companie (its id)"
+        }
+      },
+      "cooldownSeconds": 10
+    },
+    {
+      "type": "intro_draft",
+      "capability": "intro_draft",
+      "description": "Your AI agent drafts an intro ask a person picked, with a forwardable blurb; the person approves and sends it",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "intro_id": {
+          "type": "string",
+          "required": true,
+          "description": "The intro (its id)"
+        }
+      },
+      "cooldownSeconds": 10
+    },
+    {
+      "type": "update_extract",
+      "capability": "update_extract",
+      "description": "Your AI agent reads a founder update and stages its KPI values with their source, and the founder's asks, for a person to verify",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "update_id": {
+          "type": "string",
+          "required": true,
+          "description": "The update (its id)"
+        }
+      },
+      "cooldownSeconds": 10
+    },
+    {
+      "type": "closing_extract",
+      "capability": "closing_extract",
+      "description": "Your AI agent reads the closing documents of a new investment and proposes its round and security terms, each anchored to its page",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "holding_id": {
+          "type": "string",
+          "required": true,
+          "description": "The holding (its id)"
+        }
+      },
+      "cooldownSeconds": 10
+    },
+    {
+      "type": "board_brief",
+      "capability": "board_brief",
+      "description": "Your AI agent writes the brief of a portfolio board meeting from verified figures, the latest update, open asks and the last board note",
+      "payload": {
+        "request": {
+          "type": "string",
+          "required": true,
+          "description": "Id of the app's agent request record"
+        },
+        "meeting_id": {
+          "type": "string",
+          "required": true,
+          "description": "The board meeting (its id)"
+        }
+      },
+      "cooldownSeconds": 10
+    }
+  ],
+  "conventions": {
+    "guide": "Start with `app guide`: the app's own manual. `<module> <operation> --help` lists an operation's parameters; the full manual (rules, recipes, caveats) is AGENT_APP.md in the app's directory."
+  }
+}

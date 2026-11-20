@@ -183,14 +183,11 @@ export interface SenderIdentity {
   replyTo: string
   organizationName: string
   organizationAddress: string
-  trackingBaseUrl: string
-  subscribeKey: string
   updatedAt?: string | null
 }
 
 export interface IntegrationsStatus {
   llm: { connected: boolean }
-  gmail: { bridge: boolean; connected: boolean }
 }
 
 export interface TagCount {

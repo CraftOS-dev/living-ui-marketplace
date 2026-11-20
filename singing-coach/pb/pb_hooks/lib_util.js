@@ -45,7 +45,7 @@ function handle(e, fn, op, known) {
           const near = known.filter((x) => distance(k, x) <= Math.max(k.length >= 3 ? 2 : 1, Math.floor(x.length / 3)) || x.indexOf(k) === 0 || k.indexOf(x) === 0);
           return '--' + k + (near.length > 0 ? ' (did you mean --' + near[0] + '?)' : '');
         });
-        throw fail(400, 'Unknown param' + (odd.length > 1 ? 's ' : ' ') + hint.join(', ') + ' for ' + op + '. Its params: ' + (known.length > 0 ? known.map((x) => '--' + x).join(' ') : 'none') + '. agent-app ops <project> ' + op.split('.')[0] + ' explains each.', { unknown: odd, known: known });
+        throw fail(400, 'Unknown param' + (odd.length > 1 ? 's ' : ' ') + hint.join(', ') + ' for ' + op + '. Its params: ' + (known.length > 0 ? known.map((x) => '--' + x).join(' ') : 'none') + '. a2app <app> ' + op.split('.')[0] + ' explains each.', { unknown: odd, known: known });
       }
     }
     if (agentHeader(e) !== '') e.app.store().set('sc_agent_seen', Date.now());

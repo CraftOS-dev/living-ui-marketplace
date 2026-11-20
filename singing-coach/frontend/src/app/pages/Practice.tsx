@@ -12,7 +12,8 @@
  * Live feedback fades as a section matures (full while learning, faded when
  * steady, after the take once mastered), and the singer guesses first when
  * it is faded. With a plan block open, the time counts toward it and the
- * next block follows. "Stop: it hurts" ends everything at once.
+ * next block follows. "End session" closes the sitting between takes;
+ * "Stop: it hurts" ends everything at once.
  *
  * The same screen sings generated exercises (?gen=: vocalises, sight-singing,
  * a scale against a drone, harmony parts, unaccompanied tunes), whose takes
@@ -20,7 +21,7 @@
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { LucideIcon } from 'lucide-react';
-import { ArrowLeft, ArrowRight, AudioLines, ChevronDown, FileMusic, Guitar, Hand, PenLine, Headphones, KeyRound, Library, Mic, MicOff, MicVocal, Minus, Music2, Pause, Plus, Repeat, Send, Sparkle, Square, Play, Timer, Waves, Wind, Ear, EyeOff } from 'lucide-react';
+import { ArrowLeft, ArrowRight, AudioLines, ChevronDown, FileMusic, Flag, Guitar, Hand, PenLine, Headphones, KeyRound, Library, Mic, MicOff, MicVocal, Minus, Music2, Pause, Plus, Repeat, Send, Sparkle, Square, Play, Timer, Waves, Wind, Ear, EyeOff } from 'lucide-react';
 import { cn, toast } from '../../kit/index.ts';
 import { openBlock } from '../App.tsx';
 import { CheckInDialog, HurtDialog } from '../components/CheckIn.tsx';
@@ -339,6 +340,7 @@ function Workspace({ song, setSong, exercise }: { song: Song; setSong: (s: Song 
   const [micNote, setMicNote] = useState('');
   const [checkin, setCheckin] = useState(false);
   const [hurt, setHurt] = useState(false);
+  const [ending, setEnding] = useState(false);
   const [warmOffer, setWarmOffer] = useState(false);
   const [dispute, setDispute] = useState<{ n: NoteResult; note: StageNote } | null>(null);
   const [disputeBusy, setDisputeBusy] = useState(false);
@@ -365,6 +367,8 @@ function Workspace({ song, setSong, exercise }: { song: Song; setSong: (s: Song 
   const lastAudio = useRef<{ url: string; blob: Blob; recStart: number } | null>(null);
   const recStart = useRef(0);
   const replayRef = useRef<{ audio: HTMLAudioElement; offset: number; frames: PassResult['frames'] } | null>(null);
+  // The last take's save: "End session" waits for it, so the take lands in the session it closes.
+  const saving = useRef<Promise<void>>(Promise.resolve());
   const pendingStart = useRef(false);
   const offSince = useRef(0);
   const breathRun = useRef<{ start: number; last: number }>({ start: 0, last: 0 });
@@ -690,7 +694,7 @@ function Workspace({ song, setSong, exercise }: { song: Song; setSong: (s: Song 
       if (keepRec) startRecorder();
     });
     if (r.mode === 'listen') {
-      if (exercise === null) void save(r, '');
+      if (exercise === null) saving.current = save(r, '');
       return;
     }
     setTakes((t) => [...t.slice(-11), { clean: r.summary.clean, pitch: r.summary.pitch }]);
@@ -699,7 +703,7 @@ function Workspace({ song, setSong, exercise }: { song: Song; setSong: (s: Song 
       setEstimating(true);
       return;
     }
-    void save(r, '');
+    saving.current = save(r, '');
   };
 
   const save = async (r: PassResult, est: string): Promise<void> => {
@@ -810,7 +814,7 @@ function Workspace({ song, setSong, exercise }: { song: Song; setSong: (s: Song 
   const pickEstimate = (v: 'on' | 'close' | 'off' | ''): void => {
     setEstimating(false);
     setEstimate(v);
-    if (result !== null) void save(result, v);
+    if (result !== null) saving.current = save(result, v);
   };
 
   const replay = (): void => {
@@ -892,6 +896,25 @@ function Workspace({ song, setSong, exercise }: { song: Song; setSong: (s: Song 
     void stopRecorder();
     void api.endSession(true).catch(() => undefined);
     setHurt(true);
+  };
+
+  /** "End session": close the sitting now with its takes (sessions.end, as "Stop: it hurts" without the pain); its review is asked for as usual. */
+  const endNow = async (): Promise<void> => {
+    stopIdle();
+    audio.stopAll();
+    mic.stop();
+    void stopRecorder();
+    setEnding(true);
+    try {
+      await saving.current;
+      const r = await api.endSession();
+      app.reload();
+      toast.success(r.asked ? 'Session ended. The coach will review it.' : 'Session ended.');
+    } catch (err) {
+      toast.error(errMessage(err));
+    } finally {
+      setEnding(false);
+    }
   };
 
   useEffect(() => {
@@ -1212,6 +1235,11 @@ function Workspace({ song, setSong, exercise }: { song: Song; setSong: (s: Song 
           <span className="sc-label hidden md:inline">
             Voice today <span className="sc-num text-[var(--sc-ink-2)]">{Math.round(st.today.voiced)}</span>/{st.today.cap} min
           </span>
+          {hasSession && !running && !estimating && (
+            <Button size="sm" icon={Flag} busy={ending} onClick={() => void endNow()} title="End this practice session now (it also ends after 20 quiet minutes)">
+              End session
+            </Button>
+          )}
         </div>
       </div>
 

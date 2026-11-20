@@ -1,7 +1,10 @@
 import React, { useState, useMemo } from 'react'
 import type { InvoiceReceipt, Subscription } from '../types'
-import { ALL_CATEGORIES } from '../types'
+import { ALL_CATEGORIES, getCurrencySymbol } from '../types'
+import { buildMonths, monthKey, MONTH_NAMES, SHORT_MONTH_NAMES } from '../services/reports'
+import type { MonthData } from '../services/reports'
 import { Card, Badge, Input, Button } from './ui'
+import { OtherCurrenciesNote } from './OtherCurrenciesNote'
 import {
   DollarSign,
   TrendingUp,
@@ -21,31 +24,8 @@ interface MonthlyCostsViewProps {
   onNavigateTab: (tab: any) => void
   activeGroupName?: string
   currencySymbol?: string
+  currencyCode?: string
 }
-
-interface MonthData {
-  key: string // e.g. '2026-08'
-  label: string // e.g. 'August 2026'
-  shortLabel: string // e.g. 'Aug 2026'
-  shortMonth: string // e.g. 'Aug'
-  year: number
-  monthNum: number // 1-12
-  invoices: InvoiceReceipt[]
-  totalSpend: number
-  recurringSpend: number
-  oneTimeSpend: number
-  transactionCount: number
-}
-
-const MONTH_NAMES = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December'
-]
-
-const SHORT_MONTH_NAMES = [
-  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-]
 
 export const MonthlyCostsView: React.FC<MonthlyCostsViewProps> = ({
   invoices,
@@ -55,6 +35,7 @@ export const MonthlyCostsView: React.FC<MonthlyCostsViewProps> = ({
   onNavigateTab: _onNavigateTab,
   activeGroupName: _activeGroupName = 'All Workspaces',
   currencySymbol = '$',
+  currencyCode = 'USD',
 }) => {
   // Search & category filter inside selected month
   const [searchQuery, setSearchQuery] = useState('')
@@ -68,163 +49,35 @@ export const MonthlyCostsView: React.FC<MonthlyCostsViewProps> = ({
     ]))
   }, [invoices, subscriptions])
 
-  // 1. Build list of months from available invoices, active subscriptions, and default 6-month window
-  const allMonthsData = useMemo<MonthData[]>(() => {
-    const monthsMap = new Map<string, InvoiceReceipt[]>()
+  // 1. Months: the six up to the current one plus every month with an invoice
+  //    (services/reports.ts, shared with the dashboard's Spend Summary)
+  const allMonthsData = useMemo<MonthData[]>(
+    () => buildMonths(invoices, subscriptions, currencyCode),
+    [invoices, subscriptions, currencyCode]
+  )
 
-    // Ensure past 6 months exist in list (March 2026 -> August 2026)
-    const currentYear = 2026
-    const currentMonthIndex = 7 // August (0-indexed)
-
-    for (let i = 5; i >= 0; i--) {
-      let mIdx = currentMonthIndex - i
-      let y = currentYear
-      if (mIdx < 0) {
-        mIdx += 12
-        y -= 1
-      }
-      const key = `${y}-${String(mIdx + 1).padStart(2, '0')}`
-      monthsMap.set(key, [])
+  const fallbackMonth: MonthData = useMemo(() => {
+    const now = new Date()
+    const mIdx = now.getMonth()
+    return {
+      key: monthKey(now.getFullYear(), mIdx + 1),
+      label: `${MONTH_NAMES[mIdx]} ${now.getFullYear()}`,
+      shortLabel: `${SHORT_MONTH_NAMES[mIdx]} ${now.getFullYear()}`,
+      shortMonth: SHORT_MONTH_NAMES[mIdx] || '',
+      year: now.getFullYear(),
+      monthNum: mIdx + 1,
+      invoices: [],
+      counted: [],
+      totalSpend: 0,
+      recurringSpend: 0,
+      oneTimeSpend: 0,
+      transactionCount: 0,
+      others: [],
     }
+  }, [])
 
-    // Distribute all actual invoices into their respective months
-    invoices.forEach((inv) => {
-      let key = `${currentYear}-${String(currentMonthIndex + 1).padStart(2, '0')}`
-      if (inv.invoiceDate) {
-        try {
-          const d = new Date(inv.invoiceDate)
-          if (!isNaN(d.getTime())) {
-            key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
-          }
-        } catch {
-          // fallback
-        }
-      }
-      if (!monthsMap.has(key)) {
-        monthsMap.set(key, [])
-      }
-      monthsMap.get(key)!.push(inv)
-    })
-
-    // Active subscriptions list
-    const activeSubs = subscriptions.filter((s) => (s.status || 'active').toLowerCase() === 'active')
-
-    // Sort months descending (latest first)
-    const sortedKeys = Array.from(monthsMap.keys()).sort().reverse()
-
-    // For each month, include recurring subscriptions that were active/created in or before that month
-    sortedKeys.forEach((key, kIdx) => {
-      const monthInvs = monthsMap.get(key) || []
-      const parts = key.split('-')
-      const targetYear = parseInt(parts[0] || '2026', 10)
-      const targetMonth = parseInt(parts[1] || '08', 10)
-
-      activeSubs.forEach((sub) => {
-        // Determine start period of subscription
-        let subStartYear = 2026
-        let subStartMonth = 8
-        if (sub.createdAt) {
-          try {
-            const subDate = new Date(sub.createdAt)
-            if (!isNaN(subDate.getTime())) {
-              subStartYear = subDate.getFullYear()
-              subStartMonth = subDate.getMonth() + 1
-            }
-          } catch {
-            // default
-          }
-        }
-
-        // Only include subscription if target month is on or after the subscription start month
-        const isAfterOrEqualStart = (targetYear > subStartYear) || (targetYear === subStartYear && targetMonth >= subStartMonth)
-        if (!isAfterOrEqualStart) {
-          return // Subscription did not exist in this past month!
-        }
-
-        const hasExisting = monthInvs.some((inv) =>
-          (inv.subscriptionId && String(inv.subscriptionId) === String(sub.id)) ||
-          ((inv.vendor || '').toLowerCase() === (sub.vendor || sub.name || '').toLowerCase() && inv.paymentType === 'subscription')
-        )
-
-        if (!hasExisting) {
-          let monthlyAmount = sub.amount
-          const freq = (sub.billingFrequency || 'monthly').toLowerCase()
-          if (freq === 'yearly') monthlyAmount = sub.amount / 12.0
-          else if (freq === 'weekly') monthlyAmount = sub.amount * 4.33
-          else if (freq === 'quarterly') monthlyAmount = sub.amount / 3.0
-
-          monthInvs.push({
-            id: `SUB-${sub.id}-${kIdx}`,
-            vendor: sub.vendor || sub.name,
-            amount: Math.round(monthlyAmount * 100) / 100,
-            currency: sub.currency || 'USD',
-            paymentType: 'subscription',
-            billingFrequency: sub.billingFrequency || 'monthly',
-            category: sub.category || 'Software & SaaS',
-            purpose: sub.purpose || `${sub.name} (${sub.billingFrequency || 'monthly'} subscription)`,
-            invoiceNumber: `SUB-${sub.id}-${key.replace('-', '')}`,
-            invoiceDate: `${key}-01T00:00:00.000Z`,
-            subscriptionId: sub.id,
-            hasPdfAttachment: false,
-            lineItems: [],
-            confidenceScore: 1.0,
-            isVerified: true,
-            createdAt: sub.createdAt || `${key}-01T00:00:00.000Z`,
-            updatedAt: sub.updatedAt || `${key}-01T00:00:00.000Z`,
-          })
-        }
-      })
-
-      monthsMap.set(key, monthInvs)
-    })
-
-    return sortedKeys.map((key) => {
-      const parts = key.split('-')
-      const y = parseInt(parts[0] || '2026', 10)
-      const mNum = parseInt(parts[1] || '08', 10)
-      const mIdx = Math.max(0, Math.min(11, mNum - 1))
-      const monthInvs = monthsMap.get(key) || []
-
-      const totalSpend = monthInvs.reduce((sum, inv) => sum + (Number(inv.amount) || 0), 0)
-      const recurringSpend = monthInvs
-        .filter((inv) => inv.paymentType === 'subscription')
-        .reduce((sum, inv) => sum + (Number(inv.amount) || 0), 0)
-      const oneTimeSpend = monthInvs
-        .filter((inv) => inv.paymentType !== 'subscription')
-        .reduce((sum, inv) => sum + (Number(inv.amount) || 0), 0)
-
-      return {
-        key,
-        label: `${MONTH_NAMES[mIdx] || 'August'} ${y}`,
-        shortLabel: `${SHORT_MONTH_NAMES[mIdx] || 'Aug'} ${y}`,
-        shortMonth: SHORT_MONTH_NAMES[mIdx] || 'Aug',
-        year: y,
-        monthNum: mNum,
-        invoices: monthInvs,
-        totalSpend: Math.round(totalSpend * 100) / 100,
-        recurringSpend: Math.round(recurringSpend * 100) / 100,
-        oneTimeSpend: Math.round(oneTimeSpend * 100) / 100,
-        transactionCount: monthInvs.length,
-      }
-    })
-  }, [invoices, subscriptions])
-
-  const fallbackMonth: MonthData = useMemo(() => ({
-    key: '2026-08',
-    label: 'August 2026',
-    shortLabel: 'Aug 2026',
-    shortMonth: 'Aug',
-    year: 2026,
-    monthNum: 8,
-    invoices: [],
-    totalSpend: 0,
-    recurringSpend: 0,
-    oneTimeSpend: 0,
-    transactionCount: 0,
-  }), [])
-
-  // Selected Month State (defaults to current month: August 2026)
-  const defaultMonthKey = allMonthsData[0]?.key || '2026-08'
+  // Selected Month State (defaults to the newest listed month)
+  const defaultMonthKey = allMonthsData[0]?.key || fallbackMonth.key
   const [selectedMonthKey, setSelectedMonthKey] = useState<string>(defaultMonthKey)
 
   const activeMonth = useMemo(() => {
@@ -247,7 +100,7 @@ export const MonthlyCostsView: React.FC<MonthlyCostsViewProps> = ({
   // Category breakdown for selected month
   const categoryBreakdown = useMemo(() => {
     const catMap = new Map<string, { total: number; count: number }>()
-    activeMonth.invoices.forEach((inv) => {
+    activeMonth.counted.forEach((inv) => {
       const cat = inv.category || 'Other Services'
       const existing = catMap.get(cat) || { total: 0, count: 0 }
       catMap.set(cat, {
@@ -269,7 +122,7 @@ export const MonthlyCostsView: React.FC<MonthlyCostsViewProps> = ({
   // Vendor breakdown for selected month
   const vendorBreakdown = useMemo(() => {
     const vMap = new Map<string, { total: number; count: number }>()
-    activeMonth.invoices.forEach((inv) => {
+    activeMonth.counted.forEach((inv) => {
       const v = inv.vendor || 'Unknown'
       const existing = vMap.get(v) || { total: 0, count: 0 }
       vMap.set(v, {
@@ -565,14 +418,16 @@ export const MonthlyCostsView: React.FC<MonthlyCostsViewProps> = ({
             </span>
             <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>
               Avg {currencySymbol}
-              {activeMonth.transactionCount > 0
-                ? (activeMonth.totalSpend / activeMonth.transactionCount).toFixed(2)
+              {activeMonth.counted.length > 0
+                ? (activeMonth.totalSpend / activeMonth.counted.length).toFixed(2)
                 : '0.00'}{' '}
               / bill
             </span>
           </div>
         </Card>
       </div>
+
+      <OtherCurrenciesNote others={activeMonth.others} currencyCode={currencyCode} style={{ marginTop: 'calc(-1 * var(--space-2))' }} />
 
       {/* ------------------------------------------------------------- */}
       {/* 2-COLUMN BREAKDOWN: Category Share & Vendor Ranking            */}
@@ -788,7 +643,7 @@ export const MonthlyCostsView: React.FC<MonthlyCostsViewProps> = ({
 
                       {/* Amount */}
                       <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 700, color: 'var(--text-primary)', fontVariantNumeric: 'tabular-nums' }}>
-                        {currencySymbol}{Number(inv.amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        {getCurrencySymbol(inv.currency)}{Number(inv.amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </td>
 
                       {/* Receipt PDF */}

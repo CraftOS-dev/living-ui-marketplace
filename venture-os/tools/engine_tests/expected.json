@@ -1,0 +1,5601 @@
+{
+ "capital": {
+  "fee_partial_minor": 2500000,
+  "fee_q1_minor": 5000000,
+  "fee_split_month_minor": 1738351,
+  "fee_stepdown_minor": 14500000,
+  "fee_stepdown_waived_half_minor": 7250000,
+  "fee_year_minor": 20000000,
+  "ilpa": {
+   "contributed_minor": 2000000000,
+   "contributed_ppm": 400000,
+   "distributed_minor": 1000000000,
+   "recallable_minor": 500000000,
+   "unfunded_minor": 3000000000
+  }
+ },
+ "days": {
+  "between_fri_mon": 1,
+  "between_holidays": 10,
+  "between_month": 21,
+  "frisat_due": "2026-11-19",
+  "holiday_due": "2026-12-30",
+  "ny_due": "2026-11-19",
+  "ny_received": "2026-11-12",
+  "sat_due": "2026-11-20",
+  "stall_tokyo_entered": "2026-11-01",
+  "stall_tokyo_now": "2026-11-09",
+  "stall_utc_entered": "2026-11-01",
+  "stall_utc_now": "2026-11-08",
+  "ten_bd_due": "2027-01-05",
+  "tokyo_due": "2026-11-20",
+  "tokyo_received": "2026-11-13",
+  "zone_checks": [
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": 0,
+    "zone": "UTC"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": 0,
+    "zone": "UTC"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-12",
+    "offset": 0,
+    "zone": "UTC"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": 480,
+    "zone": "Asia/Singapore"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": 480,
+    "zone": "Asia/Singapore"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-13",
+    "offset": 480,
+    "zone": "Asia/Singapore"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": 540,
+    "zone": "Asia/Tokyo"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": 540,
+    "zone": "Asia/Tokyo"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-13",
+    "offset": 540,
+    "zone": "Asia/Tokyo"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": 330,
+    "zone": "Asia/Kolkata"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": 330,
+    "zone": "Asia/Kolkata"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-13",
+    "offset": 330,
+    "zone": "Asia/Kolkata"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": 480,
+    "zone": "Asia/Kuala_Lumpur"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": 480,
+    "zone": "Asia/Kuala_Lumpur"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-13",
+    "offset": 480,
+    "zone": "Asia/Kuala_Lumpur"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": 480,
+    "zone": "Asia/Kuching"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": 480,
+    "zone": "Asia/Kuching"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-13",
+    "offset": 480,
+    "zone": "Asia/Kuching"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": 480,
+    "zone": "Asia/Manila"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": 480,
+    "zone": "Asia/Manila"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-13",
+    "offset": 480,
+    "zone": "Asia/Manila"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": 420,
+    "zone": "Asia/Jakarta"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": 420,
+    "zone": "Asia/Jakarta"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-13",
+    "offset": 420,
+    "zone": "Asia/Jakarta"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": 480,
+    "zone": "Asia/Makassar"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": 480,
+    "zone": "Asia/Makassar"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-13",
+    "offset": 480,
+    "zone": "Asia/Makassar"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": 540,
+    "zone": "Asia/Jayapura"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": 540,
+    "zone": "Asia/Jayapura"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-13",
+    "offset": 540,
+    "zone": "Asia/Jayapura"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": 420,
+    "zone": "Asia/Bangkok"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": 420,
+    "zone": "Asia/Bangkok"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-13",
+    "offset": 420,
+    "zone": "Asia/Bangkok"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": 420,
+    "zone": "Asia/Ho_Chi_Minh"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": 420,
+    "zone": "Asia/Ho_Chi_Minh"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-13",
+    "offset": 420,
+    "zone": "Asia/Ho_Chi_Minh"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": 480,
+    "zone": "Asia/Hong_Kong"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": 480,
+    "zone": "Asia/Hong_Kong"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-13",
+    "offset": 480,
+    "zone": "Asia/Hong_Kong"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": 480,
+    "zone": "Asia/Shanghai"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": 480,
+    "zone": "Asia/Shanghai"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-13",
+    "offset": 480,
+    "zone": "Asia/Shanghai"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": 540,
+    "zone": "Asia/Seoul"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": 540,
+    "zone": "Asia/Seoul"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-13",
+    "offset": 540,
+    "zone": "Asia/Seoul"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": 480,
+    "zone": "Asia/Taipei"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": 480,
+    "zone": "Asia/Taipei"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-13",
+    "offset": 480,
+    "zone": "Asia/Taipei"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": 240,
+    "zone": "Asia/Dubai"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": 240,
+    "zone": "Asia/Dubai"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-13",
+    "offset": 240,
+    "zone": "Asia/Dubai"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": 180,
+    "zone": "Asia/Riyadh"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": 180,
+    "zone": "Asia/Riyadh"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-13",
+    "offset": 180,
+    "zone": "Asia/Riyadh"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": 180,
+    "zone": "Asia/Qatar"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": 180,
+    "zone": "Asia/Qatar"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-13",
+    "offset": 180,
+    "zone": "Asia/Qatar"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": 180,
+    "zone": "Asia/Bahrain"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": 180,
+    "zone": "Asia/Bahrain"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-13",
+    "offset": 180,
+    "zone": "Asia/Bahrain"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": 180,
+    "zone": "Asia/Kuwait"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": 180,
+    "zone": "Asia/Kuwait"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-13",
+    "offset": 180,
+    "zone": "Asia/Kuwait"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": 240,
+    "zone": "Asia/Tbilisi"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": 240,
+    "zone": "Asia/Tbilisi"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-13",
+    "offset": 240,
+    "zone": "Asia/Tbilisi"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": 300,
+    "zone": "Asia/Karachi"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": 300,
+    "zone": "Asia/Karachi"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-13",
+    "offset": 300,
+    "zone": "Asia/Karachi"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": 360,
+    "zone": "Asia/Dhaka"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": 360,
+    "zone": "Asia/Dhaka"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-13",
+    "offset": 360,
+    "zone": "Asia/Dhaka"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": 345,
+    "zone": "Asia/Kathmandu"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": 345,
+    "zone": "Asia/Kathmandu"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-13",
+    "offset": 345,
+    "zone": "Asia/Kathmandu"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": 330,
+    "zone": "Asia/Colombo"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": 330,
+    "zone": "Asia/Colombo"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-13",
+    "offset": 330,
+    "zone": "Asia/Colombo"
+   },
+   {
+    "at": "2025-03-27T23:59:00Z",
+    "day": "2025-03-28",
+    "offset": 120,
+    "zone": "Asia/Jerusalem"
+   },
+   {
+    "at": "2025-03-28T00:01:00Z",
+    "day": "2025-03-28",
+    "offset": 180,
+    "zone": "Asia/Jerusalem"
+   },
+   {
+    "at": "2025-10-25T22:59:00Z",
+    "day": "2025-10-26",
+    "offset": 180,
+    "zone": "Asia/Jerusalem"
+   },
+   {
+    "at": "2025-10-25T23:01:00Z",
+    "day": "2025-10-26",
+    "offset": 120,
+    "zone": "Asia/Jerusalem"
+   },
+   {
+    "at": "2026-03-26T23:59:00Z",
+    "day": "2026-03-27",
+    "offset": 120,
+    "zone": "Asia/Jerusalem"
+   },
+   {
+    "at": "2026-03-27T00:01:00Z",
+    "day": "2026-03-27",
+    "offset": 180,
+    "zone": "Asia/Jerusalem"
+   },
+   {
+    "at": "2026-10-24T22:59:00Z",
+    "day": "2026-10-25",
+    "offset": 180,
+    "zone": "Asia/Jerusalem"
+   },
+   {
+    "at": "2026-10-24T23:01:00Z",
+    "day": "2026-10-25",
+    "offset": 120,
+    "zone": "Asia/Jerusalem"
+   },
+   {
+    "at": "2027-03-25T23:59:00Z",
+    "day": "2027-03-26",
+    "offset": 120,
+    "zone": "Asia/Jerusalem"
+   },
+   {
+    "at": "2027-03-26T00:01:00Z",
+    "day": "2027-03-26",
+    "offset": 180,
+    "zone": "Asia/Jerusalem"
+   },
+   {
+    "at": "2027-10-30T22:59:00Z",
+    "day": "2027-10-31",
+    "offset": 180,
+    "zone": "Asia/Jerusalem"
+   },
+   {
+    "at": "2027-10-30T23:01:00Z",
+    "day": "2027-10-31",
+    "offset": 120,
+    "zone": "Asia/Jerusalem"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": 120,
+    "zone": "Asia/Jerusalem"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": 180,
+    "zone": "Asia/Jerusalem"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-13",
+    "offset": 120,
+    "zone": "Asia/Jerusalem"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": 120,
+    "zone": "Africa/Johannesburg"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": 120,
+    "zone": "Africa/Johannesburg"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-13",
+    "offset": 120,
+    "zone": "Africa/Johannesburg"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": 60,
+    "zone": "Africa/Lagos"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": 60,
+    "zone": "Africa/Lagos"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-13",
+    "offset": 60,
+    "zone": "Africa/Lagos"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": 180,
+    "zone": "Africa/Nairobi"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": 180,
+    "zone": "Africa/Nairobi"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-13",
+    "offset": 180,
+    "zone": "Africa/Nairobi"
+   },
+   {
+    "at": "2025-04-24T21:59:00Z",
+    "day": "2025-04-24",
+    "offset": 120,
+    "zone": "Africa/Cairo"
+   },
+   {
+    "at": "2025-04-24T22:01:00Z",
+    "day": "2025-04-25",
+    "offset": 180,
+    "zone": "Africa/Cairo"
+   },
+   {
+    "at": "2025-10-30T20:59:00Z",
+    "day": "2025-10-30",
+    "offset": 180,
+    "zone": "Africa/Cairo"
+   },
+   {
+    "at": "2025-10-30T21:01:00Z",
+    "day": "2025-10-30",
+    "offset": 120,
+    "zone": "Africa/Cairo"
+   },
+   {
+    "at": "2026-04-23T21:59:00Z",
+    "day": "2026-04-23",
+    "offset": 120,
+    "zone": "Africa/Cairo"
+   },
+   {
+    "at": "2026-04-23T22:01:00Z",
+    "day": "2026-04-24",
+    "offset": 180,
+    "zone": "Africa/Cairo"
+   },
+   {
+    "at": "2026-10-29T20:59:00Z",
+    "day": "2026-10-29",
+    "offset": 180,
+    "zone": "Africa/Cairo"
+   },
+   {
+    "at": "2026-10-29T21:01:00Z",
+    "day": "2026-10-29",
+    "offset": 120,
+    "zone": "Africa/Cairo"
+   },
+   {
+    "at": "2027-04-29T21:59:00Z",
+    "day": "2027-04-29",
+    "offset": 120,
+    "zone": "Africa/Cairo"
+   },
+   {
+    "at": "2027-04-29T22:01:00Z",
+    "day": "2027-04-30",
+    "offset": 180,
+    "zone": "Africa/Cairo"
+   },
+   {
+    "at": "2027-10-28T20:59:00Z",
+    "day": "2027-10-28",
+    "offset": 180,
+    "zone": "Africa/Cairo"
+   },
+   {
+    "at": "2027-10-28T21:01:00Z",
+    "day": "2027-10-28",
+    "offset": 120,
+    "zone": "Africa/Cairo"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": 120,
+    "zone": "Africa/Cairo"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": 180,
+    "zone": "Africa/Cairo"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-13",
+    "offset": 120,
+    "zone": "Africa/Cairo"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": 0,
+    "zone": "Africa/Accra"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": 0,
+    "zone": "Africa/Accra"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-12",
+    "offset": 0,
+    "zone": "Africa/Accra"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": 120,
+    "zone": "Africa/Kigali"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": 120,
+    "zone": "Africa/Kigali"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-13",
+    "offset": 120,
+    "zone": "Africa/Kigali"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": -180,
+    "zone": "America/Sao_Paulo"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": -180,
+    "zone": "America/Sao_Paulo"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-12",
+    "offset": -180,
+    "zone": "America/Sao_Paulo"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": -240,
+    "zone": "America/Manaus"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": -240,
+    "zone": "America/Manaus"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-12",
+    "offset": -240,
+    "zone": "America/Manaus"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": -180,
+    "zone": "America/Fortaleza"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": -180,
+    "zone": "America/Fortaleza"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-12",
+    "offset": -180,
+    "zone": "America/Fortaleza"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": -120,
+    "zone": "America/Noronha"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": -120,
+    "zone": "America/Noronha"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-12",
+    "offset": -120,
+    "zone": "America/Noronha"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": -300,
+    "zone": "America/Rio_Branco"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": -300,
+    "zone": "America/Rio_Branco"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-12",
+    "offset": -300,
+    "zone": "America/Rio_Branco"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": -180,
+    "zone": "America/Argentina/Buenos_Aires"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": -180,
+    "zone": "America/Argentina/Buenos_Aires"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-12",
+    "offset": -180,
+    "zone": "America/Argentina/Buenos_Aires"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": -360,
+    "zone": "America/Mexico_City"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": -360,
+    "zone": "America/Mexico_City"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-12",
+    "offset": -360,
+    "zone": "America/Mexico_City"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": -360,
+    "zone": "America/Monterrey"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": -360,
+    "zone": "America/Monterrey"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-12",
+    "offset": -360,
+    "zone": "America/Monterrey"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": -360,
+    "zone": "America/Chihuahua"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": -360,
+    "zone": "America/Chihuahua"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-12",
+    "offset": -360,
+    "zone": "America/Chihuahua"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": -300,
+    "zone": "America/Cancun"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": -300,
+    "zone": "America/Cancun"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-12",
+    "offset": -300,
+    "zone": "America/Cancun"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": -420,
+    "zone": "America/Hermosillo"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": -420,
+    "zone": "America/Hermosillo"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-12",
+    "offset": -420,
+    "zone": "America/Hermosillo"
+   },
+   {
+    "at": "2025-03-09T09:59:00Z",
+    "day": "2025-03-09",
+    "offset": -480,
+    "zone": "America/Tijuana"
+   },
+   {
+    "at": "2025-03-09T10:01:00Z",
+    "day": "2025-03-09",
+    "offset": -420,
+    "zone": "America/Tijuana"
+   },
+   {
+    "at": "2025-11-02T08:59:00Z",
+    "day": "2025-11-02",
+    "offset": -420,
+    "zone": "America/Tijuana"
+   },
+   {
+    "at": "2025-11-02T09:01:00Z",
+    "day": "2025-11-02",
+    "offset": -480,
+    "zone": "America/Tijuana"
+   },
+   {
+    "at": "2026-03-08T09:59:00Z",
+    "day": "2026-03-08",
+    "offset": -480,
+    "zone": "America/Tijuana"
+   },
+   {
+    "at": "2026-03-08T10:01:00Z",
+    "day": "2026-03-08",
+    "offset": -420,
+    "zone": "America/Tijuana"
+   },
+   {
+    "at": "2026-11-01T08:59:00Z",
+    "day": "2026-11-01",
+    "offset": -420,
+    "zone": "America/Tijuana"
+   },
+   {
+    "at": "2026-11-01T09:01:00Z",
+    "day": "2026-11-01",
+    "offset": -480,
+    "zone": "America/Tijuana"
+   },
+   {
+    "at": "2027-03-14T09:59:00Z",
+    "day": "2027-03-14",
+    "offset": -480,
+    "zone": "America/Tijuana"
+   },
+   {
+    "at": "2027-03-14T10:01:00Z",
+    "day": "2027-03-14",
+    "offset": -420,
+    "zone": "America/Tijuana"
+   },
+   {
+    "at": "2027-11-07T08:59:00Z",
+    "day": "2027-11-07",
+    "offset": -420,
+    "zone": "America/Tijuana"
+   },
+   {
+    "at": "2027-11-07T09:01:00Z",
+    "day": "2027-11-07",
+    "offset": -480,
+    "zone": "America/Tijuana"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": -480,
+    "zone": "America/Tijuana"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": -420,
+    "zone": "America/Tijuana"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-12",
+    "offset": -480,
+    "zone": "America/Tijuana"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": -420,
+    "zone": "America/Whitehorse"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": -420,
+    "zone": "America/Whitehorse"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-12",
+    "offset": -420,
+    "zone": "America/Whitehorse"
+   },
+   {
+    "at": "2025-03-30T00:59:00Z",
+    "day": "2025-03-30",
+    "offset": 0,
+    "zone": "Atlantic/Canary"
+   },
+   {
+    "at": "2025-03-30T01:01:00Z",
+    "day": "2025-03-30",
+    "offset": 60,
+    "zone": "Atlantic/Canary"
+   },
+   {
+    "at": "2025-10-26T00:59:00Z",
+    "day": "2025-10-26",
+    "offset": 60,
+    "zone": "Atlantic/Canary"
+   },
+   {
+    "at": "2025-10-26T01:01:00Z",
+    "day": "2025-10-26",
+    "offset": 0,
+    "zone": "Atlantic/Canary"
+   },
+   {
+    "at": "2026-03-29T00:59:00Z",
+    "day": "2026-03-29",
+    "offset": 0,
+    "zone": "Atlantic/Canary"
+   },
+   {
+    "at": "2026-03-29T01:01:00Z",
+    "day": "2026-03-29",
+    "offset": 60,
+    "zone": "Atlantic/Canary"
+   },
+   {
+    "at": "2026-10-25T00:59:00Z",
+    "day": "2026-10-25",
+    "offset": 60,
+    "zone": "Atlantic/Canary"
+   },
+   {
+    "at": "2026-10-25T01:01:00Z",
+    "day": "2026-10-25",
+    "offset": 0,
+    "zone": "Atlantic/Canary"
+   },
+   {
+    "at": "2027-03-28T00:59:00Z",
+    "day": "2027-03-28",
+    "offset": 0,
+    "zone": "Atlantic/Canary"
+   },
+   {
+    "at": "2027-03-28T01:01:00Z",
+    "day": "2027-03-28",
+    "offset": 60,
+    "zone": "Atlantic/Canary"
+   },
+   {
+    "at": "2027-10-31T00:59:00Z",
+    "day": "2027-10-31",
+    "offset": 60,
+    "zone": "Atlantic/Canary"
+   },
+   {
+    "at": "2027-10-31T01:01:00Z",
+    "day": "2027-10-31",
+    "offset": 0,
+    "zone": "Atlantic/Canary"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": 0,
+    "zone": "Atlantic/Canary"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": 60,
+    "zone": "Atlantic/Canary"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-12",
+    "offset": 0,
+    "zone": "Atlantic/Canary"
+   },
+   {
+    "at": "2025-04-05T13:59:00Z",
+    "day": "2025-04-06",
+    "offset": 825,
+    "zone": "Pacific/Chatham"
+   },
+   {
+    "at": "2025-04-05T14:01:00Z",
+    "day": "2025-04-06",
+    "offset": 765,
+    "zone": "Pacific/Chatham"
+   },
+   {
+    "at": "2025-09-27T13:59:00Z",
+    "day": "2025-09-28",
+    "offset": 765,
+    "zone": "Pacific/Chatham"
+   },
+   {
+    "at": "2025-09-27T14:01:00Z",
+    "day": "2025-09-28",
+    "offset": 825,
+    "zone": "Pacific/Chatham"
+   },
+   {
+    "at": "2026-04-04T13:59:00Z",
+    "day": "2026-04-05",
+    "offset": 825,
+    "zone": "Pacific/Chatham"
+   },
+   {
+    "at": "2026-04-04T14:01:00Z",
+    "day": "2026-04-05",
+    "offset": 765,
+    "zone": "Pacific/Chatham"
+   },
+   {
+    "at": "2026-09-26T13:59:00Z",
+    "day": "2026-09-27",
+    "offset": 765,
+    "zone": "Pacific/Chatham"
+   },
+   {
+    "at": "2026-09-26T14:01:00Z",
+    "day": "2026-09-27",
+    "offset": 825,
+    "zone": "Pacific/Chatham"
+   },
+   {
+    "at": "2027-04-03T13:59:00Z",
+    "day": "2027-04-04",
+    "offset": 825,
+    "zone": "Pacific/Chatham"
+   },
+   {
+    "at": "2027-04-03T14:01:00Z",
+    "day": "2027-04-04",
+    "offset": 765,
+    "zone": "Pacific/Chatham"
+   },
+   {
+    "at": "2027-09-25T13:59:00Z",
+    "day": "2027-09-26",
+    "offset": 765,
+    "zone": "Pacific/Chatham"
+   },
+   {
+    "at": "2027-09-25T14:01:00Z",
+    "day": "2027-09-26",
+    "offset": 825,
+    "zone": "Pacific/Chatham"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-16",
+    "offset": 825,
+    "zone": "Pacific/Chatham"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-16",
+    "offset": 765,
+    "zone": "Pacific/Chatham"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-13",
+    "offset": 825,
+    "zone": "Pacific/Chatham"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": -300,
+    "zone": "America/Bogota"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": -300,
+    "zone": "America/Bogota"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-12",
+    "offset": -300,
+    "zone": "America/Bogota"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": -300,
+    "zone": "America/Lima"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": -300,
+    "zone": "America/Lima"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-12",
+    "offset": -300,
+    "zone": "America/Lima"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": -420,
+    "zone": "America/Phoenix"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": -420,
+    "zone": "America/Phoenix"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-12",
+    "offset": -420,
+    "zone": "America/Phoenix"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": -360,
+    "zone": "America/Regina"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": -360,
+    "zone": "America/Regina"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-12",
+    "offset": -360,
+    "zone": "America/Regina"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": -600,
+    "zone": "Pacific/Honolulu"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": -600,
+    "zone": "Pacific/Honolulu"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-12",
+    "offset": -600,
+    "zone": "Pacific/Honolulu"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": 600,
+    "zone": "Australia/Brisbane"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": 600,
+    "zone": "Australia/Brisbane"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-13",
+    "offset": 600,
+    "zone": "Australia/Brisbane"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": 570,
+    "zone": "Australia/Darwin"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": 570,
+    "zone": "Australia/Darwin"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-13",
+    "offset": 570,
+    "zone": "Australia/Darwin"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": 480,
+    "zone": "Australia/Perth"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": 480,
+    "zone": "Australia/Perth"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-13",
+    "offset": 480,
+    "zone": "Australia/Perth"
+   },
+   {
+    "at": "2025-03-09T06:59:00Z",
+    "day": "2025-03-09",
+    "offset": -300,
+    "zone": "America/New_York"
+   },
+   {
+    "at": "2025-03-09T07:01:00Z",
+    "day": "2025-03-09",
+    "offset": -240,
+    "zone": "America/New_York"
+   },
+   {
+    "at": "2025-11-02T05:59:00Z",
+    "day": "2025-11-02",
+    "offset": -240,
+    "zone": "America/New_York"
+   },
+   {
+    "at": "2025-11-02T06:01:00Z",
+    "day": "2025-11-02",
+    "offset": -300,
+    "zone": "America/New_York"
+   },
+   {
+    "at": "2026-03-08T06:59:00Z",
+    "day": "2026-03-08",
+    "offset": -300,
+    "zone": "America/New_York"
+   },
+   {
+    "at": "2026-03-08T07:01:00Z",
+    "day": "2026-03-08",
+    "offset": -240,
+    "zone": "America/New_York"
+   },
+   {
+    "at": "2026-11-01T05:59:00Z",
+    "day": "2026-11-01",
+    "offset": -240,
+    "zone": "America/New_York"
+   },
+   {
+    "at": "2026-11-01T06:01:00Z",
+    "day": "2026-11-01",
+    "offset": -300,
+    "zone": "America/New_York"
+   },
+   {
+    "at": "2027-03-14T06:59:00Z",
+    "day": "2027-03-14",
+    "offset": -300,
+    "zone": "America/New_York"
+   },
+   {
+    "at": "2027-03-14T07:01:00Z",
+    "day": "2027-03-14",
+    "offset": -240,
+    "zone": "America/New_York"
+   },
+   {
+    "at": "2027-11-07T05:59:00Z",
+    "day": "2027-11-07",
+    "offset": -240,
+    "zone": "America/New_York"
+   },
+   {
+    "at": "2027-11-07T06:01:00Z",
+    "day": "2027-11-07",
+    "offset": -300,
+    "zone": "America/New_York"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": -300,
+    "zone": "America/New_York"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": -240,
+    "zone": "America/New_York"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-12",
+    "offset": -300,
+    "zone": "America/New_York"
+   },
+   {
+    "at": "2025-03-09T06:59:00Z",
+    "day": "2025-03-09",
+    "offset": -300,
+    "zone": "America/Detroit"
+   },
+   {
+    "at": "2025-03-09T07:01:00Z",
+    "day": "2025-03-09",
+    "offset": -240,
+    "zone": "America/Detroit"
+   },
+   {
+    "at": "2025-11-02T05:59:00Z",
+    "day": "2025-11-02",
+    "offset": -240,
+    "zone": "America/Detroit"
+   },
+   {
+    "at": "2025-11-02T06:01:00Z",
+    "day": "2025-11-02",
+    "offset": -300,
+    "zone": "America/Detroit"
+   },
+   {
+    "at": "2026-03-08T06:59:00Z",
+    "day": "2026-03-08",
+    "offset": -300,
+    "zone": "America/Detroit"
+   },
+   {
+    "at": "2026-03-08T07:01:00Z",
+    "day": "2026-03-08",
+    "offset": -240,
+    "zone": "America/Detroit"
+   },
+   {
+    "at": "2026-11-01T05:59:00Z",
+    "day": "2026-11-01",
+    "offset": -240,
+    "zone": "America/Detroit"
+   },
+   {
+    "at": "2026-11-01T06:01:00Z",
+    "day": "2026-11-01",
+    "offset": -300,
+    "zone": "America/Detroit"
+   },
+   {
+    "at": "2027-03-14T06:59:00Z",
+    "day": "2027-03-14",
+    "offset": -300,
+    "zone": "America/Detroit"
+   },
+   {
+    "at": "2027-03-14T07:01:00Z",
+    "day": "2027-03-14",
+    "offset": -240,
+    "zone": "America/Detroit"
+   },
+   {
+    "at": "2027-11-07T05:59:00Z",
+    "day": "2027-11-07",
+    "offset": -240,
+    "zone": "America/Detroit"
+   },
+   {
+    "at": "2027-11-07T06:01:00Z",
+    "day": "2027-11-07",
+    "offset": -300,
+    "zone": "America/Detroit"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": -300,
+    "zone": "America/Detroit"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": -240,
+    "zone": "America/Detroit"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-12",
+    "offset": -300,
+    "zone": "America/Detroit"
+   },
+   {
+    "at": "2025-03-09T06:59:00Z",
+    "day": "2025-03-09",
+    "offset": -300,
+    "zone": "America/Indiana/Indianapolis"
+   },
+   {
+    "at": "2025-03-09T07:01:00Z",
+    "day": "2025-03-09",
+    "offset": -240,
+    "zone": "America/Indiana/Indianapolis"
+   },
+   {
+    "at": "2025-11-02T05:59:00Z",
+    "day": "2025-11-02",
+    "offset": -240,
+    "zone": "America/Indiana/Indianapolis"
+   },
+   {
+    "at": "2025-11-02T06:01:00Z",
+    "day": "2025-11-02",
+    "offset": -300,
+    "zone": "America/Indiana/Indianapolis"
+   },
+   {
+    "at": "2026-03-08T06:59:00Z",
+    "day": "2026-03-08",
+    "offset": -300,
+    "zone": "America/Indiana/Indianapolis"
+   },
+   {
+    "at": "2026-03-08T07:01:00Z",
+    "day": "2026-03-08",
+    "offset": -240,
+    "zone": "America/Indiana/Indianapolis"
+   },
+   {
+    "at": "2026-11-01T05:59:00Z",
+    "day": "2026-11-01",
+    "offset": -240,
+    "zone": "America/Indiana/Indianapolis"
+   },
+   {
+    "at": "2026-11-01T06:01:00Z",
+    "day": "2026-11-01",
+    "offset": -300,
+    "zone": "America/Indiana/Indianapolis"
+   },
+   {
+    "at": "2027-03-14T06:59:00Z",
+    "day": "2027-03-14",
+    "offset": -300,
+    "zone": "America/Indiana/Indianapolis"
+   },
+   {
+    "at": "2027-03-14T07:01:00Z",
+    "day": "2027-03-14",
+    "offset": -240,
+    "zone": "America/Indiana/Indianapolis"
+   },
+   {
+    "at": "2027-11-07T05:59:00Z",
+    "day": "2027-11-07",
+    "offset": -240,
+    "zone": "America/Indiana/Indianapolis"
+   },
+   {
+    "at": "2027-11-07T06:01:00Z",
+    "day": "2027-11-07",
+    "offset": -300,
+    "zone": "America/Indiana/Indianapolis"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": -300,
+    "zone": "America/Indiana/Indianapolis"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": -240,
+    "zone": "America/Indiana/Indianapolis"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-12",
+    "offset": -300,
+    "zone": "America/Indiana/Indianapolis"
+   },
+   {
+    "at": "2025-03-09T07:59:00Z",
+    "day": "2025-03-09",
+    "offset": -360,
+    "zone": "America/Chicago"
+   },
+   {
+    "at": "2025-03-09T08:01:00Z",
+    "day": "2025-03-09",
+    "offset": -300,
+    "zone": "America/Chicago"
+   },
+   {
+    "at": "2025-11-02T06:59:00Z",
+    "day": "2025-11-02",
+    "offset": -300,
+    "zone": "America/Chicago"
+   },
+   {
+    "at": "2025-11-02T07:01:00Z",
+    "day": "2025-11-02",
+    "offset": -360,
+    "zone": "America/Chicago"
+   },
+   {
+    "at": "2026-03-08T07:59:00Z",
+    "day": "2026-03-08",
+    "offset": -360,
+    "zone": "America/Chicago"
+   },
+   {
+    "at": "2026-03-08T08:01:00Z",
+    "day": "2026-03-08",
+    "offset": -300,
+    "zone": "America/Chicago"
+   },
+   {
+    "at": "2026-11-01T06:59:00Z",
+    "day": "2026-11-01",
+    "offset": -300,
+    "zone": "America/Chicago"
+   },
+   {
+    "at": "2026-11-01T07:01:00Z",
+    "day": "2026-11-01",
+    "offset": -360,
+    "zone": "America/Chicago"
+   },
+   {
+    "at": "2027-03-14T07:59:00Z",
+    "day": "2027-03-14",
+    "offset": -360,
+    "zone": "America/Chicago"
+   },
+   {
+    "at": "2027-03-14T08:01:00Z",
+    "day": "2027-03-14",
+    "offset": -300,
+    "zone": "America/Chicago"
+   },
+   {
+    "at": "2027-11-07T06:59:00Z",
+    "day": "2027-11-07",
+    "offset": -300,
+    "zone": "America/Chicago"
+   },
+   {
+    "at": "2027-11-07T07:01:00Z",
+    "day": "2027-11-07",
+    "offset": -360,
+    "zone": "America/Chicago"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": -360,
+    "zone": "America/Chicago"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": -300,
+    "zone": "America/Chicago"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-12",
+    "offset": -360,
+    "zone": "America/Chicago"
+   },
+   {
+    "at": "2025-03-09T08:59:00Z",
+    "day": "2025-03-09",
+    "offset": -420,
+    "zone": "America/Denver"
+   },
+   {
+    "at": "2025-03-09T09:01:00Z",
+    "day": "2025-03-09",
+    "offset": -360,
+    "zone": "America/Denver"
+   },
+   {
+    "at": "2025-11-02T07:59:00Z",
+    "day": "2025-11-02",
+    "offset": -360,
+    "zone": "America/Denver"
+   },
+   {
+    "at": "2025-11-02T08:01:00Z",
+    "day": "2025-11-02",
+    "offset": -420,
+    "zone": "America/Denver"
+   },
+   {
+    "at": "2026-03-08T08:59:00Z",
+    "day": "2026-03-08",
+    "offset": -420,
+    "zone": "America/Denver"
+   },
+   {
+    "at": "2026-03-08T09:01:00Z",
+    "day": "2026-03-08",
+    "offset": -360,
+    "zone": "America/Denver"
+   },
+   {
+    "at": "2026-11-01T07:59:00Z",
+    "day": "2026-11-01",
+    "offset": -360,
+    "zone": "America/Denver"
+   },
+   {
+    "at": "2026-11-01T08:01:00Z",
+    "day": "2026-11-01",
+    "offset": -420,
+    "zone": "America/Denver"
+   },
+   {
+    "at": "2027-03-14T08:59:00Z",
+    "day": "2027-03-14",
+    "offset": -420,
+    "zone": "America/Denver"
+   },
+   {
+    "at": "2027-03-14T09:01:00Z",
+    "day": "2027-03-14",
+    "offset": -360,
+    "zone": "America/Denver"
+   },
+   {
+    "at": "2027-11-07T07:59:00Z",
+    "day": "2027-11-07",
+    "offset": -360,
+    "zone": "America/Denver"
+   },
+   {
+    "at": "2027-11-07T08:01:00Z",
+    "day": "2027-11-07",
+    "offset": -420,
+    "zone": "America/Denver"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": -420,
+    "zone": "America/Denver"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": -360,
+    "zone": "America/Denver"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-12",
+    "offset": -420,
+    "zone": "America/Denver"
+   },
+   {
+    "at": "2025-03-09T08:59:00Z",
+    "day": "2025-03-09",
+    "offset": -420,
+    "zone": "America/Boise"
+   },
+   {
+    "at": "2025-03-09T09:01:00Z",
+    "day": "2025-03-09",
+    "offset": -360,
+    "zone": "America/Boise"
+   },
+   {
+    "at": "2025-11-02T07:59:00Z",
+    "day": "2025-11-02",
+    "offset": -360,
+    "zone": "America/Boise"
+   },
+   {
+    "at": "2025-11-02T08:01:00Z",
+    "day": "2025-11-02",
+    "offset": -420,
+    "zone": "America/Boise"
+   },
+   {
+    "at": "2026-03-08T08:59:00Z",
+    "day": "2026-03-08",
+    "offset": -420,
+    "zone": "America/Boise"
+   },
+   {
+    "at": "2026-03-08T09:01:00Z",
+    "day": "2026-03-08",
+    "offset": -360,
+    "zone": "America/Boise"
+   },
+   {
+    "at": "2026-11-01T07:59:00Z",
+    "day": "2026-11-01",
+    "offset": -360,
+    "zone": "America/Boise"
+   },
+   {
+    "at": "2026-11-01T08:01:00Z",
+    "day": "2026-11-01",
+    "offset": -420,
+    "zone": "America/Boise"
+   },
+   {
+    "at": "2027-03-14T08:59:00Z",
+    "day": "2027-03-14",
+    "offset": -420,
+    "zone": "America/Boise"
+   },
+   {
+    "at": "2027-03-14T09:01:00Z",
+    "day": "2027-03-14",
+    "offset": -360,
+    "zone": "America/Boise"
+   },
+   {
+    "at": "2027-11-07T07:59:00Z",
+    "day": "2027-11-07",
+    "offset": -360,
+    "zone": "America/Boise"
+   },
+   {
+    "at": "2027-11-07T08:01:00Z",
+    "day": "2027-11-07",
+    "offset": -420,
+    "zone": "America/Boise"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": -420,
+    "zone": "America/Boise"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": -360,
+    "zone": "America/Boise"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-12",
+    "offset": -420,
+    "zone": "America/Boise"
+   },
+   {
+    "at": "2025-03-09T09:59:00Z",
+    "day": "2025-03-09",
+    "offset": -480,
+    "zone": "America/Los_Angeles"
+   },
+   {
+    "at": "2025-03-09T10:01:00Z",
+    "day": "2025-03-09",
+    "offset": -420,
+    "zone": "America/Los_Angeles"
+   },
+   {
+    "at": "2025-11-02T08:59:00Z",
+    "day": "2025-11-02",
+    "offset": -420,
+    "zone": "America/Los_Angeles"
+   },
+   {
+    "at": "2025-11-02T09:01:00Z",
+    "day": "2025-11-02",
+    "offset": -480,
+    "zone": "America/Los_Angeles"
+   },
+   {
+    "at": "2026-03-08T09:59:00Z",
+    "day": "2026-03-08",
+    "offset": -480,
+    "zone": "America/Los_Angeles"
+   },
+   {
+    "at": "2026-03-08T10:01:00Z",
+    "day": "2026-03-08",
+    "offset": -420,
+    "zone": "America/Los_Angeles"
+   },
+   {
+    "at": "2026-11-01T08:59:00Z",
+    "day": "2026-11-01",
+    "offset": -420,
+    "zone": "America/Los_Angeles"
+   },
+   {
+    "at": "2026-11-01T09:01:00Z",
+    "day": "2026-11-01",
+    "offset": -480,
+    "zone": "America/Los_Angeles"
+   },
+   {
+    "at": "2027-03-14T09:59:00Z",
+    "day": "2027-03-14",
+    "offset": -480,
+    "zone": "America/Los_Angeles"
+   },
+   {
+    "at": "2027-03-14T10:01:00Z",
+    "day": "2027-03-14",
+    "offset": -420,
+    "zone": "America/Los_Angeles"
+   },
+   {
+    "at": "2027-11-07T08:59:00Z",
+    "day": "2027-11-07",
+    "offset": -420,
+    "zone": "America/Los_Angeles"
+   },
+   {
+    "at": "2027-11-07T09:01:00Z",
+    "day": "2027-11-07",
+    "offset": -480,
+    "zone": "America/Los_Angeles"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": -480,
+    "zone": "America/Los_Angeles"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": -420,
+    "zone": "America/Los_Angeles"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-12",
+    "offset": -480,
+    "zone": "America/Los_Angeles"
+   },
+   {
+    "at": "2025-03-09T10:59:00Z",
+    "day": "2025-03-09",
+    "offset": -540,
+    "zone": "America/Anchorage"
+   },
+   {
+    "at": "2025-03-09T11:01:00Z",
+    "day": "2025-03-09",
+    "offset": -480,
+    "zone": "America/Anchorage"
+   },
+   {
+    "at": "2025-11-02T09:59:00Z",
+    "day": "2025-11-02",
+    "offset": -480,
+    "zone": "America/Anchorage"
+   },
+   {
+    "at": "2025-11-02T10:01:00Z",
+    "day": "2025-11-02",
+    "offset": -540,
+    "zone": "America/Anchorage"
+   },
+   {
+    "at": "2026-03-08T10:59:00Z",
+    "day": "2026-03-08",
+    "offset": -540,
+    "zone": "America/Anchorage"
+   },
+   {
+    "at": "2026-03-08T11:01:00Z",
+    "day": "2026-03-08",
+    "offset": -480,
+    "zone": "America/Anchorage"
+   },
+   {
+    "at": "2026-11-01T09:59:00Z",
+    "day": "2026-11-01",
+    "offset": -480,
+    "zone": "America/Anchorage"
+   },
+   {
+    "at": "2026-11-01T10:01:00Z",
+    "day": "2026-11-01",
+    "offset": -540,
+    "zone": "America/Anchorage"
+   },
+   {
+    "at": "2027-03-14T10:59:00Z",
+    "day": "2027-03-14",
+    "offset": -540,
+    "zone": "America/Anchorage"
+   },
+   {
+    "at": "2027-03-14T11:01:00Z",
+    "day": "2027-03-14",
+    "offset": -480,
+    "zone": "America/Anchorage"
+   },
+   {
+    "at": "2027-11-07T09:59:00Z",
+    "day": "2027-11-07",
+    "offset": -480,
+    "zone": "America/Anchorage"
+   },
+   {
+    "at": "2027-11-07T10:01:00Z",
+    "day": "2027-11-07",
+    "offset": -540,
+    "zone": "America/Anchorage"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": -540,
+    "zone": "America/Anchorage"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": -480,
+    "zone": "America/Anchorage"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-12",
+    "offset": -540,
+    "zone": "America/Anchorage"
+   },
+   {
+    "at": "2025-03-09T06:59:00Z",
+    "day": "2025-03-09",
+    "offset": -300,
+    "zone": "America/Toronto"
+   },
+   {
+    "at": "2025-03-09T07:01:00Z",
+    "day": "2025-03-09",
+    "offset": -240,
+    "zone": "America/Toronto"
+   },
+   {
+    "at": "2025-11-02T05:59:00Z",
+    "day": "2025-11-02",
+    "offset": -240,
+    "zone": "America/Toronto"
+   },
+   {
+    "at": "2025-11-02T06:01:00Z",
+    "day": "2025-11-02",
+    "offset": -300,
+    "zone": "America/Toronto"
+   },
+   {
+    "at": "2026-03-08T06:59:00Z",
+    "day": "2026-03-08",
+    "offset": -300,
+    "zone": "America/Toronto"
+   },
+   {
+    "at": "2026-03-08T07:01:00Z",
+    "day": "2026-03-08",
+    "offset": -240,
+    "zone": "America/Toronto"
+   },
+   {
+    "at": "2026-11-01T05:59:00Z",
+    "day": "2026-11-01",
+    "offset": -240,
+    "zone": "America/Toronto"
+   },
+   {
+    "at": "2026-11-01T06:01:00Z",
+    "day": "2026-11-01",
+    "offset": -300,
+    "zone": "America/Toronto"
+   },
+   {
+    "at": "2027-03-14T06:59:00Z",
+    "day": "2027-03-14",
+    "offset": -300,
+    "zone": "America/Toronto"
+   },
+   {
+    "at": "2027-03-14T07:01:00Z",
+    "day": "2027-03-14",
+    "offset": -240,
+    "zone": "America/Toronto"
+   },
+   {
+    "at": "2027-11-07T05:59:00Z",
+    "day": "2027-11-07",
+    "offset": -240,
+    "zone": "America/Toronto"
+   },
+   {
+    "at": "2027-11-07T06:01:00Z",
+    "day": "2027-11-07",
+    "offset": -300,
+    "zone": "America/Toronto"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": -300,
+    "zone": "America/Toronto"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": -240,
+    "zone": "America/Toronto"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-12",
+    "offset": -300,
+    "zone": "America/Toronto"
+   },
+   {
+    "at": "2025-03-09T09:59:00Z",
+    "day": "2025-03-09",
+    "offset": -480,
+    "zone": "America/Vancouver"
+   },
+   {
+    "at": "2025-03-09T10:01:00Z",
+    "day": "2025-03-09",
+    "offset": -420,
+    "zone": "America/Vancouver"
+   },
+   {
+    "at": "2025-11-02T08:59:00Z",
+    "day": "2025-11-02",
+    "offset": -420,
+    "zone": "America/Vancouver"
+   },
+   {
+    "at": "2025-11-02T09:01:00Z",
+    "day": "2025-11-02",
+    "offset": -480,
+    "zone": "America/Vancouver"
+   },
+   {
+    "at": "2026-03-08T09:59:00Z",
+    "day": "2026-03-08",
+    "offset": -480,
+    "zone": "America/Vancouver"
+   },
+   {
+    "at": "2026-03-08T10:01:00Z",
+    "day": "2026-03-08",
+    "offset": -420,
+    "zone": "America/Vancouver"
+   },
+   {
+    "at": "2026-11-01T08:59:00Z",
+    "day": "2026-11-01",
+    "offset": -420,
+    "zone": "America/Vancouver"
+   },
+   {
+    "at": "2026-11-01T09:01:00Z",
+    "day": "2026-11-01",
+    "offset": -480,
+    "zone": "America/Vancouver"
+   },
+   {
+    "at": "2027-03-14T09:59:00Z",
+    "day": "2027-03-14",
+    "offset": -480,
+    "zone": "America/Vancouver"
+   },
+   {
+    "at": "2027-03-14T10:01:00Z",
+    "day": "2027-03-14",
+    "offset": -420,
+    "zone": "America/Vancouver"
+   },
+   {
+    "at": "2027-11-07T08:59:00Z",
+    "day": "2027-11-07",
+    "offset": -420,
+    "zone": "America/Vancouver"
+   },
+   {
+    "at": "2027-11-07T09:01:00Z",
+    "day": "2027-11-07",
+    "offset": -480,
+    "zone": "America/Vancouver"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": -480,
+    "zone": "America/Vancouver"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": -420,
+    "zone": "America/Vancouver"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-12",
+    "offset": -480,
+    "zone": "America/Vancouver"
+   },
+   {
+    "at": "2025-03-09T08:59:00Z",
+    "day": "2025-03-09",
+    "offset": -420,
+    "zone": "America/Edmonton"
+   },
+   {
+    "at": "2025-03-09T09:01:00Z",
+    "day": "2025-03-09",
+    "offset": -360,
+    "zone": "America/Edmonton"
+   },
+   {
+    "at": "2025-11-02T07:59:00Z",
+    "day": "2025-11-02",
+    "offset": -360,
+    "zone": "America/Edmonton"
+   },
+   {
+    "at": "2025-11-02T08:01:00Z",
+    "day": "2025-11-02",
+    "offset": -420,
+    "zone": "America/Edmonton"
+   },
+   {
+    "at": "2026-03-08T08:59:00Z",
+    "day": "2026-03-08",
+    "offset": -420,
+    "zone": "America/Edmonton"
+   },
+   {
+    "at": "2026-03-08T09:01:00Z",
+    "day": "2026-03-08",
+    "offset": -360,
+    "zone": "America/Edmonton"
+   },
+   {
+    "at": "2026-11-01T07:59:00Z",
+    "day": "2026-11-01",
+    "offset": -360,
+    "zone": "America/Edmonton"
+   },
+   {
+    "at": "2026-11-01T08:01:00Z",
+    "day": "2026-11-01",
+    "offset": -420,
+    "zone": "America/Edmonton"
+   },
+   {
+    "at": "2027-03-14T08:59:00Z",
+    "day": "2027-03-14",
+    "offset": -420,
+    "zone": "America/Edmonton"
+   },
+   {
+    "at": "2027-03-14T09:01:00Z",
+    "day": "2027-03-14",
+    "offset": -360,
+    "zone": "America/Edmonton"
+   },
+   {
+    "at": "2027-11-07T07:59:00Z",
+    "day": "2027-11-07",
+    "offset": -360,
+    "zone": "America/Edmonton"
+   },
+   {
+    "at": "2027-11-07T08:01:00Z",
+    "day": "2027-11-07",
+    "offset": -420,
+    "zone": "America/Edmonton"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": -420,
+    "zone": "America/Edmonton"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": -360,
+    "zone": "America/Edmonton"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-12",
+    "offset": -420,
+    "zone": "America/Edmonton"
+   },
+   {
+    "at": "2025-03-09T07:59:00Z",
+    "day": "2025-03-09",
+    "offset": -360,
+    "zone": "America/Winnipeg"
+   },
+   {
+    "at": "2025-03-09T08:01:00Z",
+    "day": "2025-03-09",
+    "offset": -300,
+    "zone": "America/Winnipeg"
+   },
+   {
+    "at": "2025-11-02T06:59:00Z",
+    "day": "2025-11-02",
+    "offset": -300,
+    "zone": "America/Winnipeg"
+   },
+   {
+    "at": "2025-11-02T07:01:00Z",
+    "day": "2025-11-02",
+    "offset": -360,
+    "zone": "America/Winnipeg"
+   },
+   {
+    "at": "2026-03-08T07:59:00Z",
+    "day": "2026-03-08",
+    "offset": -360,
+    "zone": "America/Winnipeg"
+   },
+   {
+    "at": "2026-03-08T08:01:00Z",
+    "day": "2026-03-08",
+    "offset": -300,
+    "zone": "America/Winnipeg"
+   },
+   {
+    "at": "2026-11-01T06:59:00Z",
+    "day": "2026-11-01",
+    "offset": -300,
+    "zone": "America/Winnipeg"
+   },
+   {
+    "at": "2026-11-01T07:01:00Z",
+    "day": "2026-11-01",
+    "offset": -360,
+    "zone": "America/Winnipeg"
+   },
+   {
+    "at": "2027-03-14T07:59:00Z",
+    "day": "2027-03-14",
+    "offset": -360,
+    "zone": "America/Winnipeg"
+   },
+   {
+    "at": "2027-03-14T08:01:00Z",
+    "day": "2027-03-14",
+    "offset": -300,
+    "zone": "America/Winnipeg"
+   },
+   {
+    "at": "2027-11-07T06:59:00Z",
+    "day": "2027-11-07",
+    "offset": -300,
+    "zone": "America/Winnipeg"
+   },
+   {
+    "at": "2027-11-07T07:01:00Z",
+    "day": "2027-11-07",
+    "offset": -360,
+    "zone": "America/Winnipeg"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": -360,
+    "zone": "America/Winnipeg"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": -300,
+    "zone": "America/Winnipeg"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-12",
+    "offset": -360,
+    "zone": "America/Winnipeg"
+   },
+   {
+    "at": "2025-03-09T05:59:00Z",
+    "day": "2025-03-09",
+    "offset": -240,
+    "zone": "America/Halifax"
+   },
+   {
+    "at": "2025-03-09T06:01:00Z",
+    "day": "2025-03-09",
+    "offset": -180,
+    "zone": "America/Halifax"
+   },
+   {
+    "at": "2025-11-02T04:59:00Z",
+    "day": "2025-11-02",
+    "offset": -180,
+    "zone": "America/Halifax"
+   },
+   {
+    "at": "2025-11-02T05:01:00Z",
+    "day": "2025-11-02",
+    "offset": -240,
+    "zone": "America/Halifax"
+   },
+   {
+    "at": "2026-03-08T05:59:00Z",
+    "day": "2026-03-08",
+    "offset": -240,
+    "zone": "America/Halifax"
+   },
+   {
+    "at": "2026-03-08T06:01:00Z",
+    "day": "2026-03-08",
+    "offset": -180,
+    "zone": "America/Halifax"
+   },
+   {
+    "at": "2026-11-01T04:59:00Z",
+    "day": "2026-11-01",
+    "offset": -180,
+    "zone": "America/Halifax"
+   },
+   {
+    "at": "2026-11-01T05:01:00Z",
+    "day": "2026-11-01",
+    "offset": -240,
+    "zone": "America/Halifax"
+   },
+   {
+    "at": "2027-03-14T05:59:00Z",
+    "day": "2027-03-14",
+    "offset": -240,
+    "zone": "America/Halifax"
+   },
+   {
+    "at": "2027-03-14T06:01:00Z",
+    "day": "2027-03-14",
+    "offset": -180,
+    "zone": "America/Halifax"
+   },
+   {
+    "at": "2027-11-07T04:59:00Z",
+    "day": "2027-11-07",
+    "offset": -180,
+    "zone": "America/Halifax"
+   },
+   {
+    "at": "2027-11-07T05:01:00Z",
+    "day": "2027-11-07",
+    "offset": -240,
+    "zone": "America/Halifax"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": -240,
+    "zone": "America/Halifax"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": -180,
+    "zone": "America/Halifax"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-12",
+    "offset": -240,
+    "zone": "America/Halifax"
+   },
+   {
+    "at": "2025-03-09T05:29:00Z",
+    "day": "2025-03-09",
+    "offset": -210,
+    "zone": "America/St_Johns"
+   },
+   {
+    "at": "2025-03-09T05:31:00Z",
+    "day": "2025-03-09",
+    "offset": -150,
+    "zone": "America/St_Johns"
+   },
+   {
+    "at": "2025-11-02T04:29:00Z",
+    "day": "2025-11-02",
+    "offset": -150,
+    "zone": "America/St_Johns"
+   },
+   {
+    "at": "2025-11-02T04:31:00Z",
+    "day": "2025-11-02",
+    "offset": -210,
+    "zone": "America/St_Johns"
+   },
+   {
+    "at": "2026-03-08T05:29:00Z",
+    "day": "2026-03-08",
+    "offset": -210,
+    "zone": "America/St_Johns"
+   },
+   {
+    "at": "2026-03-08T05:31:00Z",
+    "day": "2026-03-08",
+    "offset": -150,
+    "zone": "America/St_Johns"
+   },
+   {
+    "at": "2026-11-01T04:29:00Z",
+    "day": "2026-11-01",
+    "offset": -150,
+    "zone": "America/St_Johns"
+   },
+   {
+    "at": "2026-11-01T04:31:00Z",
+    "day": "2026-11-01",
+    "offset": -210,
+    "zone": "America/St_Johns"
+   },
+   {
+    "at": "2027-03-14T05:29:00Z",
+    "day": "2027-03-14",
+    "offset": -210,
+    "zone": "America/St_Johns"
+   },
+   {
+    "at": "2027-03-14T05:31:00Z",
+    "day": "2027-03-14",
+    "offset": -150,
+    "zone": "America/St_Johns"
+   },
+   {
+    "at": "2027-11-07T04:29:00Z",
+    "day": "2027-11-07",
+    "offset": -150,
+    "zone": "America/St_Johns"
+   },
+   {
+    "at": "2027-11-07T04:31:00Z",
+    "day": "2027-11-07",
+    "offset": -210,
+    "zone": "America/St_Johns"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": -210,
+    "zone": "America/St_Johns"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": -150,
+    "zone": "America/St_Johns"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-12",
+    "offset": -210,
+    "zone": "America/St_Johns"
+   },
+   {
+    "at": "2025-03-30T00:59:00Z",
+    "day": "2025-03-30",
+    "offset": 0,
+    "zone": "Europe/London"
+   },
+   {
+    "at": "2025-03-30T01:01:00Z",
+    "day": "2025-03-30",
+    "offset": 60,
+    "zone": "Europe/London"
+   },
+   {
+    "at": "2025-10-26T00:59:00Z",
+    "day": "2025-10-26",
+    "offset": 60,
+    "zone": "Europe/London"
+   },
+   {
+    "at": "2025-10-26T01:01:00Z",
+    "day": "2025-10-26",
+    "offset": 0,
+    "zone": "Europe/London"
+   },
+   {
+    "at": "2026-03-29T00:59:00Z",
+    "day": "2026-03-29",
+    "offset": 0,
+    "zone": "Europe/London"
+   },
+   {
+    "at": "2026-03-29T01:01:00Z",
+    "day": "2026-03-29",
+    "offset": 60,
+    "zone": "Europe/London"
+   },
+   {
+    "at": "2026-10-25T00:59:00Z",
+    "day": "2026-10-25",
+    "offset": 60,
+    "zone": "Europe/London"
+   },
+   {
+    "at": "2026-10-25T01:01:00Z",
+    "day": "2026-10-25",
+    "offset": 0,
+    "zone": "Europe/London"
+   },
+   {
+    "at": "2027-03-28T00:59:00Z",
+    "day": "2027-03-28",
+    "offset": 0,
+    "zone": "Europe/London"
+   },
+   {
+    "at": "2027-03-28T01:01:00Z",
+    "day": "2027-03-28",
+    "offset": 60,
+    "zone": "Europe/London"
+   },
+   {
+    "at": "2027-10-31T00:59:00Z",
+    "day": "2027-10-31",
+    "offset": 60,
+    "zone": "Europe/London"
+   },
+   {
+    "at": "2027-10-31T01:01:00Z",
+    "day": "2027-10-31",
+    "offset": 0,
+    "zone": "Europe/London"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": 0,
+    "zone": "Europe/London"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": 60,
+    "zone": "Europe/London"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-12",
+    "offset": 0,
+    "zone": "Europe/London"
+   },
+   {
+    "at": "2025-03-30T00:59:00Z",
+    "day": "2025-03-30",
+    "offset": 0,
+    "zone": "Europe/Dublin"
+   },
+   {
+    "at": "2025-03-30T01:01:00Z",
+    "day": "2025-03-30",
+    "offset": 60,
+    "zone": "Europe/Dublin"
+   },
+   {
+    "at": "2025-10-26T00:59:00Z",
+    "day": "2025-10-26",
+    "offset": 60,
+    "zone": "Europe/Dublin"
+   },
+   {
+    "at": "2025-10-26T01:01:00Z",
+    "day": "2025-10-26",
+    "offset": 0,
+    "zone": "Europe/Dublin"
+   },
+   {
+    "at": "2026-03-29T00:59:00Z",
+    "day": "2026-03-29",
+    "offset": 0,
+    "zone": "Europe/Dublin"
+   },
+   {
+    "at": "2026-03-29T01:01:00Z",
+    "day": "2026-03-29",
+    "offset": 60,
+    "zone": "Europe/Dublin"
+   },
+   {
+    "at": "2026-10-25T00:59:00Z",
+    "day": "2026-10-25",
+    "offset": 60,
+    "zone": "Europe/Dublin"
+   },
+   {
+    "at": "2026-10-25T01:01:00Z",
+    "day": "2026-10-25",
+    "offset": 0,
+    "zone": "Europe/Dublin"
+   },
+   {
+    "at": "2027-03-28T00:59:00Z",
+    "day": "2027-03-28",
+    "offset": 0,
+    "zone": "Europe/Dublin"
+   },
+   {
+    "at": "2027-03-28T01:01:00Z",
+    "day": "2027-03-28",
+    "offset": 60,
+    "zone": "Europe/Dublin"
+   },
+   {
+    "at": "2027-10-31T00:59:00Z",
+    "day": "2027-10-31",
+    "offset": 60,
+    "zone": "Europe/Dublin"
+   },
+   {
+    "at": "2027-10-31T01:01:00Z",
+    "day": "2027-10-31",
+    "offset": 0,
+    "zone": "Europe/Dublin"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": 0,
+    "zone": "Europe/Dublin"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": 60,
+    "zone": "Europe/Dublin"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-12",
+    "offset": 0,
+    "zone": "Europe/Dublin"
+   },
+   {
+    "at": "2025-03-30T00:59:00Z",
+    "day": "2025-03-30",
+    "offset": 0,
+    "zone": "Europe/Lisbon"
+   },
+   {
+    "at": "2025-03-30T01:01:00Z",
+    "day": "2025-03-30",
+    "offset": 60,
+    "zone": "Europe/Lisbon"
+   },
+   {
+    "at": "2025-10-26T00:59:00Z",
+    "day": "2025-10-26",
+    "offset": 60,
+    "zone": "Europe/Lisbon"
+   },
+   {
+    "at": "2025-10-26T01:01:00Z",
+    "day": "2025-10-26",
+    "offset": 0,
+    "zone": "Europe/Lisbon"
+   },
+   {
+    "at": "2026-03-29T00:59:00Z",
+    "day": "2026-03-29",
+    "offset": 0,
+    "zone": "Europe/Lisbon"
+   },
+   {
+    "at": "2026-03-29T01:01:00Z",
+    "day": "2026-03-29",
+    "offset": 60,
+    "zone": "Europe/Lisbon"
+   },
+   {
+    "at": "2026-10-25T00:59:00Z",
+    "day": "2026-10-25",
+    "offset": 60,
+    "zone": "Europe/Lisbon"
+   },
+   {
+    "at": "2026-10-25T01:01:00Z",
+    "day": "2026-10-25",
+    "offset": 0,
+    "zone": "Europe/Lisbon"
+   },
+   {
+    "at": "2027-03-28T00:59:00Z",
+    "day": "2027-03-28",
+    "offset": 0,
+    "zone": "Europe/Lisbon"
+   },
+   {
+    "at": "2027-03-28T01:01:00Z",
+    "day": "2027-03-28",
+    "offset": 60,
+    "zone": "Europe/Lisbon"
+   },
+   {
+    "at": "2027-10-31T00:59:00Z",
+    "day": "2027-10-31",
+    "offset": 60,
+    "zone": "Europe/Lisbon"
+   },
+   {
+    "at": "2027-10-31T01:01:00Z",
+    "day": "2027-10-31",
+    "offset": 0,
+    "zone": "Europe/Lisbon"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": 0,
+    "zone": "Europe/Lisbon"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": 60,
+    "zone": "Europe/Lisbon"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-12",
+    "offset": 0,
+    "zone": "Europe/Lisbon"
+   },
+   {
+    "at": "2025-03-30T00:59:00Z",
+    "day": "2025-03-30",
+    "offset": 60,
+    "zone": "Europe/Berlin"
+   },
+   {
+    "at": "2025-03-30T01:01:00Z",
+    "day": "2025-03-30",
+    "offset": 120,
+    "zone": "Europe/Berlin"
+   },
+   {
+    "at": "2025-10-26T00:59:00Z",
+    "day": "2025-10-26",
+    "offset": 120,
+    "zone": "Europe/Berlin"
+   },
+   {
+    "at": "2025-10-26T01:01:00Z",
+    "day": "2025-10-26",
+    "offset": 60,
+    "zone": "Europe/Berlin"
+   },
+   {
+    "at": "2026-03-29T00:59:00Z",
+    "day": "2026-03-29",
+    "offset": 60,
+    "zone": "Europe/Berlin"
+   },
+   {
+    "at": "2026-03-29T01:01:00Z",
+    "day": "2026-03-29",
+    "offset": 120,
+    "zone": "Europe/Berlin"
+   },
+   {
+    "at": "2026-10-25T00:59:00Z",
+    "day": "2026-10-25",
+    "offset": 120,
+    "zone": "Europe/Berlin"
+   },
+   {
+    "at": "2026-10-25T01:01:00Z",
+    "day": "2026-10-25",
+    "offset": 60,
+    "zone": "Europe/Berlin"
+   },
+   {
+    "at": "2027-03-28T00:59:00Z",
+    "day": "2027-03-28",
+    "offset": 60,
+    "zone": "Europe/Berlin"
+   },
+   {
+    "at": "2027-03-28T01:01:00Z",
+    "day": "2027-03-28",
+    "offset": 120,
+    "zone": "Europe/Berlin"
+   },
+   {
+    "at": "2027-10-31T00:59:00Z",
+    "day": "2027-10-31",
+    "offset": 120,
+    "zone": "Europe/Berlin"
+   },
+   {
+    "at": "2027-10-31T01:01:00Z",
+    "day": "2027-10-31",
+    "offset": 60,
+    "zone": "Europe/Berlin"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": 60,
+    "zone": "Europe/Berlin"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": 120,
+    "zone": "Europe/Berlin"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-13",
+    "offset": 60,
+    "zone": "Europe/Berlin"
+   },
+   {
+    "at": "2025-03-30T00:59:00Z",
+    "day": "2025-03-30",
+    "offset": 60,
+    "zone": "Europe/Paris"
+   },
+   {
+    "at": "2025-03-30T01:01:00Z",
+    "day": "2025-03-30",
+    "offset": 120,
+    "zone": "Europe/Paris"
+   },
+   {
+    "at": "2025-10-26T00:59:00Z",
+    "day": "2025-10-26",
+    "offset": 120,
+    "zone": "Europe/Paris"
+   },
+   {
+    "at": "2025-10-26T01:01:00Z",
+    "day": "2025-10-26",
+    "offset": 60,
+    "zone": "Europe/Paris"
+   },
+   {
+    "at": "2026-03-29T00:59:00Z",
+    "day": "2026-03-29",
+    "offset": 60,
+    "zone": "Europe/Paris"
+   },
+   {
+    "at": "2026-03-29T01:01:00Z",
+    "day": "2026-03-29",
+    "offset": 120,
+    "zone": "Europe/Paris"
+   },
+   {
+    "at": "2026-10-25T00:59:00Z",
+    "day": "2026-10-25",
+    "offset": 120,
+    "zone": "Europe/Paris"
+   },
+   {
+    "at": "2026-10-25T01:01:00Z",
+    "day": "2026-10-25",
+    "offset": 60,
+    "zone": "Europe/Paris"
+   },
+   {
+    "at": "2027-03-28T00:59:00Z",
+    "day": "2027-03-28",
+    "offset": 60,
+    "zone": "Europe/Paris"
+   },
+   {
+    "at": "2027-03-28T01:01:00Z",
+    "day": "2027-03-28",
+    "offset": 120,
+    "zone": "Europe/Paris"
+   },
+   {
+    "at": "2027-10-31T00:59:00Z",
+    "day": "2027-10-31",
+    "offset": 120,
+    "zone": "Europe/Paris"
+   },
+   {
+    "at": "2027-10-31T01:01:00Z",
+    "day": "2027-10-31",
+    "offset": 60,
+    "zone": "Europe/Paris"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": 60,
+    "zone": "Europe/Paris"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": 120,
+    "zone": "Europe/Paris"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-13",
+    "offset": 60,
+    "zone": "Europe/Paris"
+   },
+   {
+    "at": "2025-03-30T00:59:00Z",
+    "day": "2025-03-30",
+    "offset": 60,
+    "zone": "Europe/Amsterdam"
+   },
+   {
+    "at": "2025-03-30T01:01:00Z",
+    "day": "2025-03-30",
+    "offset": 120,
+    "zone": "Europe/Amsterdam"
+   },
+   {
+    "at": "2025-10-26T00:59:00Z",
+    "day": "2025-10-26",
+    "offset": 120,
+    "zone": "Europe/Amsterdam"
+   },
+   {
+    "at": "2025-10-26T01:01:00Z",
+    "day": "2025-10-26",
+    "offset": 60,
+    "zone": "Europe/Amsterdam"
+   },
+   {
+    "at": "2026-03-29T00:59:00Z",
+    "day": "2026-03-29",
+    "offset": 60,
+    "zone": "Europe/Amsterdam"
+   },
+   {
+    "at": "2026-03-29T01:01:00Z",
+    "day": "2026-03-29",
+    "offset": 120,
+    "zone": "Europe/Amsterdam"
+   },
+   {
+    "at": "2026-10-25T00:59:00Z",
+    "day": "2026-10-25",
+    "offset": 120,
+    "zone": "Europe/Amsterdam"
+   },
+   {
+    "at": "2026-10-25T01:01:00Z",
+    "day": "2026-10-25",
+    "offset": 60,
+    "zone": "Europe/Amsterdam"
+   },
+   {
+    "at": "2027-03-28T00:59:00Z",
+    "day": "2027-03-28",
+    "offset": 60,
+    "zone": "Europe/Amsterdam"
+   },
+   {
+    "at": "2027-03-28T01:01:00Z",
+    "day": "2027-03-28",
+    "offset": 120,
+    "zone": "Europe/Amsterdam"
+   },
+   {
+    "at": "2027-10-31T00:59:00Z",
+    "day": "2027-10-31",
+    "offset": 120,
+    "zone": "Europe/Amsterdam"
+   },
+   {
+    "at": "2027-10-31T01:01:00Z",
+    "day": "2027-10-31",
+    "offset": 60,
+    "zone": "Europe/Amsterdam"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": 60,
+    "zone": "Europe/Amsterdam"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": 120,
+    "zone": "Europe/Amsterdam"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-13",
+    "offset": 60,
+    "zone": "Europe/Amsterdam"
+   },
+   {
+    "at": "2025-03-30T00:59:00Z",
+    "day": "2025-03-30",
+    "offset": 60,
+    "zone": "Europe/Brussels"
+   },
+   {
+    "at": "2025-03-30T01:01:00Z",
+    "day": "2025-03-30",
+    "offset": 120,
+    "zone": "Europe/Brussels"
+   },
+   {
+    "at": "2025-10-26T00:59:00Z",
+    "day": "2025-10-26",
+    "offset": 120,
+    "zone": "Europe/Brussels"
+   },
+   {
+    "at": "2025-10-26T01:01:00Z",
+    "day": "2025-10-26",
+    "offset": 60,
+    "zone": "Europe/Brussels"
+   },
+   {
+    "at": "2026-03-29T00:59:00Z",
+    "day": "2026-03-29",
+    "offset": 60,
+    "zone": "Europe/Brussels"
+   },
+   {
+    "at": "2026-03-29T01:01:00Z",
+    "day": "2026-03-29",
+    "offset": 120,
+    "zone": "Europe/Brussels"
+   },
+   {
+    "at": "2026-10-25T00:59:00Z",
+    "day": "2026-10-25",
+    "offset": 120,
+    "zone": "Europe/Brussels"
+   },
+   {
+    "at": "2026-10-25T01:01:00Z",
+    "day": "2026-10-25",
+    "offset": 60,
+    "zone": "Europe/Brussels"
+   },
+   {
+    "at": "2027-03-28T00:59:00Z",
+    "day": "2027-03-28",
+    "offset": 60,
+    "zone": "Europe/Brussels"
+   },
+   {
+    "at": "2027-03-28T01:01:00Z",
+    "day": "2027-03-28",
+    "offset": 120,
+    "zone": "Europe/Brussels"
+   },
+   {
+    "at": "2027-10-31T00:59:00Z",
+    "day": "2027-10-31",
+    "offset": 120,
+    "zone": "Europe/Brussels"
+   },
+   {
+    "at": "2027-10-31T01:01:00Z",
+    "day": "2027-10-31",
+    "offset": 60,
+    "zone": "Europe/Brussels"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": 60,
+    "zone": "Europe/Brussels"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": 120,
+    "zone": "Europe/Brussels"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-13",
+    "offset": 60,
+    "zone": "Europe/Brussels"
+   },
+   {
+    "at": "2025-03-30T00:59:00Z",
+    "day": "2025-03-30",
+    "offset": 60,
+    "zone": "Europe/Luxembourg"
+   },
+   {
+    "at": "2025-03-30T01:01:00Z",
+    "day": "2025-03-30",
+    "offset": 120,
+    "zone": "Europe/Luxembourg"
+   },
+   {
+    "at": "2025-10-26T00:59:00Z",
+    "day": "2025-10-26",
+    "offset": 120,
+    "zone": "Europe/Luxembourg"
+   },
+   {
+    "at": "2025-10-26T01:01:00Z",
+    "day": "2025-10-26",
+    "offset": 60,
+    "zone": "Europe/Luxembourg"
+   },
+   {
+    "at": "2026-03-29T00:59:00Z",
+    "day": "2026-03-29",
+    "offset": 60,
+    "zone": "Europe/Luxembourg"
+   },
+   {
+    "at": "2026-03-29T01:01:00Z",
+    "day": "2026-03-29",
+    "offset": 120,
+    "zone": "Europe/Luxembourg"
+   },
+   {
+    "at": "2026-10-25T00:59:00Z",
+    "day": "2026-10-25",
+    "offset": 120,
+    "zone": "Europe/Luxembourg"
+   },
+   {
+    "at": "2026-10-25T01:01:00Z",
+    "day": "2026-10-25",
+    "offset": 60,
+    "zone": "Europe/Luxembourg"
+   },
+   {
+    "at": "2027-03-28T00:59:00Z",
+    "day": "2027-03-28",
+    "offset": 60,
+    "zone": "Europe/Luxembourg"
+   },
+   {
+    "at": "2027-03-28T01:01:00Z",
+    "day": "2027-03-28",
+    "offset": 120,
+    "zone": "Europe/Luxembourg"
+   },
+   {
+    "at": "2027-10-31T00:59:00Z",
+    "day": "2027-10-31",
+    "offset": 120,
+    "zone": "Europe/Luxembourg"
+   },
+   {
+    "at": "2027-10-31T01:01:00Z",
+    "day": "2027-10-31",
+    "offset": 60,
+    "zone": "Europe/Luxembourg"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": 60,
+    "zone": "Europe/Luxembourg"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": 120,
+    "zone": "Europe/Luxembourg"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-13",
+    "offset": 60,
+    "zone": "Europe/Luxembourg"
+   },
+   {
+    "at": "2025-03-30T00:59:00Z",
+    "day": "2025-03-30",
+    "offset": 60,
+    "zone": "Europe/Madrid"
+   },
+   {
+    "at": "2025-03-30T01:01:00Z",
+    "day": "2025-03-30",
+    "offset": 120,
+    "zone": "Europe/Madrid"
+   },
+   {
+    "at": "2025-10-26T00:59:00Z",
+    "day": "2025-10-26",
+    "offset": 120,
+    "zone": "Europe/Madrid"
+   },
+   {
+    "at": "2025-10-26T01:01:00Z",
+    "day": "2025-10-26",
+    "offset": 60,
+    "zone": "Europe/Madrid"
+   },
+   {
+    "at": "2026-03-29T00:59:00Z",
+    "day": "2026-03-29",
+    "offset": 60,
+    "zone": "Europe/Madrid"
+   },
+   {
+    "at": "2026-03-29T01:01:00Z",
+    "day": "2026-03-29",
+    "offset": 120,
+    "zone": "Europe/Madrid"
+   },
+   {
+    "at": "2026-10-25T00:59:00Z",
+    "day": "2026-10-25",
+    "offset": 120,
+    "zone": "Europe/Madrid"
+   },
+   {
+    "at": "2026-10-25T01:01:00Z",
+    "day": "2026-10-25",
+    "offset": 60,
+    "zone": "Europe/Madrid"
+   },
+   {
+    "at": "2027-03-28T00:59:00Z",
+    "day": "2027-03-28",
+    "offset": 60,
+    "zone": "Europe/Madrid"
+   },
+   {
+    "at": "2027-03-28T01:01:00Z",
+    "day": "2027-03-28",
+    "offset": 120,
+    "zone": "Europe/Madrid"
+   },
+   {
+    "at": "2027-10-31T00:59:00Z",
+    "day": "2027-10-31",
+    "offset": 120,
+    "zone": "Europe/Madrid"
+   },
+   {
+    "at": "2027-10-31T01:01:00Z",
+    "day": "2027-10-31",
+    "offset": 60,
+    "zone": "Europe/Madrid"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": 60,
+    "zone": "Europe/Madrid"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": 120,
+    "zone": "Europe/Madrid"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-13",
+    "offset": 60,
+    "zone": "Europe/Madrid"
+   },
+   {
+    "at": "2025-03-30T00:59:00Z",
+    "day": "2025-03-30",
+    "offset": 60,
+    "zone": "Europe/Rome"
+   },
+   {
+    "at": "2025-03-30T01:01:00Z",
+    "day": "2025-03-30",
+    "offset": 120,
+    "zone": "Europe/Rome"
+   },
+   {
+    "at": "2025-10-26T00:59:00Z",
+    "day": "2025-10-26",
+    "offset": 120,
+    "zone": "Europe/Rome"
+   },
+   {
+    "at": "2025-10-26T01:01:00Z",
+    "day": "2025-10-26",
+    "offset": 60,
+    "zone": "Europe/Rome"
+   },
+   {
+    "at": "2026-03-29T00:59:00Z",
+    "day": "2026-03-29",
+    "offset": 60,
+    "zone": "Europe/Rome"
+   },
+   {
+    "at": "2026-03-29T01:01:00Z",
+    "day": "2026-03-29",
+    "offset": 120,
+    "zone": "Europe/Rome"
+   },
+   {
+    "at": "2026-10-25T00:59:00Z",
+    "day": "2026-10-25",
+    "offset": 120,
+    "zone": "Europe/Rome"
+   },
+   {
+    "at": "2026-10-25T01:01:00Z",
+    "day": "2026-10-25",
+    "offset": 60,
+    "zone": "Europe/Rome"
+   },
+   {
+    "at": "2027-03-28T00:59:00Z",
+    "day": "2027-03-28",
+    "offset": 60,
+    "zone": "Europe/Rome"
+   },
+   {
+    "at": "2027-03-28T01:01:00Z",
+    "day": "2027-03-28",
+    "offset": 120,
+    "zone": "Europe/Rome"
+   },
+   {
+    "at": "2027-10-31T00:59:00Z",
+    "day": "2027-10-31",
+    "offset": 120,
+    "zone": "Europe/Rome"
+   },
+   {
+    "at": "2027-10-31T01:01:00Z",
+    "day": "2027-10-31",
+    "offset": 60,
+    "zone": "Europe/Rome"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": 60,
+    "zone": "Europe/Rome"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": 120,
+    "zone": "Europe/Rome"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-13",
+    "offset": 60,
+    "zone": "Europe/Rome"
+   },
+   {
+    "at": "2025-03-30T00:59:00Z",
+    "day": "2025-03-30",
+    "offset": 60,
+    "zone": "Europe/Vienna"
+   },
+   {
+    "at": "2025-03-30T01:01:00Z",
+    "day": "2025-03-30",
+    "offset": 120,
+    "zone": "Europe/Vienna"
+   },
+   {
+    "at": "2025-10-26T00:59:00Z",
+    "day": "2025-10-26",
+    "offset": 120,
+    "zone": "Europe/Vienna"
+   },
+   {
+    "at": "2025-10-26T01:01:00Z",
+    "day": "2025-10-26",
+    "offset": 60,
+    "zone": "Europe/Vienna"
+   },
+   {
+    "at": "2026-03-29T00:59:00Z",
+    "day": "2026-03-29",
+    "offset": 60,
+    "zone": "Europe/Vienna"
+   },
+   {
+    "at": "2026-03-29T01:01:00Z",
+    "day": "2026-03-29",
+    "offset": 120,
+    "zone": "Europe/Vienna"
+   },
+   {
+    "at": "2026-10-25T00:59:00Z",
+    "day": "2026-10-25",
+    "offset": 120,
+    "zone": "Europe/Vienna"
+   },
+   {
+    "at": "2026-10-25T01:01:00Z",
+    "day": "2026-10-25",
+    "offset": 60,
+    "zone": "Europe/Vienna"
+   },
+   {
+    "at": "2027-03-28T00:59:00Z",
+    "day": "2027-03-28",
+    "offset": 60,
+    "zone": "Europe/Vienna"
+   },
+   {
+    "at": "2027-03-28T01:01:00Z",
+    "day": "2027-03-28",
+    "offset": 120,
+    "zone": "Europe/Vienna"
+   },
+   {
+    "at": "2027-10-31T00:59:00Z",
+    "day": "2027-10-31",
+    "offset": 120,
+    "zone": "Europe/Vienna"
+   },
+   {
+    "at": "2027-10-31T01:01:00Z",
+    "day": "2027-10-31",
+    "offset": 60,
+    "zone": "Europe/Vienna"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": 60,
+    "zone": "Europe/Vienna"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": 120,
+    "zone": "Europe/Vienna"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-13",
+    "offset": 60,
+    "zone": "Europe/Vienna"
+   },
+   {
+    "at": "2025-03-30T00:59:00Z",
+    "day": "2025-03-30",
+    "offset": 60,
+    "zone": "Europe/Zurich"
+   },
+   {
+    "at": "2025-03-30T01:01:00Z",
+    "day": "2025-03-30",
+    "offset": 120,
+    "zone": "Europe/Zurich"
+   },
+   {
+    "at": "2025-10-26T00:59:00Z",
+    "day": "2025-10-26",
+    "offset": 120,
+    "zone": "Europe/Zurich"
+   },
+   {
+    "at": "2025-10-26T01:01:00Z",
+    "day": "2025-10-26",
+    "offset": 60,
+    "zone": "Europe/Zurich"
+   },
+   {
+    "at": "2026-03-29T00:59:00Z",
+    "day": "2026-03-29",
+    "offset": 60,
+    "zone": "Europe/Zurich"
+   },
+   {
+    "at": "2026-03-29T01:01:00Z",
+    "day": "2026-03-29",
+    "offset": 120,
+    "zone": "Europe/Zurich"
+   },
+   {
+    "at": "2026-10-25T00:59:00Z",
+    "day": "2026-10-25",
+    "offset": 120,
+    "zone": "Europe/Zurich"
+   },
+   {
+    "at": "2026-10-25T01:01:00Z",
+    "day": "2026-10-25",
+    "offset": 60,
+    "zone": "Europe/Zurich"
+   },
+   {
+    "at": "2027-03-28T00:59:00Z",
+    "day": "2027-03-28",
+    "offset": 60,
+    "zone": "Europe/Zurich"
+   },
+   {
+    "at": "2027-03-28T01:01:00Z",
+    "day": "2027-03-28",
+    "offset": 120,
+    "zone": "Europe/Zurich"
+   },
+   {
+    "at": "2027-10-31T00:59:00Z",
+    "day": "2027-10-31",
+    "offset": 120,
+    "zone": "Europe/Zurich"
+   },
+   {
+    "at": "2027-10-31T01:01:00Z",
+    "day": "2027-10-31",
+    "offset": 60,
+    "zone": "Europe/Zurich"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": 60,
+    "zone": "Europe/Zurich"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": 120,
+    "zone": "Europe/Zurich"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-13",
+    "offset": 60,
+    "zone": "Europe/Zurich"
+   },
+   {
+    "at": "2025-03-30T00:59:00Z",
+    "day": "2025-03-30",
+    "offset": 60,
+    "zone": "Europe/Stockholm"
+   },
+   {
+    "at": "2025-03-30T01:01:00Z",
+    "day": "2025-03-30",
+    "offset": 120,
+    "zone": "Europe/Stockholm"
+   },
+   {
+    "at": "2025-10-26T00:59:00Z",
+    "day": "2025-10-26",
+    "offset": 120,
+    "zone": "Europe/Stockholm"
+   },
+   {
+    "at": "2025-10-26T01:01:00Z",
+    "day": "2025-10-26",
+    "offset": 60,
+    "zone": "Europe/Stockholm"
+   },
+   {
+    "at": "2026-03-29T00:59:00Z",
+    "day": "2026-03-29",
+    "offset": 60,
+    "zone": "Europe/Stockholm"
+   },
+   {
+    "at": "2026-03-29T01:01:00Z",
+    "day": "2026-03-29",
+    "offset": 120,
+    "zone": "Europe/Stockholm"
+   },
+   {
+    "at": "2026-10-25T00:59:00Z",
+    "day": "2026-10-25",
+    "offset": 120,
+    "zone": "Europe/Stockholm"
+   },
+   {
+    "at": "2026-10-25T01:01:00Z",
+    "day": "2026-10-25",
+    "offset": 60,
+    "zone": "Europe/Stockholm"
+   },
+   {
+    "at": "2027-03-28T00:59:00Z",
+    "day": "2027-03-28",
+    "offset": 60,
+    "zone": "Europe/Stockholm"
+   },
+   {
+    "at": "2027-03-28T01:01:00Z",
+    "day": "2027-03-28",
+    "offset": 120,
+    "zone": "Europe/Stockholm"
+   },
+   {
+    "at": "2027-10-31T00:59:00Z",
+    "day": "2027-10-31",
+    "offset": 120,
+    "zone": "Europe/Stockholm"
+   },
+   {
+    "at": "2027-10-31T01:01:00Z",
+    "day": "2027-10-31",
+    "offset": 60,
+    "zone": "Europe/Stockholm"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": 60,
+    "zone": "Europe/Stockholm"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": 120,
+    "zone": "Europe/Stockholm"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-13",
+    "offset": 60,
+    "zone": "Europe/Stockholm"
+   },
+   {
+    "at": "2025-03-30T00:59:00Z",
+    "day": "2025-03-30",
+    "offset": 60,
+    "zone": "Europe/Oslo"
+   },
+   {
+    "at": "2025-03-30T01:01:00Z",
+    "day": "2025-03-30",
+    "offset": 120,
+    "zone": "Europe/Oslo"
+   },
+   {
+    "at": "2025-10-26T00:59:00Z",
+    "day": "2025-10-26",
+    "offset": 120,
+    "zone": "Europe/Oslo"
+   },
+   {
+    "at": "2025-10-26T01:01:00Z",
+    "day": "2025-10-26",
+    "offset": 60,
+    "zone": "Europe/Oslo"
+   },
+   {
+    "at": "2026-03-29T00:59:00Z",
+    "day": "2026-03-29",
+    "offset": 60,
+    "zone": "Europe/Oslo"
+   },
+   {
+    "at": "2026-03-29T01:01:00Z",
+    "day": "2026-03-29",
+    "offset": 120,
+    "zone": "Europe/Oslo"
+   },
+   {
+    "at": "2026-10-25T00:59:00Z",
+    "day": "2026-10-25",
+    "offset": 120,
+    "zone": "Europe/Oslo"
+   },
+   {
+    "at": "2026-10-25T01:01:00Z",
+    "day": "2026-10-25",
+    "offset": 60,
+    "zone": "Europe/Oslo"
+   },
+   {
+    "at": "2027-03-28T00:59:00Z",
+    "day": "2027-03-28",
+    "offset": 60,
+    "zone": "Europe/Oslo"
+   },
+   {
+    "at": "2027-03-28T01:01:00Z",
+    "day": "2027-03-28",
+    "offset": 120,
+    "zone": "Europe/Oslo"
+   },
+   {
+    "at": "2027-10-31T00:59:00Z",
+    "day": "2027-10-31",
+    "offset": 120,
+    "zone": "Europe/Oslo"
+   },
+   {
+    "at": "2027-10-31T01:01:00Z",
+    "day": "2027-10-31",
+    "offset": 60,
+    "zone": "Europe/Oslo"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": 60,
+    "zone": "Europe/Oslo"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": 120,
+    "zone": "Europe/Oslo"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-13",
+    "offset": 60,
+    "zone": "Europe/Oslo"
+   },
+   {
+    "at": "2025-03-30T00:59:00Z",
+    "day": "2025-03-30",
+    "offset": 60,
+    "zone": "Europe/Copenhagen"
+   },
+   {
+    "at": "2025-03-30T01:01:00Z",
+    "day": "2025-03-30",
+    "offset": 120,
+    "zone": "Europe/Copenhagen"
+   },
+   {
+    "at": "2025-10-26T00:59:00Z",
+    "day": "2025-10-26",
+    "offset": 120,
+    "zone": "Europe/Copenhagen"
+   },
+   {
+    "at": "2025-10-26T01:01:00Z",
+    "day": "2025-10-26",
+    "offset": 60,
+    "zone": "Europe/Copenhagen"
+   },
+   {
+    "at": "2026-03-29T00:59:00Z",
+    "day": "2026-03-29",
+    "offset": 60,
+    "zone": "Europe/Copenhagen"
+   },
+   {
+    "at": "2026-03-29T01:01:00Z",
+    "day": "2026-03-29",
+    "offset": 120,
+    "zone": "Europe/Copenhagen"
+   },
+   {
+    "at": "2026-10-25T00:59:00Z",
+    "day": "2026-10-25",
+    "offset": 120,
+    "zone": "Europe/Copenhagen"
+   },
+   {
+    "at": "2026-10-25T01:01:00Z",
+    "day": "2026-10-25",
+    "offset": 60,
+    "zone": "Europe/Copenhagen"
+   },
+   {
+    "at": "2027-03-28T00:59:00Z",
+    "day": "2027-03-28",
+    "offset": 60,
+    "zone": "Europe/Copenhagen"
+   },
+   {
+    "at": "2027-03-28T01:01:00Z",
+    "day": "2027-03-28",
+    "offset": 120,
+    "zone": "Europe/Copenhagen"
+   },
+   {
+    "at": "2027-10-31T00:59:00Z",
+    "day": "2027-10-31",
+    "offset": 120,
+    "zone": "Europe/Copenhagen"
+   },
+   {
+    "at": "2027-10-31T01:01:00Z",
+    "day": "2027-10-31",
+    "offset": 60,
+    "zone": "Europe/Copenhagen"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": 60,
+    "zone": "Europe/Copenhagen"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": 120,
+    "zone": "Europe/Copenhagen"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-13",
+    "offset": 60,
+    "zone": "Europe/Copenhagen"
+   },
+   {
+    "at": "2025-03-30T00:59:00Z",
+    "day": "2025-03-30",
+    "offset": 60,
+    "zone": "Europe/Warsaw"
+   },
+   {
+    "at": "2025-03-30T01:01:00Z",
+    "day": "2025-03-30",
+    "offset": 120,
+    "zone": "Europe/Warsaw"
+   },
+   {
+    "at": "2025-10-26T00:59:00Z",
+    "day": "2025-10-26",
+    "offset": 120,
+    "zone": "Europe/Warsaw"
+   },
+   {
+    "at": "2025-10-26T01:01:00Z",
+    "day": "2025-10-26",
+    "offset": 60,
+    "zone": "Europe/Warsaw"
+   },
+   {
+    "at": "2026-03-29T00:59:00Z",
+    "day": "2026-03-29",
+    "offset": 60,
+    "zone": "Europe/Warsaw"
+   },
+   {
+    "at": "2026-03-29T01:01:00Z",
+    "day": "2026-03-29",
+    "offset": 120,
+    "zone": "Europe/Warsaw"
+   },
+   {
+    "at": "2026-10-25T00:59:00Z",
+    "day": "2026-10-25",
+    "offset": 120,
+    "zone": "Europe/Warsaw"
+   },
+   {
+    "at": "2026-10-25T01:01:00Z",
+    "day": "2026-10-25",
+    "offset": 60,
+    "zone": "Europe/Warsaw"
+   },
+   {
+    "at": "2027-03-28T00:59:00Z",
+    "day": "2027-03-28",
+    "offset": 60,
+    "zone": "Europe/Warsaw"
+   },
+   {
+    "at": "2027-03-28T01:01:00Z",
+    "day": "2027-03-28",
+    "offset": 120,
+    "zone": "Europe/Warsaw"
+   },
+   {
+    "at": "2027-10-31T00:59:00Z",
+    "day": "2027-10-31",
+    "offset": 120,
+    "zone": "Europe/Warsaw"
+   },
+   {
+    "at": "2027-10-31T01:01:00Z",
+    "day": "2027-10-31",
+    "offset": 60,
+    "zone": "Europe/Warsaw"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": 60,
+    "zone": "Europe/Warsaw"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": 120,
+    "zone": "Europe/Warsaw"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-13",
+    "offset": 60,
+    "zone": "Europe/Warsaw"
+   },
+   {
+    "at": "2025-03-30T00:59:00Z",
+    "day": "2025-03-30",
+    "offset": 60,
+    "zone": "Europe/Prague"
+   },
+   {
+    "at": "2025-03-30T01:01:00Z",
+    "day": "2025-03-30",
+    "offset": 120,
+    "zone": "Europe/Prague"
+   },
+   {
+    "at": "2025-10-26T00:59:00Z",
+    "day": "2025-10-26",
+    "offset": 120,
+    "zone": "Europe/Prague"
+   },
+   {
+    "at": "2025-10-26T01:01:00Z",
+    "day": "2025-10-26",
+    "offset": 60,
+    "zone": "Europe/Prague"
+   },
+   {
+    "at": "2026-03-29T00:59:00Z",
+    "day": "2026-03-29",
+    "offset": 60,
+    "zone": "Europe/Prague"
+   },
+   {
+    "at": "2026-03-29T01:01:00Z",
+    "day": "2026-03-29",
+    "offset": 120,
+    "zone": "Europe/Prague"
+   },
+   {
+    "at": "2026-10-25T00:59:00Z",
+    "day": "2026-10-25",
+    "offset": 120,
+    "zone": "Europe/Prague"
+   },
+   {
+    "at": "2026-10-25T01:01:00Z",
+    "day": "2026-10-25",
+    "offset": 60,
+    "zone": "Europe/Prague"
+   },
+   {
+    "at": "2027-03-28T00:59:00Z",
+    "day": "2027-03-28",
+    "offset": 60,
+    "zone": "Europe/Prague"
+   },
+   {
+    "at": "2027-03-28T01:01:00Z",
+    "day": "2027-03-28",
+    "offset": 120,
+    "zone": "Europe/Prague"
+   },
+   {
+    "at": "2027-10-31T00:59:00Z",
+    "day": "2027-10-31",
+    "offset": 120,
+    "zone": "Europe/Prague"
+   },
+   {
+    "at": "2027-10-31T01:01:00Z",
+    "day": "2027-10-31",
+    "offset": 60,
+    "zone": "Europe/Prague"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": 60,
+    "zone": "Europe/Prague"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": 120,
+    "zone": "Europe/Prague"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-13",
+    "offset": 60,
+    "zone": "Europe/Prague"
+   },
+   {
+    "at": "2025-03-30T00:59:00Z",
+    "day": "2025-03-30",
+    "offset": 60,
+    "zone": "Europe/Budapest"
+   },
+   {
+    "at": "2025-03-30T01:01:00Z",
+    "day": "2025-03-30",
+    "offset": 120,
+    "zone": "Europe/Budapest"
+   },
+   {
+    "at": "2025-10-26T00:59:00Z",
+    "day": "2025-10-26",
+    "offset": 120,
+    "zone": "Europe/Budapest"
+   },
+   {
+    "at": "2025-10-26T01:01:00Z",
+    "day": "2025-10-26",
+    "offset": 60,
+    "zone": "Europe/Budapest"
+   },
+   {
+    "at": "2026-03-29T00:59:00Z",
+    "day": "2026-03-29",
+    "offset": 60,
+    "zone": "Europe/Budapest"
+   },
+   {
+    "at": "2026-03-29T01:01:00Z",
+    "day": "2026-03-29",
+    "offset": 120,
+    "zone": "Europe/Budapest"
+   },
+   {
+    "at": "2026-10-25T00:59:00Z",
+    "day": "2026-10-25",
+    "offset": 120,
+    "zone": "Europe/Budapest"
+   },
+   {
+    "at": "2026-10-25T01:01:00Z",
+    "day": "2026-10-25",
+    "offset": 60,
+    "zone": "Europe/Budapest"
+   },
+   {
+    "at": "2027-03-28T00:59:00Z",
+    "day": "2027-03-28",
+    "offset": 60,
+    "zone": "Europe/Budapest"
+   },
+   {
+    "at": "2027-03-28T01:01:00Z",
+    "day": "2027-03-28",
+    "offset": 120,
+    "zone": "Europe/Budapest"
+   },
+   {
+    "at": "2027-10-31T00:59:00Z",
+    "day": "2027-10-31",
+    "offset": 120,
+    "zone": "Europe/Budapest"
+   },
+   {
+    "at": "2027-10-31T01:01:00Z",
+    "day": "2027-10-31",
+    "offset": 60,
+    "zone": "Europe/Budapest"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": 60,
+    "zone": "Europe/Budapest"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": 120,
+    "zone": "Europe/Budapest"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-13",
+    "offset": 60,
+    "zone": "Europe/Budapest"
+   },
+   {
+    "at": "2025-03-30T00:59:00Z",
+    "day": "2025-03-30",
+    "offset": 120,
+    "zone": "Europe/Athens"
+   },
+   {
+    "at": "2025-03-30T01:01:00Z",
+    "day": "2025-03-30",
+    "offset": 180,
+    "zone": "Europe/Athens"
+   },
+   {
+    "at": "2025-10-26T00:59:00Z",
+    "day": "2025-10-26",
+    "offset": 180,
+    "zone": "Europe/Athens"
+   },
+   {
+    "at": "2025-10-26T01:01:00Z",
+    "day": "2025-10-26",
+    "offset": 120,
+    "zone": "Europe/Athens"
+   },
+   {
+    "at": "2026-03-29T00:59:00Z",
+    "day": "2026-03-29",
+    "offset": 120,
+    "zone": "Europe/Athens"
+   },
+   {
+    "at": "2026-03-29T01:01:00Z",
+    "day": "2026-03-29",
+    "offset": 180,
+    "zone": "Europe/Athens"
+   },
+   {
+    "at": "2026-10-25T00:59:00Z",
+    "day": "2026-10-25",
+    "offset": 180,
+    "zone": "Europe/Athens"
+   },
+   {
+    "at": "2026-10-25T01:01:00Z",
+    "day": "2026-10-25",
+    "offset": 120,
+    "zone": "Europe/Athens"
+   },
+   {
+    "at": "2027-03-28T00:59:00Z",
+    "day": "2027-03-28",
+    "offset": 120,
+    "zone": "Europe/Athens"
+   },
+   {
+    "at": "2027-03-28T01:01:00Z",
+    "day": "2027-03-28",
+    "offset": 180,
+    "zone": "Europe/Athens"
+   },
+   {
+    "at": "2027-10-31T00:59:00Z",
+    "day": "2027-10-31",
+    "offset": 180,
+    "zone": "Europe/Athens"
+   },
+   {
+    "at": "2027-10-31T01:01:00Z",
+    "day": "2027-10-31",
+    "offset": 120,
+    "zone": "Europe/Athens"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": 120,
+    "zone": "Europe/Athens"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": 180,
+    "zone": "Europe/Athens"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-13",
+    "offset": 120,
+    "zone": "Europe/Athens"
+   },
+   {
+    "at": "2025-03-30T00:59:00Z",
+    "day": "2025-03-30",
+    "offset": 120,
+    "zone": "Europe/Helsinki"
+   },
+   {
+    "at": "2025-03-30T01:01:00Z",
+    "day": "2025-03-30",
+    "offset": 180,
+    "zone": "Europe/Helsinki"
+   },
+   {
+    "at": "2025-10-26T00:59:00Z",
+    "day": "2025-10-26",
+    "offset": 180,
+    "zone": "Europe/Helsinki"
+   },
+   {
+    "at": "2025-10-26T01:01:00Z",
+    "day": "2025-10-26",
+    "offset": 120,
+    "zone": "Europe/Helsinki"
+   },
+   {
+    "at": "2026-03-29T00:59:00Z",
+    "day": "2026-03-29",
+    "offset": 120,
+    "zone": "Europe/Helsinki"
+   },
+   {
+    "at": "2026-03-29T01:01:00Z",
+    "day": "2026-03-29",
+    "offset": 180,
+    "zone": "Europe/Helsinki"
+   },
+   {
+    "at": "2026-10-25T00:59:00Z",
+    "day": "2026-10-25",
+    "offset": 180,
+    "zone": "Europe/Helsinki"
+   },
+   {
+    "at": "2026-10-25T01:01:00Z",
+    "day": "2026-10-25",
+    "offset": 120,
+    "zone": "Europe/Helsinki"
+   },
+   {
+    "at": "2027-03-28T00:59:00Z",
+    "day": "2027-03-28",
+    "offset": 120,
+    "zone": "Europe/Helsinki"
+   },
+   {
+    "at": "2027-03-28T01:01:00Z",
+    "day": "2027-03-28",
+    "offset": 180,
+    "zone": "Europe/Helsinki"
+   },
+   {
+    "at": "2027-10-31T00:59:00Z",
+    "day": "2027-10-31",
+    "offset": 180,
+    "zone": "Europe/Helsinki"
+   },
+   {
+    "at": "2027-10-31T01:01:00Z",
+    "day": "2027-10-31",
+    "offset": 120,
+    "zone": "Europe/Helsinki"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": 120,
+    "zone": "Europe/Helsinki"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": 180,
+    "zone": "Europe/Helsinki"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-13",
+    "offset": 120,
+    "zone": "Europe/Helsinki"
+   },
+   {
+    "at": "2025-03-30T00:59:00Z",
+    "day": "2025-03-30",
+    "offset": 120,
+    "zone": "Europe/Bucharest"
+   },
+   {
+    "at": "2025-03-30T01:01:00Z",
+    "day": "2025-03-30",
+    "offset": 180,
+    "zone": "Europe/Bucharest"
+   },
+   {
+    "at": "2025-10-26T00:59:00Z",
+    "day": "2025-10-26",
+    "offset": 180,
+    "zone": "Europe/Bucharest"
+   },
+   {
+    "at": "2025-10-26T01:01:00Z",
+    "day": "2025-10-26",
+    "offset": 120,
+    "zone": "Europe/Bucharest"
+   },
+   {
+    "at": "2026-03-29T00:59:00Z",
+    "day": "2026-03-29",
+    "offset": 120,
+    "zone": "Europe/Bucharest"
+   },
+   {
+    "at": "2026-03-29T01:01:00Z",
+    "day": "2026-03-29",
+    "offset": 180,
+    "zone": "Europe/Bucharest"
+   },
+   {
+    "at": "2026-10-25T00:59:00Z",
+    "day": "2026-10-25",
+    "offset": 180,
+    "zone": "Europe/Bucharest"
+   },
+   {
+    "at": "2026-10-25T01:01:00Z",
+    "day": "2026-10-25",
+    "offset": 120,
+    "zone": "Europe/Bucharest"
+   },
+   {
+    "at": "2027-03-28T00:59:00Z",
+    "day": "2027-03-28",
+    "offset": 120,
+    "zone": "Europe/Bucharest"
+   },
+   {
+    "at": "2027-03-28T01:01:00Z",
+    "day": "2027-03-28",
+    "offset": 180,
+    "zone": "Europe/Bucharest"
+   },
+   {
+    "at": "2027-10-31T00:59:00Z",
+    "day": "2027-10-31",
+    "offset": 180,
+    "zone": "Europe/Bucharest"
+   },
+   {
+    "at": "2027-10-31T01:01:00Z",
+    "day": "2027-10-31",
+    "offset": 120,
+    "zone": "Europe/Bucharest"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": 120,
+    "zone": "Europe/Bucharest"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": 180,
+    "zone": "Europe/Bucharest"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-13",
+    "offset": 120,
+    "zone": "Europe/Bucharest"
+   },
+   {
+    "at": "2025-03-30T00:59:00Z",
+    "day": "2025-03-30",
+    "offset": 120,
+    "zone": "Europe/Tallinn"
+   },
+   {
+    "at": "2025-03-30T01:01:00Z",
+    "day": "2025-03-30",
+    "offset": 180,
+    "zone": "Europe/Tallinn"
+   },
+   {
+    "at": "2025-10-26T00:59:00Z",
+    "day": "2025-10-26",
+    "offset": 180,
+    "zone": "Europe/Tallinn"
+   },
+   {
+    "at": "2025-10-26T01:01:00Z",
+    "day": "2025-10-26",
+    "offset": 120,
+    "zone": "Europe/Tallinn"
+   },
+   {
+    "at": "2026-03-29T00:59:00Z",
+    "day": "2026-03-29",
+    "offset": 120,
+    "zone": "Europe/Tallinn"
+   },
+   {
+    "at": "2026-03-29T01:01:00Z",
+    "day": "2026-03-29",
+    "offset": 180,
+    "zone": "Europe/Tallinn"
+   },
+   {
+    "at": "2026-10-25T00:59:00Z",
+    "day": "2026-10-25",
+    "offset": 180,
+    "zone": "Europe/Tallinn"
+   },
+   {
+    "at": "2026-10-25T01:01:00Z",
+    "day": "2026-10-25",
+    "offset": 120,
+    "zone": "Europe/Tallinn"
+   },
+   {
+    "at": "2027-03-28T00:59:00Z",
+    "day": "2027-03-28",
+    "offset": 120,
+    "zone": "Europe/Tallinn"
+   },
+   {
+    "at": "2027-03-28T01:01:00Z",
+    "day": "2027-03-28",
+    "offset": 180,
+    "zone": "Europe/Tallinn"
+   },
+   {
+    "at": "2027-10-31T00:59:00Z",
+    "day": "2027-10-31",
+    "offset": 180,
+    "zone": "Europe/Tallinn"
+   },
+   {
+    "at": "2027-10-31T01:01:00Z",
+    "day": "2027-10-31",
+    "offset": 120,
+    "zone": "Europe/Tallinn"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": 120,
+    "zone": "Europe/Tallinn"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": 180,
+    "zone": "Europe/Tallinn"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-13",
+    "offset": 120,
+    "zone": "Europe/Tallinn"
+   },
+   {
+    "at": "2025-03-30T00:59:00Z",
+    "day": "2025-03-30",
+    "offset": 120,
+    "zone": "Europe/Riga"
+   },
+   {
+    "at": "2025-03-30T01:01:00Z",
+    "day": "2025-03-30",
+    "offset": 180,
+    "zone": "Europe/Riga"
+   },
+   {
+    "at": "2025-10-26T00:59:00Z",
+    "day": "2025-10-26",
+    "offset": 180,
+    "zone": "Europe/Riga"
+   },
+   {
+    "at": "2025-10-26T01:01:00Z",
+    "day": "2025-10-26",
+    "offset": 120,
+    "zone": "Europe/Riga"
+   },
+   {
+    "at": "2026-03-29T00:59:00Z",
+    "day": "2026-03-29",
+    "offset": 120,
+    "zone": "Europe/Riga"
+   },
+   {
+    "at": "2026-03-29T01:01:00Z",
+    "day": "2026-03-29",
+    "offset": 180,
+    "zone": "Europe/Riga"
+   },
+   {
+    "at": "2026-10-25T00:59:00Z",
+    "day": "2026-10-25",
+    "offset": 180,
+    "zone": "Europe/Riga"
+   },
+   {
+    "at": "2026-10-25T01:01:00Z",
+    "day": "2026-10-25",
+    "offset": 120,
+    "zone": "Europe/Riga"
+   },
+   {
+    "at": "2027-03-28T00:59:00Z",
+    "day": "2027-03-28",
+    "offset": 120,
+    "zone": "Europe/Riga"
+   },
+   {
+    "at": "2027-03-28T01:01:00Z",
+    "day": "2027-03-28",
+    "offset": 180,
+    "zone": "Europe/Riga"
+   },
+   {
+    "at": "2027-10-31T00:59:00Z",
+    "day": "2027-10-31",
+    "offset": 180,
+    "zone": "Europe/Riga"
+   },
+   {
+    "at": "2027-10-31T01:01:00Z",
+    "day": "2027-10-31",
+    "offset": 120,
+    "zone": "Europe/Riga"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": 120,
+    "zone": "Europe/Riga"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": 180,
+    "zone": "Europe/Riga"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-13",
+    "offset": 120,
+    "zone": "Europe/Riga"
+   },
+   {
+    "at": "2025-03-30T00:59:00Z",
+    "day": "2025-03-30",
+    "offset": 120,
+    "zone": "Europe/Vilnius"
+   },
+   {
+    "at": "2025-03-30T01:01:00Z",
+    "day": "2025-03-30",
+    "offset": 180,
+    "zone": "Europe/Vilnius"
+   },
+   {
+    "at": "2025-10-26T00:59:00Z",
+    "day": "2025-10-26",
+    "offset": 180,
+    "zone": "Europe/Vilnius"
+   },
+   {
+    "at": "2025-10-26T01:01:00Z",
+    "day": "2025-10-26",
+    "offset": 120,
+    "zone": "Europe/Vilnius"
+   },
+   {
+    "at": "2026-03-29T00:59:00Z",
+    "day": "2026-03-29",
+    "offset": 120,
+    "zone": "Europe/Vilnius"
+   },
+   {
+    "at": "2026-03-29T01:01:00Z",
+    "day": "2026-03-29",
+    "offset": 180,
+    "zone": "Europe/Vilnius"
+   },
+   {
+    "at": "2026-10-25T00:59:00Z",
+    "day": "2026-10-25",
+    "offset": 180,
+    "zone": "Europe/Vilnius"
+   },
+   {
+    "at": "2026-10-25T01:01:00Z",
+    "day": "2026-10-25",
+    "offset": 120,
+    "zone": "Europe/Vilnius"
+   },
+   {
+    "at": "2027-03-28T00:59:00Z",
+    "day": "2027-03-28",
+    "offset": 120,
+    "zone": "Europe/Vilnius"
+   },
+   {
+    "at": "2027-03-28T01:01:00Z",
+    "day": "2027-03-28",
+    "offset": 180,
+    "zone": "Europe/Vilnius"
+   },
+   {
+    "at": "2027-10-31T00:59:00Z",
+    "day": "2027-10-31",
+    "offset": 180,
+    "zone": "Europe/Vilnius"
+   },
+   {
+    "at": "2027-10-31T01:01:00Z",
+    "day": "2027-10-31",
+    "offset": 120,
+    "zone": "Europe/Vilnius"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": 120,
+    "zone": "Europe/Vilnius"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": 180,
+    "zone": "Europe/Vilnius"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-13",
+    "offset": 120,
+    "zone": "Europe/Vilnius"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": 180,
+    "zone": "Europe/Istanbul"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": 180,
+    "zone": "Europe/Istanbul"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-13",
+    "offset": 180,
+    "zone": "Europe/Istanbul"
+   },
+   {
+    "at": "2025-04-05T15:59:00Z",
+    "day": "2025-04-06",
+    "offset": 660,
+    "zone": "Australia/Sydney"
+   },
+   {
+    "at": "2025-04-05T16:01:00Z",
+    "day": "2025-04-06",
+    "offset": 600,
+    "zone": "Australia/Sydney"
+   },
+   {
+    "at": "2025-10-04T15:59:00Z",
+    "day": "2025-10-05",
+    "offset": 600,
+    "zone": "Australia/Sydney"
+   },
+   {
+    "at": "2025-10-04T16:01:00Z",
+    "day": "2025-10-05",
+    "offset": 660,
+    "zone": "Australia/Sydney"
+   },
+   {
+    "at": "2026-04-04T15:59:00Z",
+    "day": "2026-04-05",
+    "offset": 660,
+    "zone": "Australia/Sydney"
+   },
+   {
+    "at": "2026-04-04T16:01:00Z",
+    "day": "2026-04-05",
+    "offset": 600,
+    "zone": "Australia/Sydney"
+   },
+   {
+    "at": "2026-10-03T15:59:00Z",
+    "day": "2026-10-04",
+    "offset": 600,
+    "zone": "Australia/Sydney"
+   },
+   {
+    "at": "2026-10-03T16:01:00Z",
+    "day": "2026-10-04",
+    "offset": 660,
+    "zone": "Australia/Sydney"
+   },
+   {
+    "at": "2027-04-03T15:59:00Z",
+    "day": "2027-04-04",
+    "offset": 660,
+    "zone": "Australia/Sydney"
+   },
+   {
+    "at": "2027-04-03T16:01:00Z",
+    "day": "2027-04-04",
+    "offset": 600,
+    "zone": "Australia/Sydney"
+   },
+   {
+    "at": "2027-10-02T15:59:00Z",
+    "day": "2027-10-03",
+    "offset": 600,
+    "zone": "Australia/Sydney"
+   },
+   {
+    "at": "2027-10-02T16:01:00Z",
+    "day": "2027-10-03",
+    "offset": 660,
+    "zone": "Australia/Sydney"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": 660,
+    "zone": "Australia/Sydney"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": 600,
+    "zone": "Australia/Sydney"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-13",
+    "offset": 660,
+    "zone": "Australia/Sydney"
+   },
+   {
+    "at": "2025-04-05T15:59:00Z",
+    "day": "2025-04-06",
+    "offset": 660,
+    "zone": "Australia/Melbourne"
+   },
+   {
+    "at": "2025-04-05T16:01:00Z",
+    "day": "2025-04-06",
+    "offset": 600,
+    "zone": "Australia/Melbourne"
+   },
+   {
+    "at": "2025-10-04T15:59:00Z",
+    "day": "2025-10-05",
+    "offset": 600,
+    "zone": "Australia/Melbourne"
+   },
+   {
+    "at": "2025-10-04T16:01:00Z",
+    "day": "2025-10-05",
+    "offset": 660,
+    "zone": "Australia/Melbourne"
+   },
+   {
+    "at": "2026-04-04T15:59:00Z",
+    "day": "2026-04-05",
+    "offset": 660,
+    "zone": "Australia/Melbourne"
+   },
+   {
+    "at": "2026-04-04T16:01:00Z",
+    "day": "2026-04-05",
+    "offset": 600,
+    "zone": "Australia/Melbourne"
+   },
+   {
+    "at": "2026-10-03T15:59:00Z",
+    "day": "2026-10-04",
+    "offset": 600,
+    "zone": "Australia/Melbourne"
+   },
+   {
+    "at": "2026-10-03T16:01:00Z",
+    "day": "2026-10-04",
+    "offset": 660,
+    "zone": "Australia/Melbourne"
+   },
+   {
+    "at": "2027-04-03T15:59:00Z",
+    "day": "2027-04-04",
+    "offset": 660,
+    "zone": "Australia/Melbourne"
+   },
+   {
+    "at": "2027-04-03T16:01:00Z",
+    "day": "2027-04-04",
+    "offset": 600,
+    "zone": "Australia/Melbourne"
+   },
+   {
+    "at": "2027-10-02T15:59:00Z",
+    "day": "2027-10-03",
+    "offset": 600,
+    "zone": "Australia/Melbourne"
+   },
+   {
+    "at": "2027-10-02T16:01:00Z",
+    "day": "2027-10-03",
+    "offset": 660,
+    "zone": "Australia/Melbourne"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": 660,
+    "zone": "Australia/Melbourne"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": 600,
+    "zone": "Australia/Melbourne"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-13",
+    "offset": 660,
+    "zone": "Australia/Melbourne"
+   },
+   {
+    "at": "2025-04-05T15:59:00Z",
+    "day": "2025-04-06",
+    "offset": 660,
+    "zone": "Australia/Hobart"
+   },
+   {
+    "at": "2025-04-05T16:01:00Z",
+    "day": "2025-04-06",
+    "offset": 600,
+    "zone": "Australia/Hobart"
+   },
+   {
+    "at": "2025-10-04T15:59:00Z",
+    "day": "2025-10-05",
+    "offset": 600,
+    "zone": "Australia/Hobart"
+   },
+   {
+    "at": "2025-10-04T16:01:00Z",
+    "day": "2025-10-05",
+    "offset": 660,
+    "zone": "Australia/Hobart"
+   },
+   {
+    "at": "2026-04-04T15:59:00Z",
+    "day": "2026-04-05",
+    "offset": 660,
+    "zone": "Australia/Hobart"
+   },
+   {
+    "at": "2026-04-04T16:01:00Z",
+    "day": "2026-04-05",
+    "offset": 600,
+    "zone": "Australia/Hobart"
+   },
+   {
+    "at": "2026-10-03T15:59:00Z",
+    "day": "2026-10-04",
+    "offset": 600,
+    "zone": "Australia/Hobart"
+   },
+   {
+    "at": "2026-10-03T16:01:00Z",
+    "day": "2026-10-04",
+    "offset": 660,
+    "zone": "Australia/Hobart"
+   },
+   {
+    "at": "2027-04-03T15:59:00Z",
+    "day": "2027-04-04",
+    "offset": 660,
+    "zone": "Australia/Hobart"
+   },
+   {
+    "at": "2027-04-03T16:01:00Z",
+    "day": "2027-04-04",
+    "offset": 600,
+    "zone": "Australia/Hobart"
+   },
+   {
+    "at": "2027-10-02T15:59:00Z",
+    "day": "2027-10-03",
+    "offset": 600,
+    "zone": "Australia/Hobart"
+   },
+   {
+    "at": "2027-10-02T16:01:00Z",
+    "day": "2027-10-03",
+    "offset": 660,
+    "zone": "Australia/Hobart"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": 660,
+    "zone": "Australia/Hobart"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": 600,
+    "zone": "Australia/Hobart"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-13",
+    "offset": 660,
+    "zone": "Australia/Hobart"
+   },
+   {
+    "at": "2025-04-05T15:59:00Z",
+    "day": "2025-04-06",
+    "offset": 660,
+    "zone": "Australia/Canberra"
+   },
+   {
+    "at": "2025-04-05T16:01:00Z",
+    "day": "2025-04-06",
+    "offset": 600,
+    "zone": "Australia/Canberra"
+   },
+   {
+    "at": "2025-10-04T15:59:00Z",
+    "day": "2025-10-05",
+    "offset": 600,
+    "zone": "Australia/Canberra"
+   },
+   {
+    "at": "2025-10-04T16:01:00Z",
+    "day": "2025-10-05",
+    "offset": 660,
+    "zone": "Australia/Canberra"
+   },
+   {
+    "at": "2026-04-04T15:59:00Z",
+    "day": "2026-04-05",
+    "offset": 660,
+    "zone": "Australia/Canberra"
+   },
+   {
+    "at": "2026-04-04T16:01:00Z",
+    "day": "2026-04-05",
+    "offset": 600,
+    "zone": "Australia/Canberra"
+   },
+   {
+    "at": "2026-10-03T15:59:00Z",
+    "day": "2026-10-04",
+    "offset": 600,
+    "zone": "Australia/Canberra"
+   },
+   {
+    "at": "2026-10-03T16:01:00Z",
+    "day": "2026-10-04",
+    "offset": 660,
+    "zone": "Australia/Canberra"
+   },
+   {
+    "at": "2027-04-03T15:59:00Z",
+    "day": "2027-04-04",
+    "offset": 660,
+    "zone": "Australia/Canberra"
+   },
+   {
+    "at": "2027-04-03T16:01:00Z",
+    "day": "2027-04-04",
+    "offset": 600,
+    "zone": "Australia/Canberra"
+   },
+   {
+    "at": "2027-10-02T15:59:00Z",
+    "day": "2027-10-03",
+    "offset": 600,
+    "zone": "Australia/Canberra"
+   },
+   {
+    "at": "2027-10-02T16:01:00Z",
+    "day": "2027-10-03",
+    "offset": 660,
+    "zone": "Australia/Canberra"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": 660,
+    "zone": "Australia/Canberra"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": 600,
+    "zone": "Australia/Canberra"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-13",
+    "offset": 660,
+    "zone": "Australia/Canberra"
+   },
+   {
+    "at": "2025-04-05T16:29:00Z",
+    "day": "2025-04-06",
+    "offset": 630,
+    "zone": "Australia/Adelaide"
+   },
+   {
+    "at": "2025-04-05T16:31:00Z",
+    "day": "2025-04-06",
+    "offset": 570,
+    "zone": "Australia/Adelaide"
+   },
+   {
+    "at": "2025-10-04T16:29:00Z",
+    "day": "2025-10-05",
+    "offset": 570,
+    "zone": "Australia/Adelaide"
+   },
+   {
+    "at": "2025-10-04T16:31:00Z",
+    "day": "2025-10-05",
+    "offset": 630,
+    "zone": "Australia/Adelaide"
+   },
+   {
+    "at": "2026-04-04T16:29:00Z",
+    "day": "2026-04-05",
+    "offset": 630,
+    "zone": "Australia/Adelaide"
+   },
+   {
+    "at": "2026-04-04T16:31:00Z",
+    "day": "2026-04-05",
+    "offset": 570,
+    "zone": "Australia/Adelaide"
+   },
+   {
+    "at": "2026-10-03T16:29:00Z",
+    "day": "2026-10-04",
+    "offset": 570,
+    "zone": "Australia/Adelaide"
+   },
+   {
+    "at": "2026-10-03T16:31:00Z",
+    "day": "2026-10-04",
+    "offset": 630,
+    "zone": "Australia/Adelaide"
+   },
+   {
+    "at": "2027-04-03T16:29:00Z",
+    "day": "2027-04-04",
+    "offset": 630,
+    "zone": "Australia/Adelaide"
+   },
+   {
+    "at": "2027-04-03T16:31:00Z",
+    "day": "2027-04-04",
+    "offset": 570,
+    "zone": "Australia/Adelaide"
+   },
+   {
+    "at": "2027-10-02T16:29:00Z",
+    "day": "2027-10-03",
+    "offset": 570,
+    "zone": "Australia/Adelaide"
+   },
+   {
+    "at": "2027-10-02T16:31:00Z",
+    "day": "2027-10-03",
+    "offset": 630,
+    "zone": "Australia/Adelaide"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-15",
+    "offset": 630,
+    "zone": "Australia/Adelaide"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-15",
+    "offset": 570,
+    "zone": "Australia/Adelaide"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-13",
+    "offset": 630,
+    "zone": "Australia/Adelaide"
+   },
+   {
+    "at": "2025-04-05T13:59:00Z",
+    "day": "2025-04-06",
+    "offset": 780,
+    "zone": "Pacific/Auckland"
+   },
+   {
+    "at": "2025-04-05T14:01:00Z",
+    "day": "2025-04-06",
+    "offset": 720,
+    "zone": "Pacific/Auckland"
+   },
+   {
+    "at": "2025-09-27T13:59:00Z",
+    "day": "2025-09-28",
+    "offset": 720,
+    "zone": "Pacific/Auckland"
+   },
+   {
+    "at": "2025-09-27T14:01:00Z",
+    "day": "2025-09-28",
+    "offset": 780,
+    "zone": "Pacific/Auckland"
+   },
+   {
+    "at": "2026-04-04T13:59:00Z",
+    "day": "2026-04-05",
+    "offset": 780,
+    "zone": "Pacific/Auckland"
+   },
+   {
+    "at": "2026-04-04T14:01:00Z",
+    "day": "2026-04-05",
+    "offset": 720,
+    "zone": "Pacific/Auckland"
+   },
+   {
+    "at": "2026-09-26T13:59:00Z",
+    "day": "2026-09-27",
+    "offset": 720,
+    "zone": "Pacific/Auckland"
+   },
+   {
+    "at": "2026-09-26T14:01:00Z",
+    "day": "2026-09-27",
+    "offset": 780,
+    "zone": "Pacific/Auckland"
+   },
+   {
+    "at": "2027-04-03T13:59:00Z",
+    "day": "2027-04-04",
+    "offset": 780,
+    "zone": "Pacific/Auckland"
+   },
+   {
+    "at": "2027-04-03T14:01:00Z",
+    "day": "2027-04-04",
+    "offset": 720,
+    "zone": "Pacific/Auckland"
+   },
+   {
+    "at": "2027-09-25T13:59:00Z",
+    "day": "2027-09-26",
+    "offset": 720,
+    "zone": "Pacific/Auckland"
+   },
+   {
+    "at": "2027-09-25T14:01:00Z",
+    "day": "2027-09-26",
+    "offset": 780,
+    "zone": "Pacific/Auckland"
+   },
+   {
+    "at": "2026-01-15T12:00:00Z",
+    "day": "2026-01-16",
+    "offset": 780,
+    "zone": "Pacific/Auckland"
+   },
+   {
+    "at": "2026-07-15T12:00:00Z",
+    "day": "2026-07-16",
+    "offset": 720,
+    "zone": "Pacific/Auckland"
+   },
+   {
+    "at": "2026-11-12T23:30:00Z",
+    "day": "2026-11-13",
+    "offset": 780,
+    "zone": "Pacific/Auckland"
+   }
+  ],
+  "zone_count": 101
+ },
+ "kpi": {
+  "cmgr_ppm": 59463,
+  "eur_to_jpy_minor": 160000,
+  "feb_flow_usd_minor": 11000000,
+  "mar_cash_usd_minor": 112000000,
+  "q1_avg_rate_e8": 110000000,
+  "q1_flow_usd_minor": 33000000
+ },
+ "metrics": {
+  "dpi_e8": 37777778,
+  "excel_doc_value": 0.373362535,
+  "excel_xirr": 0.3733625335188301,
+  "fund_net_irr": 0.10857703985423463,
+  "gross_irr": 0.1928018106081193,
+  "gross_moic_e8": 286666667,
+  "rvpi_e8": 133333333,
+  "tvpi_direct_e8": 171111111
+ },
+ "prorata": {
+  "after_skip_ppm": 20000,
+  "keep": 31250
+ },
+ "reserves": {
+  "two_rounds": {
+   "end_plan_ppm": 90000,
+   "end_ppm": 100000,
+   "needed": 400000000,
+   "rounds": [
+    {
+     "after_plan_ppm": 100000,
+     "after_ppm": 100000,
+     "needed": 100000000,
+     "plan": 100000000
+    },
+    {
+     "after_plan_ppm": 90000,
+     "after_ppm": 100000,
+     "needed": 300000000,
+     "plan": 150000000
+    }
+   ]
+  },
+  "with_pool": {
+   "end_plan_ppm": 100000,
+   "end_ppm": 100000,
+   "needed": 125000000,
+   "rounds": [
+    {
+     "after_plan_ppm": 100000,
+     "after_ppm": 100000,
+     "needed": 125000000,
+     "plan": 125000000
+    }
+   ]
+  }
+ },
+ "runway": {
+  "avg": 11000000,
+  "months": 15.0,
+  "zero_day": "2027-12-31"
+ },
+ "safe": {
+  "cap_above_round": {
+   "shares": 500000
+  },
+  "implied_price_e8": 68888889,
+  "interest_6pct_182d_minor": 299178,
+  "mfn": {
+   "cap_price_e8": 93959732,
+   "mfn_shares": 266071,
+   "s1_shares": 1064285,
+   "s2_shares": 312500
+  },
+  "note_and_safe": {
+   "interest_minor": 800000,
+   "note_shares": 121500,
+   "post": 12635000,
+   "safe_shares": 1013500
+  },
+  "own_1m_6_7m_ppm": 149254,
+  "own_500k_6_7m_ppm": 74627,
+  "single": {
+   "cap_shares": 10000000,
+   "new_shares": 2500000,
+   "own_ppm": 80000,
+   "post": 12500000,
+   "safe_shares": 1000000
+  },
+  "two": {
+   "a_shares": 1034722,
+   "b_shares": 312500,
+   "cap_price_e8": 96644295,
+   "capitalization": 10347222,
+   "post": 12847222
+  }
+ },
+ "scenarios": {
+  "expected_e8": 390000000,
+  "proceeds_minor": 390000000
+ },
+ "strength": {
+  "meeting_60d": 39,
+  "meeting_today": 63,
+  "s": 5.414213562373095,
+  "score": 84
+ },
+ "waterfall": {
+  "american": {
+   "clawback": 2000,
+   "deal_a_gp": 4000,
+   "deal_b_gp": 0,
+   "fund_gp": 2000
+  },
+  "angellist": {
+   "gp": 1900000,
+   "lp": 8100000,
+   "pref_owed": 0,
+   "tiers": {
+    "cu_gp": 0,
+    "cu_lp": 0,
+    "pref": 0,
+    "roc": 500000,
+    "sp_gp": 1900000,
+    "sp_lp": 7600000
+   }
+  },
+  "catchup_short": {
+   "gp": 1000000,
+   "lp": 108000000,
+   "pref_owed": 0,
+   "tiers": {
+    "cu_gp": 1000000,
+    "cu_lp": 0,
+    "pref": 8000000,
+    "roc": 100000000,
+    "sp_gp": 0,
+    "sp_lp": 0
+   }
+  },
+  "hurdle_80_catchup": {
+   "gp": 10000001,
+   "lp": 139999999,
+   "pref_owed": 0,
+   "tiers": {
+    "cu_gp": 2133334,
+    "cu_lp": 533333,
+    "pref": 8000000,
+    "roc": 100000000,
+    "sp_gp": 7866667,
+    "sp_lp": 31466666
+   }
+  },
+  "hurdle_full_catchup": {
+   "gp": 10000000,
+   "lp": 140000000,
+   "pref_owed": 0,
+   "tiers": {
+    "cu_gp": 2000000,
+    "cu_lp": 0,
+    "pref": 8000000,
+    "roc": 100000000,
+    "sp_gp": 8000000,
+    "sp_lp": 32000000
+   }
+  },
+  "hurdle_no_catchup": {
+   "gp": 8400000,
+   "lp": 141600000,
+   "pref_owed": 0,
+   "tiers": {
+    "cu_gp": 0,
+    "cu_lp": 0,
+    "pref": 8000000,
+    "roc": 100000000,
+    "sp_gp": 8400000,
+    "sp_lp": 33600000
+   }
+  },
+  "multi": {
+   "gp": 14000000,
+   "lp": 156000000,
+   "pref_owed": 0,
+   "tiers": {
+    "cu_gp": 3838168,
+    "cu_lp": 0,
+    "pref": 15352671,
+    "roc": 100000000,
+    "sp_gp": 10161832,
+    "sp_lp": 40647329
+   }
+  },
+  "pref_compound_2y": {
+   "gp": 0,
+   "lp": 100000000,
+   "pref_owed": 16664596,
+   "tiers": {
+    "cu_gp": 0,
+    "cu_lp": 0,
+    "pref": 0,
+    "roc": 100000000,
+    "sp_gp": 0,
+    "sp_lp": 0
+   }
+  },
+  "pref_simple_2y": {
+   "gp": 0,
+   "lp": 100000000,
+   "pref_owed": 16021918,
+   "tiers": {
+    "cu_gp": 0,
+    "cu_lp": 0,
+    "pref": 0,
+    "roc": 100000000,
+    "sp_gp": 0,
+    "sp_lp": 0
+   }
+  }
+ }
+}

@@ -1,0 +1,111 @@
+// Seeded: approval flows (a scratch-only test kind from events_test.js),
+// events, questions to your AI agent (one question, one fire), module cron and CSV imports.
+import { eq, fresh, newApi, ok, refuses, section, summary } from './lib.mjs';
+
+fresh({ seed: true });
+const api = newApi();
+const O = { as: 'owner' };
+const OP = { as: 'owner', pin: true };
+const HR = { as: 'hr@northwind.test' };
+const MGR = { as: 'eng.lead@northwind.test' };
+const SAM = { as: 'sam@northwind.test' };
+const AG = { as: 'agent' };
+
+const all = (await api.op('people.directory', { status: 'all', limit: 100 }, O)).people;
+const by = {};
+for (const p of all) by[p.work_email] = p;
+const sam = by['sam@northwind.test'];
+
+section('events');
+const st0 = await api.op('testkit.state', {}, O);
+eq((st0.hired || []).length, 24, 'employment.hired reached the subscriber for each of the 24 hires');
+ok(st0.hired.every((h) => h.employment && h.employee && h.entity && h.start_day), 'hire payload { employment, employee, entity, start_day, from_application }', st0.hired[0]);
+const em = await api.op('testkit.emit', { n: 3 }, O);
+ok(em.results.length === 2 && em.results[0].ok && em.results[0].result === 'pong' && em.results[1].ok === false && /on purpose/.test(em.results[1].error), 'emit calls every subscriber; a failing one is returned, not swallowed', em.results);
+const prof = await api.op('people.get', { employee: sam.number }, O);
+ok(prof.facts.some((f) => f.module === 'test' && f.facts[0].label === 'Test fact'), 'profileFacts from events files reach people.get');
+
+section('approval flows');
+await refuses(api, 'testkit.open', { kind: 'no_such_kind', employment: sam.employment }, SAM, 400, 'unknown_kind', 'a kind no module handles cannot be opened');
+const a1 = (await api.op('testkit.open', { employment: sam.employment, summary: 'Sam wants a test' }, SAM)).approval;
+const mgrMember = (await api.op('auth.me', {}, MGR)).member.id;
+eq(a1.approvers, [mgrMember], 'no flow: the manager approves');
+await refuses(api, 'approvals.decide', { approval: a1.id, decision: 'approved' }, SAM, 403, 'not_permitted', 'nobody approves their own request');
+const mine = await api.op('approvals.list', {}, MGR);
+ok(mine.approvals.some((a) => a.id === a1.id), 'it is in the manager\'s Inbox');
+const d1 = await api.op('approvals.decide', { approval: a1.id, decision: 'approved', note: 'Fine' }, MGR);
+eq(d1.approval.status, 'approved', 'manager approved');
+let st = await api.op('testkit.state', {}, O);
+ok(st.decisions && st.decisions.some((x) => x.id === a1.id && x.decision === 'approved' && x.note === 'Fine'), 'the kind subscriber got the decision');
+const flow = await api.op('approval-flows.save', { kind: 'test_kind', steps: [{ type: 'manager' }, { type: 'role', role: 'hr_admin' }], auto: { max_days: 1 } }, O);
+eq(flow.flow.steps.length, 2, 'a two-step flow (manager, then HR)');
+const a2 = (await api.op('testkit.open', { employment: sam.employment, summary: 'Two steps', days: 3 }, SAM)).approval;
+const s1 = await api.op('approvals.decide', { approval: a2.id, decision: 'approved' }, MGR);
+ok(s1.approval.status === 'pending' && s1.approval.step === 1, 'step 1 done, waiting for HR');
+const hrMember = (await api.op('auth.me', {}, HR)).member.id;
+ok(s1.approval.approvers.indexOf(hrMember) >= 0, 'HR is the approver of step 2');
+await refuses(api, 'approvals.decide', { approval: a2.id, decision: 'approved' }, MGR, 403, 'not_permitted', 'the manager cannot take step 2');
+eq((await api.op('approvals.decide', { approval: a2.id, decision: 'rejected', note: 'No' }, HR)).approval.status, 'rejected', 'HR rejects at step 2');
+const a3 = (await api.op('testkit.open', { employment: sam.employment, summary: 'Short one', days: 1 }, SAM)).approval;
+eq(a3.status, 'approved', 'within the auto rule (1 day) it is approved at once');
+const a4 = (await api.op('testkit.open', { employment: sam.employment, summary: 'Cancel me', days: 5 }, SAM)).approval;
+await refuses(api, 'approvals.cancel', { approval: a4.id }, MGR, 403, 'not_permitted', 'only the requester (or an administrator) cancels');
+eq((await api.op('approvals.cancel', { approval: a4.id, note: 'Changed my mind' }, SAM)).approval.status, 'cancelled', 'the requester cancels');
+st = await api.op('testkit.state', {}, O);
+ok(st.decisions.some((x) => x.id === a4.id && x.decision === 'cancelled'), 'the subscriber hears the cancel');
+const ceoReq = (await api.op('testkit.open', { employment: by['owner@northwind.test'].employment, summary: 'CEO request', days: 5 }, O)).approval;
+ok(ceoReq.approvers.length > 0 && ceoReq.approvers.indexOf((await api.op('auth.me', {}, O)).member.id) < 0, 'a request about the owner (no manager) goes to the other administrators', ceoReq.approvers);
+eq((await api.op('approvals.decide', { approval: ceoReq.id, decision: 'approved' }, HR)).approval.step, 1, 'HR approves step 1 as administrator');
+const req = await api.op('approvals.list', { view: 'requested', status: 'any' }, SAM);
+eq(req.total, 5, 'Sam sees the 5 requests he made (4 here and his bank account)');
+
+section('questions to your AI agent');
+const q = await api.op('questions.ask', { question: 'How many people start next month?', context: 'home' }, HR);
+ok(q.question.status === 'asked' && q.question.ask !== null && q.question.ask.trigger === 'question_asked' && (q.question.ask.request !== '' || q.question.ask.waiting), 'a person asks: one question, its own question_asked ask', q.question.ask);
+await refuses(api, 'questions.ask', { question: 'x' }, AG, 403, 'agent_not_permitted', 'your AI agent does not ask itself');
+await refuses(api, 'questions.answer', { question: q.question.id, answer: 'x' }, HR, 403, 'not_permitted', 'people do not answer for your AI agent');
+const al = await api.op('questions.list', {}, AG);
+ok(al.questions.some((x) => x.id === q.question.id), 'your AI agent sees the question', al.questions.length);
+await api.op('questions.answer', { question: q.question.id, answer: 'One person (Arjun Singh) starts on 1 December.' }, AG);
+const hrNotes = await api.op('notifications.list', { unread: true }, HR);
+ok(hrNotes.notifications.some((n) => n.title.indexOf('Your AI agent answered') === 0 && n.body.indexOf('Arjun') >= 0), 'the asker is notified with the answer');
+const qa = (await api.op('questions.get', { question: q.question.id }, HR)).question;
+ok(qa.status === 'answered' && qa.ask.ended_at !== '' && qa.ask.open === false, 'the question is answered and its ask closed', qa);
+const q2 = await api.op('questions.ask', { question: 'Who approves my leave?' }, SAM);
+await api.op('questions.cancel', { question: q2.question.id }, SAM);
+eq((await api.op('questions.get', { question: q2.question.id }, SAM)).question.status, 'cancelled', 'the person who asked cancels a question');
+await refuses(api, 'questions.get', { question: q.question.id }, SAM, 403, 'not_permitted', 'an employee cannot read another person\'s question');
+eq((await api.op('questions.list', {}, SAM)).questions.length, 1, 'an employee sees only the questions they asked');
+eq((await api.op('notifications.read-all', {}, HR)).updated >= 1, true, 'read all notifications');
+
+section('cron');
+const tk = await api.op('testkit.tick', {}, O);
+ok(tk.cron.some((c) => c.name === 'test_every_minute' && c.ok), 'module cron from cron_test.js runs when its schedule matches', tk.cron);
+
+section('CSV import');
+const bad = 'legal_name,entity,start_day,work_email,manager,department,pay_amount\nLena Fischer,Northwind Pte Ltd,2026-12-01,lena@northwind.test,E0004,Engineering,7000.00\n,Northwind Pte Ltd,2026-12-01,,,,\nOmar Haddad,Nowhere Ltd,2026-13-01,sam@northwind.test,E9999,Nope,12.345\n';
+const chk = await api.op('people.import-check', { csv: bad }, HR);
+ok(chk.report.rows === 3 && chk.report.ok === 1 && chk.report.errors.length >= 6, 'import-check reports row by row', chk.report);
+ok(chk.report.errors.some((e) => e.line === 4 && e.field === 'work_email') && chk.report.errors.some((e) => e.line === 3 && e.field === 'legal_name'), 'with line and field');
+eq((await api.op('people.directory', { status: 'all', limit: 100 }, O)).total, 24, 'a check changes nothing');
+await refuses(api, 'people.import', { csv: bad }, HR, 400, 'bad_csv', 'a CSV with problems imports nothing');
+const good = 'legal_name,preferred_name,entity,start_day,work_email,manager,department,title,pay_amount,pay_per,number\nLena Fischer,Lena,Northwind Pte Ltd,2026-12-01,lena@northwind.test,E0004,Engineering,Software Engineer,7000.00,month,\nTom Baker,,Northwind Inc,2026-12-07,tom@northwind.test,lena@northwind.test,Sales,Account Executive,90000.00,year,\n';
+const imp = await api.op('people.import', { csv: good }, HR);
+eq(imp.imported, 2, 'two people imported');
+const tom = (await api.op('people.directory', { q: 'Tom Baker', status: 'upcoming' }, O)).people[0];
+eq(tom.manager_name, 'Lena', 'a manager named by a row above links to the new person');
+const agentImp = await api.op('people.import', { csv: 'legal_name,entity,start_day\nAgent Hire,Northwind KK,2027-01-04\n', why: 'From the onboarding sheet' }, AG);
+ok(agentImp.proposed === true, 'your AI agent\'s import is a proposal');
+const st2 = await api.op('testkit.state', {}, O);
+eq(st2.hired.length, 26, 'imported people emit employment.hired too');
+const hol = await api.op('holidays.import', { calendar: 'SG', csv: 'day,name,kind\n2026-12-24,Company day,company\n2026-02-30,Bad day,public\n' }, HR);
+ok(hol.dry_run === true && hol.report.add === 1 && hol.report.errors.length === 1, 'holiday CSV dry run', hol.report);
+const hol2 = await api.op('holidays.import', { calendar: 'SG', csv: 'day,name,kind\n2026-12-24,Company day,company\n', dry_run: false }, HR);
+eq(hol2.committed, true, 'holiday CSV commit');
+const exp = await api.op('people.export', { include_pay: true }, { as: 'payroll@northwind.test' });
+ok(exp.rows === 23 && exp.csv.split('\r\n')[0].indexOf('pay_amount') > 0, 'export with pay for the payroll admin', exp.rows);
+const imports = await api.op('imports.list', {}, HR);
+ok(imports.imports.length >= 4, 'imports are recorded');
+
+const s = summary('t05_flows_jobs_csv');
+process.exitCode = s.failed > 0 ? 1 : 0;

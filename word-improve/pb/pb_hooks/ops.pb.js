@@ -32,10 +32,11 @@ routerAdd('POST', '/api/ops/ai/generate', (e) => {
   return e.json(200, { text: raw || '' });
 });
 
-// integrations.status — whether the CraftBot LLM bridge is configured, so the
-// frontend can show an honest LLM-available banner (the browser itself has no
-// way to see these env vars).
+// integrations.status — whether a language model is connected (CraftBot's
+// bridge or a running framework bridge), so the frontend can show an honest
+// LLM-available banner (the browser itself cannot see either).
 routerAdd('GET', '/api/ops/integrations/status', (e) => {
-  const configured = !!($os.getenv('CRAFTBOT_BRIDGE_URL') && $os.getenv('CRAFTBOT_BRIDGE_TOKEN'));
+  // Any host's model: CraftBot's bridge or a running framework bridge (_craftbot_bridge.llmAvailable).
+  const configured = require(`${__hooks}/_craftbot_bridge.js`).llmAvailable();
   return e.json(200, { llmAvailable: configured });
 });

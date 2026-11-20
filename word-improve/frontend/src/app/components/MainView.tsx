@@ -138,8 +138,8 @@ export function MainView({ controller }: MainViewProps) {
 
       <main className="main">
         {state.llmStatusChecked && !state.llmAvailable && (
-          <Alert variant="warning" title="CraftBot LLM not configured">
-            Variants are placeholder stubs. Add an LLM provider API key in CraftBot settings to get real rewrites.
+          <Alert variant="warning" title="No language model connected">
+            Variants are placeholder stubs. Connect an AI agent to this app (CraftBot, or any agent harness running the app's bridge) to get real rewrites.
           </Alert>
         )}
         {!active ? (

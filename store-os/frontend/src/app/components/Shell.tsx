@@ -92,7 +92,8 @@ function NavLink({ item, active, collapsed, onNavigate }: { item: NavItem; activ
 }
 
 function shopDot(s: Shop): { cls: string; tip: string } {
-  if (s.task && (s.task.state === 'working' || s.task.state === 'asked' || s.task.state === 'queued')) return { cls: 'bg-[var(--so-accent)] so-breathe', tip: 'Your AI agent is working on it' };
+  if (s.task && s.task.stale && (s.task.state === 'working' || s.task.state === 'asked')) return { cls: 'bg-[var(--so-amber)]', tip: 'Your AI agent has not done what you asked. Retry it in Tasks' };
+  if (s.task && (s.task.state === 'working' || s.task.state === 'asked' || s.task.state === 'queued')) return { cls: 'bg-[var(--so-accent)] so-breathe', tip: s.task.state === 'working' ? 'Your AI agent is working on it' : 'Your AI agent was asked' };
   if (s.late > 0) return { cls: 'bg-[var(--so-red)]', tip: s.late + ' late to ship' };
   if (s.status === 'setting_up') return { cls: 'bg-[var(--so-amber)]', tip: 'Setting up: ' + s.setup.done + ' of ' + s.setup.total + ' done' };
   if (s.status === 'paused') return { cls: 'bg-[var(--so-faint)]', tip: 'Paused' };

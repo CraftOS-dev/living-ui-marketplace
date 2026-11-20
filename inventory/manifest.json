@@ -1,26 +1,136 @@
 {
-  "id": "{{PROJECT_ID}}",
-  "name": "{{PROJECT_NAME}}",
-  "description": "{{PROJECT_DESCRIPTION}}",
-  "agentAppVersion": 2,
-  "createdAt": "{{CREATED_AT}}",
+  "id": "inventory",
+  "name": "Inventory",
+  "agentAppVersion": "0.1.0",
+  "adapterVersion": "0.2.0",
+  "appVersion": "1.0.0",
   "authMode": "none",
-  "port": "{{PORT}}",
-  "pbVersion": "0.39.7",
-  "kitVersion": "0.6.0",
-  "craftbotVersion": "1.4.3",
-  "pipeline": {
-    "install": "npm install --ignore-scripts --prefix frontend",
-    "build": "npm run build --prefix frontend",
-    "start": "pocketbase serve --http=127.0.0.1:{{PORT}} --dir pb/pb_data --hooksDir pb/pb_hooks --migrationsDir pb/pb_migrations --publicDir pb/pb_public",
-    "health": "/api/health"
-  },
+  "modules": [
+    {
+      "name": "app",
+      "summary": "guide",
+      "entities": []
+    },
+    {
+      "name": "settings",
+      "summary": "get, update",
+      "entities": [
+        "settings"
+      ]
+    },
+    {
+      "name": "dashboard",
+      "summary": "summary",
+      "entities": []
+    },
+    {
+      "name": "lookup",
+      "summary": "code",
+      "entities": []
+    },
+    {
+      "name": "categories",
+      "summary": "list, add, update, delete",
+      "entities": [
+        "categories"
+      ]
+    },
+    {
+      "name": "map",
+      "summary": "get",
+      "entities": []
+    },
+    {
+      "name": "locations",
+      "summary": "list, get, add, update, place, arrange, delete",
+      "entities": [
+        "locations"
+      ]
+    },
+    {
+      "name": "suppliers",
+      "summary": "list, get, add, update, delete",
+      "entities": [
+        "suppliers"
+      ]
+    },
+    {
+      "name": "items",
+      "summary": "list, get, add, update, delete, delete-many, set-category…",
+      "entities": [
+        "items",
+        "codes"
+      ]
+    },
+    {
+      "name": "stock",
+      "summary": "in, out, move, set, batch",
+      "entities": [
+        "stock"
+      ]
+    },
+    {
+      "name": "movements",
+      "summary": "list, undo, delete",
+      "entities": [
+        "movements"
+      ]
+    },
+    {
+      "name": "reorder",
+      "summary": "list, create-orders",
+      "entities": []
+    },
+    {
+      "name": "orders",
+      "summary": "list, get, text, create, update, add-line, update-line…",
+      "entities": [
+        "orders"
+      ]
+    },
+    {
+      "name": "counts",
+      "summary": "list, get, start, set-line, scan, add-item, remove-line…",
+      "entities": [
+        "counts"
+      ]
+    },
+    {
+      "name": "documents",
+      "summary": "list, add, start, complete, fail, retry, delete",
+      "entities": [
+        "documents"
+      ]
+    },
+    {
+      "name": "import",
+      "summary": "preview, run, list, undo, delete",
+      "entities": [
+        "imports"
+      ]
+    },
+    {
+      "name": "export",
+      "summary": "items, stock, movements, template",
+      "entities": []
+    },
+    {
+      "name": "records",
+      "summary": "the app's other stored records",
+      "entities": [
+        "order_lines",
+        "count_lines"
+      ]
+    }
+  ],
+  "modificationLock": false,
   "capabilities": {
-    "triggers": [
-      "documents_waiting",
-      "order_send_requested",
-      "restock_review"
-    ]
+    "integrations": []
   },
-  "adapterVersion": "1.9.0"
+  "pipeline": {
+    "install": "node pb-fetch.mjs && npm --prefix frontend install --ignore-scripts --no-audit --no-fund",
+    "build": "node pb-build.mjs",
+    "start": "node pb-serve.mjs",
+    "health": "/api/_a2app"
+  }
 }

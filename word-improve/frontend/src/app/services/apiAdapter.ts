@@ -443,7 +443,7 @@ function stubStructuredVariants(sentences: string[], count: number, mode: string
     custom: 'stub custom rewrite',
   }
   const label = labelByMode[mode] ?? 'stub variant'
-  const note = '(configure CraftBot LLM provider for real output)'
+  const note = '(connect an AI agent for real output)'
   const variants: StructSentence[][] = []
   for (let i = 0; i < count; i++) {
     const sents: StructSentence[] = []

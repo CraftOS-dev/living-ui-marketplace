@@ -37,6 +37,7 @@ export interface Settings {
   timezone: string;
   utc_offset: number;
   autonomy: Record<AutonomyKind, Autonomy>;
+  automation: Record<Automation, boolean>;
   guards: { max_price_drop_pct: number; min_margin_pct: number };
   pii_days: number;
   low_stock: number;
@@ -46,18 +47,33 @@ export interface Settings {
 
 export type TaskKind = 'sync' | 'publish' | 'push_stock' | 'setup_help' | 'prepare_listing' | 'draft_reply' | 'send_reply' | 'tracking' | 'exception' | 'chat';
 export type TaskState = 'queued' | 'asked' | 'working' | 'done' | 'failed' | 'cancelled';
+/** Why an open task may be asked again (Retry): not sent, not picked up within 24 hours, left unfinished. */
+export type TaskStale = '' | 'not_sent' | 'not_picked_up' | 'stopped';
+/** The automatic requests to your AI agent the seller can switch on. */
+export type Automation = 'draft_replies' | 'exceptions';
 
 export interface TaskBrief {
   id: string;
   kind: TaskKind;
   state: TaskState;
   label: string;
+  stale?: TaskStale;
+}
+
+/** What a request to your AI agent answers (shops.sync, inbox.ask-draft, tasks.retry...). */
+export interface AskResult {
+  task: Task | null;
+  asked: boolean;
+  already?: boolean;
+  message?: string;
 }
 
 export interface Task extends TaskBrief {
   target: string;
   params: Record<string, unknown>;
+  trigger: string;
   request: string;
+  requests: string[];
   note: string;
   by: string;
   asked_at: string;

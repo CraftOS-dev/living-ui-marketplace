@@ -1,51 +1,25 @@
 {
-  "opsVersion": 1,
   "operations": [
     {
-      "name": "health",
-      "description": "Liveness check (PocketBase built-in).",
-      "system": true,
-      "params": {},
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/health"
-      }
-    },
-    {
-      "name": "ops.list",
-      "description": "Return this operations manifest.",
-      "system": true,
-      "params": {},
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/_ops"
-      }
-    },
-    {
       "name": "app.guide",
-      "description": "START HERE: conventions (amount, date, currency, category) and ready-to-run recipes for receipts, bank CSV files, summaries and fixes.",
-      "params": {},
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/app/guide"
-      }
+      "description": "Conventions (amount, date, currency, category) and ready-to-run recipes for receipts, bank CSV files, summaries and fixes.",
+      "destructive": false,
+      "module": "app",
+      "params": {}
     },
     {
       "name": "settings.get",
       "description": "Home currency, its decimals, and the monthly budget.",
-      "params": {},
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/settings/get"
-      }
+      "destructive": false,
+      "readOnly": true,
+      "module": "settings",
+      "params": {}
     },
     {
       "name": "settings.update",
       "description": "Change the home currency (amounts keep their value) and/or the overall monthly budget (0 removes it).",
+      "destructive": false,
+      "module": "settings",
       "params": {
         "currency": {
           "type": "string",
@@ -59,31 +33,27 @@
           "type": "boolean",
           "description": "Mark the currency as chosen by the user"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/settings/update"
       }
     },
     {
       "name": "summary.month",
-      "description": "Month overview: total, count, daily totals, per-category totals and budgets, overall budget left, biggest expenses, and last month up to the same day.",
+      "description": "Month overview: total, count, daily totals, per-category totals and budgets, overall budget left, biggest expenses, and last month up to…",
+      "destructive": false,
+      "readOnly": true,
+      "module": "summary",
       "params": {
         "month": {
           "type": "string",
           "description": "YYYY-MM (default this month)"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/summary/month"
       }
     },
     {
       "name": "summary.trend",
       "description": "Monthly totals for the last N months and their average.",
+      "destructive": false,
+      "readOnly": true,
+      "module": "summary",
       "params": {
         "months": {
           "type": "number",
@@ -93,16 +63,14 @@
           "type": "string",
           "description": "Last month YYYY-MM (default this month)"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/summary/trend"
       }
     },
     {
       "name": "expenses.list",
-      "description": "Find expenses, newest first, with the total of all matches. Filter by month or a date range, category, uncategorized, text in the note, source, or having a receipt.",
+      "description": "Find expenses, newest first, with the total of all matches.",
+      "destructive": false,
+      "readOnly": true,
+      "module": "expenses",
       "params": {
         "month": {
           "type": "string",
@@ -129,15 +97,15 @@
           "description": "Text contained in the note"
         },
         "source": {
-          "type": "string",
-          "description": "Who added it",
-          "enum": [
+          "type": "enum",
+          "values": [
             "app",
             "agent",
             "receipt",
             "csv",
             "recurring"
-          ]
+          ],
+          "description": "Who added it"
         },
         "has_receipt": {
           "type": "boolean",
@@ -151,37 +119,32 @@
           "type": "number",
           "description": "Skip this many rows"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/expenses/list"
       }
     },
     {
       "name": "expenses.get",
       "description": "One expense, with its receipt (file path and URL) when it has one.",
+      "destructive": false,
+      "readOnly": true,
+      "module": "expenses",
       "params": {
         "expense_id": {
           "type": "string",
-          "description": "Expense id",
-          "required": true
+          "required": true,
+          "description": "Expense id"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/expenses/get"
       }
     },
     {
       "name": "expenses.add",
-      "description": "Record one expense. Optionally attach the receipt file it came from (receipt_path). Returns the stored expense: check it.",
+      "description": "Record one expense.",
+      "destructive": false,
+      "module": "expenses",
       "params": {
         "amount": {
           "type": "string",
-          "description": "Amount in major units, plain number with '.' decimal and no thousands separators, e.g. 12.50",
-          "required": true
+          "required": true,
+          "description": "Amount in major units, plain number with '.' decimal and no thousands separators, e.g. 12.50"
         },
         "date": {
           "type": "string",
@@ -211,41 +174,35 @@
           "type": "boolean",
           "description": "Return the existing expense instead when one with the same date, amount and note exists"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/expenses/add"
       }
     },
     {
       "name": "expenses.add-many",
-      "description": "Record many expenses at once (all or nothing: one invalid item writes nothing). Duplicates already stored are skipped by default.",
+      "description": "Record many expenses at once (all or nothing: one invalid item writes nothing).",
+      "destructive": false,
+      "module": "expenses",
       "params": {
         "items": {
           "type": "string",
-          "description": "JSON list of {amount, date, note, category, currency, rate}",
-          "required": true
+          "required": true,
+          "description": "JSON list of {amount, date, note, category, currency, rate}"
         },
         "skip_duplicates": {
           "type": "boolean",
           "description": "Skip items whose date, amount and note are already stored (default true)"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/expenses/add-many"
       }
     },
     {
       "name": "expenses.update",
       "description": "Change an expense's amount, date, note or category.",
+      "destructive": false,
+      "module": "expenses",
       "params": {
         "expense_id": {
           "type": "string",
-          "description": "Expense id",
-          "required": true
+          "required": true,
+          "description": "Expense id"
         },
         "amount": {
           "type": "string",
@@ -271,133 +228,109 @@
           "type": "string",
           "description": "Existing category name (case ignored) or id; empty = uncategorized"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/expenses/update"
       }
     },
     {
       "name": "expenses.delete",
       "description": "Delete one expense (and its receipt).",
       "destructive": true,
+      "module": "expenses",
       "params": {
         "expense_id": {
           "type": "string",
-          "description": "Expense id",
-          "required": true
+          "required": true,
+          "description": "Expense id"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/expenses/delete"
       }
     },
     {
       "name": "expenses.delete-many",
-      "description": "Delete several expenses (and their receipts). All ids must exist or nothing is deleted.",
+      "description": "Delete several expenses (and their receipts).",
       "destructive": true,
+      "module": "expenses",
       "params": {
         "ids": {
           "type": "string",
-          "description": "JSON list of expense ids",
-          "required": true
+          "required": true,
+          "description": "JSON list of expense ids"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/expenses/delete-many"
       }
     },
     {
       "name": "expenses.set-category",
       "description": "Put several expenses in one category (empty category = uncategorized).",
+      "destructive": false,
+      "module": "expenses",
       "params": {
         "ids": {
           "type": "string",
-          "description": "JSON list of expense ids",
-          "required": true
+          "required": true,
+          "description": "JSON list of expense ids"
         },
         "category": {
           "type": "string",
           "description": "Existing category name (case ignored) or id; empty = uncategorized"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/expenses/set-category"
       }
     },
     {
       "name": "expenses.attach-receipt",
       "description": "Attach a receipt file to an existing expense (replaces its old receipt).",
+      "destructive": false,
+      "module": "expenses",
       "params": {
         "expense_id": {
           "type": "string",
-          "description": "Expense id",
-          "required": true
+          "required": true,
+          "description": "Expense id"
         },
         "path": {
           "type": "string",
-          "description": "Absolute path of the image or PDF",
-          "required": true
+          "required": true,
+          "description": "Absolute path of the image or PDF"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/expenses/attach-receipt"
       }
     },
     {
       "name": "expenses.remove-receipt",
       "description": "Remove an expense's receipt file (the expense stays).",
       "destructive": true,
+      "module": "expenses",
       "params": {
         "expense_id": {
           "type": "string",
-          "description": "Expense id",
-          "required": true
+          "required": true,
+          "description": "Expense id"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/expenses/remove-receipt"
       }
     },
     {
       "name": "categories.list",
       "description": "All categories with expense counts, use in the last 90 days, this month's spend and budget.",
+      "destructive": false,
+      "readOnly": true,
+      "module": "categories",
       "params": {
         "month": {
           "type": "string",
           "description": "YYYY-MM for month_total (default this month)"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/categories/list"
       }
     },
     {
       "name": "categories.add",
       "description": "Create a category.",
+      "destructive": false,
+      "module": "categories",
       "params": {
         "name": {
           "type": "string",
-          "description": "Name, unique (case ignored), max 40",
-          "required": true
+          "required": true,
+          "description": "Name, unique (case ignored), max 40"
         },
         "icon": {
-          "type": "string",
-          "description": "Line icon (default tag)",
-          "enum": [
+          "type": "enum",
+          "values": [
             "utensils",
             "coffee",
             "pizza",
@@ -438,36 +371,33 @@
             "receipt",
             "package",
             "tag"
-          ]
+          ],
+          "description": "Line icon (default tag)"
         },
         "budget": {
           "type": "string",
           "description": "Monthly budget in major units (0 = none)"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/categories/add"
       }
     },
     {
       "name": "categories.update",
       "description": "Rename a category, change its icon or its monthly budget (0 removes it).",
+      "destructive": false,
+      "module": "categories",
       "params": {
         "category_id": {
           "type": "string",
-          "description": "Category id or exact name",
-          "required": true
+          "required": true,
+          "description": "Category id or exact name"
         },
         "name": {
           "type": "string",
           "description": "New name"
         },
         "icon": {
-          "type": "string",
-          "description": "Line icon",
-          "enum": [
+          "type": "enum",
+          "values": [
             "utensils",
             "coffee",
             "pizza",
@@ -508,126 +438,110 @@
             "receipt",
             "package",
             "tag"
-          ]
+          ],
+          "description": "Line icon"
         },
         "budget": {
           "type": "string",
           "description": "Monthly budget in major units (0 = none)"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/categories/update"
       }
     },
     {
       "name": "categories.delete",
       "description": "Delete a category; its expenses move to move_to (or become uncategorized).",
       "destructive": true,
+      "module": "categories",
       "params": {
         "category_id": {
           "type": "string",
-          "description": "Category id or exact name",
-          "required": true
+          "required": true,
+          "description": "Category id or exact name"
         },
         "move_to": {
           "type": "string",
           "description": "Category that receives its expenses; empty = uncategorized"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/categories/delete"
       }
     },
     {
       "name": "receipts.list",
-      "description": "Receipts and their state: waiting (for the agent), reading, done (has its expense) or failed. Each has file_path to read.",
+      "description": "Receipts and their state: waiting (for the agent), reading, done (has its expense) or failed.",
+      "destructive": false,
+      "readOnly": true,
+      "module": "receipts",
       "params": {
         "status": {
-          "type": "string",
-          "description": "Only this state",
-          "enum": [
+          "type": "enum",
+          "values": [
             "waiting",
             "reading",
             "done",
             "failed"
-          ]
+          ],
+          "description": "Only this state"
         },
         "limit": {
           "type": "number",
           "description": "Max rows (default 100)"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/receipts/list"
       }
     },
     {
       "name": "receipts.get",
       "description": "One receipt with its absolute file_path and its expense when done.",
+      "destructive": false,
+      "readOnly": true,
+      "module": "receipts",
       "params": {
         "receipt_id": {
           "type": "string",
-          "description": "Receipt id",
-          "required": true
+          "required": true,
+          "description": "Receipt id"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/receipts/get"
       }
     },
     {
       "name": "receipts.add",
       "description": "Queue a receipt file for reading (state waiting; the agent is asked to read it).",
+      "destructive": false,
+      "module": "receipts",
       "params": {
         "path": {
           "type": "string",
-          "description": "Absolute path of the receipt image or PDF",
-          "required": true
+          "required": true,
+          "description": "Absolute path of the receipt image or PDF"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/receipts/add"
       }
     },
     {
       "name": "receipts.start",
-      "description": "Mark a receipt as being read (state reading). Always finish it with receipts.complete or receipts.fail: one left reading is marked failed once you stop calling the app.",
+      "description": "Mark a receipt as being read (state reading).",
+      "destructive": false,
+      "module": "receipts",
       "params": {
         "receipt_id": {
           "type": "string",
-          "description": "Receipt id",
-          "required": true
+          "required": true,
+          "description": "Receipt id"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/receipts/start"
       }
     },
     {
       "name": "receipts.complete",
-      "description": "Create the expense a receipt shows and mark the receipt done. Safe to repeat: a receipt only ever gets one expense.",
+      "description": "Create the expense a receipt shows and mark the receipt done.",
+      "destructive": false,
+      "module": "receipts",
       "params": {
         "receipt_id": {
           "type": "string",
-          "description": "Receipt id",
-          "required": true
+          "required": true,
+          "description": "Receipt id"
         },
         "amount": {
           "type": "string",
-          "description": "TOTAL paid (after tax, tip, discounts). Amount in major units, plain number with '.' decimal and no thousands separators, e.g. 12.50",
-          "required": true
+          "required": true,
+          "description": "TOTAL paid (after tax, tip, discounts). Amount in major units, plain number with '.' decimal and no thousands separators, e.g. 12.50"
         },
         "date": {
           "type": "string",
@@ -649,70 +563,57 @@
           "type": "string",
           "description": "Home currency per 1 unit of `currency`, only when no rate can be had from the rate services"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/receipts/complete"
       }
     },
     {
       "name": "receipts.fail",
       "description": "Mark a receipt unreadable, with the reason shown to the user.",
+      "destructive": false,
+      "module": "receipts",
       "params": {
         "receipt_id": {
           "type": "string",
-          "description": "Receipt id",
-          "required": true
+          "required": true,
+          "description": "Receipt id"
         },
         "reason": {
           "type": "string",
-          "description": "Why it could not be read, e.g. 'too blurry to read the total'",
-          "required": true
+          "required": true,
+          "description": "Why it could not be read, e.g. 'too blurry to read the total'"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/receipts/fail"
       }
     },
     {
       "name": "receipts.retry",
       "description": "Put a failed or stuck receipt back in the queue and ask the agent again.",
+      "destructive": false,
+      "module": "receipts",
       "params": {
         "receipt_id": {
           "type": "string",
-          "description": "Receipt id",
-          "required": true
+          "required": true,
+          "description": "Receipt id"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/receipts/retry"
       }
     },
     {
       "name": "receipts.delete",
       "description": "Delete a receipt file (an expense made from it stays, without the file).",
       "destructive": true,
+      "module": "receipts",
       "params": {
         "receipt_id": {
           "type": "string",
-          "description": "Receipt id",
-          "required": true
+          "required": true,
+          "description": "Receipt id"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/receipts/delete"
       }
     },
     {
       "name": "import.preview",
-      "description": "Read a bank or card CSV and show what would be imported: detected columns and mapping, counts (new, duplicate, not_expense = money in, empty, invalid) and the first rows. Nothing is written. Repeat with --import_id and options to adjust.",
+      "description": "Read a bank or card CSV and show what would be imported: detected columns and mapping, counts (new, duplicate, not_expense = money in…",
+      "destructive": false,
+      "module": "import",
       "params": {
         "path": {
           "type": "string",
@@ -743,9 +644,8 @@
           "description": "Column index (0-based) or exact header name; 'none' for no column"
         },
         "date_format": {
-          "type": "string",
-          "description": "Date layout",
-          "enum": [
+          "type": "enum",
+          "values": [
             "YYYY-MM-DD",
             "YYYY/MM/DD",
             "YYYY.MM.DD",
@@ -761,24 +661,25 @@
             "D MMM YYYY",
             "MMM D YYYY",
             "YYYYMMDD"
-          ]
+          ],
+          "description": "Date layout"
         },
         "decimal": {
-          "type": "string",
-          "description": "Decimal mark in the amounts",
-          "enum": [
+          "type": "enum",
+          "values": [
             ".",
             ","
-          ]
+          ],
+          "description": "Decimal mark in the amounts"
         },
         "expenses_are": {
-          "type": "string",
-          "description": "Which amounts are spending: negative (income is positive), positive, or all",
-          "enum": [
+          "type": "enum",
+          "values": [
             "negative",
             "positive",
             "all"
-          ]
+          ],
+          "description": "Which amounts are spending: negative (income is positive), positive, or all"
         },
         "currency": {
           "type": "string",
@@ -800,16 +701,13 @@
           "type": "number",
           "description": "How many planned rows to return (default 50)"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/import/preview"
       }
     },
     {
       "name": "import.run",
-      "description": "Import the previewed CSV (same mapping unless an option changes it). Returns how many were added and why others were skipped.",
+      "description": "Import the previewed CSV (same mapping unless an option changes it).",
+      "destructive": false,
+      "module": "import",
       "params": {
         "import_id": {
           "type": "string",
@@ -840,9 +738,8 @@
           "description": "Column index (0-based) or exact header name; 'none' for no column"
         },
         "date_format": {
-          "type": "string",
-          "description": "Date layout, as in import.preview",
-          "enum": [
+          "type": "enum",
+          "values": [
             "YYYY-MM-DD",
             "YYYY/MM/DD",
             "YYYY.MM.DD",
@@ -858,24 +755,25 @@
             "D MMM YYYY",
             "MMM D YYYY",
             "YYYYMMDD"
-          ]
+          ],
+          "description": "Date layout, as in import.preview"
         },
         "decimal": {
-          "type": "string",
-          "description": "Decimal mark",
-          "enum": [
+          "type": "enum",
+          "values": [
             ".",
             ","
-          ]
+          ],
+          "description": "Decimal mark"
         },
         "expenses_are": {
-          "type": "string",
-          "description": "negative, positive or all",
-          "enum": [
+          "type": "enum",
+          "values": [
             "negative",
             "positive",
             "all"
-          ]
+          ],
+          "description": "negative, positive or all"
         },
         "currency": {
           "type": "string",
@@ -893,48 +791,40 @@
           "type": "boolean",
           "description": "Skip rows already stored (default true)"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/import/run"
       }
     },
     {
       "name": "import.list",
       "description": "Past CSV imports with how many rows were added and skipped.",
+      "destructive": false,
+      "readOnly": true,
+      "module": "import",
       "params": {
         "limit": {
           "type": "number",
           "description": "Max rows (default 50)"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/import/list"
       }
     },
     {
       "name": "import.undo",
       "description": "Remove every expense an import added.",
       "destructive": true,
+      "module": "import",
       "params": {
         "import_id": {
           "type": "string",
-          "description": "Import id",
-          "required": true
+          "required": true,
+          "description": "Import id"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/import/undo"
       }
     },
     {
       "name": "export.csv",
       "description": "Expenses in a date range as CSV text (Date, Amount, Currency, Category, Note, Added by, Original amount, Original currency).",
+      "destructive": false,
+      "readOnly": true,
+      "module": "export",
       "params": {
         "from": {
           "type": "string",
@@ -944,46 +834,41 @@
           "type": "string",
           "description": "Last day YYYY-MM-DD (default today)"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/export/csv"
       }
     },
     {
       "name": "recurring.list",
       "description": "Recurring expenses (rent, subscriptions) with their next date.",
-      "params": {},
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/recurring/list"
-      }
+      "destructive": false,
+      "readOnly": true,
+      "module": "recurring",
+      "params": {}
     },
     {
       "name": "recurring.add",
-      "description": "Add a recurring expense. It records itself on each due date; dates already past are added now.",
+      "description": "Add a recurring expense.",
+      "destructive": false,
+      "module": "recurring",
       "params": {
         "note": {
           "type": "string",
-          "description": "What it is, e.g. 'Netflix'",
-          "required": true
+          "required": true,
+          "description": "What it is, e.g. 'Netflix'"
         },
         "amount": {
           "type": "string",
-          "description": "Amount in major units, plain number with '.' decimal and no thousands separators, e.g. 12.50",
-          "required": true
+          "required": true,
+          "description": "Amount in major units, plain number with '.' decimal and no thousands separators, e.g. 12.50"
         },
         "cadence": {
-          "type": "string",
-          "description": "How often",
-          "required": true,
-          "enum": [
+          "type": "enum",
+          "values": [
             "weekly",
             "monthly",
             "yearly"
-          ]
+          ],
+          "required": true,
+          "description": "How often"
         },
         "start_date": {
           "type": "string",
@@ -993,21 +878,18 @@
           "type": "string",
           "description": "Existing category name (case ignored) or id; empty = uncategorized"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/recurring/add"
       }
     },
     {
       "name": "recurring.update",
-      "description": "Change a recurring expense; a new cadence or start_date restarts its schedule from that date. active=false pauses it.",
+      "description": "Change a recurring expense; a new cadence or start_date restarts its schedule from that date.",
+      "destructive": false,
+      "module": "recurring",
       "params": {
         "recurring_id": {
           "type": "string",
-          "description": "Recurring id",
-          "required": true
+          "required": true,
+          "description": "Recurring id"
         },
         "note": {
           "type": "string",
@@ -1022,13 +904,13 @@
           "description": "Existing category name (case ignored) or id; empty = uncategorized"
         },
         "cadence": {
-          "type": "string",
-          "description": "How often",
-          "enum": [
+          "type": "enum",
+          "values": [
             "weekly",
             "monthly",
             "yearly"
-          ]
+          ],
+          "description": "How often"
         },
         "start_date": {
           "type": "string",
@@ -1038,48 +920,39 @@
           "type": "boolean",
           "description": "false pauses it"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/recurring/update"
       }
     },
     {
       "name": "recurring.delete",
       "description": "Delete a recurring expense (expenses it already added stay).",
       "destructive": true,
+      "module": "recurring",
       "params": {
         "recurring_id": {
           "type": "string",
-          "description": "Recurring id",
-          "required": true
+          "required": true,
+          "description": "Recurring id"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/recurring/delete"
       }
     },
     {
       "name": "recurring.run-due",
       "description": "Add any recurring expenses that are due now (also runs by itself every hour).",
-      "params": {},
-      "executor": {
-        "type": "http",
-        "method": "POST",
-        "path": "/api/ops/recurring/run-due"
-      }
+      "destructive": false,
+      "module": "recurring",
+      "params": {}
     },
     {
       "name": "fx.rate",
-      "description": "Exchange rate between two currencies on a day (ECB via Frankfurter, else currency-api; `source` says which), and optionally an amount converted.",
+      "description": "Exchange rate between two currencies on a day (ECB via Frankfurter, else currency-api; `source` says which), and optionally an amount…",
+      "destructive": false,
+      "readOnly": true,
+      "module": "fx",
       "params": {
         "from": {
           "type": "string",
-          "description": "ISO code",
-          "required": true
+          "required": true,
+          "description": "ISO code"
         },
         "to": {
           "type": "string",
@@ -1093,11 +966,6 @@
           "type": "string",
           "description": "Amount in `from` to convert"
         }
-      },
-      "executor": {
-        "type": "http",
-        "method": "GET",
-        "path": "/api/ops/fx/rate"
       }
     }
   ]

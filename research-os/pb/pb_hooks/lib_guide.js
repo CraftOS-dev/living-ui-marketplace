@@ -14,7 +14,7 @@ function core() {
 const RECIPES = {
   identify: [
     'Identify PDFs waiting for metadata (trigger papers_waiting).',
-    '1) agent-app run <project> works.list --view to_identify --limit 50.',
+    '1) a2app <app> works works.list --view to_identify --limit 50.',
     '2) For each paper with resolution pending: works.identify-start --work <id>; read its first pages: pages.text --work <id> --from 1 --to 2 (the title, authors and a DOI or arXiv ID are usually on page 1).',
     '3) Find the identifier: a DOI or arXiv ID printed on the page, or search the title with your web search, or search.run --query "<exact title>" --sources crossref,arxiv --rows 5 and pick the matching record.',
     '4) works.identify --work <id> --identifier <DOI or arXiv ID>. The registry fills the metadata; when the paper is already in the library the PDF moves to it.',
@@ -106,7 +106,7 @@ const RECIPES = {
   references: ['Resolve a paper\'s reference list (trigger references_requested with work_id).', '1) references.list --work <id>.', '2) For entries without a DOI: find their DOI (web search, search.run) and add the important ones only if the person asked; otherwise report them.'],
   notes: [
     'Write a note: a literature note on a paper, a project note, or a free one.',
-    '1) notes.create --kind project --project <id> --title ".." --blocks \'[{"type":"paragraph","text":".."},{"type":"table","rows":[["Sample","Yield"],["A","72"]],"header":true}]\' (kind literature takes --work; notes.for-work --work <id> gives the paper\'s own note). Block types and their fields: agent-app ops <project> notes.create.',
+    '1) notes.create --kind project --project <id> --title ".." --blocks \'[{"type":"paragraph","text":".."},{"type":"table","rows":[["Sample","Yield"],["A","72"]],"header":true}]\' (kind literature takes --work; notes.for-work --work <id> gives the paper\'s own note). Block types and their fields: a2app <app> notes.create.',
     '2) Pictures: notes.add-image --note <id> --paths \'["C:/abs/path/plot.png"]\' --append true --caption ".." puts them at the end (or --at <block id>). A note cannot hold pictures before it exists, so create it first.',
     '3) Quote a passage with a quote block {"type":"quote","anchor":"<anchor id>"} and link a claim with {"type":"node","node":"<id>"}; cite a paper with {"type":"cite","work":"<id>","locator":"p. 4"}.',
     '4) notes.append adds to any note (yours or the person\'s); notes.update changes only your own notes not yet kept. Your notes stay agent_proposed until the person keeps them.',
@@ -133,7 +133,7 @@ function guide(ctx, p) {
   return {
     app: 'Research OS: a research workspace. Papers (works) with PDFs whose text the app stores; passages (anchors) are page offsets in that text; projects hold questions, claims and evidence linked by typed relations, boards, experiments (exp.*: plan, runs, log, results), manuscripts, systematic reviews, their own to-do list (tasks.*) and a research repository of folders and files (repo.*).',
     today: util.today(),
-    start: 'Read the recipe for your task: app.guide --topic <' + Object.keys(RECIPES).join('|') + '>. List the operations of an area, each parameter explained, with agent-app ops <project> <area> (areas below).',
+    start: 'Read the recipe for your task: app.guide --topic <' + Object.keys(RECIPES).join('|') + '>. List the operations of an area, each parameter explained, with a2app <app> <area> (areas below).',
     rules: [
       'You read and capture freely (add papers by identifier, attach PDFs, OCR, tag, search).',
       'What you judge (questions, claims, evidence, links, notes, screening decisions, identifications) is stored as agent_proposed; only a person confirms. You cannot run confirm operations.',
@@ -172,7 +172,7 @@ function guide(ctx, p) {
       invalid_state: 'the record is not in a state for this; read it again',
       unreachable: 'a registry did not answer; the app retries',
     },
-    // Every area of the catalog, as agent-app ops <project> <area> takes it.
+    // Every area of the catalog, as a2app <app> <area> takes it.
     areas: Object.keys(require(`${__hooks}/lib_catalog.js`).all())
       .map((n) => n.slice(0, n.lastIndexOf('.')))
       .filter((a, i, all) => a !== '' && all.indexOf(a) === i),

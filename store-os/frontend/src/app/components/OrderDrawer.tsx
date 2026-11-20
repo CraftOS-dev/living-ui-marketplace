@@ -43,8 +43,9 @@ import type { Collection } from '../lib/live.ts';
 import { ago, currencySign, day, dayShort, dayTime, money, pct, plural, toDate } from '../lib/format.ts';
 import { href } from '../lib/router.ts';
 import { useBase, useStore } from '../lib/store.tsx';
+import { askNotice } from '../lib/ask.ts';
 import { notify } from '../lib/toast.tsx';
-import type { Address, OrderDetail, OrderLine, Shipment } from '../lib/types.ts';
+import type { Address, AskResult, OrderDetail, OrderLine, Shipment } from '../lib/types.ts';
 import { Clock, OrderStatus, TrackPill } from './badges.tsx';
 import { ShopChip } from './PlatformMark.tsx';
 import { Button, Card, CardHeader, confirmAsk, Drawer, Empty, IconBadge, IconButton, Menu, Pill, Skeleton, TaskBadge, TextArea, Tip } from './ui.tsx';
@@ -157,7 +158,17 @@ function OrderBody({ o, open, onLink, onRemoved }: { o: OrderDetail; open: (k: D
       setBusy('');
     }
   };
-  const help = (task: 'tracking' | 'exception'): void => void run(task, () => op('orders.help', { order: o.id, task }), 'Asked your AI agent', () => changed('tasks', 'activity'));
+  const help = async (task: 'tracking' | 'exception'): Promise<void> => {
+    setBusy(task);
+    try {
+      askNotice(await op<AskResult>('orders.help', { order: o.id, task }));
+      changed('tasks', 'activity');
+    } catch {
+      /* the notice says why */
+    } finally {
+      setBusy('');
+    }
+  };
   const remove = async (): Promise<void> => {
     const ok = await confirmAsk('Delete order ' + o.number + '?', 'It leaves Store OS for good. Stock already moved stays in the ledger.', 'Delete order', { danger: true });
     if (!ok) return;

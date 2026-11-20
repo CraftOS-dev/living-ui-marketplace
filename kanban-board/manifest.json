@@ -1,24 +1,89 @@
 {
-  "id": "{{PROJECT_ID}}",
-  "name": "{{PROJECT_NAME}}",
-  "description": "{{PROJECT_DESCRIPTION}}",
-  "agentAppVersion": 2,
-  "createdAt": "{{CREATED_AT}}",
+  "id": "kanban-board",
+  "name": "Kanban Board",
+  "agentAppVersion": "0.1.0",
+  "adapterVersion": "0.2.0",
+  "appVersion": "2.0.0",
   "authMode": "none",
-  "port": "{{PORT}}",
-  "pbVersion": "0.39.7",
-  "kitVersion": "0.6.0",
-  "craftbotVersion": "1.4.3",
-  "pipeline": {
-    "install": "npm install --ignore-scripts --prefix frontend",
-    "build": "npm run build --prefix frontend",
-    "start": "pocketbase serve --http=127.0.0.1:{{PORT}} --dir pb/pb_data --hooksDir pb/pb_hooks --migrationsDir pb/pb_migrations --publicDir pb/pb_public",
-    "health": "/api/health"
-  },
+  "modules": [
+    {
+      "name": "app",
+      "summary": "guide, status, state, context, ui",
+      "entities": []
+    },
+    {
+      "name": "settings",
+      "summary": "get",
+      "entities": [
+        "settings"
+      ]
+    },
+    {
+      "name": "boards",
+      "summary": "list, get, templates",
+      "entities": [
+        "boards",
+        "labels"
+      ]
+    },
+    {
+      "name": "rules",
+      "summary": "list",
+      "entities": [
+        "rules"
+      ]
+    },
+    {
+      "name": "cards",
+      "summary": "list, get, add, update, move, comment, check, block, unblock",
+      "entities": [
+        "columns",
+        "cards"
+      ]
+    },
+    {
+      "name": "review",
+      "summary": "list, approve, changes, reject",
+      "entities": []
+    },
+    {
+      "name": "work",
+      "summary": "queue, next, heartbeat, log, plan, ask, submit, return, fail…",
+      "entities": [
+        "runs"
+      ]
+    },
+    {
+      "name": "inbox",
+      "summary": "list, seen",
+      "entities": []
+    },
+    {
+      "name": "insights",
+      "summary": "flow",
+      "entities": []
+    },
+    {
+      "name": "activity",
+      "summary": "list",
+      "entities": []
+    },
+    {
+      "name": "records",
+      "summary": "the app's other stored records",
+      "entities": [
+        "events"
+      ]
+    }
+  ],
+  "modificationLock": false,
   "capabilities": {
-    "triggers": [
-      "work_waiting"
-    ]
+    "integrations": []
   },
-  "adapterVersion": "1.9.0"
+  "pipeline": {
+    "install": "node pb-fetch.mjs && npm --prefix frontend install --ignore-scripts --no-audit --no-fund",
+    "build": "node pb-build.mjs",
+    "start": "node pb-serve.mjs",
+    "health": "/api/_a2app"
+  }
 }

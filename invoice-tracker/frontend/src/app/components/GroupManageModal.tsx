@@ -141,7 +141,7 @@ export const GroupManageModal: React.FC<GroupManageModalProps> = ({
       alert('You must have at least one workspace group.')
       return
     }
-    if (confirm(`Are you sure you want to delete workspace "${gName}" and all its invoices and subscriptions?`)) {
+    if (confirm(`Are you sure you want to delete workspace "${gName}" and all its invoices, subscriptions and feed entries?`)) {
       try {
         await onDeleteGroup(id)
       } catch (err: any) {

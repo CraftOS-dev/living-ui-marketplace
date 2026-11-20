@@ -12,15 +12,29 @@ import type { RequestRec } from '../lib/types.ts';
 
 type Filter = '' | RequestRec['status'];
 
+/** The newest first, as requests.list gives them. */
+const newest = (a: RequestRec, b: RequestRec): number => (a.created < b.created ? 1 : a.created > b.created ? -1 : 0);
+
+/**
+ * A status's requests. "Needs you" (failed) also holds the ones the AI agent
+ * never got: they still read sent, and only the person can send them again.
+ */
+function load(status: Filter): Promise<{ requests: RequestRec[] }> {
+  if (status !== 'failed') return api.requests({ status, limit: 200 });
+  return Promise.all([api.requests({ status: 'failed', limit: 200 }), api.requests({ status: 'sent', limit: 200 })]).then(([failed, sent]) => ({
+    requests: [...failed.requests, ...sent.requests.filter((r) => !r.asked)].sort(newest),
+  }));
+}
+
 export function RequestsPage(): React.JSX.Element {
   const [status, setStatus] = useState<Filter>('');
-  const list = useLive(() => api.requests({ status, limit: 200 }), ['requests'], [status], 250);
+  const list = useLive(() => load(status), ['requests', 'agent_requests'], [status], 250);
   const rows = list.data?.requests ?? [];
   return (
     <div className="flex flex-col gap-3">
       <PageHeader
         title="Requests to your AI agent"
-        subtitle="Ask from an image's Agent tab, or select images in the Library to ask for alt text."
+        subtitle="Ask from an image's Agent tab."
         actions={
           <Segmented<Filter>
             label="Status"

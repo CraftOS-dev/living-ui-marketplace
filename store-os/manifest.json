@@ -1,28 +1,148 @@
 {
-  "id": "{{PROJECT_ID}}",
-  "name": "{{PROJECT_NAME}}",
-  "description": "{{PROJECT_DESCRIPTION}}",
-  "agentAppVersion": 2,
-  "createdAt": "{{CREATED_AT}}",
+  "id": "store-os",
+  "name": "Store OS",
+  "agentAppVersion": "0.1.0",
+  "adapterVersion": "0.2.0",
+  "appVersion": "1.0.0",
   "authMode": "none",
-  "port": "{{PORT}}",
-  "pbVersion": "0.39.7",
-  "kitVersion": "0.6.0",
-  "craftbotVersion": "",
-  "pipeline": {
-    "install": "npm install --ignore-scripts --prefix frontend",
-    "build": "npm run build --prefix frontend",
-    "start": "pocketbase serve --http=127.0.0.1:{{PORT}} --dir pb/pb_data --hooksDir pb/pb_hooks --migrationsDir pb/pb_migrations --publicDir pb/pb_public",
-    "health": "/api/health"
-  },
+  "modules": [
+    {
+      "name": "app",
+      "summary": "guide, status, convert, home, search, export",
+      "entities": []
+    },
+    {
+      "name": "platforms",
+      "summary": "list",
+      "entities": []
+    },
+    {
+      "name": "settings",
+      "summary": "get, update, fx-refresh",
+      "entities": [
+        "settings"
+      ]
+    },
+    {
+      "name": "activity",
+      "summary": "list",
+      "entities": [
+        "activity"
+      ]
+    },
+    {
+      "name": "shops",
+      "summary": "list, get, add, update, policies, step, sync, help, sync-finish",
+      "entities": [
+        "shops"
+      ]
+    },
+    {
+      "name": "products",
+      "summary": "list, get, add, create, update, facts, add-images…",
+      "entities": [
+        "products"
+      ]
+    },
+    {
+      "name": "variants",
+      "summary": "add, update, set-price, remove",
+      "entities": [
+        "variants"
+      ]
+    },
+    {
+      "name": "listings",
+      "summary": "draft, link, status, remove, publish",
+      "entities": [
+        "listings"
+      ]
+    },
+    {
+      "name": "stock",
+      "summary": "overview, moves, adjust, count, plan, mark-pushed, push",
+      "entities": [
+        "stock_moves"
+      ]
+    },
+    {
+      "name": "orders",
+      "summary": "list, get, add, upsert-many, ship, ship-many, deliver…",
+      "entities": [
+        "orders"
+      ]
+    },
+    {
+      "name": "shipments",
+      "summary": "update",
+      "entities": [
+        "shipments"
+      ]
+    },
+    {
+      "name": "inbox",
+      "summary": "list, get, add, add-many, draft, sent, send-failed, note…",
+      "entities": [
+        "threads",
+        "messages"
+      ]
+    },
+    {
+      "name": "customers",
+      "summary": "list, get, update",
+      "entities": [
+        "customers"
+      ]
+    },
+    {
+      "name": "proposals",
+      "summary": "list, get, create, withdraw",
+      "entities": [
+        "proposals"
+      ]
+    },
+    {
+      "name": "todos",
+      "summary": "list, recent, get, start, finish, cancel",
+      "entities": [
+        "tasks"
+      ]
+    },
+    {
+      "name": "chats",
+      "summary": "list, reply",
+      "entities": [
+        "chats"
+      ]
+    },
+    {
+      "name": "reports",
+      "summary": "overview, attention, profit",
+      "entities": []
+    },
+    {
+      "name": "imports",
+      "summary": "orders, products, list",
+      "entities": [
+        "imports"
+      ]
+    },
+    {
+      "name": "records",
+      "summary": "the app's other stored records",
+      "entities": [
+        "order_lines"
+      ]
+    }
+  ],
+  "modificationLock": false,
   "capabilities": {
-    "external_hosts": [
-      "api.frankfurter.dev",
-      "cdn.jsdelivr.net"
-    ],
-    "triggers": [
-      "work_requested"
-    ]
+    "integrations": []
   },
-  "adapterVersion": "1.9.0"
+  "pipeline": {
+    "install": "node pb-fetch.mjs && npm --prefix frontend install --ignore-scripts --no-audit --no-fund",
+    "build": "node pb-build.mjs",
+    "start": "node pb-serve.mjs",
+    "health": "/api/_a2app"
+  }
 }

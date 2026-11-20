@@ -1,0 +1,625 @@
+{
+  "id": "venture-os",
+  "name": "Venture OS",
+  "agentAppVersion": "0.1.0",
+  "adapterVersion": "0.2.0",
+  "appVersion": "1.0.0",
+  "authMode": "none",
+  "modules": [
+    {
+      "name": "activity",
+      "summary": "list",
+      "entities": [
+        "activity"
+      ]
+    },
+    {
+      "name": "agent",
+      "summary": "cannot",
+      "entities": [
+        "agent_asks"
+      ]
+    },
+    {
+      "name": "ai",
+      "summary": "inventory",
+      "entities": []
+    },
+    {
+      "name": "alerts",
+      "summary": "list, run",
+      "entities": [
+        "alerts"
+      ]
+    },
+    {
+      "name": "anchors",
+      "summary": "create, resolve",
+      "entities": [
+        "anchors"
+      ]
+    },
+    {
+      "name": "app",
+      "summary": "batch, guide, status, today",
+      "entities": []
+    },
+    {
+      "name": "asks",
+      "summary": "list, save",
+      "entities": [
+        "asks"
+      ]
+    },
+    {
+      "name": "audit",
+      "summary": "list",
+      "entities": [
+        "audit"
+      ]
+    },
+    {
+      "name": "auth",
+      "summary": "me",
+      "entities": []
+    },
+    {
+      "name": "bearcase",
+      "summary": "save",
+      "entities": []
+    },
+    {
+      "name": "board",
+      "summary": "brief-save, list, save",
+      "entities": [
+        "board_meetings"
+      ]
+    },
+    {
+      "name": "briefs",
+      "summary": "get, list, request, save",
+      "entities": [
+        "briefs"
+      ]
+    },
+    {
+      "name": "calendar",
+      "summary": "list",
+      "entities": []
+    },
+    {
+      "name": "calls",
+      "summary": "draft, get, list, note, preview",
+      "entities": []
+    },
+    {
+      "name": "capture",
+      "summary": "status, sync",
+      "entities": [
+        "capture_state"
+      ]
+    },
+    {
+      "name": "chat",
+      "summary": "answer, get, list",
+      "entities": []
+    },
+    {
+      "name": "comments",
+      "summary": "add, list",
+      "entities": [
+        "comments"
+      ]
+    },
+    {
+      "name": "commitments",
+      "summary": "list",
+      "entities": [
+        "commitments"
+      ]
+    },
+    {
+      "name": "committee",
+      "summary": "next-step",
+      "entities": []
+    },
+    {
+      "name": "companies",
+      "summary": "get, list, logo, logo-set, merge, timeline, update, upsert",
+      "entities": [
+        "companies"
+      ]
+    },
+    {
+      "name": "compare",
+      "summary": "get, list, save",
+      "entities": [
+        "compare_grids"
+      ]
+    },
+    {
+      "name": "conditions",
+      "summary": "complete, list",
+      "entities": [
+        "conditions"
+      ]
+    },
+    {
+      "name": "dd",
+      "summary": "answer, get, questions-save, template-apply, template-save…",
+      "entities": [
+        "dd_templates",
+        "dd_questions",
+        "dd_answers"
+      ]
+    },
+    {
+      "name": "deals",
+      "summary": "assign, board, create, funnel, get, list, members, merge…",
+      "entities": [
+        "deals"
+      ]
+    },
+    {
+      "name": "decisions",
+      "summary": "anti-portfolio, get, list, review-note",
+      "entities": [
+        "decisions"
+      ]
+    },
+    {
+      "name": "distributions",
+      "summary": "draft, preview",
+      "entities": []
+    },
+    {
+      "name": "entities",
+      "summary": "get, list",
+      "entities": [
+        "entities"
+      ]
+    },
+    {
+      "name": "files",
+      "summary": "delete, download, get, list, move, text, upload, version",
+      "entities": [
+        "files"
+      ]
+    },
+    {
+      "name": "funds",
+      "summary": "get, holdings, list",
+      "entities": []
+    },
+    {
+      "name": "fx",
+      "summary": "convert, list, refresh",
+      "entities": [
+        "fx_rates"
+      ]
+    },
+    {
+      "name": "holdings",
+      "summary": "company, get, invest-check, list, update",
+      "entities": [
+        "holdings"
+      ]
+    },
+    {
+      "name": "home",
+      "summary": "summary",
+      "entities": []
+    },
+    {
+      "name": "imports",
+      "summary": "list, preview, run, targets",
+      "entities": [
+        "imports"
+      ]
+    },
+    {
+      "name": "intake",
+      "summary": "add, get, list, merge, settings, sweep, verdict",
+      "entities": [
+        "facts"
+      ]
+    },
+    {
+      "name": "interactions",
+      "summary": "list, log",
+      "entities": [
+        "interactions"
+      ]
+    },
+    {
+      "name": "intros",
+      "summary": "draft, get, list, request",
+      "entities": [
+        "intros"
+      ]
+    },
+    {
+      "name": "kpi-defs",
+      "summary": "list",
+      "entities": []
+    },
+    {
+      "name": "kpis",
+      "summary": "fund, list, stage",
+      "entities": []
+    },
+    {
+      "name": "ledger",
+      "summary": "list",
+      "entities": [
+        "ledger"
+      ]
+    },
+    {
+      "name": "lpq",
+      "summary": "list, log",
+      "entities": []
+    },
+    {
+      "name": "lps",
+      "summary": "get, list, upsert",
+      "entities": [
+        "lps"
+      ]
+    },
+    {
+      "name": "maps",
+      "summary": "get, list, propose, save",
+      "entities": [
+        "maps"
+      ]
+    },
+    {
+      "name": "markets",
+      "summary": "pulse, sector",
+      "entities": []
+    },
+    {
+      "name": "marks",
+      "summary": "draft, list",
+      "entities": [
+        "marks"
+      ]
+    },
+    {
+      "name": "meetings",
+      "summary": "add-item, agenda, get, list",
+      "entities": [
+        "agenda_items"
+      ]
+    },
+    {
+      "name": "members",
+      "summary": "get, list",
+      "entities": [
+        "members"
+      ]
+    },
+    {
+      "name": "memos",
+      "summary": "draft-block, export, get, list, templates",
+      "entities": [
+        "memos"
+      ]
+    },
+    {
+      "name": "metrics",
+      "summary": "bridge, fund, holding, lp, sources",
+      "entities": [
+        "nav"
+      ]
+    },
+    {
+      "name": "network",
+      "summary": "companies, coverage, find, paths, people, recompute, record…",
+      "entities": [
+        "strengths"
+      ]
+    },
+    {
+      "name": "news",
+      "summary": "insight-save, insights, list, refresh, set-image, stats…",
+      "entities": [
+        "news",
+        "news_saves",
+        "news_insights"
+      ]
+    },
+    {
+      "name": "next",
+      "summary": "count, list",
+      "entities": [
+        "snoozes"
+      ]
+    },
+    {
+      "name": "notes",
+      "summary": "attach-transcript, create, get, list, summary-save…",
+      "entities": [
+        "cal_events",
+        "notes",
+        "references"
+      ]
+    },
+    {
+      "name": "notifications",
+      "summary": "list",
+      "entities": [
+        "notifications"
+      ]
+    },
+    {
+      "name": "outbound",
+      "summary": "cancel, draft, get, list, update",
+      "entities": [
+        "outbound"
+      ]
+    },
+    {
+      "name": "ownership",
+      "summary": "get",
+      "entities": [
+        "ownership"
+      ]
+    },
+    {
+      "name": "pages",
+      "summary": "get, set-ocr",
+      "entities": [
+        "pages"
+      ]
+    },
+    {
+      "name": "passes",
+      "summary": "draft, list, request",
+      "entities": [
+        "passes"
+      ]
+    },
+    {
+      "name": "payments",
+      "summary": "list, record",
+      "entities": [
+        "payments"
+      ]
+    },
+    {
+      "name": "people",
+      "summary": "get, link, list, merge, timeline, unlink, update, upsert",
+      "entities": [
+        "people"
+      ]
+    },
+    {
+      "name": "pipelines",
+      "summary": "list",
+      "entities": [
+        "pipelines"
+      ]
+    },
+    {
+      "name": "portfolio",
+      "summary": "company",
+      "entities": []
+    },
+    {
+      "name": "proposals",
+      "summary": "create, get, list, withdraw",
+      "entities": [
+        "proposals"
+      ]
+    },
+    {
+      "name": "prorata",
+      "summary": "preview",
+      "entities": []
+    },
+    {
+      "name": "quarters",
+      "summary": "get, list",
+      "entities": [
+        "quarters"
+      ]
+    },
+    {
+      "name": "radars",
+      "summary": "get, list, options, run, save",
+      "entities": [
+        "radars"
+      ]
+    },
+    {
+      "name": "raise",
+      "summary": "board",
+      "entities": []
+    },
+    {
+      "name": "records",
+      "summary": "dupes, enrich, ignore-dupe, timeline",
+      "entities": [
+        "pin_vault",
+        "saved_views",
+        "aliases",
+        "dupe_ignores",
+        "deal_people",
+        "stage_events",
+        "file_texts",
+        "note_templates",
+        "memo_templates",
+        "memo_blocks",
+        "ic_meetings",
+        "kpi_defs",
+        "kpi_values",
+        "bank_blocks",
+        "capital_events",
+        "capital_lines",
+        "map_entries",
+        "lp_questions"
+      ]
+    },
+    {
+      "name": "refs",
+      "summary": "candidates, list, log, suggest",
+      "entities": [
+        "employments"
+      ]
+    },
+    {
+      "name": "reports",
+      "summary": "letter-draft, statement-preview",
+      "entities": [
+        "reports"
+      ]
+    },
+    {
+      "name": "requests",
+      "summary": "list",
+      "entities": [
+        "requests"
+      ]
+    },
+    {
+      "name": "research",
+      "summary": "get, list, save",
+      "entities": [
+        "research_reports"
+      ]
+    },
+    {
+      "name": "reserves",
+      "summary": "get, plan-save, preview",
+      "entities": [
+        "reserves"
+      ]
+    },
+    {
+      "name": "roles",
+      "summary": "list",
+      "entities": [
+        "roles"
+      ]
+    },
+    {
+      "name": "rounds",
+      "summary": "save",
+      "entities": [
+        "rounds"
+      ]
+    },
+    {
+      "name": "safe",
+      "summary": "preview",
+      "entities": []
+    },
+    {
+      "name": "scenarios",
+      "summary": "compare, save",
+      "entities": [
+        "scenarios"
+      ]
+    },
+    {
+      "name": "scouts",
+      "summary": "list",
+      "entities": [
+        "scouts"
+      ]
+    },
+    {
+      "name": "search",
+      "summary": "query",
+      "entities": []
+    },
+    {
+      "name": "securities",
+      "summary": "save",
+      "entities": [
+        "securities"
+      ]
+    },
+    {
+      "name": "settings",
+      "summary": "get, logo",
+      "entities": [
+        "settings"
+      ]
+    },
+    {
+      "name": "setup",
+      "summary": "status",
+      "entities": []
+    },
+    {
+      "name": "signals",
+      "summary": "add, list, screen",
+      "entities": [
+        "signals"
+      ]
+    },
+    {
+      "name": "statements",
+      "summary": "explain, get, import, list",
+      "entities": [
+        "statements"
+      ]
+    },
+    {
+      "name": "todos",
+      "summary": "list, save",
+      "entities": [
+        "tasks"
+      ]
+    },
+    {
+      "name": "theses",
+      "summary": "fit, get, keys, list, save, summary",
+      "entities": [
+        "theses"
+      ]
+    },
+    {
+      "name": "triage",
+      "summary": "facts-save, fit, start",
+      "entities": []
+    },
+    {
+      "name": "updates",
+      "summary": "add, assign, get, list",
+      "entities": [
+        "updates"
+      ]
+    },
+    {
+      "name": "views",
+      "summary": "list",
+      "entities": []
+    },
+    {
+      "name": "votes",
+      "summary": "status",
+      "entities": [
+        "votes"
+      ]
+    },
+    {
+      "name": "waterfall",
+      "summary": "preview",
+      "entities": []
+    }
+  ],
+  "modificationLock": false,
+  "capabilities": {
+    "integrations": []
+  },
+  "pipeline": {
+    "install": "node pb-fetch.mjs && npm --prefix frontend install --ignore-scripts --no-audit --no-fund",
+    "build": "node pb-build.mjs",
+    "start": "node pb-serve.mjs",
+    "health": "/api/_a2app"
+  }
+}

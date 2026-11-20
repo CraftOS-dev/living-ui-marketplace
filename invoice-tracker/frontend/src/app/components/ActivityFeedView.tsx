@@ -1,7 +1,8 @@
 import React, { useState } from 'react'
 import type { ActivityEvent } from '../types'
+import { getCurrencySymbol } from '../types'
 import { Card, Button, Badge } from './ui'
-import { Activity, Bell, FileText, RefreshCw } from 'lucide-react'
+import { Activity, Bell, FileText, Plus, RefreshCw } from 'lucide-react'
 
 interface Props {
   activities: ActivityEvent[]
@@ -11,7 +12,7 @@ interface Props {
   currencySymbol?: string
 }
 
-export const ActivityFeedView: React.FC<Props> = ({ activities, onSync, onOpenAddModal: _onOpenAddModal, activeGroupName: _activeGroupName, currencySymbol = '$' }) => {
+export const ActivityFeedView: React.FC<Props> = ({ activities, onSync, onOpenAddModal, activeGroupName: _activeGroupName, currencySymbol: _currencySymbol = '$' }) => {
   const [currentPage, setCurrentPage] = useState<number>(1)
   const pageSize = 10
 
@@ -39,6 +40,11 @@ export const ActivityFeedView: React.FC<Props> = ({ activities, onSync, onOpenAd
           <Button variant="secondary" size="sm" icon={<RefreshCw size={14} />} onClick={onSync}>
             Refresh Feed
           </Button>
+          {onOpenAddModal && (
+            <Button variant="primary" size="sm" icon={<Plus size={14} />} onClick={onOpenAddModal}>
+              Log Event
+            </Button>
+          )}
         </div>
       </div>
 
@@ -104,7 +110,7 @@ export const ActivityFeedView: React.FC<Props> = ({ activities, onSync, onOpenAd
                   <div style={{ textAlign: 'right', minWidth: '100px' }}>
                     {act.amount ? (
                       <div style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '0.95rem', fontVariantNumeric: 'tabular-nums' }}>
-                        {currencySymbol}{act.amount.toFixed(2)}
+                        {getCurrencySymbol(act.currency)}{act.amount.toFixed(2)}
                       </div>
                     ) : null}
                     <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>

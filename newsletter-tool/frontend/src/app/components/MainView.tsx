@@ -37,7 +37,6 @@ export function MainView({ controller }: MainViewProps) {
   })
 
   const llmConnected = !!state.integrations?.llm.connected
-  const gmailConnected = !!state.integrations?.gmail.connected
 
   const isMobile = viewport.size === 'mobile'
 
@@ -67,7 +66,6 @@ export function MainView({ controller }: MainViewProps) {
         tags={state.tags}
         subscribers={state.subscribers}
         llmConnected={llmConnected}
-        gmailConnected={gmailConnected}
         onClose={() => setEditingCampaignId(null)}
       />
     )
@@ -91,7 +89,6 @@ export function MainView({ controller }: MainViewProps) {
             subscribers={state.subscribers}
             campaigns={state.campaigns}
             templates={state.templates}
-            integrations={state.integrations}
             onOpenCampaigns={() => controller.setActiveSection('campaigns')}
             onOpenSubscribers={() => controller.setActiveSection('subscribers')}
             onOpenSchedule={() => controller.setActiveSection('schedule')}
@@ -192,7 +189,6 @@ export function MainView({ controller }: MainViewProps) {
         collapsed={collapsed}
         onToggle={() => setCollapsed((v) => !v)}
         llmConnected={llmConnected}
-        gmailConnected={gmailConnected}
       />
       <main
         style={{

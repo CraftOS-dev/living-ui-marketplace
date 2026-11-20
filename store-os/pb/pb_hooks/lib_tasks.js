@@ -2,27 +2,29 @@
 /**
  * Work handed to your AI agent.
  *
- * Every job (sync a shop, prepare listings, draft or send a reply, check
- * tracking, help with a setup step, answer your message) is a task row. The
- * app asks your AI agent with ONE trigger, work_requested, covering every
- * task waiting at that moment; your AI agent lists the tasks, does each by
- * the recipe for its kind (app.guide) and finishes it. Batching keeps within
- * the platform's limits (one fire per 10 seconds, 30 an hour): a task queued
- * while the trigger is cooling down waits, and the minute job asks again.
+ * Every kind of work has its own trigger (lib_guide.js JOBS, written to
+ * triggers.json). The seller's click, or an automatic event they switched on
+ * in Settings, fires that trigger once with the record it is about: one fire
+ * is one piece of work, and the request row in the platform's queue is its
+ * unit and audit trail (pending, claimed, done or rejected). A task row is
+ * the app's side of it: which record, which request, and how it ended. Your
+ * AI agent opens its work with tasks.start --request <id>; the operation
+ * that does the work closes it (inbox.draft, shops.sync-finish...), or
+ * tasks.finish does.
  *
- *   queued   waiting to be asked
- *   asked    in a request your AI agent has not started yet
+ *   asked    the trigger fired (request set), or it could not be sent
+ *            (request empty, note says why)
  *   working  your AI agent started it
  *   done | failed | cancelled
  *
- * A task asked 30 minutes ago and never started goes back to the queue; one
- * started three hours ago and never finished is marked failed, so nothing
- * stays "in progress" forever.
+ * Nothing asks again on its own. A record has at most one open task of a
+ * kind, so a repeat click while one waits fires nothing. A task that was not
+ * sent, not picked up within 24 hours, or started and left for 3 hours shows
+ * a Retry, which fires the same trigger once for that record.
  */
 
-const KINDS = ['sync', 'publish', 'push_stock', 'setup_help', 'prepare_listing', 'draft_reply', 'send_reply', 'tracking', 'exception', 'chat'];
-const OPEN = ['queued', 'asked', 'working'];
-const ASK_AGAIN_MIN = 30;
+const OPEN = ['asked', 'working'];
+const PICKUP_HOURS = 24;
 const GIVE_UP_HOURS = 3;
 
 let _m = {};
@@ -31,16 +33,46 @@ function L(name) {
   return _m[name];
 }
 
+/** kind -> trigger name, from the job definitions. */
+function triggers() {
+  const jobs = L('lib_guide').JOBS;
+  const out = {};
+  for (const name of Object.keys(jobs)) out[jobs[name].kind] = name;
+  return out;
+}
+
+function kinds() {
+  return Object.keys(triggers());
+}
+
+function hoursSince(iso) {
+  const t = Date.parse(String(iso || ''));
+  return Number.isFinite(t) ? (Date.now() - t) / 3600000 : Infinity;
+}
+
+/** Why an open task may be asked again: not_sent, not_picked_up, stopped; '' while it is fine. */
+function staleOf(r) {
+  const st = r.getString('state');
+  if (st === 'asked') {
+    if (r.getString('request') === '') return 'not_sent';
+    if (hoursSince(r.getString('asked_at')) >= PICKUP_HOURS) return 'not_picked_up';
+  } else if (st === 'working' && hoursSince(r.getString('started_at')) >= GIVE_UP_HOURS) return 'stopped';
+  return '';
+}
+
 function view(r) {
   const U = L('lib_util');
   return {
     id: r.id,
     kind: r.getString('kind'),
+    trigger: r.getString('trigger'),
     target: r.getString('target'),
     label: r.getString('label'),
     params: U.json(r, 'params', {}),
     state: r.getString('state'),
+    stale: staleOf(r),
     request: r.getString('request'),
+    requests: U.json(r, 'requests', []),
     note: r.getString('note'),
     by: r.getString('by'),
     asked_at: r.getString('asked_at'),
@@ -50,81 +82,142 @@ function view(r) {
   };
 }
 
+function brief(r) {
+  return { id: r.id, kind: r.getString('kind'), state: r.getString('state'), label: r.getString('label'), stale: staleOf(r) };
+}
+
+const OPEN_FILTER = "(state = 'asked' || state = 'working')";
+
+// Kinds where one record holds several pieces of work: the param that tells them apart.
+const SAME = { setup_help: 'step', send_reply: 'message' };
+
+/** The open tasks of `kind` on `target` (setup help: of the same step; a send: of the same message), newest first. */
+function openAll(app, target, kind, params) {
+  const U = L('lib_util');
+  const rows = Array.from(app.findRecordsByFilter('tasks', 'target = {:t} && kind = {:k} && ' + OPEN_FILTER, '-created', 0, 0, { t: target, k: kind }));
+  const key = SAME[kind];
+  if (!key || !params) return rows;
+  return rows.filter((r) => String(U.json(r, 'params', {})[key] || '') === String(params[key] || ''));
+}
+
 /** The open task for a target (and kind), or null. */
 function openFor(app, target, kind) {
   const U = L('lib_util');
-  const filter = "target = {:t} && (state = 'queued' || state = 'asked' || state = 'working')" + (kind ? ' && kind = {:k}' : '');
-  return U.findOne(app, 'tasks', filter, { t: target, k: kind || '' });
+  return U.findOne(app, 'tasks', 'target = {:t} && ' + OPEN_FILTER + (kind ? ' && kind = {:k}' : ''), { t: target, k: kind || '' });
 }
 
-/** Open tasks by target, for list views: { 'shop:abc': {kind, state, id}, ... }. */
+/** Open tasks by target, for list views: { 'shop:abc': {id, kind, state, label, stale}, ... }. */
 function openMap(app) {
   const out = {};
-  for (const r of app.findRecordsByFilter('tasks', "state = 'queued' || state = 'asked' || state = 'working'", 'created', 0, 0)) {
-    out[r.getString('target')] = { id: r.id, kind: r.getString('kind'), state: r.getString('state'), label: r.getString('label') };
-  }
+  for (const r of app.findRecordsByFilter('tasks', OPEN_FILTER, 'created', 0, 0)) out[r.getString('target')] = brief(r);
   return out;
 }
 
-/**
- * Queue a task (the same open task for the same target and kind is reused,
- * with the newest parameters) and ask your AI agent when it can be asked.
- */
-function queue(app, kind, target, label, params, by) {
+/** The trigger's params for tasks of one kind asked together, from their stored params. */
+function fireParams(app, kind, list) {
   const U = L('lib_util');
-  if (KINDS.indexOf(kind) < 0) throw new Error('unknown task kind ' + kind);
-  let rec = openFor(app, target, kind);
-  if (rec === null) {
-    rec = U.newRecord(app, 'tasks');
-    rec.set('kind', kind);
-    rec.set('target', target);
-    rec.set('state', 'queued');
-    rec.set('by', by || 'person');
-  }
-  rec.set('label', U.clip(label, 300));
-  rec.set('params', params || {});
-  app.save(rec);
-  ask(app);
-  return view(U.byId(app, 'tasks', rec.id));
+  const first = list[0] || {};
+  const ids = (key, many) => {
+    const out = [];
+    for (const p of list) for (const v of Array.isArray(p[many]) ? p[many] : [p[key]]) if (v && out.indexOf(String(v)) < 0) out.push(String(v));
+    return out.join(',');
+  };
+  let out;
+  if (kind === 'sync' || kind === 'push_stock') out = { shop_id: first.shop };
+  else if (kind === 'setup_help') out = { shop_id: first.shop, step: first.step, note: first.note };
+  else if (kind === 'prepare_listing') out = { product_id: first.product, shop_ids: (first.shops || []).join(','), note: first.note };
+  else if (kind === 'publish') out = { shop_id: first.shop, listing_ids: (first.listings || []).map((l) => (typeof l === 'string' ? l : l.id)).join(',') };
+  else if (kind === 'draft_reply') out = { thread_ids: ids('thread'), note: list.length === 1 ? first.note : '' };
+  else if (kind === 'send_reply') out = { thread_id: first.thread, message_id: first.message };
+  else if (kind === 'tracking') out = { order_ids: ids('order', 'orders') };
+  else if (kind === 'exception') out = { order_id: first.order, note: first.note };
+  else if (kind === 'chat') {
+    const c = U.byId(app, 'chats', String(first.chat || ''));
+    out = { chat_id: first.chat, question: c !== null ? U.clip(c.getString('text'), 2000) : String(first.question || '') };
+  } else throw new Error('unknown task kind ' + kind);
+  for (const k of Object.keys(out)) if (out[k] === undefined || out[k] === null || (out[k] === '' && k === 'note')) delete out[k];
+  for (const k of Object.keys(out)) out[k] = String(out[k]);
+  return out;
 }
 
-/** Ask your AI agent about every queued task, in one request. Quietly waits on a cooldown. */
-function ask(app) {
+function notSent(r) {
+  const m = String((r && r.message) || '').match(/retry in (\d+)s/);
+  if (r && r.code === 'cooldown') return 'Not sent: your AI agent was asked for this kind of work moments ago. Retry ' + (m ? 'in ' + m[1] + ' seconds' : 'shortly') + '.';
+  if (r && r.code === 'rate_capped') return 'Not sent: your AI agent was asked for this kind of work 30 times in the last hour. Retry later.';
+  return 'Not sent: the request was refused (' + ((r && r.code) || 'error') + '). Retry later.';
+}
+
+/** Fire the kind's trigger once for these tasks (params: each task's stored params) and record the outcome on them. */
+function send(app, kind, recs, params) {
   const U = L('lib_util');
-  const waiting = app.findRecordsByFilter('tasks', "state = 'queued'", 'created', 0, 0);
-  if (waiting.length === 0) return null;
-  const trig = require(`${__hooks}/_triggers_lib.js`);
-  const r = trig.fire(app, 'work_requested', { count: waiting.length }, 'hook');
-  if (!r.ok) {
-    if (r.code !== 'cooldown' && r.code !== 'rate_capped') console.log('[store] could not ask your AI agent: ' + (r.message || r.code));
-    return null;
-  }
+  const trigger = triggers()[kind];
+  const r = require(`${__hooks}/_triggers_lib.js`).fire(app, trigger, fireParams(app, kind, params), 'hook');
   const now = U.now();
-  for (const t of waiting) {
+  for (const t of recs) {
+    t.set('trigger', trigger);
     t.set('state', 'asked');
-    t.set('request', r.id);
-    t.set('asked_at', now);
+    t.set('started_at', '');
+    if (r.ok) {
+      const seen = U.json(t, 'requests', []);
+      seen.push(r.id);
+      t.set('requests', seen.slice(-20));
+      t.set('request', r.id);
+      t.set('asked_at', now);
+      t.set('note', '');
+    } else {
+      t.set('request', '');
+      t.set('asked_at', '');
+      t.set('note', notSent(r));
+    }
     app.save(t);
   }
-  return r.id;
+  if (!r.ok && r.code !== 'cooldown' && r.code !== 'rate_capped') console.log('[store] could not ask your AI agent (' + trigger + '): ' + (r.message || r.code));
+  return r;
 }
 
-/** The minute job: ask again for waiting tasks, re-queue forgotten ones, close abandoned ones. */
-function tick(app) {
+/**
+ * Ask your AI agent for work of one kind on one or more records (items:
+ * [{target, label, params}], one task each), with ONE fire of the kind's
+ * trigger. A record whose task of this kind is still waiting or being worked
+ * on is left out, so a repeat fires nothing; one whose task is stale is asked
+ * again on the same task. by: person, agent or auto.
+ */
+function ask(app, kind, items, by) {
   const U = L('lib_util');
-  const askedBefore = new Date(Date.now() - ASK_AGAIN_MIN * 60000).toISOString();
-  for (const t of app.findRecordsByFilter('tasks', "state = 'asked' && asked_at < {:t}", 'created', 0, 0, { t: askedBefore })) {
-    t.set('state', 'queued');
-    app.save(t);
+  if (kinds().indexOf(kind) < 0) throw new Error('unknown task kind ' + kind);
+  const fresh = [];
+  const params = [];
+  const waiting = [];
+  for (const it of items) {
+    let rec = openAll(app, it.target, kind, it.params)[0] || null;
+    if (rec !== null && staleOf(rec) === '') {
+      waiting.push(rec);
+      continue;
+    }
+    if (rec === null) {
+      rec = U.newRecord(app, 'tasks');
+      rec.set('kind', kind);
+      rec.set('target', it.target);
+      rec.set('by', by || 'person');
+      rec.set('requests', []);
+    }
+    rec.set('label', U.clip(it.label, 300));
+    rec.set('params', it.params || {});
+    fresh.push(rec);
+    params.push(it.params || {});
   }
-  const startedBefore = new Date(Date.now() - GIVE_UP_HOURS * 3600000).toISOString();
-  for (const t of app.findRecordsByFilter('tasks', "state = 'working' && started_at < {:t}", 'created', 0, 0, { t: startedBefore })) {
-    t.set('state', 'failed');
-    t.set('note', 'Your AI agent stopped before finishing. Ask again.');
-    t.set('done_at', U.now());
-    app.save(t);
+  if (fresh.length === 0) {
+    const working = waiting.some((r) => r.getString('state') === 'working');
+    return { task: waiting.length > 0 ? view(waiting[0]) : null, tasks: waiting.map(view), asked: false, already: true, message: working ? 'Your AI agent is already working on this.' : 'Your AI agent was already asked for this and has not picked it up yet.' };
   }
-  ask(app);
+  const r = send(app, kind, fresh, params);
+  const tasks = fresh.map((t) => view(U.byId(app, 'tasks', t.id)));
+  return { task: tasks[0], tasks: tasks, asked: r.ok === true, already: false, skipped: waiting.length, message: r.ok ? '' : notSent(r) };
+}
+
+/** The automatic requests the seller switched on in Settings (all off by default). */
+function autoOn(app, which) {
+  return L('lib_store').automationOf(L('lib_store').settings(app))[which] === true;
 }
 
 function ref(app, id) {
@@ -134,15 +227,30 @@ function ref(app, id) {
   return r;
 }
 
-/** Close the open task of `kind` on `target` (used when the work itself says it is done). */
-function finishFor(app, target, kind, note, failed) {
+/** Close the open tasks of `kind` on `target` (used when the work itself says it is done); `params` narrows it like ask() does. */
+function finishFor(app, target, kind, note, failed, params) {
   const U = L('lib_util');
-  const r = openFor(app, target, kind);
-  if (r === null) return;
-  r.set('state', failed ? 'failed' : 'done');
-  r.set('note', U.clip(note || '', 4000));
-  r.set('done_at', U.now());
-  app.save(r);
+  for (const r of openAll(app, target, kind, params || null)) {
+    r.set('state', failed ? 'failed' : 'done');
+    r.set('note', U.clip(note || '', 4000));
+    r.set('done_at', U.now());
+    app.save(r);
+  }
+}
+
+/** Tasks a request was fired for (it stays in their history after a Retry). */
+function ofRequest(app, id) {
+  const U = L('lib_util');
+  const rid = String(id || '').trim();
+  if (!/^[a-z0-9]{15}$/.test(rid)) throw U.fail(400, 'request is the request id you were handed (15 letters and digits).', 'invalid_param', { param: 'request' });
+  return Array.from(app.findRecordsByFilter('tasks', 'request = {:r} || requests ~ {:r}', 'created', 0, 0, { r: rid }));
+}
+
+function oneOf(ctx, p) {
+  const U = L('lib_util');
+  if (p.task) return [ref(ctx.app, p.task)];
+  if (p.request) return null;
+  throw U.fail(400, 'Give --request <the request id> (or --task <id>).', 'missing_param', { param: 'request' });
 }
 
 /* ------------------------------------------------------------------- ops */
@@ -151,7 +259,7 @@ function list(ctx, p) {
   const app = ctx.app;
   const states = p.state === 'all' ? null : p.state ? [p.state] : OPEN;
   const rows = app.findRecordsByFilter('tasks', states === null ? '1=1' : states.map((s) => "state = '" + s + "'").join(' || '), 'created', Math.min(Math.max(Math.round(p.limit || 50), 1), 200), 0).map(view);
-  return { tasks: rows, recipes: 'app.guide gives the recipe for each kind; run tasks.start before and tasks.finish after each task.' };
+  return { tasks: rows, note: 'Each request you are handed names its work; open it with tasks.start --request <the request id>.' };
 }
 
 function recent(ctx, p) {
@@ -163,26 +271,66 @@ function get(ctx, p) {
   return { task: view(ref(ctx.app, p.task)) };
 }
 
+/** Your AI agent opens its work: the open tasks of the request (or one task) become "working". */
 function start(ctx, p) {
   const U = L('lib_util');
-  const r = ref(ctx.app, p.task);
-  if (OPEN.indexOf(r.getString('state')) < 0) throw U.fail(409, 'This task is already ' + r.getString('state') + '.', 'conflict');
-  r.set('state', 'working');
-  r.set('started_at', U.now());
-  ctx.app.save(r);
-  return { task: view(r) };
+  const app = ctx.app;
+  const one = oneOf(ctx, p);
+  if (one !== null) {
+    const r = one[0];
+    if (OPEN.indexOf(r.getString('state')) < 0) throw U.fail(409, 'This task is already ' + r.getString('state') + '.', 'conflict');
+    r.set('state', 'working');
+    r.set('started_at', U.now());
+    app.save(r);
+    return { task: view(r) };
+  }
+  const rid = String(p.request).trim();
+  const rows = ofRequest(app, rid);
+  if (rows.length === 0) throw U.fail(404, 'Store OS asked for nothing with request ' + rid + '. Report the request rejected.', 'not_found');
+  const started = [];
+  const elsewhere = [];
+  for (const r of rows) {
+    if (OPEN.indexOf(r.getString('state')) < 0) continue;
+    if (r.getString('state') === 'working' && r.getString('request') !== rid && staleOf(r) === '') {
+      elsewhere.push(r.getString('request'));
+      continue;
+    }
+    r.set('state', 'working');
+    r.set('request', rid);
+    r.set('started_at', U.now());
+    app.save(r);
+    started.push(view(r));
+  }
+  if (started.length === 0) {
+    const how = elsewhere.length > 0 ? 'it is being worked on under request ' + elsewhere[0] : 'it is ' + rows.map((r) => r.getString('state')).filter((s, i, a) => a.indexOf(s) === i).join(' or ');
+    return { tasks: [], open: 0, message: 'Nothing is open for this request (' + how + '). Report the request done and stop.' };
+  }
+  return { tasks: started, open: started.length, message: '' };
 }
 
+/** Finish a task (or every open task of a request) with a note the seller reads. */
 function finish(ctx, p) {
   const U = L('lib_util');
-  const r = ref(ctx.app, p.task);
-  if (OPEN.indexOf(r.getString('state')) < 0) throw U.fail(409, 'This task is already ' + r.getString('state') + '.', 'conflict');
-  r.set('state', p.failed === true ? 'failed' : 'done');
-  r.set('note', U.clip(p.note || '', 4000));
-  r.set('done_at', U.now());
-  ctx.app.save(r);
-  L('lib_store').log(ctx.app, ctx.actor, (p.failed === true ? 'Could not finish: ' : 'Finished: ') + r.getString('label') + (p.note ? ' (' + U.clip(p.note, 160) + ')' : ''), r.getString('target'));
-  return { task: view(r) };
+  const app = ctx.app;
+  const one = oneOf(ctx, p);
+  let rows;
+  if (one !== null) {
+    if (OPEN.indexOf(one[0].getString('state')) < 0) throw U.fail(409, 'This task is already ' + one[0].getString('state') + '.', 'conflict');
+    rows = one;
+  } else {
+    const all = ofRequest(app, p.request);
+    if (all.length === 0) throw U.fail(404, 'Store OS asked for nothing with request ' + p.request + '.', 'not_found');
+    rows = all.filter((r) => OPEN.indexOf(r.getString('state')) >= 0);
+    if (rows.length === 0) return { tasks: [], message: 'Nothing was open for this request; nothing changed.' };
+  }
+  for (const r of rows) {
+    r.set('state', p.failed === true ? 'failed' : 'done');
+    r.set('note', U.clip(p.note || '', 4000));
+    r.set('done_at', U.now());
+    app.save(r);
+    L('lib_store').log(app, ctx.actor, (p.failed === true ? 'Could not finish: ' : 'Finished: ') + r.getString('label') + (p.note ? ' (' + U.clip(p.note, 160) + ')' : ''), r.getString('target'));
+  }
+  return one !== null ? { task: view(rows[0]) } : { tasks: rows.map(view) };
 }
 
 function cancel(ctx, p) {
@@ -193,6 +341,22 @@ function cancel(ctx, p) {
   r.set('done_at', U.now());
   ctx.app.save(r);
   return { task: view(r) };
+}
+
+/** The seller's Retry: fire the same trigger once more for a task that was not sent, not picked up in 24 hours, or left unfinished. */
+function retry(ctx, p) {
+  const U = L('lib_util');
+  const app = ctx.app;
+  const r = ref(app, p.task);
+  if (OPEN.indexOf(r.getString('state')) < 0) throw U.fail(409, 'This task is ' + r.getString('state') + '. Ask again from its page.', 'conflict');
+  const why = staleOf(r);
+  if (why === '') {
+    if (r.getString('state') === 'working') throw U.fail(409, 'Your AI agent is working on it.', 'too_soon');
+    throw U.fail(409, 'Your AI agent was asked ' + Math.max(0, Math.floor(hoursSince(r.getString('asked_at')))) + ' hours ago. Retry opens when it has not picked this up within 24 hours.', 'too_soon');
+  }
+  const sent = send(app, r.getString('kind'), [r], [U.json(r, 'params', {})]);
+  L('lib_store').log(app, ctx.actor, (sent.ok ? 'Asked your AI agent again: ' : 'Could not ask your AI agent again: ') + r.getString('label'), r.getString('target'));
+  return { task: view(U.byId(app, 'tasks', r.id)), asked: sent.ok === true, message: sent.ok ? '' : notSent(sent) };
 }
 
 /* ------------------------------------------------------------------ chats */
@@ -218,10 +382,10 @@ function chatSend(ctx, p) {
   rec.set('state', 'sent');
   rec.set('context', U.clip(p.context || '', 200));
   app.save(rec);
-  const t = queue(app, 'chat', 'chat:' + rec.id, 'Answer: ' + U.clip(text, 120), { chat: rec.id, context: rec.getString('context') }, 'person');
-  rec.set('task', t.id);
+  const out = ask(app, 'chat', [{ target: 'chat:' + rec.id, label: 'Answer: ' + U.clip(text, 120), params: { chat: rec.id, context: rec.getString('context') } }], 'person');
+  rec.set('task', out.task.id);
   app.save(rec);
-  return { chat: chatView(rec) };
+  return { chat: chatView(rec), task: out.task, asked: out.asked, message: out.message };
 }
 
 function chatReply(ctx, p) {
@@ -237,14 +401,17 @@ function chatReply(ctx, p) {
 }
 
 module.exports = {
-  KINDS: KINDS,
   OPEN: OPEN,
+  kinds: kinds,
+  triggers: triggers,
+  staleOf: staleOf,
   view: view,
+  brief: brief,
   openFor: openFor,
   openMap: openMap,
-  queue: queue,
+  fireParams: fireParams,
   ask: ask,
-  tick: tick,
+  autoOn: autoOn,
   finishFor: finishFor,
   list: list,
   recent: recent,
@@ -252,6 +419,7 @@ module.exports = {
   start: start,
   finish: finish,
   cancel: cancel,
+  retry: retry,
   chats: chats,
   chatSend: chatSend,
   chatReply: chatReply,

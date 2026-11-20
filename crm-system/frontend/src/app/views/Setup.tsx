@@ -553,7 +553,7 @@ function Agent(): React.JSX.Element {
         </div>
       </Section>
       <Section title="House rules" sub="Standing instructions it follows in this CRM: how you like emails written, what never to do, who matters most.">
-        <textarea value={rules} onChange={(e) => setRules(e.target.value)} rows={6} className={cn(area, 'max-w-[720px]')} placeholder={'Write emails short, warm and in British English.\nNever email investors on weekends.\nTag anyone from a YC company with "yc".'} />
+        <textarea value={rules} onChange={(e) => setRules(e.target.value)} rows={6} aria-label="House rules" className={cn(area, 'max-w-[720px]')} placeholder={'Write emails short, warm and in British English.\nNever email investors on weekends.\nTag anyone from a YC company with "yc".'} />
         <Btn className="mt-2" variant="primary" onClick={() => void api.updatePolicy({ house_rules: rules }).then(() => toast.success('Saved')).catch((err: unknown) => toast.error(errMessage(err)))}>
           Save house rules
         </Btn>
@@ -828,7 +828,7 @@ export function SetupView({ q }: { q: Record<string, string> }): React.JSX.Eleme
     <div className="flex h-full min-h-0">
       <aside className="hidden w-[200px] shrink-0 overflow-y-auto border-r border-[var(--cr-line)] py-1.5 md:block">
         {TABS.map((t) => (
-          <button key={t.value} type="button" onClick={() => setQuery({ tab: t.value }, false)} className={cn('relative flex h-8 w-full items-center gap-2 px-3 text-left text-[12.5px] transition-colors', tab === t.value ? 'bg-[var(--cr-row-hover)] font-semibold' : 'hover:bg-[var(--cr-row)]')}>
+          <button key={t.value} type="button" onClick={() => setQuery({ tab: t.value }, false)} aria-current={tab === t.value ? 'true' : undefined} className={cn('relative flex h-8 w-full items-center gap-2 px-3 text-left text-[12.5px] transition-colors', tab === t.value ? 'bg-[var(--cr-row-hover)] font-semibold' : 'hover:bg-[var(--cr-row)]')}>
             {tab === t.value && <span aria-hidden className="absolute bottom-1 left-0 top-1 w-0.5 rounded-r bg-[var(--cr-accent)]" />}
             <t.icon size={14} className={tab === t.value ? '' : 'text-[var(--cr-muted)]'} />
             {t.label}

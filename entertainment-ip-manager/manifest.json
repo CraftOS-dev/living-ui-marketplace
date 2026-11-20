@@ -1,46 +1,292 @@
 {
-  "id": "{{PROJECT_ID}}",
-  "name": "{{PROJECT_NAME}}",
-  "description": "{{PROJECT_DESCRIPTION}}",
-  "agentAppVersion": 2,
-  "createdAt": "{{CREATED_AT}}",
+  "id": "entertainment-ip-manager",
+  "name": "Entertainment IP Manager",
+  "agentAppVersion": "0.1.0",
+  "adapterVersion": "0.2.0",
+  "appVersion": "1.0.0",
   "authMode": "multi-user",
-  "port": "{{PORT}}",
-  "pbVersion": "0.39.7",
-  "kitVersion": "0.6.0",
-  "craftbotVersion": "1.4.3",
-  "pipeline": {
-    "install": "npm install --ignore-scripts --prefix frontend",
-    "build": "npm run build --prefix frontend",
-    "start": "pocketbase serve --http=127.0.0.1:{{PORT}} --dir pb/pb_data --hooksDir pb/pb_hooks --migrationsDir pb/pb_migrations --publicDir pb/pb_public",
-    "health": "/api/health"
-  },
+  "modules": [
+    {
+      "name": "session",
+      "summary": "check",
+      "entities": []
+    },
+    {
+      "name": "meta",
+      "summary": "meta",
+      "entities": []
+    },
+    {
+      "name": "onboarding",
+      "summary": "complete",
+      "entities": []
+    },
+    {
+      "name": "settings",
+      "summary": "modules",
+      "entities": [
+        "settings"
+      ]
+    },
+    {
+      "name": "app",
+      "summary": "guide",
+      "entities": []
+    },
+    {
+      "name": "records",
+      "summary": "delete",
+      "entities": [
+        "users",
+        "office_connections",
+        "talent_identity",
+        "castings",
+        "character_assets",
+        "society_contracts",
+        "society_registrations",
+        "content_id_assets",
+        "content_id_claims",
+        "cid_allowlist",
+        "families",
+        "goods_services",
+        "dimension_values",
+        "approval_rounds",
+        "seal_orders",
+        "enforcement_cases",
+        "evidence",
+        "platform_enrollments",
+        "customs_recordations",
+        "royalty_reports",
+        "royalty_lines",
+        "clearances",
+        "office_calendars",
+        "fee_schedule",
+        "involvements",
+        "saved_views",
+        "audit_log",
+        "notifications",
+        "sync_runs",
+        "ics_tokens"
+      ]
+    },
+    {
+      "name": "portfolio",
+      "summary": "summary, search",
+      "entities": [
+        "franchises"
+      ]
+    },
+    {
+      "name": "schedule",
+      "summary": "preview, record, regenerate",
+      "entities": [
+        "events"
+      ]
+    },
+    {
+      "name": "deadlines",
+      "summary": "create, close, extend, reassign, move, upcoming, explain",
+      "entities": []
+    },
+    {
+      "name": "rules",
+      "summary": "test",
+      "entities": []
+    },
+    {
+      "name": "calendars",
+      "summary": "refresh, business-days",
+      "entities": []
+    },
+    {
+      "name": "calendar",
+      "summary": "feed, ics",
+      "entities": [
+        "calendar_years"
+      ]
+    },
+    {
+      "name": "digest",
+      "summary": "preview, send",
+      "entities": []
+    },
+    {
+      "name": "reports",
+      "summary": "run",
+      "entities": []
+    },
+    {
+      "name": "inbox",
+      "summary": "propose, preview, decide",
+      "entities": [
+        "grants",
+        "watch_hits",
+        "documents",
+        "inbox_items"
+      ]
+    },
+    {
+      "name": "products",
+      "summary": "submit-approval, advance",
+      "entities": [
+        "products"
+      ]
+    },
+    {
+      "name": "approvals",
+      "summary": "decide, resubmit, withdraw",
+      "entities": [
+        "approvals"
+      ]
+    },
+    {
+      "name": "seals",
+      "summary": "order, issue, reconcile, variance",
+      "entities": []
+    },
+    {
+      "name": "royalties",
+      "summary": "add-lines, recalc, mg-status, record-payment",
+      "entities": []
+    },
+    {
+      "name": "portal",
+      "summary": "context, submit-product, submit-stage, submit-statement…",
+      "entities": []
+    },
+    {
+      "name": "matters",
+      "summary": "info, lookup, import-office, sync, designate, leak-check",
+      "entities": []
+    },
+    {
+      "name": "coverage",
+      "summary": "matrix",
+      "entities": []
+    },
+    {
+      "name": "renewals",
+      "summary": "decide, instruct, record-payment, forecast, refresh-costs",
+      "entities": [
+        "renewals"
+      ]
+    },
+    {
+      "name": "offices",
+      "summary": "save, test, sync-all",
+      "entities": []
+    },
+    {
+      "name": "fx",
+      "summary": "refresh",
+      "entities": [
+        "fx_rates"
+      ]
+    },
+    {
+      "name": "import",
+      "summary": "matters, watch",
+      "entities": []
+    },
+    {
+      "name": "music",
+      "summary": "completeness, setlist-check, unregistered…",
+      "entities": [
+        "songs",
+        "recordings",
+        "releases"
+      ]
+    },
+    {
+      "name": "content-id",
+      "summary": "conflicts, claim-event",
+      "entities": []
+    },
+    {
+      "name": "talents",
+      "summary": "pre-stream-check, exposure, lifecycle",
+      "entities": [
+        "talents"
+      ]
+    },
+    {
+      "name": "permissions",
+      "summary": "recheck",
+      "entities": [
+        "parties",
+        "permissions"
+      ]
+    },
+    {
+      "name": "guidelines",
+      "summary": "from-template, publish",
+      "entities": [
+        "guidelines"
+      ]
+    },
+    {
+      "name": "fan",
+      "summary": "decide",
+      "entities": [
+        "fan_registrations"
+      ]
+    },
+    {
+      "name": "cases",
+      "summary": "draft-notice, evidence",
+      "entities": []
+    },
+    {
+      "name": "rights",
+      "summary": "can-we, availability, dimensions",
+      "entities": [
+        "dimensions"
+      ]
+    },
+    {
+      "name": "agreements",
+      "summary": "check-conflicts, sync",
+      "entities": []
+    },
+    {
+      "name": "titles",
+      "summary": "copyright-term",
+      "entities": [
+        "titles"
+      ]
+    },
+    {
+      "name": "characters",
+      "summary": "chain",
+      "entities": [
+        "characters"
+      ]
+    },
+    {
+      "name": "committees",
+      "summary": "compute, save-distribution, mark-paid, recoupment, who-decides",
+      "entities": [
+        "committees",
+        "distributions"
+      ]
+    },
+    {
+      "name": "consent",
+      "summary": "open, answer, close",
+      "entities": [
+        "committee_members",
+        "consent_requests"
+      ]
+    }
+  ],
+  "modificationLock": false,
   "capabilities": {
-    "external_hosts": [
-      "api-sandbox.euipo.europa.eu",
-      "api.euipo.europa.eu",
-      "auth-sandbox.euipo.europa.eu",
-      "auth.euipo.europa.eu",
-      "ip-data.jpo.go.jp",
-      "tsdrapi.uspto.gov",
-      "www.ecb.europa.eu",
-      "www8.cao.go.jp"
-    ],
-    "actions": [
-      "send_gmail",
-      "send_slack_message"
-    ],
-    "triggers": [
-      "agreement_extraction_requested",
-      "approval_review_requested",
-      "document_docketing_requested",
-      "email_draft_requested",
-      "guideline_check_requested",
-      "marketplace_scan_requested",
-      "portfolio_question_asked",
-      "royalty_statement_requested",
-      "takedown_drafts_requested"
-    ]
+    "integrations": []
   },
-  "adapterVersion": "1.9.0"
+  "pipeline": {
+    "install": "node pb-fetch.mjs && npm --prefix frontend install --ignore-scripts --no-audit --no-fund",
+    "build": "node pb-build.mjs",
+    "start": "node pb-serve.mjs",
+    "health": "/api/_a2app"
+  }
 }

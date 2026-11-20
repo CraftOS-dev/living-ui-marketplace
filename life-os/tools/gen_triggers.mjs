@@ -32,10 +32,10 @@ const out = { triggers: {} };
 for (const [name, t] of Object.entries(TRIGGERS)) {
   let instruction;
   if (t.recipe === null) {
-    instruction = 'The person sent one of your proposals back in this Life OS with what to change. 1) `agent-app run <project> proposals.list --status returned` and find <proposal_id>: read its decision_note. 2) Make the change they asked for and propose again with the same operation and a new --why (never re-submit it unchanged), or say in one message why it cannot be done. ' + TAIL;
+    instruction = 'The person sent one of your proposals back in this Life OS with what to change. 1) `a2app <app> proposals proposals.list --status returned` and find <proposal_id>: read its decision_note. 2) Make the change they asked for and propose again with the same operation and a new --why (never re-submit it unchanged), or say in one message why it cannot be done. ' + TAIL;
   } else {
     const lines = RECIPES[t.recipe];
-    instruction = lines[0] + ' First run `agent-app run <project> app.guide` once for the rules. Steps (every command is `agent-app run <project> <op> ...`): ' + lines.slice(1).join(' ') + ' Finish with exactly one short message to the person. ' + TAIL;
+    instruction = lines[0] + ' First run `a2app <app> app app.guide` once for the rules. Steps (every command is `a2app <app> <module> <operation> ...`; the module is the first word of the operation, except tasks.* in todos and events.* in schedule): ' + lines.slice(1).join(' ') + ' Finish with exactly one short message to the person. ' + TAIL;
   }
   const params = {};
   for (const [k, v] of Object.entries(t.params)) {

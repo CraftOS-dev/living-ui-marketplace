@@ -108,7 +108,7 @@ export function Sidebar({ page, boardId, collapsed, onCollapse, onNewBoard, draw
       <div className="kb-scroll flex min-h-0 flex-1 flex-col overflow-y-auto overflow-x-hidden px-2 pb-2">
         <div className="flex flex-col gap-0.5">
           <NavRow icon={SquarePen} label="New card" strong collapsed={collapsed} onClick={() => (app.setMenu(false), app.setCompose({ board: boardId }))} />
-          <NavRow icon={Inbox} label="Inbox" to={href('inbox')} active={page === 'inbox'} count={app.needsYou - app.reviews} countTone="accent" collapsed={collapsed} />
+          <NavRow icon={Inbox} label="Inbox" to={href('inbox')} active={page === 'inbox'} count={app.needsYou} countTone="accent" collapsed={collapsed} />
           <NavRow icon={Eye} label="Review" to={href('review')} active={page === 'review'} count={app.reviews} countTone="accent" collapsed={collapsed} />
           <NavRow icon={TrendingUp} label="Insights" to={href('insights')} active={page === 'insights'} collapsed={collapsed} />
           <NavRow icon={Activity} label="Activity" to={href('activity')} active={page === 'activity'} collapsed={collapsed} />

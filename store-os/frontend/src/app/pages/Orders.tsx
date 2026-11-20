@@ -19,8 +19,9 @@ import { dayShort, money, num, plural, time } from '../lib/format.ts';
 import { go } from '../lib/router.ts';
 import type { Route } from '../lib/router.ts';
 import { useStore } from '../lib/store.tsx';
+import { askNotice } from '../lib/ask.ts';
 import { notify } from '../lib/toast.tsx';
-import type { OrderDetail, OrderList, OrderRow, OrderView, Task } from '../lib/types.ts';
+import type { AskResult, OrderDetail, OrderList, OrderRow, OrderView, Task, TaskBrief } from '../lib/types.ts';
 import { Clock, OrderStatus, ShopFilter, TrackPill } from '../components/badges.tsx';
 import { ImportDialog } from '../components/ImportDialog.tsx';
 import { AddOrderDialog, CancelDialog, orderChanged, PAYMENT_LABEL, ShipDialog } from '../components/OrderDialogs.tsx';
@@ -163,27 +164,25 @@ export function OrdersPage({ route }: { route: Route }): React.JSX.Element {
   const [cancel, setCancel] = useState<{ id: string; number: string } | null>(null);
   const [picking, setPicking] = useState(false);
 
-  /* your AI agent checking every parcel on its way */
+  /* your AI agent checking parcels on their way: one task per order, summed up here */
   const trackable = view === 'shipped' || view === 'exceptions';
-  const [trackId, setTrackId] = useState('');
   const [trackBusy, setTrackBusy] = useState(false);
-  const track = useLive<Task | null>(
-    'orders:track-all:' + (trackable ? trackId : 'off'),
+  const track = useLive<TaskBrief | null>(
+    'orders:track-all:' + (trackable ? 'on' : 'off'),
     async (signal) => {
       if (!trackable) return null;
-      if (trackId !== '') return (await op<{ task: Task }>('tasks.get', { task: trackId }, { signal, quiet: true })).task;
-      const open = await op<{ tasks: Task[] }>('tasks.list', {}, { signal, quiet: true });
-      return open.tasks.find((t) => t.target === 'store:tracking') ?? null;
+      const open = (await op<{ tasks: Task[] }>('tasks.list', { limit: 200 }, { signal, quiet: true })).tasks.filter((t) => t.kind === 'tracking');
+      if (open.length === 0) return null;
+      const stale = open.filter((t) => t.stale).length === open.length ? (open[0]!.stale ?? '') : '';
+      return { id: '', kind: 'tracking', state: open.some((t) => t.state === 'working') ? 'working' : 'asked', label: 'Checking the tracking of ' + plural(open.length, 'parcel'), stale: stale };
     },
     ['tasks'],
-    [trackable, trackId],
+    [trackable],
   );
   const trackAll = async (): Promise<void> => {
     setTrackBusy(true);
     try {
-      const r = await op<{ task: Task }>('orders.track-all', {});
-      setTrackId(r.task.id);
-      notify.info('Asked your AI agent to check tracking');
+      askNotice(await op<AskResult>('orders.track-all', {}), 'Asked your AI agent to check tracking');
       changed('tasks', 'activity');
     } catch {
       /* the notice says why */
@@ -204,8 +203,7 @@ export function OrdersPage({ route }: { route: Route }): React.JSX.Element {
   };
   const askTracking = async (r: OrderRow): Promise<void> => {
     try {
-      await op('orders.help', { order: r.id, task: 'tracking' });
-      notify.info('Asked your AI agent');
+      askNotice(await op<AskResult>('orders.help', { order: r.id, task: 'tracking' }));
       changed('tasks', 'activity');
     } catch {
       /* the notice says why */

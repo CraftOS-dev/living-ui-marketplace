@@ -35,8 +35,9 @@ export function MainView({ controller }: Props) {
   const [newContent, setNewContent] = useState('')
   const [newNodeType, setNewNodeType] = useState<NodeType>('question')
 
-  // delete modal
+  // delete modals
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null)
+  const [deleteSessionConfirmId, setDeleteSessionConfirmId] = useState<number | null>(null)
 
   // edit modal
   const [editingNode, setEditingNode] = useState<BrainstormNode | null>(null)
@@ -54,7 +55,7 @@ export function MainView({ controller }: Props) {
   const [exploreEffort, setExploreEffort] = useState(3)
   const [exploreStartNodeId, setExploreStartNodeId] = useState<number | null>(null)
   const [exploring, setExploring] = useState(false)
-  const [exploreStepTick, setExploreStepTick] = useState(0)
+  const [exploreStepsDone, setExploreStepsDone] = useState(0)
 
   useEffect(() => controller.subscribe(setState), [controller])
 
@@ -82,9 +83,15 @@ export function MainView({ controller }: Props) {
     catch { toast.error('Failed to rename session') }
   }
 
-  async function handleDeleteSession(id: number) {
-    try { await controller.deleteSession(id); toast.success('Session deleted') }
+  function handleDeleteSessionRequest(id: number) {
+    setDeleteSessionConfirmId(id)
+  }
+
+  async function confirmDeleteSession() {
+    if (deleteSessionConfirmId === null) return
+    try { await controller.deleteSession(deleteSessionConfirmId); toast.success('Session deleted') }
     catch { toast.error('Failed to delete session') }
+    finally { setDeleteSessionConfirmId(null) }
   }
 
   // ── Node handlers ───────────────────────────────────────────────────────────
@@ -146,23 +153,18 @@ export function MainView({ controller }: Props) {
     if (!state.activeSessionId) return
     setExploreModalOpen(false)
     setExploring(true)
-    setExploreStepTick(0)
-    const effort = exploreEffort
-    const interval = window.setInterval(() => {
-      setExploreStepTick(t => Math.min(t + 1, effort - 1))
-    }, 4000)
+    setExploreStepsDone(0)
     try {
       const result = await controller.exploreSession({
         strategy: exploreStrategy,
-        effort,
+        effort: exploreEffort,
         startNodeId: exploreStartNodeId,
-      })
+      }, setExploreStepsDone)
       const ran = result.stepsRun ?? 0
       toast.success(ran > 0 ? `AI explored ${ran} step${ran === 1 ? '' : 's'}` : 'Nothing left to explore')
     } catch (e) {
       toast.error(errMsg(e, 'Explore failed'))
     } finally {
-      window.clearInterval(interval)
       setExploring(false)
     }
   }
@@ -228,7 +230,7 @@ export function MainView({ controller }: Props) {
         onSelect={handleSelectSession}
         onCreate={handleCreateSession}
         onRename={handleRenameSession}
-        onDelete={handleDeleteSession}
+        onDelete={handleDeleteSessionRequest}
       />
 
       <div className="main-area">
@@ -459,6 +461,25 @@ export function MainView({ controller }: Props) {
         </div>
       </Modal>
 
+      {/* ── Delete session confirmation ──────────────────────────────────────── */}
+      <Modal
+        open={deleteSessionConfirmId !== null}
+        onClose={() => setDeleteSessionConfirmId(null)}
+        title="Delete session?"
+        size="sm"
+        footer={
+          <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+            <Button variant="ghost" onClick={() => setDeleteSessionConfirmId(null)}>Cancel</Button>
+            <Button variant="danger" onClick={confirmDeleteSession}>Delete</Button>
+          </div>
+        }
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: 'var(--text-secondary)', fontSize: 13 }}>
+          <AlertCircle size={16} style={{ color: 'var(--color-error)', flexShrink: 0 }} />
+          This will delete the session and all its nodes.
+        </div>
+      </Modal>
+
       {/* ── AI Explore launch modal ──────────────────────────────────────────── */}
       <Modal
         open={exploreModalOpen}
@@ -514,7 +535,7 @@ export function MainView({ controller }: Props) {
             value={exploreStartNodeId === null ? 'auto' : String(exploreStartNodeId)}
             onChange={e => setExploreStartNodeId(e.target.value === 'auto' ? null : Number(e.target.value))}
             options={[
-              { value: 'auto', label: 'Auto — agent picks the best node' },
+              { value: 'auto', label: 'Auto — start from the branch tips' },
               ...state.nodes.map(n => ({
                 value: String(n.id),
                 label: `[${n.nodeType}] ${n.content.length > 44 ? n.content.slice(0, 44) + '…' : n.content}`,
@@ -533,7 +554,7 @@ export function MainView({ controller }: Props) {
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, padding: '8px 0' }}>
           <Loader2 size={28} className="explore-spin" style={{ color: 'var(--color-primary)' }} />
           <p style={{ fontSize: 13, color: 'var(--text-secondary)', textAlign: 'center', margin: 0 }}>
-            Exploring — step {Math.min(exploreStepTick + 1, exploreEffort)} of {exploreEffort}…
+            Exploring — step {Math.min(exploreStepsDone + 1, exploreEffort)} of {exploreEffort}…
           </p>
           <p style={{ fontSize: 11, color: 'var(--text-muted)', textAlign: 'center', margin: 0 }}>
             The AI is generating content for each step. This can take a while — feel free to wait.

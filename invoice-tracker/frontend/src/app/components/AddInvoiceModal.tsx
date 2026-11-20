@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import type { InvoiceReceipt } from '../types'
 import { CURRENCY_OPTIONS, ALL_CATEGORIES } from '../types'
 import { Modal, Button, Input } from './ui'
@@ -8,19 +8,26 @@ interface Props {
   isOpen: boolean
   onClose: () => void
   onAdd: (data: Partial<InvoiceReceipt>) => void
+  /** The shown workspace's currency (the one its totals use): the form opens on it. */
+  defaultCurrency: string
 }
 
-export const AddInvoiceModal: React.FC<Props> = ({ isOpen, onClose, onAdd }) => {
+export const AddInvoiceModal: React.FC<Props> = ({ isOpen, onClose, onAdd, defaultCurrency }) => {
   const [vendor, setVendor] = useState('')
   const [amount, setAmount] = useState('')
-  const [currency, setCurrency] = useState('USD')
+  const [currency, setCurrency] = useState(defaultCurrency)
   const [category, setCategory] = useState('Software & SaaS')
   const [purpose, setPurpose] = useState('')
   const [invoiceNumber, setInvoiceNumber] = useState('')
+
+  // Each time the form opens it starts on the workspace's currency
+  useEffect(() => {
+    if (isOpen) setCurrency(defaultCurrency)
+  }, [isOpen, defaultCurrency])
   const [attachedPdf, setAttachedPdf] = useState<{
     name: string
     size: number
-    base64?: string
+    file: File
     textPreview?: string
   } | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -34,33 +41,30 @@ export const AddInvoiceModal: React.FC<Props> = ({ isOpen, onClose, onAdd }) => 
       return
     }
 
-    const reader = new FileReader()
-    reader.onload = () => {
-      const base64 = reader.result as string
-      setAttachedPdf({
-        name: file.name,
-        size: file.size,
-        base64,
-        textPreview: `PDF Invoice Statement extracted from ${file.name} (${(file.size / 1024).toFixed(1)} KB)`
-      })
+    // The picked file is stored on the invoice when the record is saved
+    setAttachedPdf({
+      name: file.name,
+      size: file.size,
+      file,
+      textPreview: `PDF Invoice Statement extracted from ${file.name} (${(file.size / 1024).toFixed(1)} KB)`
+    })
 
-      // Auto-populate vendor or invoice number if empty
-      if (!vendor) {
-        const cleanName = file.name.replace(/\.pdf$/i, '').replace(/[-_]/g, ' ')
-        if (/aws|amazon/i.test(cleanName)) setVendor('Amazon Web Services')
-        else if (/openai/i.test(cleanName)) setVendor('OpenAI')
-        else if (/cursor/i.test(cleanName)) setVendor('Cursor AI')
-        else if (/figma/i.test(cleanName)) setVendor('Figma')
-        else if (/vercel/i.test(cleanName)) setVendor('Vercel')
-        else if (/stripe/i.test(cleanName)) setVendor('Stripe')
-        else if (/google/i.test(cleanName)) setVendor('Google Workspace')
-      }
-      if (!invoiceNumber) {
-        const match = file.name.match(/(INV|REC|BILL)[-_]?[0-9A-Z]+/i)
-        if (match) setInvoiceNumber(match[0].toUpperCase())
-      }
+    // Auto-populate vendor or invoice number if empty
+    if (!vendor) {
+      const cleanName = file.name.replace(/\.pdf$/i, '').replace(/[-_]/g, ' ')
+      if (/aws|amazon/i.test(cleanName)) setVendor('Amazon Web Services')
+      else if (/openai/i.test(cleanName)) setVendor('OpenAI')
+      else if (/cursor/i.test(cleanName)) setVendor('Cursor AI')
+      else if (/figma/i.test(cleanName)) setVendor('Figma')
+      else if (/vercel/i.test(cleanName)) setVendor('Vercel')
+      else if (/stripe/i.test(cleanName)) setVendor('Stripe')
+      else if (/google/i.test(cleanName)) setVendor('Google Workspace')
     }
-    reader.readAsDataURL(file)
+    if (!invoiceNumber) {
+      const match = file.name.match(/(INV|REC|BILL)[-_]?[0-9A-Z]+/i)
+      if (match) setInvoiceNumber(match[0].toUpperCase())
+    }
+    if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -82,7 +86,7 @@ export const AddInvoiceModal: React.FC<Props> = ({ isOpen, onClose, onAdd }) => 
     }
     if (attachedPdf?.name) newInvPayload.pdfFilename = attachedPdf.name
     if (attachedPdf?.textPreview) newInvPayload.pdfTextPreview = attachedPdf.textPreview
-    if (attachedPdf?.base64) newInvPayload.pdfDataBase64 = attachedPdf.base64
+    if (attachedPdf?.file) newInvPayload.pdfUpload = attachedPdf.file
 
     onAdd(newInvPayload)
 
